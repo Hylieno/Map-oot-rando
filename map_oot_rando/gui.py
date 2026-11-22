@@ -1,7 +1,10 @@
 """Local Tk map. Importing this module never starts a tracker or memory reader."""
 import json
+from queue import Empty, Queue
+from threading import Thread
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
+from .export import import_seed
 from .model import load_metadata, select
 from .state import StateStore
 from .simulation import Simulation, demo_document
@@ -24,6 +27,8 @@ class MapApplication:
         self.category = tk.StringVar(value='Toutes')
         self.status_vars = {key: tk.BooleanVar(value=True) for key in COLORS}
         self.banner = tk.StringVar()
+        self.import_status = tk.StringVar()
+        self.import_events = Queue()
         self.connection = tk.StringVar()
         self.details = tk.StringVar(value='Sélectionnez un emplacement.')
         self.count = tk.StringVar()
@@ -32,6 +37,15 @@ class MapApplication:
         ttk.Label(top, textvariable=self.banner).pack(side='left')
         ttk.Button(top, text='Ouvrir métadonnées...', command=self.open_metadata).pack(side='right')
         ttk.Button(top, text='Simulation', command=lambda: self.load(demo_document())).pack(side='right')
+        import_bar = ttk.Frame(root, padding=(10, 0, 10, 0))
+        import_bar.pack(fill='x')
+        self.import_button = ttk.Button(import_bar, text='Importer mon jeu et ma seed…',
+                                        command=self.choose_seed)
+        self.import_button.pack(side='left')
+        self.save_button = ttk.Button(import_bar, text='Enregistrer la carte…',
+                                      command=self.save_map)
+        self.save_button.pack(side='left', padx=8)
+        ttk.Label(import_bar, textvariable=self.import_status).pack(side='left')
         ttk.Label(root, textvariable=self.connection, padding=8).pack(fill='x')
         body = ttk.Panedwindow(root, orient='horizontal')
         body.pack(fill='both', expand=True)
@@ -81,15 +95,18 @@ class MapApplication:
 
     def load(self, document):
         locations = load_metadata(document)  # Validate before replacing current state.
+        self.document = document
         self.locations = locations
         self.simulation = Simulation(locations) if document['provenance'] == 'synthetic' else None
+        self.save_button.state(['disabled' if self.simulation else '!disabled'])
         self.store = self.simulation.store if self.simulation else StateStore(document.get('seed_id', ''), [r.id for r in locations])
         self.selected = None
         self.details.set('Sélectionnez un emplacement.')
         self.banner.set('SIMULATION - noms et positions fictifs' if self.simulation else
                         'Kokiri Forest - métadonnées importées ; tracker non connecté')
         self.resources['values'] = sorted({r.resource for r in locations})
-        self.resource.set(self.resources['values'][0] if locations else '')
+        first_positioned = next((r.resource for r in locations if r.position is not None), None)
+        self.resource.set(first_positioned or (self.resources['values'][0] if locations else ''))
         self.categories['values'] = ['Toutes'] + sorted({r.category for r in locations})
         self.category.set('Toutes')
         if self.simulation:
@@ -99,6 +116,57 @@ class MapApplication:
         self.query.set('')
         self.render()
         self.fit()
+
+    def choose_seed(self):
+        nup = filedialog.askopenfilename(parent=self.root, title='Choisir le fichier NUP du jeu',
+                                         filetypes=[('Jeu NUP', '*.nup')])
+        if not nup:
+            return
+        checks = filedialog.askopenfilename(parent=self.root, title='Choisir le checks.json de la seed OotrR',
+                                            filetypes=[('Catalogue JSON', '*.json')])
+        if not checks:
+            return
+        self.import_button.state(['disabled'])
+        self.import_status.set('Analyse locale du jeu en cours…')
+
+        def scan():
+            try:
+                document = import_seed(nup, checks, lambda msg: self.import_events.put(('progress', msg)))
+                self.import_events.put(('done', document))
+            except Exception as error:
+                self.import_events.put(('error', str(error)))
+
+        Thread(target=scan, daemon=True).start()
+        self.root.after(100, self.poll_import)
+
+    def poll_import(self):
+        try:
+            while True:
+                event, value = self.import_events.get_nowait()
+                if event == 'progress':
+                    self.import_status.set(value)
+                    continue
+                self.import_button.state(['!disabled'])
+                if event == 'done':
+                    self.load(value)
+                    missing = len(value['diagnostics'])
+                    self.import_status.set(f'Carte chargée. {missing} check(s) sans position.')
+                else:
+                    self.import_status.set('Import interrompu.')
+                    messagebox.showerror('Import impossible', value, parent=self.root)
+                return
+        except Empty:
+            self.root.after(100, self.poll_import)
+
+    def save_map(self):
+        path = filedialog.asksaveasfilename(parent=self.root, initialfile='kokiri.json',
+                                            defaultextension='.json', filetypes=[('Carte JSON', '*.json')])
+        if path:
+            try:
+                with open(path, 'w', encoding='utf-8') as stream:
+                    json.dump(self.document, stream, ensure_ascii=False, indent=2)
+            except OSError as error:
+                messagebox.showerror('Enregistrement impossible', str(error), parent=self.root)
 
     def open_metadata(self):
         path = filedialog.askopenfilename(filetypes=[('Métadonnées JSON', '*.json')])

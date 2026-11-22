@@ -76,3 +76,11 @@ La branche et la PR #1 restent les points de reprise.
 Fichiers principaux : export.py, metadata.py, model.py, view.py, gui.py,
 tests/test_export.py et tests/test_view.py. La documentation des cinq fichiers
 de continuité a été actualisée.
+
+# Import depuis la version portable Windows
+
+Le bouton d’import lit un NUP et un catalogue OotrR locaux en arrière-plan,
+puis affiche la carte. Un bouton permet d’enregistrer le JSON pour le rouvrir
+sans refaire le scan. Le build embarque le scanner OotrR épinglé et sa licence.
+Un test Tk simule le parcours et le workflow vérifie le scanner compilé avec
+un fichier invalide. La validation avec les fichiers réels reste à faire.

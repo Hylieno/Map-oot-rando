@@ -61,7 +61,15 @@ Préversion compilée : [télécharger l'artifact Windows x64](https://github.co
 (connexion GitHub requise ; rétention de 14 jours). Tests Tk et build CI réussis ;
 exécutable packagé pas encore validé manuellement.
 
-## Exporter les points d'une seed OotrR
+## Importer sa seed dans la version portable Windows
+
+Extraire le ZIP et ouvrir `Map-oot-rando.exe`. Cliquer sur **Importer mon jeu et ma seed…**,
+puis choisir le NUP du jeu mis à jour et le `checks.json` du dossier de la seed OotrR.
+La carte se charge à la fin du scan local. **Enregistrer la carte…** permet de
+garder un JSON réutilisable via **Ouvrir métadonnées…**. Python et le scanner
+OotrR sont inclus dans le build portable.
+
+## Exporter les points d'une seed OotrR en ligne de commande
 
 Dans une copie locale du [dépôt OotrR](https://github.com/Mozencaz/OotrR), sélectionner
 la révision `283d3ec0f161d32e168afac45e502442c1ffb081`. Installer ses dépendances

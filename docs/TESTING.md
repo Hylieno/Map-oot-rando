@@ -51,3 +51,7 @@ L'appel au scanner avec un NUP réel reste à tester.
 
 Les 17 tests, dont ceux de Tkinter, et la compilation portable réussissent sur
 [Windows CI](https://github.com/Hylieno/Map-oot-rando/actions/runs/45065577348).
+
+Le parcours d’import Tk utilise un résultat synthétique. Le workflow Windows
+lance aussi l’exécutable compilé et vérifie que le parseur OotrR embarqué
+rejette un fichier de test invalide. Aucun NUP réel utilisé.

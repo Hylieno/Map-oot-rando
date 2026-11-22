@@ -23,13 +23,26 @@ jobs:
         env:
           MAP_REQUIRE_DISPLAY: '1'
         run: python -m unittest discover -s tests -v
-      - name: Install packager
-        run: python -m pip install pyinstaller==6.11.1
+      - uses: actions/checkout@v4
+        with:
+          repository: Mozencaz/OotrR
+          ref: 283d3ec0f161d32e168afac45e502442c1ffb081
+          path: upstream-ootrr
+          persist-credentials: false
+      - name: Install packager and scanner dependencies
+        run: python -m pip install pyinstaller==6.11.1 'zstandard>=0.23,<1' 'evfl>=1.3,<2'
       - name: Build portable preview
-        run: python -m PyInstaller --noconfirm --clean --windowed --onedir --name Map-oot-rando --paths . packaging/launcher.py
+        run: python -m PyInstaller --noconfirm --clean --windowed --onedir --name Map-oot-rando --paths . --paths upstream-ootrr/src packaging/launcher.py
+      - name: Verify frozen scanner
+        shell: pwsh
+        run: |
+          Set-Content -Path invalid.nup -Value 'Invalid test input'
+          $app = Start-Process -FilePath dist/Map-oot-rando/Map-oot-rando.exe -ArgumentList '--check-bundled-import', 'invalid.nup' -Wait -PassThru
+          if ($app.ExitCode -ne 0) { exit $app.ExitCode }
       - name: Include usage and limitations
         shell: pwsh
         run: |
+          Copy-Item upstream-ootrr/LICENSE dist/Map-oot-rando/OotrR-LICENSE.txt
           Copy-Item README.md dist/Map-oot-rando/
           Copy-Item docs/TESTING.md dist/Map-oot-rando/
       - uses: actions/upload-artifact@v4

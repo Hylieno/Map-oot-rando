@@ -80,3 +80,35 @@ class GuiTests(unittest.TestCase):
         self.assertIsNone(app.store.last_success)
         app.load(demo_document())
         self.assertIsNotNone(app.simulation)
+
+    def test_seed_import_loads_map_without_export_dialog(self):
+        from threading import Event
+        from unittest.mock import patch
+
+        app = self.app
+        finished = Event()
+        document = demo_document()
+        document.update(provenance='ootrr-scan', seed_id='test-seed', diagnostics=[])
+
+        def fake_import(nup, checks, progress):
+            progress('Lecture des cartes')
+            return document
+
+        original_put = app.import_events.put
+
+        def signal_result(result):
+            original_put(result)
+            if result[0] == 'done':
+                finished.set()
+
+        with (patch.object(app.import_events, 'put', side_effect=signal_result),
+              patch('map_oot_rando.gui.filedialog.askopenfilename', side_effect=['game.nup', 'checks.json']),
+              patch('map_oot_rando.gui.import_seed', side_effect=fake_import) as importer):
+            app.choose_seed()
+            self.assertTrue(finished.wait(3))
+            app.poll_import()
+        importer.assert_called_once()
+        self.assertEqual(app.store.seed_id, 'test-seed')
+        self.assertIsNone(app.simulation)
+        self.assertIn('Carte chargée', app.import_status.get())
+        self.assertFalse(app.import_button.instate(['disabled']))
