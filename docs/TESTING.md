@@ -63,3 +63,6 @@ Régression d’import reproduite avec deux positions distinctes pour le même
 check dans la même ressource. Le test couvre l’export, la jointure au catalogue,
 la relecture JSON, la projection et le statut partagé. La nouvelle version
 reste à essayer avec le NUP qui a déclenché le signalement.
+
+Les 19 tests et la vérification de l’exécutable compilé passent sur
+[Windows CI](https://github.com/Hylieno/Map-oot-rando/actions/runs/45067415834).
