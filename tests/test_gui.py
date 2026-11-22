@@ -127,3 +127,19 @@ class GuiTests(unittest.TestCase):
         app.resource_changed()
         self.assertFalse(app.canvas.find_withtag('scene'))
         self.assertTrue(app.markers)
+
+    def test_aerial_image_is_drawn_below_checks_for_its_resource(self):
+        from PIL import Image
+        from map_oot_rando.aerial import AerialImage
+
+        doc = demo_document()
+        background = AerialImage(Image.new('RGB', (32, 32), 'green'),
+                                 [(0, 0), (32, 0), (0, 32)], [(0, 0), (100, 0), (0, 100)])
+        doc['aerial'] = {'SIMULATION / extérieur': background.to_document()}
+        app = self.app
+        app.load(doc)
+        image, = app.canvas.find_withtag('aerial')
+        self.assertLess(image, min(app.markers))
+        app.resource.set('SIMULATION / intérieur')
+        app.resource_changed()
+        self.assertFalse(app.canvas.find_withtag('aerial'))

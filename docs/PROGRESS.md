@@ -95,3 +95,8 @@ partir du scan local. Les volumes de pièces sont dessinés en rectangles et les
 repères ponctuels en losanges. Les checks restent au premier plan et la carte
 limite la superposition des libellés. Les anciens JSON restent lisibles avec
 la grille. Un nouvel import est requis pour y ajouter les repères.
+
+Le bouton « Ajouter une vue aérienne… » permet d’aligner une image locale vue
+de dessus sur trois repères relevés dans le jeu. Le fond et les checks partagent
+le zoom et le déplacement. Le JSON conserve l’image et son alignement par
+ressource. Une image de référence reste nécessaire pour valider la vue Kokiri.

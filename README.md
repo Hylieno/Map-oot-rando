@@ -9,9 +9,10 @@ nomenclature, dont l'existence n'est pas présumée.
 
 ## Lancer localement
 
-Python 3.10+ avec Tkinter, sans dépendance Python supplémentaire :
+Python avec Tkinter et Pillow pour le lancement depuis les sources :
 
 ```sh
+python -m pip install -r requirements.txt
 python -m map_oot_rando
 ```
 
@@ -25,6 +26,18 @@ et exécuter cette commande. La validation locale a été faite sous Linux, pas 
 - En simulation, sélectionner un check puis changer son statut ou la connexion.
   En déconnexion, l'affichage conserve le dernier état ; la reconnexion publie les
   changements simulés en attente.
+
+## Afficher une vue aérienne
+
+Dans une carte importée, choisis la ressource à afficher puis clique sur
+**Ajouter une vue aérienne…**. Sélectionne ton image locale PNG ou JPEG, vue de
+dessus. Dans la fenêtre d’alignement, choisis trois repères bien espacés qui
+forment un triangle et clique à leur emplacement respectif sur l’image.
+**Afficher la carte** superpose les checks à l’image. **Enregistrer la carte…**
+conserve l’image et l’alignement dans le JSON, pour cette ressource.
+
+Le jeu et la seed fournissent les coordonnées. Le fond image est fourni
+séparément par l’utilisateur. Le schéma reste disponible en retirant le fond.
 
 ## Métadonnées locales
 

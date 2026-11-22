@@ -5,6 +5,10 @@ from queue import Empty, Queue
 from threading import Thread
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
+from PIL import Image, ImageTk
+
+from .aerial import AerialImage, read_image
+from .aerial_dialog import align_image
 from .export import import_seed
 from .model import load_metadata, select
 from .state import StateStore
@@ -81,7 +85,13 @@ class MapApplication:
                    command=self.toggle_connection).pack(fill='x')
         panel = ttk.Frame(body)
         body.add(panel, weight=1)
-        ttk.Button(panel, text='Ajuster la vue', command=self.fit).pack(anchor='w')
+        tools = ttk.Frame(panel)
+        tools.pack(fill='x')
+        ttk.Button(tools, text='Ajuster la vue', command=self.fit).pack(side='left')
+        ttk.Button(tools, text='Ajouter une vue aérienne…',
+                   command=self.choose_aerial).pack(side='left', padx=5)
+        ttk.Button(tools, text='Retirer le fond image',
+                   command=self.remove_aerial).pack(side='left')
         self.canvas = tk.Canvas(panel, background='#18252b', highlightthickness=0)
         self.canvas.pack(fill='both', expand=True)
         self.canvas.bind('<Configure>', self.resized)
@@ -97,7 +107,11 @@ class MapApplication:
 
     def load(self, document):
         locations = load_metadata(document)  # Validate before replacing current state.
-        self.scenes = read_scenes(document)
+        scenes = read_scenes(document)
+        aerial = {resource: AerialImage.from_document(row)
+                  for resource, row in document.get('aerial', {}).items()}
+        self.scenes = scenes
+        self.aerial = aerial
         self.document = document
         self.locations = locations
         self.simulation = Simulation(locations) if document['provenance'] == 'synthetic' else None
@@ -167,9 +181,43 @@ class MapApplication:
         if path:
             try:
                 with open(path, 'w', encoding='utf-8') as stream:
-                    json.dump(self.document, stream, ensure_ascii=False, indent=2)
+                    json.dump(dict(self.document, aerial={k: v.to_document() for k, v in self.aerial.items()}),
+                              stream, ensure_ascii=False, indent=2)
             except OSError as error:
                 messagebox.showerror('Enregistrement impossible', str(error), parent=self.root)
+
+    def choose_aerial(self):
+        resource = self.resource.get()
+        scene = self.scenes.get(resource, {})
+        references = [(name.replace('_', ' '), tuple(point))
+                      for name, point in scene.get('points', ())]
+        for name, low, high in scene.get('rooms', ()):
+            references.append((name.replace('_', ' '), ((low[0] + high[0])/2, (low[1] + high[1])/2)))
+        references.extend((row.name, row.project()) for row in self.locations
+                          if row.resource == resource and row.position is not None)
+        if len({point for _, point in references}) < 3:
+            messagebox.showinfo('Vue aérienne', 'Cette vue doit avoir au moins trois repères positionnés.',
+                                parent=self.root)
+            return
+        path = filedialog.askopenfilename(parent=self.root, title='Choisir une image vue du ciel',
+                                          filetypes=[('PNG ou JPEG', '*.png *.jpg *.jpeg')])
+        if not path:
+            return
+        try:
+            image = read_image(path)
+        except (OSError, ValueError, Image.DecompressionBombError) as error:
+            messagebox.showerror('Image impossible à ouvrir', str(error), parent=self.root)
+            return
+
+        def install(background):
+            self.aerial[resource] = background
+            self.fit()
+
+        align_image(self.root, image, references, install)
+
+    def remove_aerial(self):
+        if self.aerial.pop(self.resource.get(), None) is not None:
+            self.fit()
 
     def open_metadata(self):
         path = filedialog.askopenfilename(filetypes=[('Métadonnées JSON', '*.json')])
@@ -179,7 +227,7 @@ class MapApplication:
             with open(path, encoding='utf-8') as stream:
                 document = json.load(stream)
             self.load(document)
-        except (OSError, ValueError, KeyError, TypeError, AttributeError) as error:
+        except (OSError, ValueError, KeyError, TypeError, AttributeError, Image.DecompressionBombError) as error:
             messagebox.showerror('Métadonnées invalides', str(error))
 
     def render(self):
@@ -224,7 +272,10 @@ class MapApplication:
         if self.fit_pending:
             return
         points = [r.project() for r in self.visible if r.resource == self.resource.get() and r.position is not None]
-        scene = self.scenes.get(self.resource.get(), {})
+        aerial = self.aerial.get(self.resource.get())
+        scene = self.scenes.get(self.resource.get(), {}) if not aerial else {}
+        if aerial:
+            points.extend(aerial.corners())
         points.extend(point for _, point in scene.get('points', ()))
         for _, low, high in scene.get('rooms', ()):
             points.extend((low, high))
@@ -235,11 +286,19 @@ class MapApplication:
         if not hasattr(self, 'visible'):
             return
         self.canvas.delete('all')
+        self.background_photo = None
         self.markers = {}
         width, height = self.canvas.winfo_width(), self.canvas.winfo_height()
         scene = self.scenes.get(self.resource.get())
         captions = []
-        if scene:
+        aerial = self.aerial.get(self.resource.get())
+        if aerial:
+            self.canvas.configure(background='#18252b')
+            self.background_photo = ImageTk.PhotoImage(aerial.render(self.viewport, (width, height)),
+                                                       master=self.canvas)
+            self.canvas.create_image(0, 0, image=self.background_photo, anchor='nw', tags='aerial')
+            heading = 'Kokiri Forest | Vue aérienne calibrée'
+        elif scene:
             self.canvas.configure(background='#263c34')
             for name, low, high in scene['rooms']:
                 x1, y1 = self.viewport.screen(low)
