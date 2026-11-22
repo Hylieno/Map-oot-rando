@@ -100,3 +100,7 @@ Le bouton « Ajouter une vue aérienne… » permet d’aligner une image locale
 de dessus sur trois repères relevés dans le jeu. Le fond et les checks partagent
 le zoom et le déplacement. Le JSON conserve l’image et son alignement par
 ressource. Une image de référence reste nécessaire pour valider la vue Kokiri.
+
+Le fond Kokiri publié par Field Atlas est proposé depuis sa source sur demande.
+L’image SVG reste hébergée par Field Atlas. La carte utilise le calibrage à
+trois points et conserve le fond dans le JSON local à l’enregistrement.

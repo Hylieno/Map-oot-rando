@@ -9,6 +9,7 @@ from PIL import Image, ImageTk
 
 from .aerial import AerialImage, read_image
 from .aerial_dialog import align_image
+from .field_atlas import load_kokiri_image
 from .export import import_seed
 from .model import load_metadata, select
 from .state import StateStore
@@ -90,6 +91,8 @@ class MapApplication:
         ttk.Button(tools, text='Ajuster la vue', command=self.fit).pack(side='left')
         ttk.Button(tools, text='Ajouter une vue aérienne…',
                    command=self.choose_aerial).pack(side='left', padx=5)
+        self.atlas_button = ttk.Button(tools, text='Fond Field Atlas…', command=self.choose_field_atlas)
+        self.atlas_button.pack(side='left', padx=(0, 5))
         ttk.Button(tools, text='Retirer le fond image',
                    command=self.remove_aerial).pack(side='left')
         self.canvas = tk.Canvas(panel, background='#18252b', highlightthickness=0)
@@ -186,8 +189,7 @@ class MapApplication:
             except OSError as error:
                 messagebox.showerror('Enregistrement impossible', str(error), parent=self.root)
 
-    def choose_aerial(self):
-        resource = self.resource.get()
+    def aerial_references(self, resource):
         scene = self.scenes.get(resource, {})
         references = [(name.replace('_', ' '), tuple(point))
                       for name, point in scene.get('points', ())]
@@ -198,6 +200,13 @@ class MapApplication:
         if len({point for _, point in references}) < 3:
             messagebox.showinfo('Vue aérienne', 'Cette vue doit avoir au moins trois repères positionnés.',
                                 parent=self.root)
+            return None
+        return references
+
+    def choose_aerial(self):
+        resource = self.resource.get()
+        references = self.aerial_references(resource)
+        if references is None:
             return
         path = filedialog.askopenfilename(parent=self.root, title='Choisir une image vue du ciel',
                                           filetypes=[('PNG ou JPEG', '*.png *.jpg *.jpeg')])
@@ -209,6 +218,47 @@ class MapApplication:
             messagebox.showerror('Image impossible à ouvrir', str(error), parent=self.root)
             return
 
+        self.align_background(resource, image, references)
+
+    def choose_field_atlas(self):
+        resource = self.resource.get()
+        if self.simulation:
+            messagebox.showinfo('Field Atlas', 'Importe d’abord ton jeu et ta seed pour aligner la carte.',
+                                parent=self.root)
+            return
+        references = self.aerial_references(resource)
+        if references is None:
+            return
+        document = self.document
+        result = Queue()
+        self.atlas_button.state(['disabled'])
+        self.atlas_button.configure(text='Chargement Field Atlas…')
+
+        def load():
+            try:
+                result.put((load_kokiri_image(), None))
+            except (OSError, ValueError) as error:
+                result.put((None, str(error)))
+
+        def finish():
+            try:
+                image, error = result.get_nowait()
+            except Empty:
+                self.root.after(100, finish)
+                return
+            self.atlas_button.state(['!disabled'])
+            self.atlas_button.configure(text='Fond Field Atlas…')
+            if self.document is not document or self.resource.get() != resource:
+                return
+            if error:
+                messagebox.showerror('Field Atlas indisponible', error, parent=self.root)
+            else:
+                self.align_background(resource, image, references)
+
+        Thread(target=load, daemon=True).start()
+        self.root.after(100, finish)
+
+    def align_background(self, resource, image, references):
         def install(background):
             self.aerial[resource] = background
             self.fit()

@@ -9,7 +9,7 @@ nomenclature, dont l'existence n'est pas présumée.
 
 ## Lancer localement
 
-Python avec Tkinter et Pillow pour le lancement depuis les sources :
+Python avec Tkinter pour le lancement depuis les sources :
 
 ```sh
 python -m pip install -r requirements.txt
@@ -28,6 +28,14 @@ et exécuter cette commande. La validation locale a été faite sous Linux, pas 
   changements simulés en attente.
 
 ## Afficher une vue aérienne
+
+**Fond Field Atlas…** ouvre le [fond Kokiri Forest d’origine](https://oot.gousse.cool/content/maps/7e802ffa8684f3cd.svg)
+directement depuis [Field Atlas](https://oot.gousse.cool/kokiri-forest). Une connexion est
+nécessaire au premier chargement. Choisis trois repères correspondants et
+enregistre la carte pour la rouvrir hors ligne. Le dessin de Field Atlas n’est
+pas une source de coordonnées du jeu et l’alignement reste à vérifier visuellement.
+
+**Ajouter une vue aérienne…** permet aussi d’utiliser un PNG ou un JPEG local.
 
 Dans une carte importée, choisis la ressource à afficher puis clique sur
 **Ajouter une vue aérienne…**. Sélectionne ton image locale PNG ou JPEG, vue de

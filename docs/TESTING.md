@@ -78,3 +78,8 @@ le zoom et le déplacement, et le rendu Tk sous les checks pour la bonne ressour
 
 Les 24 tests et le build Windows passent dans
 [GitHub Actions](https://github.com/Hylieno/Map-oot-rando/actions/runs/45068828832).
+
+Le téléchargement et le rendu du fond publié par Field Atlas ont été vérifiés
+sous Linux avec le fichier du site. Les tests automatisés rendent un SVG
+synthétique hors ligne et vérifient le rejet d’un fichier dont l’empreinte diffère.
+L’alignement avec une seed réelle reste à contrôler.
