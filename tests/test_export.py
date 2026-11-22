@@ -49,3 +49,15 @@ class ExportTests(unittest.TestCase):
                     main()
                 scan.assert_called_once()
                 self.assertEqual(output.read_bytes(), payload)
+
+    def test_import_keeps_multiple_positions_of_one_check_in_one_resource(self):
+        group = self.groups['KokiriForest#123']
+        group.append(dict(group[0], position=[10, 20, 30]))
+        group.append(dict(group[0]))
+        scanned = export_scan(self.groups, {}, provenance='ootrr-scan')
+        saved = json.loads(json.dumps(bind_catalogue(scanned, self.catalogue)))
+        rows = load_metadata(saved)
+        matches = select(rows, {'123': 'available'}, statuses={'available'})
+        self.assertEqual([row.id for row in matches], ['123', '123'])
+        self.assertEqual(len({row.resource for row in matches}), 1)
+        self.assertEqual([row.project() for row in matches], [(1, 3), (10, 30)])

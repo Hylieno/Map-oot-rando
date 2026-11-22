@@ -41,10 +41,9 @@ class FoundationTests(unittest.TestCase):
         self.assertEqual(len(doc['diagnostics']), 1)
         self.assertEqual(select(rows, {}, resource=variant['resource']), (rows[1],))
 
-    def test_duplicate_rejected(self):
+    def test_identical_location_rows_collapse(self):
         self.document['locations'] *= 2
-        with self.assertRaises(ValueError):
-            load_metadata(self.document)
+        self.assertEqual(load_metadata(self.document), self.locations)
 
     def test_search_filters(self):
         self.assertEqual(select(self.locations, {}, ' kf_ROCK_1 '), self.locations)

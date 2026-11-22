@@ -1,4 +1,5 @@
 """Local Tk map. Importing this module never starts a tracker or memory reader."""
+from collections import Counter
 import json
 from queue import Empty, Queue
 from threading import Thread
@@ -186,8 +187,15 @@ class MapApplication:
                               {k for k, v in self.status_vars.items() if v.get()},
                               None if self.category.get() == 'Toutes' else {self.category.get()})
         self.results.delete(0, 'end')
+        placements = Counter(row.id for row in self.visible)
         for row in self.visible:
-            self.results.insert('end', row.name + (' [sans coordonnées]' if row.position is None else ''))
+            label = row.name
+            if row.position is None:
+                label += ' [sans coordonnées]'
+            elif placements[row.id] > 1:
+                coordinates = ', '.join(f'{value:g}' for value in row.position)
+                label += f' [{coordinates}]'
+            self.results.insert('end', label)
         missing = sum(r.position is None for r in self.locations)
         self.count.set(f'{len(self.visible)} résultat(s) | {missing} sans coordonnées | '
                        'Molette : zoom ; glisser le fond : déplacer ; Entrée : premier résultat')

@@ -84,3 +84,8 @@ puis affiche la carte. Un bouton permet d’enregistrer le JSON pour le rouvrir
 sans refaire le scan. Le build embarque le scanner OotrR épinglé et sa licence.
 Un test Tk simule le parcours et le workflow vérifie le scanner compilé avec
 un fichier invalide. La validation avec les fichiers réels reste à faire.
+
+Le retour du premier import réel a révélé plusieurs placements d’un même check
+dans une même ressource. Le modèle conserve les positions distinctes et rassemble
+les entrées identiques à l’affichage. Chaque placement partage l’identifiant et
+l’état du check. La liste indique les coordonnées pour choisir une variante.

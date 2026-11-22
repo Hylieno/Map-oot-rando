@@ -33,10 +33,6 @@ def load_metadata(document):
         for field in ('id', 'name', 'category', 'resource'):
             if not isinstance(row.get(field), str) or not row[field]:
                 raise ValueError('Missing location field: ' + field)
-        key = (row['id'], row['resource'])
-        if key in seen:
-            raise ValueError('Duplicate check/resource pair')
-        seen.add(key)
         position = row.get('position')
         if position is not None:
             if (not isinstance(position, (list, tuple)) or len(position) != 3
@@ -46,7 +42,12 @@ def load_metadata(document):
         alias = row.get('alias', '')
         if not isinstance(alias, str):
             raise ValueError('Invalid search alias')
-        result.append(Location(row['id'], row['name'], row['category'], row['resource'], position, alias))
+        location = Location(row['id'], row['name'], row['category'], row['resource'], position, alias)
+        # The tracker identifies the check, while the scan may report multiple
+        # placements in a single resource. Collapse only identical records.
+        if location not in seen:
+            seen.add(location)
+            result.append(location)
     return tuple(result)
 
 
