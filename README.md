@@ -31,9 +31,10 @@ et exécuter cette commande. La validation locale a été faite sous Linux, pas 
 
 **Fond Field Atlas…** ouvre le [fond Kokiri Forest d’origine](https://oot.gousse.cool/content/maps/7e802ffa8684f3cd.svg)
 directement depuis [Field Atlas](https://oot.gousse.cool/kokiri-forest). Une connexion est
-nécessaire au premier chargement. Choisis trois repères correspondants et
-enregistre la carte pour la rouvrir hors ligne. Le dessin de Field Atlas n’est
-pas une source de coordonnées du jeu et l’alignement reste à vérifier visuellement.
+nécessaire au premier chargement. L’application aligne le fond automatiquement
+si au moins quatre maisons correspondent aux repères de la ressource sélectionnée.
+Enregistre la carte pour la rouvrir hors ligne. Les positions sur le dessin
+restent approximatives, surtout loin du village.
 
 **Ajouter une vue aérienne…** permet aussi d’utiliser un PNG ou un JPEG local.
 

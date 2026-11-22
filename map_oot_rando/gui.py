@@ -9,7 +9,7 @@ from PIL import Image, ImageTk
 
 from .aerial import AerialImage, read_image
 from .aerial_dialog import align_image
-from .field_atlas import load_kokiri_image
+from .field_atlas import align_kokiri_image, load_kokiri_image
 from .export import import_seed
 from .model import load_metadata, select
 from .state import StateStore
@@ -189,14 +189,15 @@ class MapApplication:
             except OSError as error:
                 messagebox.showerror('Enregistrement impossible', str(error), parent=self.root)
 
-    def aerial_references(self, resource):
+    def aerial_references(self, resource, *, include_checks=True):
         scene = self.scenes.get(resource, {})
         references = [(name.replace('_', ' '), tuple(point))
                       for name, point in scene.get('points', ())]
         for name, low, high in scene.get('rooms', ()):
             references.append((name.replace('_', ' '), ((low[0] + high[0])/2, (low[1] + high[1])/2)))
-        references.extend((row.name, row.project()) for row in self.locations
-                          if row.resource == resource and row.position is not None)
+        if include_checks:
+            references.extend((row.name, row.project()) for row in self.locations
+                              if row.resource == resource and row.position is not None)
         if len({point for _, point in references}) < 3:
             messagebox.showinfo('Vue aérienne', 'Cette vue doit avoir au moins trois repères positionnés.',
                                 parent=self.root)
@@ -226,7 +227,7 @@ class MapApplication:
             messagebox.showinfo('Field Atlas', 'Importe d’abord ton jeu et ta seed pour aligner la carte.',
                                 parent=self.root)
             return
-        references = self.aerial_references(resource)
+        references = self.aerial_references(resource, include_checks=False)
         if references is None:
             return
         document = self.document
@@ -236,13 +237,13 @@ class MapApplication:
 
         def load():
             try:
-                result.put((load_kokiri_image(), None))
+                result.put((align_kokiri_image(load_kokiri_image(), references), None))
             except (OSError, ValueError) as error:
                 result.put((None, str(error)))
 
         def finish():
             try:
-                image, error = result.get_nowait()
+                background, error = result.get_nowait()
             except Empty:
                 self.root.after(100, finish)
                 return
@@ -253,7 +254,9 @@ class MapApplication:
             if error:
                 messagebox.showerror('Field Atlas indisponible', error, parent=self.root)
             else:
-                self.align_background(resource, image, references)
+                self.aerial[resource] = background
+                self.fit()
+                self.import_status.set('Fond Field Atlas aligné sur les maisons. Position approximative.')
 
         Thread(target=load, daemon=True).start()
         self.root.after(100, finish)

@@ -104,3 +104,8 @@ ressource. Une image de référence reste nécessaire pour valider la vue Kokiri
 Le fond Kokiri publié par Field Atlas est proposé depuis sa source sur demande.
 L’image SVG reste hébergée par Field Atlas. La carte utilise le calibrage à
 trois points et conserve le fond dans le JSON local à l’enregistrement.
+
+Le chargement de Field Atlas aligne désormais le dessin sur au moins quatre
+maisons présentes dans la vue. Les centres dessinés sont des repères visuels
+et l’ajustement affine est contrôlé sur toutes les maisons appariées. Si les
+repères manquent ou divergent, le fond actuel est conservé.

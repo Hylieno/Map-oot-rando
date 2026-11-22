@@ -26,3 +26,24 @@ class FieldAtlasTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'fond Field Atlas a changé'):
                 load_kokiri_image()
         render.assert_not_called()
+
+    def test_auto_alignment_fits_house_centers_from_kokiri_view(self):
+        from math import dist
+        from PIL import Image
+        from map_oot_rando.aerial import apply
+        from map_oot_rando.field_atlas import HOUSE_PIXELS, align_kokiri_image
+
+        # Approximate points from the user's OotrR schematic screenshot. Its
+        # screen coordinates are an affine surrogate for world coordinates.
+        references = list(zip(HOUSE_PIXELS, [(596, 498), (662, 437), (681, 580),
+                                             (770, 586), (831, 586)]))
+        image = Image.new('RGB', (1800, 996))
+        background = align_kokiri_image(image, references)
+        for name, position in references:
+            self.assertLess(dist(apply(background.world_to_image, position),
+                                 tuple(2 * v for v in HOUSE_PIXELS[name])), 12)
+        with self.assertRaisesRegex(ValueError, 'quatre maisons'):
+            align_kokiri_image(image, references[:3])
+        references[0] = (references[0][0], (1050, 700))
+        with self.assertRaisesRegex(ValueError, 'ne correspondent pas'):
+            align_kokiri_image(image, references)
