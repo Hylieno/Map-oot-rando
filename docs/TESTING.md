@@ -48,3 +48,6 @@ dans l'environnement sans écran. Les ajouts couvrent la jointure catalogue,
 la recherche par alias, les checks sans position, le lancement de l'export CLI
 avec scanner simulé, la protection contre l'écrasement et le repère de la grille.
 L'appel au scanner avec un NUP réel reste à tester.
+
+Les 17 tests, dont ceux de Tkinter, et la compilation portable réussissent sur
+[Windows CI](https://github.com/Hylieno/Map-oot-rando/actions/runs/45065577348).

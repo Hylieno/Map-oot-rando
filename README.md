@@ -57,7 +57,7 @@ Un build réussi ne constitue pas une validation avec le jeu.
 Voir [architecture](docs/ARCHITECTURE.md), [progression](docs/PROGRESS.md),
 [décisions](docs/DECISIONS.md) et [tests](docs/TESTING.md).
 
-Première préversion compilée : [télécharger l'artifact Windows x64](https://github.com/Hylieno/Map-oot-rando/actions/runs/45064230917/artifacts/14770488765)
+Préversion compilée : [télécharger l'artifact Windows x64](https://github.com/Hylieno/Map-oot-rando/actions/runs/45065577348/artifacts/14771451124)
 (connexion GitHub requise ; rétention de 14 jours). Tests Tk et build CI réussis ;
 exécutable packagé pas encore validé manuellement.
 
