@@ -1,0 +1,34 @@
+# Checkpoint — 22 novembre 2026
+
+Branche : `dev/kokiri-foundation`.
+Upstream : `283d3ec0f161d32e168afac45e502442c1ffb081`.
+
+Terminé : lecture intégrale AGENTS.md, inspection des branches, audit initial des
+sept modules prioritaires, licence MIT vérifiée, socle métadonnées/projection/
+recherche/filtres et états passifs codé. Huit tests synthétiques passent.
+
+Fichiers ajoutés : README.md, .gitignore, map_oot_rando/{__init__,model,metadata,state}.py,
+tests/test_foundation.py et les quatre documents docs demandés. AGENTS.md inchangé.
+
+Limites : aucun NUP disponible, aucune coordonnée réelle vérifiée. Aucun écran,
+aucune synchronisation réelle, aucun mode simulation interactif, aucun exécutable.
+L'audit initial identifie les points d'intégration mais ne constitue pas une revue
+exhaustive du code upstream. Le premier jalon Kokiri Forest n'est pas terminé.
+
+Difficultés identifiées : nom lisible distinct de l'ID ; coordonnées non conservées
+par les chemins de sérialisation inspectés ; résumé de connexion upstream textuel ;
+nécessité de publier les états sans concurrence avec refresh.
+
+## Reprise
+
+Après vérification du quota court terme et hebdomadaire :
+1. Compléter un export local read-only depuis scan_world et joindre checks.json.
+2. Ajouter une fenêtre Tkinter : ressources séparées, pan/zoom, sélection/recherche,
+   filtres, détails et simulation clairement identifiée.
+3. Brancher la publication au propriétaire de TrackerSession après tracker-update,
+   sans second lecteur ; formaliser mode de connexion et reset de sauvegarde.
+4. Vérifier coordonnées réelles et événements, puis configurer build Windows x64.
+
+Prompt de reprise : « Lis AGENTS.md et docs/PROGRESS.md sur dev/kokiri-foundation.
+Le quota permet une nouvelle phase bornée. Continue l'export et la carte Tkinter
+Kokiri Forest sans inventer de coordonnées ou de nomenclature de checks. »
