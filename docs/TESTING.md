@@ -75,3 +75,6 @@ Le rendu avec un NUP réel reste à confirmer.
 La vue aérienne est testée sur une image synthétique. La couverture vérifie la
 rotation, le rejet des trois repères alignés, la sauvegarde et la relecture,
 le zoom et le déplacement, et le rendu Tk sous les checks pour la bonne ressource.
+
+Les 24 tests et le build Windows passent dans
+[GitHub Actions](https://github.com/Hylieno/Map-oot-rando/actions/runs/45068828832).
