@@ -55,3 +55,6 @@ Les 17 tests, dont ceux de Tkinter, et la compilation portable réussissent sur
 Le parcours d’import Tk utilise un résultat synthétique. Le workflow Windows
 lance aussi l’exécutable compilé et vérifie que le parseur OotrR embarqué
 rejette un fichier de test invalide. Aucun NUP réel utilisé.
+
+Les 18 tests et le lancement du scanner compilé réussissent sur
+[Windows CI](https://github.com/Hylieno/Map-oot-rando/actions/runs/45066737154).
