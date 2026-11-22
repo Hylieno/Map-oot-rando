@@ -90,3 +90,5 @@ Les 26 tests et le build passent sur
 L’alignement automatique est testé avec les positions approximatives lues sur
 la capture de la vue adulte. Ce montage vérifie aussi les refus pour manque de
 repères ou incohérence. Le rendu final sur le NUP de l’utilisateur reste à vérifier.
+Les 27 tests et le build passent sur
+[Windows CI](https://github.com/Hylieno/Map-oot-rando/actions/runs/45069636229).
