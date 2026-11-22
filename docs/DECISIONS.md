@@ -11,3 +11,9 @@
 - Pas de workflow de build Windows avant application fonctionnelle.
 - Phase bornée audit + socle : quota Plus non observable. Vérification utilisateur
   requise avant une nouvelle phase importante, conformément à AGENTS.md.
+
+- Deuxième phase autorisée par « Go » : interface et simulation testées.
+- Le mode par défaut est explicitement synthétique ; aucun décor présenté comme
+  la vraie forêt. Les noms de démonstration commencent par SIMULATED.
+- Packaging Windows de préversion configuré maintenant que l'interface fonctionne ;
+  portable en dossier pour réduire la complexité et sans publication de Release.

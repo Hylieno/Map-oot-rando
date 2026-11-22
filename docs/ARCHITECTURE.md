@@ -58,3 +58,14 @@ intérieurs et variantes d'âge. La correspondance âge/étage et la transformat
 visuelle (origine, échelle, orientation) restent à vérifier sur les données réelles.
 Les sources d'événements sans position ne sont pas inventées ; leur diagnostic
 exhaustif devra être complété par jointure avec le catalogue checks.json de seed.
+
+## Interface du deuxième checkpoint
+
+`gui.MapApplication` charge les métadonnées, affiche une seule ressource à la fois,
+et propose une liste recherchable sur toutes les ressources. `view.Viewport` isole
+les calculs de pan/zoom/cadrage. Une position absente reste dans la liste.
+`simulation.Simulation` possède un StateStore distinct et ne démarre aucun lecteur.
+Les événements simulés publient directement, puis provoquent le redraw Tk ; aucune
+réouverture de fenêtre requise. Les changements simulés pendant une déconnexion
+sont retenus jusqu'à la reconnexion. Importer d'autres métadonnées crée un état neuf.
+Le jeu réel n'est toujours pas branché. Aucune inférence de règles ou d'étages.

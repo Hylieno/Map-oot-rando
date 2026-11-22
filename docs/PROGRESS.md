@@ -32,3 +32,29 @@ Après vérification du quota court terme et hebdomadaire :
 Prompt de reprise : « Lis AGENTS.md et docs/PROGRESS.md sur dev/kokiri-foundation.
 Le quota permet une nouvelle phase bornée. Continue l'export et la carte Tkinter
 Kokiri Forest sans inventer de coordonnées ou de nomenclature de checks. »
+
+# Deuxième checkpoint — interface et simulation
+
+Autorisation : « Go ». PR : https://github.com/Hylieno/Map-oot-rando/pull/1
+
+Ajoutés : gui.py, __main__.py, view.py, simulation.py, tests/test_gui.py,
+tests/test_view.py, packaging/launcher.py, .github/workflows/windows.yml.
+README et les quatre documents de continuité mis à jour. AGENTS.md inchangé.
+
+Fonctionnel : carte Tkinter, zoom/pan/cadrage, recherche globale et sélection,
+détails XYZ, séparation par ressource, filtres, simulation des quatre états et
+déconnexion/reconnexion. Import JSON versionné ; aucune coordonnée inventée dans
+les données réelles. Les exemples sont explicitement fictifs.
+
+Validation : 14 tests passent, dont 3 tests Tk réellement exécutés ; contrôle
+visuel de sélection/recoloration effectué. Le cadrage initial a été corrigé.
+Workflow de préversion Windows x64 ajouté ; exécutable pas encore validé sur Windows.
+
+Restent : extraction réelle locale et jointure avec catalogue de seed, intégration
+événementielle de TrackerSession sans lecteur concurrent, diagnostic exhaustif des
+checks sans position, correspondance âge/étage et validation réelle de Kokiri Forest.
+Ce jalon n'est donc toujours pas terminé. Aucune autre zone développée.
+
+Reprise : vérifier le quota puis continuer sur cette branche avec l'export local
+read-only et l'intégration au propriétaire de TrackerSession. Examiner d'abord le
+résultat du workflow Windows de la PR pour éviter une compilation redondante.
