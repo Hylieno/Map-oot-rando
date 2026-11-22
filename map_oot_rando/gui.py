@@ -8,6 +8,7 @@ from tkinter import ttk, filedialog, messagebox
 from .export import import_seed
 from .model import load_metadata, select
 from .state import StateStore
+from .scene import read_scenes
 from .simulation import Simulation, demo_document
 from .view import Viewport
 
@@ -96,6 +97,7 @@ class MapApplication:
 
     def load(self, document):
         locations = load_metadata(document)  # Validate before replacing current state.
+        self.scenes = read_scenes(document)
         self.document = document
         self.locations = locations
         self.simulation = Simulation(locations) if document['provenance'] == 'synthetic' else None
@@ -222,6 +224,10 @@ class MapApplication:
         if self.fit_pending:
             return
         points = [r.project() for r in self.visible if r.resource == self.resource.get() and r.position is not None]
+        scene = self.scenes.get(self.resource.get(), {})
+        points.extend(point for _, point in scene.get('points', ()))
+        for _, low, high in scene.get('rooms', ()):
+            points.extend((low, high))
         self.viewport.fit(points, self.canvas.winfo_width(), self.canvas.winfo_height())
         self.draw()
 
@@ -231,25 +237,60 @@ class MapApplication:
         self.canvas.delete('all')
         self.markers = {}
         width, height = self.canvas.winfo_width(), self.canvas.winfo_height()
-        step, xs, ys = self.viewport.grid(width, height)
-        for x in xs:
-            self.canvas.create_line(x, 0, x, height, fill='#2c414a')
-        for y in ys:
-            self.canvas.create_line(0, y, width, y, fill='#2c414a')
-        self.canvas.create_text(12, 12, anchor='nw', fill='#adbfc4',
-                                text=f'Schéma X/Z | Grille : {step:g} unités')
-        for row in self.visible:
-            if row.resource != self.resource.get() or row.position is None:
-                continue
+        scene = self.scenes.get(self.resource.get())
+        captions = []
+        if scene:
+            self.canvas.configure(background='#263c34')
+            for name, low, high in scene['rooms']:
+                x1, y1 = self.viewport.screen(low)
+                x2, y2 = self.viewport.screen(high)
+                self.canvas.create_rectangle(x1, y1, x2, y2, fill='#466356',
+                                             outline='#aacbb4', width=2, tags='scene')
+                captions.append((name, (x1 + x2) / 2, min(y1, y2) - 10))
+            for name, point in scene['points']:
+                x, y = self.viewport.screen(point)
+                self.canvas.create_polygon(x, y-5, x+5, y, x, y+5, x-5, y,
+                                           fill='#b4dec0', tags='scene')
+                captions.append((name, x, y - 13))
+            heading = 'Kokiri Forest | Maisons et repères (schéma)'
+        else:
+            self.canvas.configure(background='#18252b')
+            step, xs, ys = self.viewport.grid(width, height)
+            for x in xs:
+                self.canvas.create_line(x, 0, x, height, fill='#2c414a')
+            for y in ys:
+                self.canvas.create_line(0, y, width, y, fill='#2c414a')
+            heading = f'Schéma X/Z | Grille : {step:g} unités'
+        self.canvas.create_text(12, 12, anchor='nw', fill='#d2e1da', text=heading)
+        rows = [row for row in self.visible if row.resource == self.resource.get()
+                and row.position is not None]
+        rows.sort(key=lambda row: row == self.selected)
+        labels = []
+        for row in rows:
             x, y = self.viewport.screen(row.project())
             color = COLORS[self.store.states.get(row.id, 'unknown')]
             item = self.canvas.create_oval(x-7, y-7, x+7, y+7, fill=color,
                                           outline='white' if row == self.selected else color, width=2)
             self.markers[item] = row
             right = x <= width * 0.7
-            label = self.canvas.create_text(x + (12 if right else -12), y,
-                                            anchor='w' if right else 'e', text=row.name, fill='#edf2f4')
-            self.markers[label] = row
+            labels.append((row.name, x + (12 if right else -12), y,
+                           'w' if right else 'e', '#edf2f4', row))
+        # Give the selected check first claim on label space, then the landmarks.
+        used = [(0, 0, width, 30)]
+        foreground = [label for label in labels if label[-1] == self.selected]
+        background = [label for label in labels if label[-1] != self.selected]
+        landmarks = [(name.replace('_', ' '), x, y, 'center', '#d0e8d8', None)
+                     for name, x, y in captions]
+        for name, x, y, anchor, color, row in foreground + landmarks + background:
+            label = self.canvas.create_text(x, y, anchor=anchor, text=name, fill=color)
+            left, top, right, bottom = self.canvas.bbox(label)
+            if (any(left < r and right > l and top < b and bottom > t for l, t, r, b in used)
+                    or right < 0 or bottom < 0 or left > width or top > height):
+                self.canvas.delete(label)
+                continue
+            used.append((left, top, right, bottom))
+            if row is not None:
+                self.markers[label] = row
         if not self.markers:
             self.canvas.create_text(25, 35, anchor='nw', text='Aucun marqueur positionné pour cette vue.', fill='white')
 

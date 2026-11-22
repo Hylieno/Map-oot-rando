@@ -84,6 +84,8 @@ python -m map_oot_rando kokiri.json
 ```
 
 L'exporteur crée un nouveau fichier et lit le jeu et le catalogue localement.
-La carte est un schéma sur grille X/Z. Les checks de Kokiri Forest qui ne
+La carte dessine les pièces et repères trouvés par OotrR dans le repère X/Z.
+Une vue sans repères affiche la grille, y compris les anciens JSON. Pour les
+ajouter à une carte existante, refaire l’import du NUP et du catalogue. Les checks de Kokiri Forest qui ne
 correspondent pas à une position du scan restent recherchables dans la liste.
 Les positions importées et les statuts en direct restent à valider avec le jeu.

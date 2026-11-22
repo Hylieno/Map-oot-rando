@@ -112,3 +112,18 @@ class GuiTests(unittest.TestCase):
         self.assertIsNone(app.simulation)
         self.assertIn('Carte chargée', app.import_status.get())
         self.assertFalse(app.import_button.instate(['disabled']))
+
+    def test_scene_follows_resource_and_stays_behind_checks(self):
+        app = self.app
+        doc = demo_document()
+        doc['scenes'] = {'SIMULATION / extérieur': {
+            'points': [('entrée', [30, 30])],
+            'rooms': [('maison', [20, 20], [40, 40])],
+        }}
+        app.load(doc)
+        self.assertEqual(len(app.canvas.find_withtag('scene')), 2)
+        self.assertLess(max(app.canvas.find_withtag('scene')), min(app.markers))
+        app.resource.set('SIMULATION / intérieur')
+        app.resource_changed()
+        self.assertFalse(app.canvas.find_withtag('scene'))
+        self.assertTrue(app.markers)

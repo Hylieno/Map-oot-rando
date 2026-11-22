@@ -66,3 +66,8 @@ reste à essayer avec le NUP qui a déclenché le signalement.
 
 Les 19 tests et la vérification de l’exécutable compilé passent sur
 [Windows CI](https://github.com/Hylieno/Map-oot-rando/actions/runs/45067415834).
+
+Le fond de carte est testé avec des repères synthétiques. Le test couvre la
+projection X/Z et la séparation des variantes enfant et adulte. Le test Tk
+vérifie l’ordre du fond et des checks ainsi que le changement de ressource.
+Le rendu avec un NUP réel reste à confirmer.

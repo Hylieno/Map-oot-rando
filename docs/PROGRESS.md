@@ -89,3 +89,9 @@ Le retour du premier import réel a révélé plusieurs placements d’un même 
 dans une même ressource. Le modèle conserve les positions distinctes et rassemble
 les entrées identiques à l’affichage. Chaque placement partage l’identifiant et
 l’état du check. La liste indique les coordonnées pour choisir une variante.
+
+Le fond de Kokiri Forest utilise maintenant les repères calculés par OotrR à
+partir du scan local. Les volumes de pièces sont dessinés en rectangles et les
+repères ponctuels en losanges. Les checks restent au premier plan et la carte
+limite la superposition des libellés. Les anciens JSON restent lisibles avec
+la grille. Un nouvel import est requis pour y ajouter les repères.

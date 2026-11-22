@@ -8,6 +8,7 @@ import sys
 
 from .metadata import bind_catalogue, export_scan
 from .model import UPSTREAM_REVISION
+from .scene import extract_scenes
 
 
 def verify_checkout(directory):
@@ -23,14 +24,17 @@ def verify_checkout(directory):
 def scan_game(path, progress=None):
     from oot_rando.formats.inspect_nup import Nup
     from oot_rando.formats.inspect_resources import dictionaries
+    from oot_rando.game.check_names import landmarks
     from oot_rando.game.extra_sources import scan_world
     from oot_rando.game.world_maps import effective_members
 
     nup = Nup(path)
     with nup.stream:
-        _, groups, _, extra = scan_world(nup, dictionaries(nup), effective_members(nup),
+        maps, groups, _, extra = scan_world(nup, dictionaries(nup), effective_members(nup),
                                          progress)
-    return export_scan(groups, extra, provenance='ootrr-scan')
+    document = export_scan(groups, extra, provenance='ootrr-scan')
+    document['scenes'] = extract_scenes(maps, landmarks)
+    return document
 
 
 def import_seed(nup, checks, progress=None):
