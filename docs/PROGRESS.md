@@ -63,3 +63,16 @@ CI Windows confirmée réussie après ce checkpoint :
 https://github.com/Hylieno/Map-oot-rando/actions/runs/45064230917
 Artifact : https://github.com/Hylieno/Map-oot-rando/actions/runs/45064230917/artifacts/14770488765
 Tests Tk Windows et build réussis ; exécutable packagé non lancé manuellement.
+
+# Troisième checkpoint
+
+La grille X/Z suit le zoom et le déplacement. Le nouvel export CLI appelle le
+scanner OotrR local, joint le catalogue et produit un JSON lisible dans la carte.
+Les checks sans correspondance restent recherchables et sont signalés par l'export.
+La validation locale utilise des données synthétiques. L'essai sur NUP et seed
+réels et le raccordement des événements TrackerSession restent à faire.
+La branche et la PR #1 restent les points de reprise.
+
+Fichiers principaux : export.py, metadata.py, model.py, view.py, gui.py,
+tests/test_export.py et tests/test_view.py. La documentation des cinq fichiers
+de continuité a été actualisée.

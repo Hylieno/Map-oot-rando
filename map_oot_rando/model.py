@@ -14,6 +14,8 @@ class Location:
     resource: str
     position: tuple[float, float, float] | None
 
+    alias: str = ''
+
     def project(self):
         """Raw X/Z plan, +Z downward; Y retained, orientation unverified in game."""
         return None if self.position is None else (self.position[0], self.position[2])
@@ -41,14 +43,17 @@ def load_metadata(document):
                     or any(type(v) not in (int, float) or not math.isfinite(v) for v in position)):
                 raise ValueError('Expected three finite coordinates')
             position = tuple(position)
-        result.append(Location(row['id'], row['name'], row['category'], row['resource'], position))
+        alias = row.get('alias', '')
+        if not isinstance(alias, str):
+            raise ValueError('Invalid search alias')
+        result.append(Location(row['id'], row['name'], row['category'], row['resource'], position, alias))
     return tuple(result)
 
 
 def select(locations, states, query='', statuses=STATUSES, categories=None, resource=None):
     query = query.strip().casefold()
     return tuple(row for row in locations
-                 if (query in row.id.casefold() or query in row.name.casefold())
+                 if any(query in value.casefold() for value in (row.id, row.name, row.alias))
                  and states.get(row.id, 'unknown') in statuses
                  and (categories is None or row.category in categories)
                  and (resource is None or row.resource == resource))

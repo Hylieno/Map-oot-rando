@@ -35,7 +35,7 @@ avec des statuts inconnus ; les commandes de simulation sont masquées.
 
 `metadata.export_scan` consomme les groupes de coffres et sources supplémentaires
 déjà étiquetés par `oot_rando.game.extra_sources.scan_world`. Il ne lit pas directement
-un NUP. L'outil d'extraction réel et la jointure avec la seed restent à développer.
+un NUP. La commande d'export ci-dessous utilise le scanner de l'installation OotrR locale.
 Ne pas commiter de ressources du jeu ni présenter une fixture comme réelle.
 
 ## Tests et Windows portable
@@ -60,3 +60,22 @@ Voir [architecture](docs/ARCHITECTURE.md), [progression](docs/PROGRESS.md),
 Première préversion compilée : [télécharger l'artifact Windows x64](https://github.com/Hylieno/Map-oot-rando/actions/runs/45064230917/artifacts/14770488765)
 (connexion GitHub requise ; rétention de 14 jours). Tests Tk et build CI réussis ;
 exécutable packagé pas encore validé manuellement.
+
+## Exporter les points d'une seed OotrR
+
+Dans une copie locale du [dépôt OotrR](https://github.com/Mozencaz/OotrR), sélectionner
+la révision `283d3ec0f161d32e168afac45e502442c1ffb081`. Installer ses dépendances
+dans votre environnement Python avec `python -m pip install -r /chemin/vers/OotrR/requirements.txt`.
+
+Depuis ce dépôt, lancer la commande avec le NUP local contenant le jeu et sa mise
+à jour, et le `checks.json` du dossier de la seed générée avec cette version d'OotrR.
+
+```sh
+python -m map_oot_rando.export --ootrr "OotrR" --nup "jeu.nup" --checks "seed/checks.json" --output "kokiri.json"
+python -m map_oot_rando kokiri.json
+```
+
+L'exporteur crée un nouveau fichier et lit le jeu et le catalogue localement.
+La carte est un schéma sur grille X/Z. Les checks de Kokiri Forest qui ne
+correspondent pas à une position du scan restent recherchables dans la liste.
+Les positions importées et les statuts en direct restent à valider avec le jeu.

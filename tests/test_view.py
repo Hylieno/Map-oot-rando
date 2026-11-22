@@ -34,3 +34,11 @@ class ViewTests(unittest.TestCase):
         simulation.toggle_connection()
         self.assertEqual(simulation.store.states[key], 'completed')
         self.assertEqual(simulation.store.connection, 'simulation')
+
+    def test_grid_tracks_pan_and_world_spacing(self):
+        view = Viewport(2, 85, -15)
+        step, xs, ys = view.grid(800, 600)
+        self.assertAlmostEqual(xs[1] - xs[0], step * view.scale)
+        self.assertAlmostEqual((ys[0] - view.y) % (step * view.scale), 0)
+        view.x += 7
+        self.assertAlmostEqual(view.grid(800, 600)[1][0], (xs[0] + 7) % (step * view.scale))

@@ -17,3 +17,8 @@
   la vraie forêt. Les noms de démonstration commencent par SIMULATED.
 - Packaging Windows de préversion configuré maintenant que l'interface fonctionne ;
   portable en dossier pour réduire la complexité et sans publication de Release.
+
+- Utiliser une grille cotée comme fond du schéma. Une image nécessiterait une
+  source utilisable et un alignement vérifié pour chaque ressource.
+- Utiliser le scanner de la copie OotrR locale et conserver les IDs du catalogue
+  de seed. L'export crée uniquement un nouveau fichier JSON.

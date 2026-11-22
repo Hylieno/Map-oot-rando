@@ -83,7 +83,7 @@ class MapApplication:
         locations = load_metadata(document)  # Validate before replacing current state.
         self.locations = locations
         self.simulation = Simulation(locations) if document['provenance'] == 'synthetic' else None
-        self.store = self.simulation.store if self.simulation else StateStore('', [r.id for r in locations])
+        self.store = self.simulation.store if self.simulation else StateStore(document.get('seed_id', ''), [r.id for r in locations])
         self.selected = None
         self.details.set('Sélectionnez un emplacement.')
         self.banner.set('SIMULATION - noms et positions fictifs' if self.simulation else
@@ -154,6 +154,14 @@ class MapApplication:
             return
         self.canvas.delete('all')
         self.markers = {}
+        width, height = self.canvas.winfo_width(), self.canvas.winfo_height()
+        step, xs, ys = self.viewport.grid(width, height)
+        for x in xs:
+            self.canvas.create_line(x, 0, x, height, fill='#2c414a')
+        for y in ys:
+            self.canvas.create_line(0, y, width, y, fill='#2c414a')
+        self.canvas.create_text(12, 12, anchor='nw', fill='#adbfc4',
+                                text=f'Schéma X/Z | Grille : {step:g} unités')
         for row in self.visible:
             if row.resource != self.resource.get() or row.position is None:
                 continue
@@ -162,7 +170,9 @@ class MapApplication:
             item = self.canvas.create_oval(x-7, y-7, x+7, y+7, fill=color,
                                           outline='white' if row == self.selected else color, width=2)
             self.markers[item] = row
-            label = self.canvas.create_text(x+12, y, anchor='w', text=row.name, fill='#edf2f4')
+            right = x <= width * 0.7
+            label = self.canvas.create_text(x + (12 if right else -12), y,
+                                            anchor='w' if right else 'e', text=row.name, fill='#edf2f4')
             self.markers[label] = row
         if not self.markers:
             self.canvas.create_text(25, 35, anchor='nw', text='Aucun marqueur positionné pour cette vue.', fill='white')

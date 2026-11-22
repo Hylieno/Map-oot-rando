@@ -40,3 +40,11 @@ Résultat CI confirmé : Windows portable preview, run 45064230917, commit
 PyInstaller et upload tous réussis. Artifact 14770488765, 11 660 575 octets.
 L'exécutable produit n'a pas été lancé manuellement : les tests exécutent les
 sources sous Windows, puis le packaging est vérifié par le succès du build.
+
+## Troisième checkpoint
+
+14 tests passent localement sur 17 découverts. Les trois tests Tk sont ignorés
+dans l'environnement sans écran. Les ajouts couvrent la jointure catalogue,
+la recherche par alias, les checks sans position, le lancement de l'export CLI
+avec scanner simulé, la protection contre l'écrasement et le repère de la grille.
+L'appel au scanner avec un NUP réel reste à tester.

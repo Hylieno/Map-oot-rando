@@ -28,3 +28,38 @@ def export_scan(groups, extra, *, provenance):
                     locations=rows, diagnostics=diagnostics)
     load_metadata(document)
     return document
+
+
+def bind_catalogue(document, catalogue):
+    """Use the seed's names and IDs; keep unmatched Kokiri entries searchable."""
+    if (catalogue.get('schema_version') != 1 or not isinstance(catalogue.get('seed_id'), str)
+            or not catalogue['seed_id']):
+        raise ValueError('Catalogue OotrR v1 avec seed_id requis')
+    by_id = {}
+    for row in document['locations']:
+        by_id.setdefault(row['id'], []).append(row)
+    locations, diagnostics, seen = [], [], set()
+    for check in catalogue['checks']:
+        ident = check['id']
+        if ident in seen:
+            raise ValueError(f'Identifiant en double dans le catalogue : {ident}')
+        seen.add(ident)
+        matches = by_id.get(ident, ())
+        if not matches and ident.isdecimal():
+            # OotrR's original Kokiri chest mode uses the bare actor hash.
+            matches = by_id.get('KokiriForest#' + ident, ())
+        if not matches and (check.get('zone') != 'KokiriForest'
+                            and check.get('region') not in {'Kokiri Forest', 'KokiriForest'}
+                            and not ident.startswith('KokiriForest#')):
+            continue
+        if not matches:
+            matches = [dict(resource='Emplacements sans position', position=None)]
+        if all(row['position'] is None for row in matches):
+            diagnostics.append(f'{ident}: coordonnées absentes pour ce check')
+        for row in matches:
+            locations.append(dict(row, id=ident, name=check['name'],
+                                  alias=row.get('name', ''), category=check['category']))
+    result = dict(document, seed_id=catalogue['seed_id'], locations=locations,
+                  diagnostics=diagnostics)
+    load_metadata(result)
+    return result

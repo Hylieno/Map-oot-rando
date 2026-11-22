@@ -69,3 +69,11 @@ Les événements simulés publient directement, puis provoquent le redraw Tk ; a
 réouverture de fenêtre requise. Les changements simulés pendant une déconnexion
 sont retenus jusqu'à la reconnexion. Importer d'autres métadonnées crée un état neuf.
 Le jeu réel n'est toujours pas branché. Aucune inférence de règles ou d'étages.
+
+## Export local
+
+`python -m map_oot_rando.export` utilise le scanner de la révision OotrR épinglée.
+Le catalogue fixe l'ID et le nom affiché. Le label du scan sert aussi à la recherche.
+Pour les anciens coffres, la correspondance prend le hash du coffre dans Kokiri
+Forest. Les autres checks sans correspondance restent dans la liste sans marqueur.
+Le fond est une grille X/Z construite dans le même repère que les marqueurs.

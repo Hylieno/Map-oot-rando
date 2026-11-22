@@ -30,3 +30,16 @@ class Viewport:
             max(width - 80, 1) / max(high[0] - low[0], 1),
             max(height - 80, 1) / max(high[1] - low[1], 1))))
         self.center(tuple((low[i] + high[i]) / 2 for i in (0, 1)), width, height)
+
+    def grid(self, width, height):
+        """Return a world-aligned grid and its spacing in world units."""
+        from math import ceil, log10
+
+        step = 10 ** ceil(log10(35 / self.scale))
+        if step * self.scale > 140:
+            step /= 5
+        pixels = step * self.scale
+        xs = range(ceil(width / pixels))
+        ys = range(ceil(height / pixels))
+        return (step, [self.x % pixels + i * pixels for i in xs],
+                [self.y % pixels + i * pixels for i in ys])
