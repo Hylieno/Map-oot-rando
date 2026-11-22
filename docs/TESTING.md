@@ -83,3 +83,6 @@ Le téléchargement et le rendu du fond publié par Field Atlas ont été vérif
 sous Linux avec le fichier du site. Les tests automatisés rendent un SVG
 synthétique hors ligne et vérifient le rejet d’un fichier dont l’empreinte diffère.
 L’alignement avec une seed réelle reste à contrôler.
+
+Les 26 tests et le build passent sur
+[Windows CI](https://github.com/Hylieno/Map-oot-rando/actions/runs/45069291402).
