@@ -58,3 +58,8 @@ Ce jalon n'est donc toujours pas terminé. Aucune autre zone développée.
 Reprise : vérifier le quota puis continuer sur cette branche avec l'export local
 read-only et l'intégration au propriétaire de TrackerSession. Examiner d'abord le
 résultat du workflow Windows de la PR pour éviter une compilation redondante.
+
+CI Windows confirmée réussie après ce checkpoint :
+https://github.com/Hylieno/Map-oot-rando/actions/runs/45064230917
+Artifact : https://github.com/Hylieno/Map-oot-rando/actions/runs/45064230917/artifacts/14770488765
+Tests Tk Windows et build réussis ; exécutable packagé non lancé manuellement.

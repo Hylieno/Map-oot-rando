@@ -34,3 +34,9 @@ Contrôle manuel sur bureau Linux : lancement, cadrage, sélection d'un marqueur
 et passage du vert au gris via « Récupéré », avec détails et horodatage mis à jour.
 Workflow Windows configuré ; résultat à vérifier dans GitHub Actions. Pas de test
 avec le vrai jeu ou de validation d'exécutable Windows à ce checkpoint.
+
+Résultat CI confirmé : Windows portable preview, run 45064230917, commit
+6928125049cc0941fda9599f06eb0578487e67a2 : tests Tk obligatoires, compilation
+PyInstaller et upload tous réussis. Artifact 14770488765, 11 660 575 octets.
+L'exécutable produit n'a pas été lancé manuellement : les tests exécutent les
+sources sous Windows, puis le packaging est vérifié par le succès du build.
