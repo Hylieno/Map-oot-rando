@@ -35,7 +35,9 @@ si au moins quatre maisons correspondent aux repères. La vue Enfant peut utilis
 les repères Adulte quand les trois entrées partagent le même repère de coordonnées.
 **Fond Field Atlas…** permet de réessayer en cas d’échec. Enregistre la carte
 pour la rouvrir hors ligne. Les positions sur le dessin
-restent approximatives, surtout loin du village.
+restent approximatives dans les secteurs sans repères. Le fond peut être
+recalibré localement autour d’un point vérifié, sans modifier les coordonnées
+des checks. Les fonds Field Atlas des anciens JSON se recalibrent à l’ouverture.
 
 **Ajouter une vue aérienne…** permet aussi d’utiliser un PNG ou un JPEG local.
 

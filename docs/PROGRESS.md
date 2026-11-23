@@ -127,3 +127,8 @@ le classement des pièces dans la vue Enfant. L’alignement utilise les repère
 Adulte si les trois entrées communes confirment les mêmes coordonnées.
 OotrR est épinglé sur le tag v0.8.0 (générateur 0.12.8) pour correspondre à
 la seed testée. Les anciens exports de coordonnées restent compatibles.
+
+Un deuxième niveau de calibrage corrige localement le fond Field Atlas
+quand une correspondance fiable existe. Il est vérifié sur le coffre de
+l’épée de la seed fournie et sur des tests génériques à plusieurs repères.
+Les anciens fonds Field Atlas enregistrés se recalibrent à l’ouverture.

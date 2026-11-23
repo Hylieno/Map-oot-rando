@@ -8,8 +8,10 @@ from urllib.request import Request, urlopen
 from resvg_py import svg_to_bytes
 
 from .aerial import AerialImage, apply, read_image
+from .image_warp import align_local
 
 SOURCE = 'https://oot.gousse.cool/content/maps/7e802ffa8684f3cd.svg'
+CALIBRATION = 2
 DIGEST = '7e802ffa8684f3cdbe4e342c5f8b3312918b50bc1b1f1904ecc3957cb9d7abc0'
 
 
@@ -35,7 +37,12 @@ HOUSE_PIXELS = {
 }
 
 
-def align_kokiri_image(image, references):
+# Center of the training enclosure on the published drawing. The check
+# coordinate itself is always read from the seed metadata at runtime.
+DETAIL_PIXELS = {'KF Kokiri Sword Chest': (223, 380)}
+
+
+def align_kokiri_image(image, references, details=()):
     """Fit the house centers, allowing a single inconsistent landmark."""
     matches = {}
     for name, position in references:
@@ -49,7 +56,7 @@ def align_kokiri_image(image, references):
     try:
         coefficients, basis, error = _fit_houses(pairs)
         if max(error) <= 18:
-            return _aligned_image(image, coefficients, basis)
+            return _aligned_image(image, coefficients, basis, pairs, details)
     except ValueError:
         pass
 
@@ -72,7 +79,7 @@ def align_kokiri_image(image, references):
         if any(hypot(*(a - b for a, b in zip(apply(best, point), apply(other, point)))) > 18
                for point, _ in pairs):
             raise ValueError('Plusieurs alignements possibles. Aucun fond n’a été appliqué.')
-    return _aligned_image(image, best, basis)
+    return _aligned_image(image, best, basis, pairs, details)
 
 
 def _fit_houses(pairs):
@@ -108,7 +115,21 @@ def _fit_houses(pairs):
     return coefficients, basis, errors
 
 
-def _aligned_image(image, coefficients, basis):
-    pixels = [(x * image.width / 900, y * image.height / 498)
-              for x, y in (apply(coefficients, point) for point in basis)]
-    return AerialImage(image, pixels, basis, source='field-atlas')
+def _aligned_image(image, coefficients, basis, pairs, details):
+    def scaled(point):
+        return point[0] * image.width / 900, point[1] * image.height / 498
+
+    positions = {}
+    for name, point in details:
+        if name in DETAIL_PIXELS:
+            positions.setdefault(name, set()).add(tuple(point))
+    controls = [(scaled(apply(coefficients, next(iter(points)))), scaled(DETAIL_PIXELS[name]))
+                for name, points in positions.items() if len(points) == 1]
+    fixed = [scaled(apply(coefficients, point)) for point, _ in pairs]
+    if controls:
+        try:
+            image = align_local(image, controls, fixed)
+        except ValueError:
+            pass  # Keep the checked global fit when local evidence is incompatible.
+    pixels = [scaled(apply(coefficients, point)) for point in basis]
+    return AerialImage(image, pixels, basis, source='field-atlas', calibration=CALIBRATION)

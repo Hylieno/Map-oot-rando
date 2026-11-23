@@ -59,3 +59,21 @@ class FieldAtlasTests(unittest.TestCase):
         refs = list(zip(HOUSE_PIXELS, [(568, 368), (684, 267), (716, 510),
                                      (870, 521), (976, 520)]))
         self.assertEqual(len(align_kokiri_image(Image.new('RGB', (900, 498)), refs).corners()), 4)
+
+    def test_local_anchor_adjusts_raster_and_preserves_world_projection(self):
+        from PIL import Image
+        from map_oot_rando.aerial import apply
+        from map_oot_rando.field_atlas import DETAIL_PIXELS, HOUSE_PIXELS, align_kokiri_image
+
+        image = Image.new('RGB', (900, 498))
+        name, source = next(iter(DETAIL_PIXELS.items()))
+        x, y = source
+        image.paste((255, 0, 0), (x-3, y-3, x+4, y+4))
+        landmark = HOUSE_PIXELS['links house']
+        image.putpixel(landmark, (0, 0, 255))
+        world = (238, 386)
+        base = align_kokiri_image(image, HOUSE_PIXELS.items())
+        aligned = align_kokiri_image(image, HOUSE_PIXELS.items(), [(name, world), (name, world)])
+        self.assertEqual(apply(base.world_to_image, world), apply(aligned.world_to_image, world))
+        self.assertEqual(aligned.image.getpixel(world), (255, 0, 0))
+        self.assertGreaterEqual(aligned.image.getpixel(landmark)[2], 254)

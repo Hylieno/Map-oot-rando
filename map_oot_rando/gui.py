@@ -10,7 +10,7 @@ from PIL import Image, ImageTk
 
 from .aerial import AerialImage, read_image
 from .aerial_dialog import align_image
-from .field_atlas import align_kokiri_image, load_kokiri_image
+from .field_atlas import CALIBRATION, align_kokiri_image, load_kokiri_image
 from .export import import_seed
 from .model import load_metadata, select
 from .state import StateStore
@@ -349,14 +349,22 @@ class MapApplication:
                 messagebox.showinfo('Field Atlas', 'Choisis la vue enfant ou adulte de Kokiri Forest.',
                                     parent=self.root)
             return
+        saved = self.aerial.get(resource)
+        current = saved and (saved.source != 'field-atlas' or saved.calibration == CALIBRATION)
         if (self.atlas_loading or not manual and
-                resource in self.aerial.keys() | self.atlas_disabled | self.atlas_failed):
+                (current or resource in self.atlas_disabled | self.atlas_failed)):
             return
         references = self.aerial_references(resource, include_checks=False, quiet=not manual)
         if references is None:
             return
         generation = self.atlas_generation
+        # Older Field Atlas JSON saved the original, unwarped raster. Reuse it
+        # for an offline upgrade, but never warp a processed image twice.
         cached = self.atlas_image
+        if cached is None and saved and saved.source == 'field-atlas' and saved.calibration is None:
+            cached = saved.image
+        details = [(row.name, row.project()) for row in self.locations
+                   if view_name(row.resource) == resource and row.position is not None]
         result = Queue()
         self.atlas_loading = resource
         self.atlas_button.state(['disabled'])
@@ -366,7 +374,7 @@ class MapApplication:
             image = cached
             try:
                 image = image or load_kokiri_image()
-                result.put((image, align_kokiri_image(image, references), None))
+                result.put((image, align_kokiri_image(image, references, details), None))
             except (OSError, ValueError) as error:
                 result.put((image, None, str(error)))
 
@@ -385,7 +393,8 @@ class MapApplication:
             if error:
                 self.atlas_failed.add(resource)
                 if self.resource.get() == resource:
-                    self.import_status.set('Fond indisponible. Vue schématique affichée.')
+                    self.import_status.set('Mise à jour du fond indisponible.' if saved else
+                                           'Fond indisponible. Vue schématique affichée.')
                     if manual:
                         messagebox.showerror('Field Atlas indisponible', error, parent=self.root)
             elif resource not in self.atlas_disabled or manual:
@@ -395,7 +404,7 @@ class MapApplication:
                 if self.resource.get() == resource:
                     self.render()
                     self.fit()
-                    self.import_status.set('Fond Field Atlas aligné sur les maisons. Position approximative.')
+                    self.import_status.set('Fond Field Atlas calibré. Précision variable selon la zone.')
             if self.resource.get() != resource:
                 self.ensure_atlas()
 

@@ -36,9 +36,10 @@ def read_image(source):
 
 
 class AerialImage:
-    def __init__(self, image, pixels, world, *, source=None):
+    def __init__(self, image, pixels, world, *, source=None, calibration=None):
         self.image = image
         self.source = source
+        self.calibration = calibration
         self.pixels = pixels
         self.world = world
         self.world_to_image = affine(world, pixels)
@@ -77,7 +78,7 @@ class AerialImage:
         stream = BytesIO()
         self.image.save(stream, 'PNG')
         return {'image': base64.b64encode(stream.getvalue()).decode('ascii'),
-                'pixels': self.pixels, 'world': self.world, 'source': self.source}
+                'pixels': self.pixels, 'world': self.world, 'source': self.source, 'calibration': self.calibration}
 
     @classmethod
     def from_document(cls, row):
@@ -87,4 +88,4 @@ class AerialImage:
                for points in coordinates):
             raise ValueError('Calibrage du fond image invalide.')
         image = read_image(BytesIO(base64.b64decode(row['image'], validate=True)))
-        return cls(image, *coordinates, source=row.get('source'))
+        return cls(image, *coordinates, source=row.get('source'), calibration=row.get('calibration'))

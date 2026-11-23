@@ -77,3 +77,14 @@ Le catalogue fixe l'ID et le nom affiché. Le label du scan sert aussi à la rec
 Pour les anciens coffres, la correspondance prend le hash du coffre dans Kokiri
 Forest. Les autres checks sans correspondance restent dans la liste sans marqueur.
 Le fond est une grille X/Z construite dans le même repère que les marqueurs.
+
+### Alignement local du fond
+
+Le réglage global établit le repère X/Z. Des correspondances nommées entre
+des éléments du dessin et des coordonnées du catalogue corrigent ensuite
+le raster dans un voisinage limité. Le rayon de correction protège les
+autres repères et la borne de déformation évite les plis. Les positions de
+jeu et la projection des checks restent fixes. Les fonds sans repère local
+vérifié utilisent l’alignement global. Le moteur de correction n’est pas
+spécifique à Kokiri, mais chaque dessin doit fournir des correspondances
+utilisables ou des coordonnées déjà alignées.
