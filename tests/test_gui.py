@@ -344,7 +344,7 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(app.resource.get(), REGION_VIEWS['KakarikoVillage']['Adult'])
 
     def test_graveyard_floor_filters_checks_and_search_opens_the_right_floor(self):
-        from map_oot_rando.scene import GRAVEYARD_UNDERGROUND, REGION_VIEWS
+        from map_oot_rando.scene import REGION_VIEWS, UNDERGROUND_VIEWS
 
         app = self.app
         doc = dict(demo_document(), provenance='ootrr-scan', regions=list(REGION_VIEWS))
@@ -355,13 +355,13 @@ class GuiTests(unittest.TestCase):
         app.load(doc)
         self.assertEqual({row.id for row in app.visible}, {surface['id']})
         app.floor_button.invoke()
-        self.assertEqual(app.resource.get(), GRAVEYARD_UNDERGROUND['Child'])
+        self.assertEqual(app.resource.get(), UNDERGROUND_VIEWS['Graveyard']['Child'])
         self.assertEqual({row.id for row in app.visible}, {buried['id']})
         app.floor_button.invoke()
         self.assertEqual(app.resource.get(), REGION_VIEWS['Graveyard']['Child'])
         app.query.set(buried['id'])
         app.choose_first()
-        self.assertEqual(app.resource.get(), GRAVEYARD_UNDERGROUND['Child'])
+        self.assertEqual(app.resource.get(), UNDERGROUND_VIEWS['Graveyard']['Child'])
         self.assertEqual(app.selected.id, buried['id'])
 
     def test_overlapping_markers_can_both_be_selected(self):

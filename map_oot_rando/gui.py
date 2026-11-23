@@ -19,7 +19,7 @@ from .model import REGION_NAMES, load_metadata, resource_region, select
 from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
-from .scene import (BURNT_VILLAGE, GRAVEYARD_UNDERGROUND, NEIGHBORS, REGION_VIEWS, VIEWS,
+from .scene import (BURNT_VILLAGE, NEIGHBORS, REGION_VIEWS, UNDERGROUND_LABELS, UNDERGROUND_VIEWS, VIEWS,
                     field_atlas_scene, group_scenes, location_view, read_scenes, view_name)
 from .simulation import Simulation, demo_document
 from .view import Viewport
@@ -489,7 +489,7 @@ class MapApplication:
         region, age = VIEWS.get(resource, (self.current_region(), None))
         config = PAUSE_MAPS.get(region)
         region_atlas = REGION_MAPS.get(region, {}).get(age)
-        if (self.simulation or resource not in VIEWS or resource in GRAVEYARD_UNDERGROUND.values()
+        if (self.simulation or resource not in VIEWS or resource in UNDERGROUND_LABELS
                 or (config is None and region_atlas is None)):
             if manual:
                 messagebox.showinfo('Fond de carte', 'Aucun fond intégré validé pour cette vue.',
@@ -659,10 +659,10 @@ class MapApplication:
         if self.resource.get() == BURNT_VILLAGE and self.save_age == 'Adult' and self.kakariko_burned is None:
             return
         view = self.view_for_region(self.current_region(), age=self.save_age)
-        if self.resource.get() in GRAVEYARD_UNDERGROUND.values():
-            view = GRAVEYARD_UNDERGROUND[self.save_age]
-            if view not in self.resources['values']:
-                view = self.view_for_region('Graveyard', age=self.save_age)
+        if self.resource.get() in UNDERGROUND_LABELS:
+            underground = UNDERGROUND_VIEWS[self.current_region()][self.save_age]
+            if underground in self.resources['values']:
+                view = underground
         if view and view != self.resource.get():
             self.resource.set(view)
             self.resource_changed(manual=False)
@@ -695,9 +695,9 @@ class MapApplication:
     def floor_target(self):
         view = self.resource.get()
         region, age = VIEWS.get(view, (None, None))
-        if region != 'Graveyard':
+        if region not in UNDERGROUND_VIEWS:
             return None
-        underground = GRAVEYARD_UNDERGROUND[age]
+        underground = UNDERGROUND_VIEWS[region][age]
         target = REGION_VIEWS[region][age] if view == underground else underground
         return target if target in self.resources['values'] else None
 
@@ -724,7 +724,7 @@ class MapApplication:
             self.overview_button.pack_forget()
         floor = self.floor_target()
         if floor:
-            text = 'Souterrains' if floor in GRAVEYARD_UNDERGROUND.values() else 'Surface'
+            text = 'Souterrains' if floor in UNDERGROUND_LABELS else 'Surface'
             self.floor_button.configure(text=text)
             self.floor_button.pack(side='left', padx=5)
         else:
@@ -870,8 +870,7 @@ class MapApplication:
                 self.canvas.create_line(x, 0, x, height, fill='#2c414a')
             for y in ys:
                 self.canvas.create_line(0, y, width, y, fill='#2c414a')
-            heading = (f'{self.resource.get()} | Schéma X/Z' if region == 'Graveyard'
-                       and self.resource.get() in GRAVEYARD_UNDERGROUND.values()
+            heading = (f'{self.resource.get()} | Schéma X/Z' if self.resource.get() in UNDERGROUND_LABELS
                        else f'Schéma X/Z | Grille : {step:g} unités')
         self.canvas.create_text(12, 12, anchor='nw', fill=heading_color, text=heading)
         for neighbor, exit_point in exits.values():

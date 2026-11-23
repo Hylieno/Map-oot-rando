@@ -50,8 +50,9 @@ Les vues adulte et après l’incendie utilisent la même image avec leurs propr
 Le [cimetière](https://oot.gousse.cool/graveyard) a aussi un fond Field Atlas.
 **Souterrains** ouvre les checks enfouis dans une vue schématique. La recherche
 ouvre directement la bonne vue quand un check a des coordonnées.
-Le mont du Péril est accessible depuis Cocorico. Il utilise pour l’instant
-un schéma des checks et des passages relevés dans les ressources du jeu.
+Le mont du Péril est accessible depuis Cocorico. Le fond
+[Field Atlas du sentier](https://oot.gousse.cool/death-mountain-trail) est
+aligné pour les deux âges. **Souterrains** ouvre les checks en grotte.
 
 Pour une image locale, l’application lit automatiquement un fichier de coordonnées
 `.wld`, `.pgw` ou `.jgw` de même nom s’il utilise le repère X/Z du jeu. Une image

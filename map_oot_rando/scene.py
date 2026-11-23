@@ -1,7 +1,7 @@
 """Map symbols derived from OotrR landmarks in the active resource's coordinates."""
 from math import isfinite
 
-from .model import REGION_NAMES, resource_region
+from .model import REGION_NAMES, SURFACE_MIN_Y, resource_region
 
 MAP_SUFFIX = '.bcett.byml.zs'
 REGION_VIEWS = {region: {'Child': f'{name} · Enfant', 'Adult': f'{name} · Adulte'}
@@ -11,9 +11,11 @@ VIEWS = {label: (region, age) for region, ages in REGION_VIEWS.items()
          for age, label in ages.items()}
 BURNT_VILLAGE = 'Cocorico · Après l’incendie'
 VIEWS[BURNT_VILLAGE] = ('KakarikoVillage', 'Adult')
-GRAVEYARD_UNDERGROUND = {age: f'{view} · Souterrains'
-                         for age, view in REGION_VIEWS['Graveyard'].items()}
-VIEWS.update({view: ('Graveyard', age) for age, view in GRAVEYARD_UNDERGROUND.items()})
+UNDERGROUND_VIEWS = {region: {age: f'{view} · Souterrains' for age, view in REGION_VIEWS[region].items()}
+                     for region in SURFACE_MIN_Y}
+UNDERGROUND_LABELS = {view for ages in UNDERGROUND_VIEWS.values() for view in ages.values()}
+VIEWS.update({view: (region, age) for region, ages in UNDERGROUND_VIEWS.items()
+              for age, view in ages.items()})
 NEIGHBORS = {
     'KokiriForest': {'LostWood': 'front_of_lost_wood_entrance',
                      'HyruleField': 'front_of_hyrule_field_entrance'},
@@ -63,6 +65,12 @@ ENTRANCE_LABELS = {
     'KakarikoVillage': KAKARIKO_ENTRANCES,
     'Graveyard': {'KakarikoVillage': 'Vers Cocorico'},
     'HyruleField': HYRULE_ANCHORS,
+    'DeathMountainTrail': {
+        'DeathMountainCrater': 'Repère du cratère',
+        'DodongoCavern': 'Repère Dodongo',
+        'GoronCity': 'Repère Goron',
+        'KakarikoVillage': 'Repère Cocorico',
+    },
 }
 TRAIL_LABELS = {
     'crater_entrance': 'Vers le cratère',
@@ -111,6 +119,8 @@ def projection_points(region, sources):
                 label = GRAVEYARD_LANDMARKS.get(gyaml)
                 if gyaml in {'Land_Graveyard_Gate_A_09', 'Obj_Tombstone_A_01'}:
                     label = GRAVEYARD_STONES.get(actor.get('Hash'))
+            elif region == 'DeathMountainTrail' and gyaml == 'Land_DeathMtTrail_Rock_A_06':
+                label = 'Rocher au virage sud'
             elif gyaml == 'Land_HrlField_Bridge_A_01':
                 label = 'Pont de la rivière'
             elif gyaml == 'Enemy_Skulltula_Gold' and actor.get('Hash') == 2177746409373494991:
@@ -182,7 +192,8 @@ def view_name(resource):
 def location_view(row):
     view = view_name(row.resource)
     if row.underground and view in VIEWS:
-        return GRAVEYARD_UNDERGROUND[VIEWS[view][1]]
+        region, age = VIEWS[view]
+        return UNDERGROUND_VIEWS[region][age]
     return view
 
 

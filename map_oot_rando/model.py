@@ -14,6 +14,8 @@ REGION_NAMES = {
     'Graveyard': 'Cimetière',
     'DeathMountainTrail': 'Mont du Péril',
 }
+# The surface of each of these two Bancs sits above its buried actor placements.
+SURFACE_MIN_Y = {'Graveyard': 92, 'DeathMountainTrail': 80}
 
 
 def resource_region(resource):
@@ -79,7 +81,7 @@ def load_metadata(document):
         if region not in regions or (frame is not None and frame != region):
             raise ValueError('Région de l’emplacement invalide')
         underground = row.get('underground', False)
-        if type(underground) is not bool or (underground and (region != 'Graveyard' or position is None)):
+        if type(underground) is not bool or (underground and (region not in SURFACE_MIN_Y or position is None)):
             raise ValueError('Niveau de carte invalide')
         location = Location(row['id'], row['name'], row['category'], row['resource'],
                             position, alias, region, entrance, underground)

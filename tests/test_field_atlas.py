@@ -37,6 +37,25 @@ class FieldAtlasTests(unittest.TestCase):
                 load_kokiri_image()
         render.assert_not_called()
 
+    def test_death_mountain_checks_dodongo_independently(self):
+        from PIL import Image
+        from map_oot_rando.field_atlas import align_region_image
+
+        image = Image.new('RGB', (650, 1603))
+        refs = [
+            ('Repère du cratère', (-0.32, -157.04)),
+            ('Repère Goron', (-24.63, -86.5)),
+            ('Repère Dodongo', (-50.8, -21.29)),
+            ('Repère Cocorico', (-29.8, 73.27)),
+            ('Rocher au virage sud', (-52.0, 33.24)),
+        ]
+        region = 'DeathMountainTrail'
+        image_map = align_region_image(image, refs + [('Vers la Caverne Dodongo', (-55.27, -31.26))],
+                                       region, 'Child')
+        self.assertTrue(image_map.covers((-26.15, 85.63)))
+        with self.assertRaisesRegex(ValueError, 'indépendant'):
+            align_region_image(image, refs + [('Vers la Caverne Dodongo', (-40, -31.26))], region, 'Child')
+
     def test_auto_alignment_fits_house_centers_from_kokiri_view(self):
         from math import dist
         from PIL import Image

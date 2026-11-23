@@ -4,6 +4,10 @@ Les quatre ressources publiques du mont du Péril contiennent les acteurs
 correspondant à 29 des 31 IDs du catalogue local. Les deux vues ont les
 quatre passages attendus. Ce recoupement vérifie les identifiants physiques
 et les repères, avant le scan du NUP complet.
+Les deux âges passent le contrôle du fond Field Atlas à l’entrée de la
+caverne Dodongo, avec un écart de 6,4 pixels sur l’image de 650 × 1 603.
+Le rapprochement des acteurs situe les six rubis de la grotte à Y ≈ 58,
+sous la surface du sentier. Le test de projection rejette une entrée décalée.
 
 Les fonds du cimetière ont passé le recalage automatique pour les deux âges.
 Deux repères indépendants de l’ajustement valident l’alignement. Le test Tk

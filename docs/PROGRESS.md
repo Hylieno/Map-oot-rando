@@ -1,8 +1,8 @@
 # Checkpoint — 22 novembre 2026
 
 Le mont du Péril est relié à Cocorico. Les vues enfant et adulte utilisent
-les passages du jeu et les checks importés. Le fond texturé reste en cours
-de validation. Chaque mise à jour du code lance les tests Windows et
+un fond Field Atlas validé. Les six rupees enfouies de la seed de référence
+appartiennent à la vue souterraine. Chaque mise à jour du code lance les tests Windows et
 seuls les jalons marqués `[preview]` déclenchent aussi un build.
 
 Le cimetière est accessible depuis Cocorico. Field Atlas fournit le fond
