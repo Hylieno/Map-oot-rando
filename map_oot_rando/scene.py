@@ -27,6 +27,8 @@ DUNGEON_ATLAS_KEYS = {view: f'{level}F' for floors in DUNGEON_FLOORS.values()
                       for level, (_, view) in enumerate(floors[:-1], start=1)}
 for region, floors in DUNGEON_FLOORS.items():
     REGION_VIEWS[region] = {None: floors[0][1]}
+REGION_VIEWS['IceCavern'] = {None: REGION_NAMES['IceCavern']}
+SHARED_DUNGEONS = frozenset(region for region, views in REGION_VIEWS.items() if None in views)
 FLOOR_OPTIONS = {
     **{view: tuple(zip(GORON_LEVELS, views)) for views in GORON_VIEWS.values() for view in views},
     **{view: floors for floors in DUNGEON_FLOORS.values() for _, view in floors},
@@ -65,7 +67,8 @@ NEIGHBORS = {
     'ZoraRiver': {'LostWood': 'Vers les Bois Perdus', 'HyruleField': 'Vers la plaine d’Hyrule',
                   'ZoraDomain': 'Vers le Domaine Zora'},
     'ZoraDomain': {'ZoraRiver': 'Vers la Rivière Zora', 'ZoraFountain': 'Vers la Fontaine Zora'},
-    'ZoraFountain': {'ZoraDomain': 'Vers le Domaine Zora'},
+    'ZoraFountain': {'ZoraDomain': 'Vers le Domaine Zora', 'IceCavern': 'Vers la Caverne de glace'},
+    'IceCavern': {'ZoraFountain': 'Vers la Fontaine Zora'},
 }
 KAKARIKO_ENTRANCES = {
     'HyruleField': 'Vers la plaine d’Hyrule',
@@ -111,7 +114,8 @@ ENTRANCE_LABELS = {
     'HyruleField': HYRULE_ANCHORS,
     'ZoraRiver': {'ZoraDomain': NEIGHBORS['ZoraRiver']['ZoraDomain']},
     'ZoraDomain': NEIGHBORS['ZoraDomain'],
-    'ZoraFountain': NEIGHBORS['ZoraFountain'],
+    'ZoraFountain': {'ZoraDomain': NEIGHBORS['ZoraFountain']['ZoraDomain']},
+    'IceCavern': NEIGHBORS['IceCavern'],
     'DeathMountainTrail': {
         'DeathMountainCrater': 'Repère du cratère',
         'DodongoCavern': 'Repère Dodongo',
@@ -190,6 +194,9 @@ def projection_points(region, sources):
                     label = 'arrivee_de_kokiri'
             elif region == 'ZoraRiver' and gyaml == 'FieldAndDungeonEntranceEventRequestActor':
                 label = ZORA_RIVER_EXITS.get(actor.get('Name'))
+            elif (region == 'ZoraFountain' and gyaml == 'FieldAndDungeonEntranceEventRequestActor'
+                  and actor.get('Name') == 'ZoraFountain_FromIceCavern'):
+                label = NEIGHBORS[region]['IceCavern']
             elif region == 'SacredForestMeadow':
                 label = GROVE_ANCHORS.get(gyaml)
                 if gyaml in {'Land_SacredForest_Prop_A_33', 'Land_SacredForest_Prop_A_41'}:
@@ -275,7 +282,7 @@ def read_scenes(document):
 def view_name(resource):
     """Group scene layers within a region and age."""
     region = resource_region(resource)
-    if region in DUNGEON_FLOORS and resource in (
+    if region in SHARED_DUNGEONS and resource in (
             f'Banc/{region}/{region}_{layer}{MAP_SUFFIX}' for layer in ('Static', 'Dynamic')):
         return REGION_VIEWS[region][None]
     if region == 'KakarikoVillage' and resource in (

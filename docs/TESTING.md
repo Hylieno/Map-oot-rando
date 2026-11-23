@@ -1,5 +1,12 @@
 # Validation
 
+La Caverne de glace a été recoupée avec les deux scènes publiques et les
+14 IDs du catalogue. Tous les placements sont dans le fond Field Atlas.
+Sur l’image de 650 pixels de large, 13 marqueurs tombent sur le dessin
+et le coffre de la salle 8 en est à 3 pixels. Le test Tk vérifie la vue
+unique et le passage par la Fontaine adulte.
+
+
 À la Fontaine Zora, les quatre ressources publiques et le catalogue
 donnent 29 checks positionnés, avec 9 emplacements enfant et 22 adulte.
 Chaque fond inclut l’entrée du Domaine. Le test d’alignement vérifie

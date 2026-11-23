@@ -16,6 +16,8 @@
   origines nord-sud distinctes pour les fonds enfant et adulte. Les checks
   derrière la paroi utilisent l’entrée du passage. Leurs coordonnées XYZ
   restent consultables.
+- Caverne de glace. Une seule scène réunit les placements statiques et
+  dynamiques. Le passage utilise l’entrée principale de la Fontaine adulte.
 - Link. Le marqueur et le changement automatique de zone sont deux commandes
   distinctes. Les coordonnées sont lues via la connexion mémoire OotrR.
   Les décalages du module et les champs de pose viennent de la documentation

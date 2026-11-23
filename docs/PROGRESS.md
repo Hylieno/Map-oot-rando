@@ -7,8 +7,10 @@ Le Domaine Zora est accessible depuis la rivière. Ses 26 checks de référence
 sont placés. Le plan Field Atlas est commun aux deux âges, avec les acteurs
 du mini-jeu, de la boutique et du roi selon la scène. La Fontaine Zora
 affiche les 29 checks de référence sur deux fonds alignés, avec le retour
-vers le Domaine. Le prochain groupe adjacent comprend Jabu-Jabu et la
-Caverne de glace.
+vers le Domaine. Un build Windows a été produit pour les zones Zora.
+La Caverne de glace ajoute 14 placements et un aller-retour vers la
+Fontaine adulte. Les plans et les données de Jabu-Jabu sont en cours
+de comparaison.
 
 Le dézoom ouvre la carte générale d’Hyrule. Les cartes locales utilisent
 Field Atlas et les options de changement de fond ont été retirées. Le plan

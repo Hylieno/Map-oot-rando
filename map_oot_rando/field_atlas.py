@@ -67,6 +67,7 @@ FIELD_FRAMES['ZoraFountain'] = {
     'Child': ((-44, -33, 927, 864), (7.0485, 200.7, 7.1346, 450.48)),
     'Adult': ((-45, 10, 939, 902), (7.0485, 200.7, 7.1346, 527.48)),
 }
+FIELD_FRAMES['IceCavern'] = {None: ((-51, -50, 947, 1179), (5.2876, 337.98, 5.1869, 469.16))}
 for region, source, digest in (
     ('HyruleField', 'hyrule-field', '2cca33a54d435cd8bb42931514d1ac4698e116e683bf9967bfd7b2ced752d252'),
     ('SacredForestMeadow', 'sacred-meadow', '30559071ebb5f020ae7dd00ddc13b4a17c11f202d91df6d1501193eda34a859a'),
@@ -84,6 +85,9 @@ REGION_MAPS['FireTemple'] = {
 REGION_MAPS['ZoraFountain'] = {
     'Child': ('field-atlas-zora-fountain-child', 'ef682defc525b7c846650ed4e3355e5f9e75e68986a088970c677bd1c0a82fb8'),
     'Adult': ('field-atlas-zora-fountain-adult', '7caf49666efec47db9bf937b93ef1464e378593342197f5e92cff69e3a7daf33'),
+}
+REGION_MAPS['IceCavern'] = {
+    None: ('field-atlas-ice-cavern', '1ec8568fd796ef747f703b0898bdfdba35bd1ef4422c3f8b0cc274ecfee4b126'),
 }
 REGION_CALIBRATION = 1
 

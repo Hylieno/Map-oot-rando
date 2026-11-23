@@ -19,7 +19,7 @@ La navigation suivie réagit aux transitions de scène ou d’âge.
 Le champ facultatif `entrance` indique où accéder à un check souterrain
 sur une carte de surface. Le rendu projette cet accès et les détails
 conservent la position XYZ de l’acteur.
-Dans les zones Zora et au Temple du Feu, les identifiants typés du catalogue
+Dans les zones Zora, à la Caverne de glace et au Temple du Feu, les identifiants typés du catalogue
 peuvent compléter le scan par correspondance du hash et du type d’acteur
 dans chaque scène, sans écraser un placement déjà produit pour cette vue.
 Les ressources `Adult_Alternative` de Cocorico ont une vue adulte distincte.
@@ -33,7 +33,8 @@ de chaque placement. Les étages principaux partagent le repère X/Z du
 fond Field Atlas. L’ID et les coordonnées XYZ d’origine restent disponibles.
 La caverne Dodongo utilise des ressources communes aux deux âges. Le menu
 d’étage est partagé avec le Village Goron. Le dernier âge connu reste
-disponible quand l’utilisateur rejoint une zone extérieure.
+disponible quand l’utilisateur rejoint une zone extérieure. La Caverne de
+glace utilise ce même principe avec une seule vue.
 Le Temple du Feu réutilise ce sélecteur. Ses cinq images sont des recadrages
 d’une même projection orthographique. Les marqueurs reprennent les placements
 du scan OotrR, avec résolution par type et identifiant d’acteur pour les

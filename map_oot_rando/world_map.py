@@ -24,6 +24,7 @@ WORLD_PINS = {
     'ZoraRiver': (.5803, .5244),
     'ZoraDomain': (.6859, .4747),
     'ZoraFountain': (.8030, .5223),
+    'IceCavern': (.8637, .4540),
 }
 
 

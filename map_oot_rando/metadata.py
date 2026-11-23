@@ -54,7 +54,7 @@ CHECK_ACTOR_PATTERNS = {
     ('full_skulltula', 'gs'): ('Enemy_Skulltula_Gold',),
     ('full_bossheart', 'heart'): ('Obj_Heart_Container',),
 }
-PLACEMENT_REGIONS = frozenset({'FireTemple', 'ZoraRiver', 'ZoraDomain', 'ZoraFountain'})
+PLACEMENT_REGIONS = frozenset({'FireTemple', 'ZoraRiver', 'ZoraDomain', 'ZoraFountain', 'IceCavern'})
 
 
 def add_surface_entrances(rows, maps):
@@ -221,7 +221,7 @@ def bind_catalogue(document, catalogue):
                   'Death Mountain Trail': 'DeathMountainTrail', 'Goron City': 'GoronCity',
                   "Dodongo's Cavern": 'DodongoCavern', 'Death Mountain Crater': 'DeathMountainCrater',
                   'Fire Temple': 'FireTemple', "Zora's River": 'ZoraRiver', "Zora's Domain": 'ZoraDomain',
-                  "Zora's Fountain": 'ZoraFountain'})
+                  "Zora's Fountain": 'ZoraFountain', 'Ice Cavern': 'IceCavern'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']

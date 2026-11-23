@@ -46,7 +46,8 @@ en grotte sont indiqués à leur entrée en surface. Le Domaine Zora se rejoint
 depuis la rivière. Ses checks incluent les rayons de la boutique et le mini-jeu
 de plongeon. Les variantes adultes partagent la même vue. Le Domaine donne
 accès à la Fontaine Zora, avec un plan Field Atlas par âge et un repère de
-passage pour les checks accessibles par la caverne.
+passage pour les checks derrière la paroi. La Caverne de glace est
+reliée à la vue adulte de la Fontaine et possède son propre plan.
 Les deux récompenses du Théâtre Mojo partagent un marqueur à l’entrée.
 Au Bosquet sacré, les deux coffres enfouis sont repérés par l’accès à leur
 grotte. Les détails conservent les coordonnées XYZ du coffre.

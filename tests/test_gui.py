@@ -561,6 +561,32 @@ class GuiTests(unittest.TestCase):
         self.assertFalse(app.canvas.find_withtag('player-pin'))
         self.assertIn('dossier de sauvegardes', app.link_status.get())
 
+    def test_ice_cavern_has_one_view_and_uses_adult_fountain_portal(self):
+        from unittest.mock import patch
+        from map_oot_rando.scene import REGION_VIEWS
+
+        app = self.app
+        doc = dict(demo_document(), provenance='ootrr-scan', locations=[],
+                   regions=['KokiriForest', 'ZoraFountain', 'IceCavern'])
+        native = 'Banc/ZoraFountain/ZoraFountain_{}_Static.bcett.byml.zs'
+        doc['scenes'] = {
+            native.format('Child'): {'rooms': [], 'points': [('Rive', (0, 0))]},
+            native.format('Adult'): {'rooms': [], 'points': [('Vers la Caverne de glace', (47, -66))]},
+            'Banc/IceCavern/IceCavern_Static.bcett.byml.zs':
+                {'rooms': [], 'points': [('Vers la Fontaine Zora', (0, 105))]},
+        }
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        self.assertNotIn('IceCavern', app.available_neighbors())
+        self.assertIn('IceCavern', app.world_targets())
+        app.age_buttons['Adult'].invoke()
+        self.assertIn('IceCavern', app.navigation_markers.values())
+        app.open_neighbor('IceCavern')
+        self.assertEqual(app.resource.get(), REGION_VIEWS['IceCavern'][None])
+        self.assertFalse(app.floor_picker.winfo_ismapped())
+        app.open_neighbor('ZoraFountain')
+        self.assertEqual(app.resource.get(), REGION_VIEWS['ZoraFountain']['Adult'])
+
     def test_overlapping_markers_can_both_be_selected(self):
         from unittest.mock import patch
 

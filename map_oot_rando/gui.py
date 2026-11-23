@@ -21,7 +21,7 @@ from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
 from .scene import (BURNT_VILLAGE, DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS, FIRE_VIEWS, FLOOR_OPTIONS,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS,
-                    NEIGHBORS, REGION_VIEWS,
+                    NEIGHBORS, REGION_VIEWS, SHARED_DUNGEONS,
                     UNDERGROUND_LABELS, UNDERGROUND_VIEWS, VIEWS,
                     field_atlas_scene, group_scenes, location_view, read_scenes, view_name)
 from .simulation import Simulation, demo_document
@@ -722,7 +722,7 @@ class MapApplication:
         if self.overview_open:
             self.navigation_age = self.save_age
             return
-        if self.current_region() in DUNGEON_FLOORS:
+        if self.current_region() in SHARED_DUNGEONS:
             self.navigation_age = self.save_age
             self.refresh_navigation()
             return
@@ -746,7 +746,7 @@ class MapApplication:
         return view
 
     def choose_age(self, age):
-        if self.current_region() in DUNGEON_FLOORS:
+        if self.current_region() in SHARED_DUNGEONS:
             self.navigation_age = age
             self.follow_age.set(False)
             self.refresh_navigation()
@@ -776,6 +776,8 @@ class MapApplication:
             _, age = VIEWS.get(self.resource.get(), (self.current_region(), self.save_age))
         if age is None:
             age = self.navigation_age
+        if from_portal and region == 'IceCavern' and self.current_region() == 'ZoraFountain' and age == 'Child':
+            return None
         # A known age must be preserved across the transition.
         ages = REGION_VIEWS[region]
         candidates = (ages[age],) if age in ages else ages.values()
@@ -836,7 +838,7 @@ class MapApplication:
         view = self.resource.get()
         self.zones.set(view if view == BURNT_VILLAGE or view not in VIEWS else name)
         for choice, button in self.age_buttons.items():
-            supported = region in DUNGEON_FLOORS or self.view_for_age(choice)
+            supported = region in SHARED_DUNGEONS or self.view_for_age(choice)
             active = choice == (age or self.navigation_age)
             button.configure(text=AGE_LABELS[choice] + (' ✓' if active else ''))
             button.state(['disabled' if self.simulation or active or not supported else '!disabled'])
@@ -963,8 +965,8 @@ class MapApplication:
         for target in self.world_targets():
             u, v = WORLD_PINS[target]
             x, y = left + u * size[0], top + v * size[1]
-            color = '#8ae8c1' if target == region else '#ffca91' if target in DUNGEON_FLOORS else '#fff3ca'
-            if target in DUNGEON_FLOORS:
+            color = '#8ae8c1' if target == region else '#ffca91' if target in SHARED_DUNGEONS else '#fff3ca'
+            if target in SHARED_DUNGEONS:
                 pin = self.canvas.create_polygon(x, y-7, x+7, y, x, y+7, x-7, y,
                                                  fill=color, outline='#2e2718', width=2)
             else:
