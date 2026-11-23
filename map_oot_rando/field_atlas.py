@@ -1,4 +1,4 @@
-"""Open the published Kokiri background from its author on explicit request."""
+"""Open and align published Field Atlas backgrounds."""
 from hashlib import sha256
 from itertools import combinations
 from math import hypot
@@ -16,14 +16,44 @@ DIGEST = '7e802ffa8684f3cdbe4e342c5f8b3312918b50bc1b1f1904ecc3957cb9d7abc0'
 
 
 def load_kokiri_image():
-    request = Request(SOURCE, headers={'User-Agent': 'Map-oot-rando/1.0'})
+    return load_atlas_image(DIGEST, width=1800, height=996, url=SOURCE)
+
+
+def load_atlas_image(digest, *, width, height=None, url=None):
+    url = url or f'https://oot.gousse.cool/content/maps/{digest[:16]}.svg'
+    request = Request(url, headers={'User-Agent': 'Map-oot-rando/1.0'})
     with urlopen(request, timeout=8) as response:
-        if response.url != SOURCE:
+        if response.url != url:
             raise ValueError('Adresse Field Atlas modifiée.')
         data = response.read(100_001)
-    if sha256(data).hexdigest() != DIGEST:
+    if sha256(data).hexdigest() != digest:
         raise ValueError('Le fond Field Atlas a changé. Il doit être vérifié avant utilisation.')
-    return read_image(BytesIO(svg_to_bytes(svg_string=data.decode('utf-8'), width=1800, height=996)))
+    dimensions = {'width': width}
+    if height is not None:
+        dimensions['height'] = height
+    return read_image(BytesIO(svg_to_bytes(svg_string=data.decode('utf-8'), **dimensions)))
+
+
+KAKARIKO_MAPS = {
+    'Child': ('field-atlas-kakariko-child', 'ec8d8a9fcf46a7b5f159d3fa112772041a720270124fa28db9bf3391f41a6ec5'),
+    'Adult': ('field-atlas-kakariko-adult', 'a2991a3861d98c7331e597948d1370e63b0f14bff72d0a11eb3d1f7ce4b19979'),
+}
+KAKARIKO_CALIBRATION = 1
+
+
+def align_kakariko_image(image, references, age):
+    from .map_projection import registered_background
+
+    controls = {
+        'Vers la plaine d’Hyrule': (42, 346),
+        'Vers le Mont du Péril': (367 if age == 'Child' else 369, 43),
+        'Vers le cimetière': (608, 395),
+        'Maison au sud': (342, 498),
+        'Puits': (415, 314),
+    }
+    holdout = {'Moulin': (510, 313)}
+    return registered_background(image, references, controls, holdout, source=KAKARIKO_MAPS[age][0],
+                                 calibration=KAKARIKO_CALIBRATION, require_validation=True)
 
 
 # Centers read against the published 900 × 498 drawing. These are visual

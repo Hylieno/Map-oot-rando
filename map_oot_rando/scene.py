@@ -9,12 +9,26 @@ REGION_VIEWS = {region: {'Child': f'{name} · Enfant', 'Adult': f'{name} · Adul
 AGE_VIEWS = REGION_VIEWS['KokiriForest']
 VIEWS = {label: (region, age) for region, ages in REGION_VIEWS.items()
          for age, label in ages.items()}
+BURNT_VILLAGE = 'Cocorico · Après l’incendie'
+VIEWS[BURNT_VILLAGE] = ('KakarikoVillage', 'Adult')
 NEIGHBORS = {
     'KokiriForest': {'LostWood': 'front_of_lost_wood_entrance',
                      'HyruleField': 'front_of_hyrule_field_entrance'},
     'LostWood': {'KokiriForest': 'arrivee_de_kokiri', 'SacredForestMeadow': 'Vers le Bosquet sacré'},
-    'HyruleField': {'KokiriForest': 'front_of_lost_wood_bridge_entrance'},
+    'HyruleField': {'KokiriForest': 'front_of_lost_wood_bridge_entrance',
+                    'KakarikoVillage': 'Vers Cocorico'},
     'SacredForestMeadow': {'LostWood': 'front_of_lost_wood_entrance'},
+    'KakarikoVillage': {'HyruleField': 'Vers la plaine d’Hyrule'},
+}
+KAKARIKO_ENTRANCES = {
+    'HyruleField': 'Vers la plaine d’Hyrule',
+    'DeathMountainTrail': 'Vers le Mont du Péril',
+    'Graveyard': 'Vers le cimetière',
+    'BottomOfTheWell': 'Puits',
+}
+KAKARIKO_BUILDINGS = {
+    'Land_Kakariko_WindmillHouse_A_01': 'Moulin',
+    'Land_Kakariko_House_A_01': 'Maison au sud',
 }
 LOST_WOOD_POINT_LABELS = {
     'front_of_sacred_forest_meadow_entrance': 'Vers le Bosquet sacré',
@@ -61,7 +75,10 @@ def projection_points(region, sources):
             elif gyaml == 'MapIconEntranceAnchor':
                 dynamic = actor.get('Dynamic')
                 if isinstance(dynamic, dict) and dynamic.get('IsVisible') is not False:
-                    label = HYRULE_ANCHORS.get(dynamic.get('Location'))
+                    entrances = KAKARIKO_ENTRANCES if region == 'KakarikoVillage' else HYRULE_ANCHORS
+                    label = entrances.get(dynamic.get('Location'))
+            elif region == 'KakarikoVillage':
+                label = KAKARIKO_BUILDINGS.get(gyaml)
             elif gyaml == 'Land_HrlField_Bridge_A_01':
                 label = 'Pont de la rivière'
             elif gyaml == 'Enemy_Skulltula_Gold' and actor.get('Hash') == 2177746409373494991:
@@ -119,6 +136,10 @@ def read_scenes(document):
 def view_name(resource):
     """Group scene layers within a region and age."""
     region = resource_region(resource)
+    if region == 'KakarikoVillage' and resource in (
+            f'Banc/{region}/{region}_Adult_Alternative_{layer}{MAP_SUFFIX}'
+            for layer in ('Static', 'Dynamic')):
+        return BURNT_VILLAGE
     for age, label in REGION_VIEWS.get(region, {}).items():
         if resource in (f'Banc/{region}/{region}_{age}_{layer}{MAP_SUFFIX}'
                         for layer in ('Static', 'Dynamic')):

@@ -321,6 +321,28 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(app.resource.get(), REGION_VIEWS['HyruleField']['Adult'])
         self.assertFalse(app.overview_open)
 
+    def test_kakariko_story_variant_stays_separate_and_follows_snapshot(self):
+        from map_oot_rando.scene import BURNT_VILLAGE, REGION_VIEWS
+
+        app = self.app
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=list(REGION_VIEWS))
+        prefix = 'Banc/KakarikoVillage/KakarikoVillage_'
+        doc['locations'] = [
+            dict(row, resource=prefix + suffix + '.bcett.byml.zs')
+            for row, suffix in zip(doc['locations'], ('Adult_Static', 'Adult_Alternative_Dynamic'))
+        ]
+        app.load(doc)
+        self.assertEqual(app.resource.get(), REGION_VIEWS['KakarikoVillage']['Adult'])
+        self.assertEqual({r.id for r in app.visible}, {doc['locations'][0]['id']})
+        app.save_age = 'Adult'
+        app.kakariko_burned = True
+        app.sync_age()
+        self.assertEqual(app.resource.get(), BURNT_VILLAGE)
+        self.assertEqual({r.id for r in app.visible}, {doc['locations'][1]['id']})
+        app.kakariko_burned = False
+        app.sync_age()
+        self.assertEqual(app.resource.get(), REGION_VIEWS['KakarikoVillage']['Adult'])
+
     def test_overlapping_markers_can_both_be_selected(self):
         from unittest.mock import patch
 

@@ -126,7 +126,7 @@ def bind_catalogue(document, catalogue):
     regions = document.get('regions', ('KokiriForest',))
     names = {name: region for region, name in REGION_NAMES.items()}
     names.update({'Lost Woods': 'LostWood', 'the Lost Woods': 'LostWood', 'Hyrule Field': 'HyruleField',
-                  'Sacred Forest Meadow': 'SacredForestMeadow'})
+                  'Sacred Forest Meadow': 'SacredForestMeadow', 'Kakariko Village': 'KakarikoVillage'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']

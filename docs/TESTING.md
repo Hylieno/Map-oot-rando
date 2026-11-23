@@ -1,5 +1,13 @@
 # Validation
 
+À Cocorico, le catalogue local compte 76 IDs, dont 36 positionnés lors du
+recoupement avec les six placements publics seuls. Le reste peut dépendre
+des packs du NUP ou de correspondances d’événements. Les trois vues ont
+passé le recalage Field Atlas et le contrôle indépendant du moulin
+(écart d’environ 11 pixels sur un fond de 650 pixels de large). Les tests
+vérifient la séparation des variantes et le passage à la vue sélectionnée
+par le snapshot, y compris au retour vers une sauvegarde antérieure.
+
 Les quatre Bancs publics de la plaine d’Hyrule ont permis de retrouver les
 125 IDs du catalogue local. Une partie des positions dépend des packs
 d’acteurs du NUP. Le recalage sur six repères, dont un exclu de l’ajustement,

@@ -1,6 +1,6 @@
 # Map-oot-rando
 
-Compagnon de carte local pour OotrR avec Kokiri Forest, les Bois Perdus, le Bosquet sacré et la plaine d’Hyrule.
+Compagnon de carte local pour OotrR avec Kokiri Forest, les Bois Perdus, le Bosquet sacré, la plaine d’Hyrule et Cocorico.
 
 La simulation utilise des positions fictives.
 L’import local lit les coordonnées de la seed et le suivi lit les états d’OotrR
@@ -45,6 +45,8 @@ Les entrées et les checks positionnés utilisent les coordonnées des ressource
 Les deux récompenses du Théâtre Mojo partagent un marqueur à l’entrée.
 Au Bosquet sacré, les deux coffres enfouis sont repérés par l’accès à leur
 grotte. Les détails conservent les coordonnées XYZ du coffre.
+Cocorico utilise les [fonds sans icônes de Field Atlas](https://oot.gousse.cool/kakariko-village).
+Les vues adulte et après l’incendie utilisent la même image avec leurs propres checks.
 
 Pour une image locale, l’application lit automatiquement un fichier de coordonnées
 `.wld`, `.pgw` ou `.jgw` de même nom s’il utilise le repère X/Z du jeu. Une image
@@ -78,6 +80,9 @@ détails. Les marques restent séparées par fichier et par seed.
 **Suivre l’âge sauvegardé** sélectionne la vue Enfant ou Adulte lorsque
 l’information est disponible dans la mémoire ou le fichier. Le choix
 manuel d’une vue suspend le changement.
+À Cocorico, ce réglage sélectionne aussi la variante adulte confirmée par
+la sauvegarde ou la mémoire. Le menu de zone permet de choisir la variante
+après l’incendie quand le suivi ne fournit pas cet état.
 
 **Diagnostic de la carte…** exporte les IDs et les coordonnées pour vérifier une
 seed. Le rapport exclut l’image, l’identifiant de seed et la sauvegarde.

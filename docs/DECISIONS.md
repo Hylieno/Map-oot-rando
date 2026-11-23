@@ -7,6 +7,8 @@
   de contrôle. La validation du fond est indépendante du contenu de la seed.
 - Bosquet sacré. Les entrées de grotte viennent des acteurs physiques
   correspondants. Les coordonnées en sous-sol restent accessibles dans les détails.
+- Cocorico. Les fonds Field Atlas sans icônes sont validés sur six repères
+  physiques. Les placements adultes sont séparés par variante de scène.
 
 - Python sans dépendance pour le socle ; Tkinter prévu, cohérent avec OotrR.
 - Ne pas développer une seconde logique d'accessibilité ni un lecteur mémoire.

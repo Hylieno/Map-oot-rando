@@ -1,5 +1,10 @@
 # Checkpoint — 22 novembre 2026
 
+Cocorico est relié à la plaine. Ses fonds enfant et adulte de Field Atlas
+s’alignent automatiquement. Le suivi bascule vers la variante après
+l’incendie quand les données de la seed et de la partie confirment la
+condition utilisée par OotrR. La validation en jeu reste à faire.
+
 La plaine d’Hyrule est accessible depuis Kokiri et utilise la carte Questfern.
 La vue des zones voisines s’ouvre au dézoom. Le fond est vérifié par âge et
 utilise un repère indépendant. Certains checks sont physiquement dans les

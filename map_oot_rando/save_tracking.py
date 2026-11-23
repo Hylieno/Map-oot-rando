@@ -18,6 +18,20 @@ class SaveUpdate:
     action_error: str = ''
     age: str | None = None
     mode: str = 'save'
+    kakariko_burned: bool | None = None
+
+
+def kakariko_variant(flags, medallions, story_played, uses_medallions):
+    """Read the pinned release's scene condition from the accepted snapshot."""
+    if uses_medallions:
+        values = [flags.get(key) for key in medallions]
+        if False in values:
+            return False
+        if all(value is True for value in values):
+            return True
+    # The burning event itself is proof for seeds with the original condition,
+    # but an unplayed event alone does not tell us which scene has loaded.
+    return True if flags.get(story_played) is True else None
 
 
 class SaveConnection:
@@ -26,15 +40,25 @@ class SaveConnection:
         from oot_rando.randomizer.randomizer_services import ManualTracker
         from oot_rando.tracker.live_memory import LiveGameData, SEQUENCE_IS_CHILDHOOD
         from oot_rando.tracker.save_reader import load_snapshot
+        from oot_rando.patching.soul_adapter import murmur3
+        from oot_rando.patching.story_fixes import KAKARIKO_MEDALS
+
+        medallions = tuple(murmur3(name) for name in KAKARIKO_MEDALS)
+        story_played = murmur3('HavePlayedEvent.Dm_Kakariko_0030')
 
         class MapSession(TrackerSession):
             # Reuse the accepted snapshot rather than reading progress.sav
             # twice. OotrR 0.8 invokes this only for a changed, matched save.
             age = None
+            kakariko_burned = None
 
             def _availability(self, snapshot, metadata):
-                flag = snapshot['bool'].get(SEQUENCE_IS_CHILDHOOD)
+                flags = snapshot['bool']
+                flag = flags.get(SEQUENCE_IS_CHILDHOOD)
                 self.age = {True: 'Child', False: 'Adult'}.get(flag)
+                patch = ((self.manifest.get('skips') or {}).get('story_fixes') or {}).get(
+                    'kakariko_burning_medallions')
+                self.kakariko_burned = kakariko_variant(flags, medallions, story_played, bool(patch))
                 return super()._availability(snapshot, metadata)
 
         path = Path(save_path).resolve()
@@ -105,7 +129,8 @@ class SaveConnection:
                           datetime.now(timezone.utc).isoformat(timespec='seconds'),
                           tracker_states(self.session, self.ids),
                           {ident: self.session.check_state(ident) for ident in self.ids},
-                          action_error=action_error, age=self.session.age, mode='live' if realtime else 'save')
+                          action_error=action_error, age=self.session.age, mode='live' if realtime else 'save',
+                          kakariko_burned=self.session.kakariko_burned)
 
 
 def apply_save_update(store, update):

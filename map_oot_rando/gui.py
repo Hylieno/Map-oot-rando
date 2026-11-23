@@ -10,7 +10,8 @@ from PIL import Image, ImageTk
 
 from .aerial import AerialImage, read_image
 from .aerial_dialog import align_image
-from .field_atlas import CALIBRATION, align_kokiri_image, load_kokiri_image
+from .field_atlas import (CALIBRATION, KAKARIKO_CALIBRATION, KAKARIKO_MAPS, align_kakariko_image,
+                           align_kokiri_image, load_atlas_image, load_kokiri_image)
 from .map_projection import georeferenced_background
 from .questfern import PAUSE_MAPS, SOURCE_ID as PAUSE_SOURCE, align_pause_map, load_pause_map
 from .export import import_seed
@@ -18,7 +19,7 @@ from .model import REGION_NAMES, load_metadata, resource_region, select
 from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
-from .scene import NEIGHBORS, REGION_VIEWS, VIEWS, field_atlas_scene, group_scenes, read_scenes, view_name
+from .scene import BURNT_VILLAGE, NEIGHBORS, REGION_VIEWS, VIEWS, field_atlas_scene, group_scenes, read_scenes, view_name
 from .simulation import Simulation, demo_document
 from .view import Viewport
 
@@ -26,6 +27,7 @@ PARCHMENT = '#d1bc80'
 PAPER_COLORS = dict(available='#176346', blocked='#aa2540', unknown='#40359b',
                     completed='#535b6a', partial='#8a450d')
 PAUSE_SOURCES = {config.source for config in PAUSE_MAPS.values()}
+BUILTIN_BACKGROUNDS = PAUSE_SOURCES | {'field-atlas', *(source for source, _ in KAKARIKO_MAPS.values())}
 OVERVIEW_SCALE = 0.6
 
 COLORS = dict(available='#37b76b', blocked='#e45c5c', unknown='#e6c548', completed='#929ba5', partial='#ed9f57')
@@ -61,6 +63,7 @@ class MapApplication:
         self.save_commands = None
         self.follow_age = tk.BooleanVar(value=True)
         self.save_age = None
+        self.kakariko_burned = None
         self.show_outside = tk.BooleanVar(value=False)
         self.connection = tk.StringVar()
         self.details = tk.StringVar(value='Sélectionnez un emplacement.')
@@ -183,6 +186,7 @@ class MapApplication:
         self.save_generation += 1
         self.save_commands = None
         self.save_age = None
+        self.kakariko_burned = None
         self.follow_age.set(True)
         self.follow_age_check.state(['disabled'])
         self.manual_button.pack_forget()
@@ -320,6 +324,7 @@ class MapApplication:
         store = self.store
         store.reset(store.seed_id, store.states)
         self.save_age = None
+        self.kakariko_burned = None
         self.follow_age_check.state(['disabled'])
         self.tracked_rows = {}
         commands = self.save_commands = Queue()
@@ -366,6 +371,7 @@ class MapApplication:
                 return
             apply_save_update(store, update)
             self.save_age = update.age
+            self.kakariko_burned = update.kakariko_burned
             self.follow_age_check.state(['!disabled' if update.age else 'disabled'])
             self.sync_age()
             if update.rows is not None or update.reset:
@@ -466,30 +472,35 @@ class MapApplication:
             self.align_background(resource, image, references)
 
     def choose_atlas(self, source):
-        if self.current_region() == 'KokiriForest':
+        region = self.current_region()
+        if region == 'KokiriForest':
             self.preferred_background = source
-        elif source == 'field-atlas':
-            messagebox.showinfo('Fond de carte', 'Le fond Field Atlas est intégré pour Kokiri Forest.',
+        elif (source == 'field-atlas') != (region == 'KakarikoVillage'):
+            messagebox.showinfo('Fond de carte', 'Cette source de fond n’est pas intégrée pour cette zone.',
                                 parent=self.root)
             return
         self.ensure_atlas(manual=True)
 
     def ensure_atlas(self, *, manual=False):
         resource = self.resource.get()
-        region = self.current_region()
+        region, age = VIEWS.get(resource, (self.current_region(), None))
         config = PAUSE_MAPS.get(region)
-        if self.simulation or resource not in VIEWS or config is None:
+        village_atlas = KAKARIKO_MAPS.get(age) if region == 'KakarikoVillage' else None
+        if self.simulation or resource not in VIEWS or (config is None and village_atlas is None):
             if manual:
                 messagebox.showinfo('Fond de carte', 'Aucun fond intégré validé pour cette vue.',
                                     parent=self.root)
             return
-        calibrations = {config.source: config.calibration}
-        if region == 'KokiriForest':
-            calibrations['field-atlas'] = CALIBRATION
+        if village_atlas:
+            preferred, digest = village_atlas
+            calibration = KAKARIKO_CALIBRATION
+        elif region == 'KokiriForest' and self.preferred_background == 'field-atlas':
+            preferred, calibration = 'field-atlas', CALIBRATION
+        else:
+            preferred, calibration = config.source, config.calibration
         saved = self.aerial.get(resource)
-        preferred = self.preferred_background if region == 'KokiriForest' else config.source
-        current = saved and (saved.source not in PAUSE_SOURCES | {'field-atlas'}
-                             or (saved.source == preferred and saved.calibration == calibrations[preferred]))
+        current = saved and (saved.source not in BUILTIN_BACKGROUNDS
+                             or (saved.source == preferred and saved.calibration == calibration))
         if (self.atlas_loading or not manual and
                 (current or resource in self.atlas_disabled | self.atlas_failed)):
             return
@@ -513,11 +524,20 @@ class MapApplication:
             candidates = [PAUSE_SOURCE, 'field-atlas'] if preferred == PAUSE_SOURCE and not manual else [preferred]
             for source in candidates:
                 try:
-                    if source not in cached:
-                        cached[source] = load_kokiri_image() if source == 'field-atlas' else load_pause_map(region)
-                    image = cached[source]
-                    background = (align_kokiri_image(image, references, details) if source == 'field-atlas'
-                                  else align_pause_map(image, references, details, region=region))
+                    image = cached.get(source)
+                    if village_atlas:
+                        if image is None:
+                            image = load_atlas_image(digest, width=650)
+                        background = align_kakariko_image(image, references, age)
+                    elif source == 'field-atlas':
+                        if image is None:
+                            image = load_kokiri_image()
+                        background = align_kokiri_image(image, references, details)
+                    else:
+                        if image is None:
+                            image = load_pause_map(region)
+                        background = align_pause_map(image, references, details, region=region)
+                    cached[source] = image
                     result.put((cached, background, None))
                     return
                 except (OSError, ValueError) as error:
@@ -630,9 +650,12 @@ class MapApplication:
         self.draw()
 
     def sync_age(self):
-        view = REGION_VIEWS[self.current_region()].get(self.save_age)
-        if (view and self.follow_age.get() and view != self.resource.get()
-                and view in self.resources['values']):
+        if not self.save_age or not self.follow_age.get():
+            return
+        if self.resource.get() == BURNT_VILLAGE and self.save_age == 'Adult' and self.kakariko_burned is None:
+            return
+        view = self.view_for_region(self.current_region(), age=self.save_age)
+        if view and view != self.resource.get():
             self.resource.set(view)
             self.resource_changed(manual=False)
 
@@ -640,11 +663,15 @@ class MapApplication:
         view = self.resource.get()
         return VIEWS[view][0] if view in VIEWS else resource_region(view) or 'KokiriForest'
 
-    def view_for_region(self, region):
-        _, age = VIEWS.get(self.resource.get(), (self.current_region(), self.save_age))
+    def view_for_region(self, region, *, age=None):
+        if age is None:
+            _, age = VIEWS.get(self.resource.get(), (self.current_region(), self.save_age))
         # A known age must be preserved across the transition.
         ages = REGION_VIEWS[region]
         candidates = (ages[age],) if age in ages else ages.values()
+        if (region == 'KakarikoVillage' and age == 'Adult' and self.follow_age.get()
+                and self.kakariko_burned):
+            candidates = (BURNT_VILLAGE, *candidates)
         return next((view for view in candidates if view in self.resources['values']), None)
 
     def open_neighbor(self, region):
@@ -789,6 +816,7 @@ class MapApplication:
             self.background_photo = ImageTk.PhotoImage(raster, master=self.canvas)
             self.canvas.create_image(0, 0, image=self.background_photo, anchor='nw', tags='aerial')
             heading = (f'{name} | Carte du jeu · Questfern' if parchment
+                       else f'{name} | Field Atlas' if aerial.source in BUILTIN_BACKGROUNDS
                        else f'{name} | Vue aérienne calibrée')
         elif scene:
             self.canvas.configure(background='#263c34')

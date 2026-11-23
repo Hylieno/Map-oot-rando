@@ -7,8 +7,18 @@ import struct
 import tempfile
 import unittest
 
-from map_oot_rando.save_tracking import SaveConnection, apply_save_update
+from map_oot_rando.save_tracking import SaveConnection, apply_save_update, kakariko_variant
 from map_oot_rando.state import StateStore
+
+
+class VillageVariantTests(unittest.TestCase):
+    def test_partial_inventory_and_original_story_state(self):
+        keys = (1, 2, 3)
+        self.assertIsNone(kakariko_variant({1: True, 2: True}, keys, 4, True))
+        self.assertFalse(kakariko_variant({1: True, 2: True, 3: False}, keys, 4, True))
+        self.assertTrue(kakariko_variant({1: True, 2: True, 3: True}, keys, 4, True))
+        self.assertIsNone(kakariko_variant({1: True, 2: True, 3: True}, keys, 4, False))
+        self.assertTrue(kakariko_variant({4: True}, keys, 4, False))
 
 
 def write_seed(root):

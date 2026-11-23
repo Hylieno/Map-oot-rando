@@ -10,6 +10,7 @@ REGION_NAMES = {
     'LostWood': 'Bois Perdus',
     'HyruleField': 'Plaine d’Hyrule',
     'SacredForestMeadow': 'Bosquet sacré',
+    'KakarikoVillage': 'Cocorico',
 }
 
 
