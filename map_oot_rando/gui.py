@@ -18,10 +18,10 @@ from .model import Location, REGION_NAMES, SURFACE_MIN_Y, load_metadata, resourc
 from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
-from .scene import (BURNT_VILLAGE, DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS, FIRE_VIEWS, FLOOR_OPTIONS,
+from .scene import (BURNT_VILLAGE, DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS, FIRE_VIEWS, FLOOR_OPTIONS, FOUNTAIN_DUNGEON_AGES,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS,
-                    NEIGHBORS, REGION_VIEWS, SHARED_DUNGEONS,
+                    JABU_VIEWS, NEIGHBORS, REGION_VIEWS, SHARED_DUNGEONS,
                     UNDERGROUND_LABELS, UNDERGROUND_VIEWS, VIEWS,
                     field_atlas_scene, group_scenes, location_view, read_scenes, view_name)
 from .simulation import Simulation, demo_document
@@ -248,8 +248,9 @@ class MapApplication:
         self.details.set('Sélectionnez un emplacement.')
         views = {location_view(row) for row in locations if row.position is not None}
         views.update(self.scenes.keys() & VIEWS.keys())
-        if FIRE_VIEWS[0] in views:
-            views.update(FIRE_VIEWS[:-1])
+        for floors in (FIRE_VIEWS, JABU_VIEWS):
+            if floors[0] in views:
+                views.update(floors[:-1])
         for goron_views in GORON_VIEWS.values():
             points = {name for name, _ in self.scenes.get(goron_views[0], {}).get('points', ())}
             for target, floor in (('DeathMountainCrater', GORON_CRATER_FLOOR),
@@ -386,7 +387,7 @@ class MapApplication:
     def link_region(self):
         scene = self.link.scene
         return {'LostWoods': 'LostWood', 'ZorasRiver': 'ZoraRiver', 'ZorasDomain': 'ZoraDomain',
-                'ZorasFountain': 'ZoraFountain'}.get(scene, scene)
+                'ZorasFountain': 'ZoraFountain', 'JabuJabusBelly': 'InsideJabuJabuBelly'}.get(scene, scene)
 
     def link_view(self):
         region = self.link_region()
@@ -611,7 +612,8 @@ class MapApplication:
             return
         atlas_key = DUNGEON_ATLAS_KEYS.get(view, age)
         references = self.aerial_references(view)
-        if region not in FIELD_FRAMES and region != 'FireTemple' and len({point for _, point in references}) < 3:
+        if (region not in FIELD_FRAMES and region not in {'FireTemple', 'InsideJabuJabuBelly'}
+                and len({point for _, point in references}) < 3):
             return
         details = [(row.name, row.project()) for row in self.locations
                    if location_view(row) == view and row.position is not None]
@@ -776,13 +778,16 @@ class MapApplication:
             _, age = VIEWS.get(self.resource.get(), (self.current_region(), self.save_age))
         if age is None:
             age = self.navigation_age
-        if from_portal and region == 'IceCavern' and self.current_region() == 'ZoraFountain' and age == 'Child':
-            return None
+        if from_portal:
+            origin = self.current_region()
+            if origin == 'ZoraFountain' and region in FOUNTAIN_DUNGEON_AGES and age != FOUNTAIN_DUNGEON_AGES[region]:
+                return None
+            if region == 'ZoraFountain' and origin in FOUNTAIN_DUNGEON_AGES:
+                age = FOUNTAIN_DUNGEON_AGES[origin]
         # A known age must be preserved across the transition.
         ages = REGION_VIEWS[region]
         candidates = (ages[age],) if age in ages else ages.values()
         if from_portal and region == 'GoronCity' and age in GORON_VIEWS:
-            origin = self.current_region()
             floor = {'DeathMountainCrater': GORON_CRATER_FLOOR,
                      'LostWood': GORON_LOST_WOODS_FLOOR}.get(origin)
             if floor is not None:

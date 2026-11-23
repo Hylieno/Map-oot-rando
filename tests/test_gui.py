@@ -587,6 +587,39 @@ class GuiTests(unittest.TestCase):
         app.open_neighbor('ZoraFountain')
         self.assertEqual(app.resource.get(), REGION_VIEWS['ZoraFountain']['Adult'])
 
+    def test_jabu_fountain_portal_and_room_selection(self):
+        from unittest.mock import patch
+        from map_oot_rando.scene import JABU_LEVELS, JABU_VIEWS, REGION_VIEWS
+
+        app = self.app
+        region = 'InsideJabuJabuBelly'
+        template = demo_document()
+        doc = dict(template, provenance='ootrr-scan', regions=['KokiriForest', 'ZoraFountain', region])
+        path = f'Banc/{region}/{region}_Static.bcett.byml.zs'
+        doc['locations'] = [dict(template['locations'][0], resource=path, id='arena-pot',
+                                 position=(34, 102, -126), dungeon_room=15)]
+        doc['scenes'] = {
+            path: {'rooms': [], 'points': [('Vers la Fontaine Zora', (0, 4))]},
+            'Banc/ZoraFountain/ZoraFountain_Child_Static.bcett.byml.zs':
+                {'rooms': [], 'points': [('Vers Jabu-Jabu', (20, -24))]},
+            'Banc/ZoraFountain/ZoraFountain_Adult_Static.bcett.byml.zs':
+                {'rooms': [], 'points': [('Rive', (20, -24))]},
+        }
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        self.assertIn(region, app.navigation_markers.values())
+        app.open_neighbor(region)
+        self.assertEqual(app.resource.get(), JABU_VIEWS[0])
+        self.assertEqual(tuple(app.floor_picker['values']), JABU_LEVELS)
+        app.floor_picker.set(JABU_LEVELS[-1])
+        app.choose_floor(None)
+        self.assertEqual([row.id for row in app.visible], ['arena-pot'])
+        app.open_neighbor('ZoraFountain')
+        self.assertEqual(app.resource.get(), REGION_VIEWS['ZoraFountain']['Child'])
+        app.age_buttons['Adult'].invoke()
+        self.assertNotIn(region, app.available_neighbors())
+        self.assertIn(region, app.world_targets())
+
     def test_overlapping_markers_can_both_be_selected(self):
         from unittest.mock import patch
 

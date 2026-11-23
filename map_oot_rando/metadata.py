@@ -24,6 +24,7 @@ EVENT_ACTORS = {
     },
     'DodongoCavern': {('Enemy_DungeonBoss_Dodongo', None): 'boss#King Dodongo'},
     'FireTemple': {('Enemy_DungeonBoss_Volvagia', None): 'boss#Volvagia'},
+    'InsideJabuJabuBelly': {('Enemy_DungeonBoss_Barinade', None): 'boss#Barinade'},
     'DeathMountainCrater': {
         ('MapIconFacilityAnchor', 'HavePlayedEvent.Dm_FairyFountain_Wisdom'): 'fairy#DMC Great Fairy Reward',
     },
@@ -54,7 +55,28 @@ CHECK_ACTOR_PATTERNS = {
     ('full_skulltula', 'gs'): ('Enemy_Skulltula_Gold',),
     ('full_bossheart', 'heart'): ('Obj_Heart_Container',),
 }
-PLACEMENT_REGIONS = frozenset({'FireTemple', 'ZoraRiver', 'ZoraDomain', 'ZoraFountain', 'IceCavern'})
+PLACEMENT_REGIONS = frozenset({'FireTemple', 'ZoraRiver', 'ZoraDomain', 'ZoraFountain', 'IceCavern',
+                               'InsideJabuJabuBelly'})
+
+
+def add_dungeon_rooms(rows, maps):
+    """Preserve the explicit room number when actors share X/Z across levels."""
+    rooms = {}
+    for path, source in maps.items():
+        if resource_region(path) != 'InsideJabuJabuBelly':
+            continue
+        for actor in source['root'].get('Actors', ()):
+            position = actor.get('Translate')
+            dynamic = actor.get('Dynamic')
+            if position and isinstance(dynamic, dict):
+                room = dynamic.get('DefaultDungeonRoomIndex')
+                if type(room) is int and room >= 0:
+                    rooms.setdefault((path, tuple(position)), set()).add(room)
+    for row in rows:
+        if row['position'] is not None:
+            indices = rooms.get((row['resource'], tuple(row['position'])), ())
+            if len(indices) == 1:
+                row['dungeon_room'] = next(iter(indices))
 
 
 def add_surface_entrances(rows, maps):
@@ -221,7 +243,8 @@ def bind_catalogue(document, catalogue):
                   'Death Mountain Trail': 'DeathMountainTrail', 'Goron City': 'GoronCity',
                   "Dodongo's Cavern": 'DodongoCavern', 'Death Mountain Crater': 'DeathMountainCrater',
                   'Fire Temple': 'FireTemple', "Zora's River": 'ZoraRiver', "Zora's Domain": 'ZoraDomain',
-                  "Zora's Fountain": 'ZoraFountain', 'Ice Cavern': 'IceCavern'})
+                  "Zora's Fountain": 'ZoraFountain', 'Ice Cavern': 'IceCavern',
+                  "Inside Jabu-Jabu's Belly": 'InsideJabuJabuBelly'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']

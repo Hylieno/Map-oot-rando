@@ -1,5 +1,13 @@
 # Validation
 
+Les deux scènes publiques de Jabu-Jabu contiennent les 21 checks du
+catalogue de référence. Le recoupement place 2 checks au rez-de-chaussée,
+7 au sous-sol, 4 à l’étage et 8 dans l’arène. Hors arène, 12 marqueurs
+tombent sur le dessin de leur étage. Le coffre de la carte est à 17 pixels
+du contour sur le fond du sous-sol de 700 pixels de large. Ses coordonnées
+et son numéro de salle sont conservés. Les tests couvrent la réouverture
+des métadonnées et le passage depuis la Fontaine enfant.
+
 La Caverne de glace a été recoupée avec les deux scènes publiques et les
 14 IDs du catalogue. Tous les placements sont dans le fond Field Atlas.
 Sur l’image de 650 pixels de large, 13 marqueurs tombent sur le dessin

@@ -48,6 +48,9 @@ de plongeon. Les variantes adultes partagent la même vue. Le Domaine donne
 accès à la Fontaine Zora, avec un plan Field Atlas par âge et un repère de
 passage pour les checks derrière la paroi. La Caverne de glace est
 reliée à la vue adulte de la Fontaine et possède son propre plan.
+Enfant, la Fontaine mène au ventre de Jabu-Jabu. Les trois niveaux ont
+leurs plans Field Atlas. Barinade, son cœur et les pots de sa salle ont une
+vue schématique dédiée.
 Les deux récompenses du Théâtre Mojo partagent un marqueur à l’entrée.
 Au Bosquet sacré, les deux coffres enfouis sont repérés par l’accès à leur
 grotte. Les détails conservent les coordonnées XYZ du coffre.

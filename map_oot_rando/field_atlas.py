@@ -54,6 +54,11 @@ FIRE_VIEWBOXES = {
     '4F': (18, 41, 548, 286),
     '5F': (24, 90, 622, 258),
 }
+JABU_VIEWBOXES = {
+    '1F': (-24, -58, 844, 1823),
+    'S1': (37, 760, 668, 587),
+    '2F': (31, 754, 805, 624),
+}
 SHARED_FIELD_FRAMES = {
     'HyruleField': ((-50, -49, 950, 739), (1.4552, 504.27, 1.4867, 11.89)),
     'SacredForestMeadow': ((190, -8, 492, 1821), (6.15, 487.31, 6.15, 1062.72)),
@@ -89,6 +94,11 @@ REGION_MAPS['ZoraFountain'] = {
 REGION_MAPS['IceCavern'] = {
     None: ('field-atlas-ice-cavern', '1ec8568fd796ef747f703b0898bdfdba35bd1ef4422c3f8b0cc274ecfee4b126'),
 }
+REGION_MAPS['InsideJabuJabuBelly'] = {
+    '1F': ('field-atlas-jabu-1f', '73fc5a3cfaf19cd926e0df9943eeae7e8253e4a5c5a93f7f498b7d236774f08b'),
+    'S1': ('field-atlas-jabu-s1', '2296f73815cc3936b81d0629cba971b075059c3cd742b3f740b9b4521df29b08'),
+    '2F': ('field-atlas-jabu-2f', 'd7e133bbf52b3120dbaa1e6d154361034b93513be360a3aa8a4198d9af5dfdca'),
+}
 REGION_CALIBRATION = 1
 
 
@@ -111,6 +121,9 @@ def align_region_image(image, references, region, age):
     source = REGION_MAPS[region][age][0]
     if region == 'FireTemple':
         return align_capture(image, FIRE_VIEWBOXES[age], (3.965, 354.2, 3.9651, 218.31), source)
+    if region == 'InsideJabuJabuBelly':
+        # The three crops share one X/Z frame, checked against native room landmarks.
+        return align_capture(image, JABU_VIEWBOXES[age], (7.6, 392, 7.6, 1580), source)
     if region in FIELD_FRAMES:
         return align_capture(image, *FIELD_FRAMES[region][age], source)
     if region == 'KakarikoVillage':

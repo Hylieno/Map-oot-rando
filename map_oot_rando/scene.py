@@ -19,12 +19,25 @@ DODONGO_LEVELS = ('Rez-de-chaussée', 'Étage', 'Arène du boss')
 DODONGO_VIEWS = tuple(f'{REGION_NAMES["DodongoCavern"]} · {level}' for level in DODONGO_LEVELS)
 FIRE_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', '3e étage', '4e étage', 'Arène du boss')
 FIRE_VIEWS = tuple(f'{REGION_NAMES["FireTemple"]} · {level}' for level in FIRE_LEVELS)
+JABU_LEVELS = ('Rez-de-chaussée', 'Sous-sol', 'Étage', 'Arène de Barinade')
+JABU_VIEWS = tuple(f'{REGION_NAMES["InsideJabuJabuBelly"]} · {level}' for level in JABU_LEVELS)
 DUNGEON_FLOORS = {
     'DodongoCavern': tuple(zip(DODONGO_LEVELS, DODONGO_VIEWS)),
     'FireTemple': tuple(zip(FIRE_LEVELS, FIRE_VIEWS)),
+    'InsideJabuJabuBelly': tuple(zip(JABU_LEVELS, JABU_VIEWS)),
 }
-DUNGEON_ATLAS_KEYS = {view: f'{level}F' for floors in DUNGEON_FLOORS.values()
-                      for level, (_, view) in enumerate(floors[:-1], start=1)}
+DUNGEON_ATLAS_KEYS = {
+    **dict(zip(DODONGO_VIEWS, ('1F', '2F'))),
+    **dict(zip(FIRE_VIEWS, ('1F', '2F', '3F', '4F', '5F'))),
+    **dict(zip(JABU_VIEWS, ('1F', 'S1', '2F'))),
+}
+FOUNTAIN_DUNGEON_AGES = {'IceCavern': 'Adult', 'InsideJabuJabuBelly': 'Child'}
+JABU_ROOM_VIEWS = {
+    **dict.fromkeys((9, 12), JABU_VIEWS[0]),
+    **dict.fromkeys((3, 13, 14), JABU_VIEWS[1]),
+    **dict.fromkeys((5, 6, 17), JABU_VIEWS[2]),
+    15: JABU_VIEWS[3],
+}
 for region, floors in DUNGEON_FLOORS.items():
     REGION_VIEWS[region] = {None: floors[0][1]}
 REGION_VIEWS['IceCavern'] = {None: REGION_NAMES['IceCavern']}
@@ -67,8 +80,10 @@ NEIGHBORS = {
     'ZoraRiver': {'LostWood': 'Vers les Bois Perdus', 'HyruleField': 'Vers la plaine d’Hyrule',
                   'ZoraDomain': 'Vers le Domaine Zora'},
     'ZoraDomain': {'ZoraRiver': 'Vers la Rivière Zora', 'ZoraFountain': 'Vers la Fontaine Zora'},
-    'ZoraFountain': {'ZoraDomain': 'Vers le Domaine Zora', 'IceCavern': 'Vers la Caverne de glace'},
+    'ZoraFountain': {'ZoraDomain': 'Vers le Domaine Zora', 'IceCavern': 'Vers la Caverne de glace',
+                     'InsideJabuJabuBelly': 'Vers Jabu-Jabu'},
     'IceCavern': {'ZoraFountain': 'Vers la Fontaine Zora'},
+    'InsideJabuJabuBelly': {'ZoraFountain': 'Vers la Fontaine Zora'},
 }
 KAKARIKO_ENTRANCES = {
     'HyruleField': 'Vers la plaine d’Hyrule',
@@ -116,6 +131,7 @@ ENTRANCE_LABELS = {
     'ZoraDomain': NEIGHBORS['ZoraDomain'],
     'ZoraFountain': {'ZoraDomain': NEIGHBORS['ZoraFountain']['ZoraDomain']},
     'IceCavern': NEIGHBORS['IceCavern'],
+    'InsideJabuJabuBelly': NEIGHBORS['InsideJabuJabuBelly'],
     'DeathMountainTrail': {
         'DeathMountainCrater': 'Repère du cratère',
         'DodongoCavern': 'Repère Dodongo',
@@ -194,9 +210,10 @@ def projection_points(region, sources):
                     label = 'arrivee_de_kokiri'
             elif region == 'ZoraRiver' and gyaml == 'FieldAndDungeonEntranceEventRequestActor':
                 label = ZORA_RIVER_EXITS.get(actor.get('Name'))
-            elif (region == 'ZoraFountain' and gyaml == 'FieldAndDungeonEntranceEventRequestActor'
-                  and actor.get('Name') == 'ZoraFountain_FromIceCavern'):
-                label = NEIGHBORS[region]['IceCavern']
+            elif region == 'ZoraFountain' and gyaml == 'FieldAndDungeonEntranceEventRequestActor':
+                target = {'ZoraFountain_FromIceCavern': 'IceCavern',
+                          'ZoraFountain_FromInsideJabuJabuBelly': 'InsideJabuJabuBelly'}.get(actor.get('Name'))
+                label = NEIGHBORS[region].get(target)
             elif region == 'SacredForestMeadow':
                 label = GROVE_ANCHORS.get(gyaml)
                 if gyaml in {'Land_SacredForest_Prop_A_33', 'Land_SacredForest_Prop_A_41'}:
@@ -315,6 +332,18 @@ def location_view(row):
         # Floor cuts follow the native minimap. The arena shares the ground-floor elevation.
         floor = sum(row.position[1] >= boundary for boundary in (124, 142, 164, 182))
         return FIRE_VIEWS[floor]
+    if view == JABU_VIEWS[0] and row.position is not None:
+        if row.dungeon_room in JABU_ROOM_VIEWS:
+            return JABU_ROOM_VIEWS[row.dungeon_room]
+        x, y, z = row.position
+        # Native arena bounds for live positions without a room index.
+        if row.id == 'boss#Barinade' or row.category == 'full_bossheart' or (
+                row.dungeon_room is None and 20 <= x <= 64 and -136 <= z <= -98 and 98 <= y <= 113):
+            return JABU_VIEWS[3]
+        if y < 85:
+            return JABU_VIEWS[1]
+        if y >= 94:
+            return JABU_VIEWS[2]
     if view == DODONGO_VIEWS[0] and row.position is not None:
         y = row.position[1]
         if y < 82:

@@ -18,6 +18,9 @@
   restent consultables.
 - Caverne de glace. Une seule scène réunit les placements statiques et
   dynamiques. Le passage utilise l’entrée principale de la Fontaine adulte.
+- Jabu-Jabu. Les plans d’étage partagent un repère X/Z contrôlé sur les
+  positions d’acteurs. Les numéros de salle déterminent les niveaux des
+  checks recoupés. L’arène de Barinade garde un schéma et les XYZ du jeu.
 - Link. Le marqueur et le changement automatique de zone sont deux commandes
   distinctes. Les coordonnées sont lues via la connexion mémoire OotrR.
   Les décalages du module et les champs de pose viennent de la documentation

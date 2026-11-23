@@ -6,7 +6,8 @@ import unittest
 from unittest.mock import patch
 
 from map_oot_rando.export import main
-from map_oot_rando.metadata import add_surface_entrances, bind_catalogue, event_check_rows, export_scan, placed_check_rows
+from map_oot_rando.metadata import (add_dungeon_rooms, add_surface_entrances, bind_catalogue,
+                                   event_check_rows, export_scan, placed_check_rows)
 from map_oot_rando.model import load_metadata, select
 
 
@@ -29,6 +30,28 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(select((chest, event), {}, 'KF_example'), (chest,))
         self.assertIsNone(event.project())
         self.assertEqual(len(result['diagnostics']), 1)
+
+    def test_jabu_native_room_overrides_height_and_survives_reload(self):
+        from map_oot_rando.scene import JABU_VIEWS, location_view
+
+        region = 'InsideJabuJabuBelly'
+        path = f'Banc/{region}/{region}_Static.bcett.byml.zs'
+        actors = [
+            dict(Hash=11, Gyaml='Enemy_Skulltula_Gold', Translate=(-15, 90, -83),
+                 Dynamic={'DefaultDungeonRoomIndex': 3}),
+            dict(Hash=12, Gyaml='Obj_Pot_A_04', Translate=(34, 102, -126),
+                 Dynamic={'DefaultDungeonRoomIndex': 15}),
+        ]
+        checks = [dict(id=f'{region}#gs#11', category='full_skulltula', name='Skulltula'),
+                  dict(id=f'{region}#pots#12', category='full_pots', name='Pot')]
+        maps = {path: {'root': {'Actors': actors}}}
+        document = export_scan({}, {}, provenance='ootrr-scan', regions=('KokiriForest', region))
+        document['locations'].extend(placed_check_rows(maps, checks, (), lambda *_: True))
+        add_dungeon_rooms(document['locations'], maps)
+        saved = bind_catalogue(document, dict(self.catalogue, checks=checks))
+        rows = load_metadata(json.loads(json.dumps(saved)))
+        self.assertEqual([row.dungeon_room for row in rows], [3, 15])
+        self.assertEqual([location_view(row) for row in rows], [JABU_VIEWS[1], JABU_VIEWS[3]])
 
     def test_fire_hash_fallback_checks_actor_type_and_keeps_scanner_result(self):
         path = 'Banc/FireTemple/FireTemple_Static.bcett.byml.zs'

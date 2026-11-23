@@ -25,6 +25,7 @@ WORLD_PINS = {
     'ZoraDomain': (.6859, .4747),
     'ZoraFountain': (.8030, .5223),
     'IceCavern': (.8637, .4540),
+    'InsideJabuJabuBelly': (.7673, .4510),
 }
 
 

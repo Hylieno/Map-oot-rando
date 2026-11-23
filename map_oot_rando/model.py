@@ -21,6 +21,7 @@ REGION_NAMES = {
     'ZoraDomain': 'Domaine Zora',
     'ZoraFountain': 'Fontaine Zora',
     'IceCavern': 'Caverne de glace',
+    'InsideJabuJabuBelly': 'Ventre de Jabu-Jabu',
 }
 # These scenes have buried actor placements below their surface.
 SURFACE_MIN_Y = {'Graveyard': 92, 'DeathMountainTrail': 80, 'DeathMountainCrater': 90}
@@ -44,6 +45,7 @@ class Location:
     region: str = 'KokiriForest'
     entrance: tuple[float, float, float] | None = None
     underground: bool = False
+    dungeon_room: int | None = None
 
     def project(self):
         """Raw X/Z plan, +Z downward; Y retained, orientation unverified in game."""
@@ -91,8 +93,11 @@ def load_metadata(document):
         underground = row.get('underground', False)
         if type(underground) is not bool or (underground and (region not in SURFACE_MIN_Y or position is None)):
             raise ValueError('Niveau de carte invalide')
+        dungeon_room = row.get('dungeon_room')
+        if dungeon_room is not None and (type(dungeon_room) is not int or dungeon_room < 0 or position is None):
+            raise ValueError('Salle de donjon invalide')
         location = Location(row['id'], row['name'], row['category'], row['resource'],
-                            position, alias, region, entrance, underground)
+                            position, alias, region, entrance, underground, dungeon_room)
         # The tracker identifies the check, while the scan may report multiple
         # placements in a single resource. Collapse only identical records.
         if location not in seen:
