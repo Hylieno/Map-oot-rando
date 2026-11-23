@@ -135,3 +135,6 @@ La boutique, exclue du calcul, est à 12,3 pixels. Les 105 placements couverts
 restent identiques. Reste à vérifier le jeu en direct et les secteurs sans
 repère indépendant. Les tests synthétiques couvrent l’amorçage du fond préféré,
 le rejet d’un repère indépendant incohérent et la projection d’un world file.
+
+Les 40 tests et le build portable passent sur
+[Windows CI](https://github.com/Hylieno/Map-oot-rando/actions/runs/45095727521).
