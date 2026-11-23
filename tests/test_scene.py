@@ -24,3 +24,18 @@ class SceneTests(unittest.TestCase):
         self.assertEqual(scenes[child]['points'], [['child', [10, 20]]])
         self.assertNotIn(other, scenes)
         self.assertEqual(read_scenes({}), {})
+
+    def test_child_uses_adult_house_names_only_when_entrances_align(self):
+        from map_oot_rando.scene import AGE_VIEWS, SHARED_ENTRANCES, field_atlas_scene
+
+        child, adult = AGE_VIEWS['Child'], AGE_VIEWS['Adult']
+        entrances = list(zip(SHARED_ENTRANCES, [(82, -20), (-120, -30), (-30, -60)]))
+        adult_scene = dict(points=entrances, rooms=[('links_house', (-46, 13), (-42, 17))])
+        child_scene = dict(points=entrances.copy(), rooms=[('sarias_house', (-46, 13), (-42, 17))])
+        scenes = {child: child_scene, adult: adult_scene}
+        self.assertIs(field_atlas_scene(scenes, child), adult_scene)
+        self.assertIs(field_atlas_scene(scenes, adult), adult_scene)
+        child_scene['points'][0] = (SHARED_ENTRANCES[0], (82, -22))
+        self.assertIs(field_atlas_scene(scenes, child), child_scene)
+        child_scene['points'].pop()
+        self.assertIs(field_atlas_scene(scenes, child), child_scene)

@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: Mozencaz/OotrR
-          ref: 283d3ec0f161d32e168afac45e502442c1ffb081
+          ref: eb6682704f7589b5a0c07ac0e49d89fef4108545
           path: upstream-ootrr
           persist-credentials: false
       - name: Install packager and scanner dependencies

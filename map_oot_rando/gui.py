@@ -15,7 +15,7 @@ from .export import import_seed
 from .model import load_metadata, select
 from .state import StateStore
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
-from .scene import AGE_VIEWS, group_scenes, read_scenes, view_name
+from .scene import AGE_VIEWS, field_atlas_scene, group_scenes, read_scenes, view_name
 from .simulation import Simulation, demo_document
 from .view import Viewport
 
@@ -305,7 +305,8 @@ class MapApplication:
                 messagebox.showerror('Enregistrement impossible', str(error), parent=self.root)
 
     def aerial_references(self, resource, *, include_checks=True, quiet=False):
-        scene = self.scenes.get(resource, {})
+        scene = (self.scenes.get(resource, {}) if include_checks
+                 else field_atlas_scene(self.scenes, resource))
         references = [(name.replace('_', ' '), tuple(point))
                       for name, point in scene.get('points', ())]
         for name, low, high in scene.get('rooms', ()):

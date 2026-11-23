@@ -121,3 +121,9 @@ prend aussi en charge les anciens IDs avec hash d’acteur et champ de patch.
 Le rapport de diagnostic permet de transmettre les coordonnées sans fichier
 du jeu, sauvegarde ou image. Validation sur les données de la seed réelle
 toujours requise avant de déclarer le prototype final.
+
+Le diagnostic réel a révélé que certains noms de maisons sont décalés par
+le classement des pièces dans la vue Enfant. L’alignement utilise les repères
+Adulte si les trois entrées communes confirment les mêmes coordonnées.
+OotrR est épinglé sur le tag v0.8.0 (générateur 0.12.8) pour correspondre à
+la seed testée. Les anciens exports de coordonnées restent compatibles.

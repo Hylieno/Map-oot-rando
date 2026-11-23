@@ -107,3 +107,12 @@ L’alignement vérifie la géométrie des vues enfant et adulte à partir de re
 approximatifs lus sur les captures. Il accepte un repère isolé incohérent si
 quatre autres concordent, et refuse des repères insuffisants ou incompatibles.
 Cette reproduction reste distincte d’une validation avec le diagnostic exact.
+
+Avec les métadonnées d’une seed complète créée par OotrR 0.8.0, le fond se
+calibre pour les deux âges. Les 89 IDs du catalogue Kokiri ont des coordonnées,
+ainsi qu’un coffre partagé avec Lost Woods. Quatre placements (deux par âge)
+sont hors du périmètre du dessin et restent consultables. Le moteur épinglé
+reconnaît la signature de logique et les indicateurs des 86 checks suivables
+sur ces 90 IDs. Les indicateurs ont été vérifiés avec des sauvegardes binaires
+synthétiques et les métadonnées réelles. Le ROMFS, le jeu et la sauvegarde réelle
+n’ont pas été utilisés dans ce test.

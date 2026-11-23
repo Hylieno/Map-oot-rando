@@ -31,7 +31,8 @@ et exécuter cette commande. La validation locale a été faite sous Linux, pas 
 La vue charge automatiquement le [fond Kokiri Forest d’origine](https://oot.gousse.cool/content/maps/7e802ffa8684f3cd.svg)
 directement depuis [Field Atlas](https://oot.gousse.cool/kokiri-forest). Une connexion est
 nécessaire au premier chargement. L’application aligne le fond automatiquement
-si au moins quatre maisons correspondent aux repères de la ressource sélectionnée.
+si au moins quatre maisons correspondent aux repères. La vue Enfant peut utiliser
+les repères Adulte quand les trois entrées partagent le même repère de coordonnées.
 **Fond Field Atlas…** permet de réessayer en cas d’échec. Enregistre la carte
 pour la rouvrir hors ligne. Les positions sur le dessin
 restent approximatives, surtout loin du village.
@@ -57,7 +58,7 @@ hors du fond** permet de les afficher ensemble.
 Dans la version Windows, clique sur **Suivre ma sauvegarde…** et sélectionne le
 fichier `progress.sav` associé à ta seed. Si tu as rouvert un JSON enregistré,
 l’application demande aussi le `checks.json` du dossier complet de cette seed.
-OotrR valide que la sauvegarde appartient à la seed. Les états sont actualisés
+Le build embarque OotrR 0.8.0. OotrR valide que la sauvegarde appartient à la seed. Les états sont actualisés
 quand le jeu écrit la sauvegarde. **Arrêter le suivi** conserve le dernier état
 affiché. L’application lit la sauvegarde sans la modifier.
 
@@ -110,7 +111,7 @@ OotrR sont inclus dans le build portable.
 ## Exporter les points d'une seed OotrR en ligne de commande
 
 Dans une copie locale du [dépôt OotrR](https://github.com/Mozencaz/OotrR), sélectionner
-la révision `283d3ec0f161d32e168afac45e502442c1ffb081`. Installer ses dépendances
+la révision `eb6682704f7589b5a0c07ac0e49d89fef4108545`. Installer ses dépendances
 dans votre environnement Python avec `python -m pip install -r /chemin/vers/OotrR/requirements.txt`.
 
 Depuis ce dépôt, lancer la commande avec le NUP local contenant le jeu et sa mise

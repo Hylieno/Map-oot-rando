@@ -64,3 +64,32 @@ def group_scenes(scenes):
         view['points'].update((name, tuple(point)) for name, point in scene['points'])
     return {key: {kind: sorted(rows) for kind, rows in scene.items()}
             for key, scene in grouped.items()}
+
+
+SHARED_ENTRANCES = (
+    'front_deku_tree_entrance',
+    'front_of_hyrule_field_entrance',
+    'front_of_lost_wood_entrance',
+)
+
+
+def field_atlas_scene(scenes, view):
+    """Use adult house labels for a child map only in a confirmed shared frame."""
+    from math import dist
+
+    scene = scenes.get(view, {})
+    if view != AGE_VIEWS['Child'] or AGE_VIEWS['Adult'] not in scenes:
+        return scene
+    adult = scenes[AGE_VIEWS['Adult']]
+
+    def entrance(scene, name):
+        points = {tuple(point) for label, point in scene.get('points', ()) if label == name}
+        return next(iter(points)) if len(points) == 1 else None
+
+    for name in SHARED_ENTRANCES:
+        child_pos, adult_pos = entrance(scene, name), entrance(adult, name)
+        if child_pos is None or adult_pos is None or dist(child_pos, adult_pos) > 0.5:
+            return scene
+    # OotrR numbers some unnamed rooms independently by age. Child numbering
+    # can shift even when the same physical houses are in the same frame.
+    return adult
