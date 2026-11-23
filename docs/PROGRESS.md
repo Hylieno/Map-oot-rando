@@ -1,5 +1,9 @@
 # Checkpoint — 23 novembre 2026
 
+L’Arbre Mojo est accessible depuis Kokiri. Les cinq plans et la vue de
+l’arène affichent les 25 checks du catalogue. L’étage garde son plan même
+lorsqu’aucun check de la seed n’y est placé.
+
 La rivière Zora affiche les 54 checks du catalogue de référence. Les deux
 vues gardent les placements propres à leur âge et l’accès aux Bois Perdus.
 Un deuxième passage relie la rivière à la plaine d’Hyrule dans les deux sens.

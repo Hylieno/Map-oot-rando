@@ -26,6 +26,7 @@ WORLD_PINS = {
     'ZoraFountain': (.8030, .5223),
     'IceCavern': (.8637, .4540),
     'InsideJabuJabuBelly': (.7673, .4510),
+    'InsideTheDekuTree': (.6835, .7656),
 }
 
 

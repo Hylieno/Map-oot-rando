@@ -50,7 +50,8 @@ passage pour les checks derrière la paroi. La Caverne de glace est
 reliée à la vue adulte de la Fontaine et possède son propre plan.
 Enfant, la Fontaine mène au ventre de Jabu-Jabu. Les trois niveaux ont
 leurs plans Field Atlas. Barinade, son cœur et les pots de sa salle ont une
-vue schématique dédiée.
+vue schématique dédiée. Depuis la forêt Kokiri, l’Arbre Mojo propose cinq
+plans, dont celui du hall d’entrée, et une vue dédiée à l’arène de Gohma.
 Les deux récompenses du Théâtre Mojo partagent un marqueur à l’entrée.
 Au Bosquet sacré, les deux coffres enfouis sont repérés par l’accès à leur
 grotte. Les détails conservent les coordonnées XYZ du coffre.

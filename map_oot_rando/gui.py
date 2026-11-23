@@ -18,7 +18,8 @@ from .model import Location, REGION_NAMES, SURFACE_MIN_Y, load_metadata, resourc
 from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
-from .scene import (BURNT_VILLAGE, DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS, FIRE_VIEWS, FLOOR_OPTIONS, FOUNTAIN_DUNGEON_AGES,
+from .scene import (BURNT_VILLAGE, DEKU_VIEWS, DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS, FIRE_VIEWS, FLOOR_OPTIONS,
+                    FOUNTAIN_DUNGEON_AGES,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS,
                     JABU_VIEWS, NEIGHBORS, REGION_VIEWS, SHARED_DUNGEONS,
@@ -248,7 +249,7 @@ class MapApplication:
         self.details.set('Sélectionnez un emplacement.')
         views = {location_view(row) for row in locations if row.position is not None}
         views.update(self.scenes.keys() & VIEWS.keys())
-        for floors in (FIRE_VIEWS, JABU_VIEWS):
+        for floors in (FIRE_VIEWS, JABU_VIEWS, DEKU_VIEWS):
             if floors[0] in views:
                 views.update(floors[:-1])
         for goron_views in GORON_VIEWS.values():
@@ -386,7 +387,8 @@ class MapApplication:
 
     def link_region(self):
         scene = self.link.scene
-        return {'LostWoods': 'LostWood', 'ZorasRiver': 'ZoraRiver', 'ZorasDomain': 'ZoraDomain',
+        return {'LostWoods': 'LostWood', 'DekuTree': 'InsideTheDekuTree',
+                'ZorasRiver': 'ZoraRiver', 'ZorasDomain': 'ZoraDomain',
                 'ZorasFountain': 'ZoraFountain', 'JabuJabusBelly': 'InsideJabuJabuBelly'}.get(scene, scene)
 
     def link_view(self):
@@ -612,8 +614,7 @@ class MapApplication:
             return
         atlas_key = DUNGEON_ATLAS_KEYS.get(view, age)
         references = self.aerial_references(view)
-        if (region not in FIELD_FRAMES and region not in {'FireTemple', 'InsideJabuJabuBelly'}
-                and len({point for _, point in references}) < 3):
+        if region not in FIELD_FRAMES and len({point for _, point in references}) < 3:
             return
         details = [(row.name, row.project()) for row in self.locations
                    if location_view(row) == view and row.position is not None]

@@ -5,6 +5,22 @@ from map_oot_rando.scene import extract_scenes, read_scenes
 
 
 class SceneTests(unittest.TestCase):
+    def test_deku_uses_room_for_checks_and_height_for_open_entrance_hall(self):
+        from map_oot_rando.model import Location
+        from map_oot_rando.scene import DEKU_VIEWS, location_view
+
+        region = 'InsideTheDekuTree'
+        path = f'Banc/{region}/{region}_Static.bcett.byml.zs'
+        for room, point, floor in (
+            (0, (6.5, 108.4, 7.25), 1),
+            (0, (-4.18, 121.38, -12.36), 2),
+            (2, (-42.92, 116.2, 19.35), 1),
+            (10, (5.76, 47.06, 82.97), 5),
+        ):
+            with self.subTest(room=room, point=point):
+                row = Location('test', 'Check', 'test', path, point, region=region, dungeon_room=room)
+                self.assertEqual(location_view(row), DEKU_VIEWS[floor])
+
     def test_combine_layers_only_for_the_same_age_and_project_landmarks(self):
         adult = 'Banc/KokiriForest/KokiriForest_Adult_Dynamic.bcett.byml.zs'
         static = adult.replace('_Dynamic', '_Static')

@@ -620,6 +620,34 @@ class GuiTests(unittest.TestCase):
         self.assertNotIn(region, app.available_neighbors())
         self.assertIn(region, app.world_targets())
 
+    def test_deku_opens_from_kokiri_even_with_no_check_on_entrance_floor(self):
+        from unittest.mock import patch
+        from map_oot_rando.scene import DEKU_LEVELS, DEKU_VIEWS, REGION_VIEWS
+
+        app = self.app
+        region = 'InsideTheDekuTree'
+        template = demo_document()
+        doc = dict(template, provenance='ootrr-scan', regions=['KokiriForest', region])
+        path = f'Banc/{region}/{region}_Static.bcett.byml.zs'
+        kokiri = 'Banc/KokiriForest/KokiriForest_Child_Static.bcett.byml.zs'
+        doc['locations'] = [dict(template['locations'][0], resource=path, id='gohma',
+                                 position=(18, 47, 68), dungeon_room=10)]
+        doc['scenes'] = {
+            path: {'rooms': [], 'points': [('Vers la forêt Kokiri', (0, 18))]},
+            kokiri: {'rooms': [], 'points': [('front_deku_tree_entrance', (92, -28))]},
+        }
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        self.assertIn(region, app.navigation_markers.values())
+        app.open_neighbor(region)
+        self.assertEqual(app.resource.get(), DEKU_VIEWS[0])
+        self.assertEqual(tuple(app.floor_picker['values']), DEKU_LEVELS)
+        app.floor_picker.set(DEKU_LEVELS[-1])
+        app.choose_floor(None)
+        self.assertEqual([row.id for row in app.visible], ['gohma'])
+        app.open_neighbor('KokiriForest')
+        self.assertEqual(app.resource.get(), REGION_VIEWS['KokiriForest']['Child'])
+
     def test_overlapping_markers_can_both_be_selected(self):
         from unittest.mock import patch
 

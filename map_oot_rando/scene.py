@@ -21,15 +21,19 @@ FIRE_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', '3e étage', '4e �
 FIRE_VIEWS = tuple(f'{REGION_NAMES["FireTemple"]} · {level}' for level in FIRE_LEVELS)
 JABU_LEVELS = ('Rez-de-chaussée', 'Sous-sol', 'Étage', 'Arène de Barinade')
 JABU_VIEWS = tuple(f'{REGION_NAMES["InsideJabuJabuBelly"]} · {level}' for level in JABU_LEVELS)
+DEKU_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', 'Sous-sol', 'Sous-sol profond', 'Arène de Gohma')
+DEKU_VIEWS = tuple(f'{REGION_NAMES["InsideTheDekuTree"]} · {level}' for level in DEKU_LEVELS)
 DUNGEON_FLOORS = {
     'DodongoCavern': tuple(zip(DODONGO_LEVELS, DODONGO_VIEWS)),
     'FireTemple': tuple(zip(FIRE_LEVELS, FIRE_VIEWS)),
     'InsideJabuJabuBelly': tuple(zip(JABU_LEVELS, JABU_VIEWS)),
+    'InsideTheDekuTree': tuple(zip(DEKU_LEVELS, DEKU_VIEWS)),
 }
 DUNGEON_ATLAS_KEYS = {
     **dict(zip(DODONGO_VIEWS, ('1F', '2F'))),
     **dict(zip(FIRE_VIEWS, ('1F', '2F', '3F', '4F', '5F'))),
     **dict(zip(JABU_VIEWS, ('1F', 'S1', '2F'))),
+    **dict(zip(DEKU_VIEWS, ('1F', '2F', '3F', 'S1', 'S2'))),
 }
 FOUNTAIN_DUNGEON_AGES = {'IceCavern': 'Adult', 'InsideJabuJabuBelly': 'Child'}
 JABU_ROOM_VIEWS = {
@@ -37,6 +41,13 @@ JABU_ROOM_VIEWS = {
     **dict.fromkeys((3, 13, 14), JABU_VIEWS[1]),
     **dict.fromkeys((5, 6, 17), JABU_VIEWS[2]),
     15: JABU_VIEWS[3],
+}
+DEKU_ROOM_VIEWS = {
+    **dict.fromkeys((1, 2), DEKU_VIEWS[1]),
+    3: DEKU_VIEWS[2],
+    **dict.fromkeys((4, 5, 11), DEKU_VIEWS[3]),
+    9: DEKU_VIEWS[4],
+    10: DEKU_VIEWS[5],
 }
 for region, floors in DUNGEON_FLOORS.items():
     REGION_VIEWS[region] = {None: floors[0][1]}
@@ -60,7 +71,8 @@ VIEWS.update({view: ('GoronCity', age) for age, views in GORON_VIEWS.items() for
 VIEWS.update({view: (region, None) for region, floors in DUNGEON_FLOORS.items() for _, view in floors})
 NEIGHBORS = {
     'KokiriForest': {'LostWood': 'front_of_lost_wood_entrance',
-                     'HyruleField': 'front_of_hyrule_field_entrance'},
+                     'HyruleField': 'front_of_hyrule_field_entrance',
+                     'InsideTheDekuTree': 'front_deku_tree_entrance'},
     'LostWood': {'KokiriForest': 'arrivee_de_kokiri', 'SacredForestMeadow': 'Vers le Bosquet sacré',
                  'GoronCity': 'Vers le Village Goron', 'ZoraRiver': 'Vers la Rivière Zora'},
     'HyruleField': {'KokiriForest': 'front_of_lost_wood_bridge_entrance',
@@ -84,6 +96,7 @@ NEIGHBORS = {
                      'InsideJabuJabuBelly': 'Vers Jabu-Jabu'},
     'IceCavern': {'ZoraFountain': 'Vers la Fontaine Zora'},
     'InsideJabuJabuBelly': {'ZoraFountain': 'Vers la Fontaine Zora'},
+    'InsideTheDekuTree': {'KokiriForest': 'Vers la forêt Kokiri'},
 }
 KAKARIKO_ENTRANCES = {
     'HyruleField': 'Vers la plaine d’Hyrule',
@@ -132,6 +145,7 @@ ENTRANCE_LABELS = {
     'ZoraFountain': {'ZoraDomain': NEIGHBORS['ZoraFountain']['ZoraDomain']},
     'IceCavern': NEIGHBORS['IceCavern'],
     'InsideJabuJabuBelly': NEIGHBORS['InsideJabuJabuBelly'],
+    'InsideTheDekuTree': NEIGHBORS['InsideTheDekuTree'],
     'DeathMountainTrail': {
         'DeathMountainCrater': 'Repère du cratère',
         'DodongoCavern': 'Repère Dodongo',
@@ -344,6 +358,21 @@ def location_view(row):
             return JABU_VIEWS[1]
         if y >= 94:
             return JABU_VIEWS[2]
+    if view == DEKU_VIEWS[0] and row.position is not None:
+        if row.dungeon_room in DEKU_ROOM_VIEWS:
+            return DEKU_ROOM_VIEWS[row.dungeon_room]
+        x, y, z = row.position
+        if row.id == 'boss#Queen Gohma' or row.category == 'full_bossheart' or (
+                row.dungeon_room is None and 1 <= x <= 27 and 47 <= z <= 89 and 45 <= y <= 62):
+            return DEKU_VIEWS[5]
+        if y < 70:
+            return DEKU_VIEWS[4]
+        if y < 90:
+            return DEKU_VIEWS[3]
+        if y >= 115:
+            return DEKU_VIEWS[2]
+        if y >= 104:
+            return DEKU_VIEWS[1]
     if view == DODONGO_VIEWS[0] and row.position is not None:
         y = row.position[1]
         if y < 82:

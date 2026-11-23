@@ -59,6 +59,13 @@ JABU_VIEWBOXES = {
     'S1': (37, 760, 668, 587),
     '2F': (31, 754, 805, 624),
 }
+DEKU_VIEWBOXES = {
+    '1F': (629, -6, 232, 340),
+    '2F': (173, -10, 701, 375),
+    '3F': (113, -34, 772, 333),
+    'S1': (-37, -32, 863, 658),
+    'S2': (344, 74, 268, 491),
+}
 SHARED_FIELD_FRAMES = {
     'HyruleField': ((-50, -49, 950, 739), (1.4552, 504.27, 1.4867, 11.89)),
     'SacredForestMeadow': ((190, -8, 492, 1821), (6.15, 487.31, 6.15, 1062.72)),
@@ -73,6 +80,12 @@ FIELD_FRAMES['ZoraFountain'] = {
     'Adult': ((-45, 10, 939, 902), (7.0485, 200.7, 7.1346, 527.48)),
 }
 FIELD_FRAMES['IceCavern'] = {None: ((-51, -50, 947, 1179), (5.2876, 337.98, 5.1869, 469.16))}
+for region, frame, viewboxes in (
+    ('FireTemple', (3.965, 354.2, 3.9651, 218.31), FIRE_VIEWBOXES),
+    ('InsideJabuJabuBelly', (7.6, 392, 7.6, 1580), JABU_VIEWBOXES),
+    ('InsideTheDekuTree', (8.5609, 733.86, 8.9211, 139.64), DEKU_VIEWBOXES),
+):
+    FIELD_FRAMES[region] = {level: (viewbox, frame) for level, viewbox in viewboxes.items()}
 for region, source, digest in (
     ('HyruleField', 'hyrule-field', '2cca33a54d435cd8bb42931514d1ac4698e116e683bf9967bfd7b2ced752d252'),
     ('SacredForestMeadow', 'sacred-meadow', '30559071ebb5f020ae7dd00ddc13b4a17c11f202d91df6d1501193eda34a859a'),
@@ -99,6 +112,13 @@ REGION_MAPS['InsideJabuJabuBelly'] = {
     'S1': ('field-atlas-jabu-s1', '2296f73815cc3936b81d0629cba971b075059c3cd742b3f740b9b4521df29b08'),
     '2F': ('field-atlas-jabu-2f', 'd7e133bbf52b3120dbaa1e6d154361034b93513be360a3aa8a4198d9af5dfdca'),
 }
+REGION_MAPS['InsideTheDekuTree'] = {
+    '1F': ('field-atlas-deku-1f', 'c684d6513a4111b0a45269a559d5cb8bfc04a3925cebd947847548329c0b745d'),
+    '2F': ('field-atlas-deku-2f', '96a996b80bff76a7f76b4e117b87ee89e9a946babcb16e96db20bf037c92d098'),
+    '3F': ('field-atlas-deku-3f', '7131d6d95fc34dc18df9590c8cac2584e01526cb96579682ba45ea3abe67e72e'),
+    'S1': ('field-atlas-deku-s1', 'f997dee7cf0824c342246bec941e98bac8e7e1c1377d59e36aabfc661d738ca5'),
+    'S2': ('field-atlas-deku-s2', '70efa8003bf43468ef3efe598bcf756ced7dacbf1d203657b1f5bb554df4cb50'),
+}
 REGION_CALIBRATION = 1
 
 
@@ -119,11 +139,6 @@ def align_region_image(image, references, region, age):
     from .map_projection import registered_background
 
     source = REGION_MAPS[region][age][0]
-    if region == 'FireTemple':
-        return align_capture(image, FIRE_VIEWBOXES[age], (3.965, 354.2, 3.9651, 218.31), source)
-    if region == 'InsideJabuJabuBelly':
-        # The three crops share one X/Z frame, checked against native room landmarks.
-        return align_capture(image, JABU_VIEWBOXES[age], (7.6, 392, 7.6, 1580), source)
     if region in FIELD_FRAMES:
         return align_capture(image, *FIELD_FRAMES[region][age], source)
     if region == 'KakarikoVillage':

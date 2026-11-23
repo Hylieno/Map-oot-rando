@@ -1,5 +1,13 @@
 # Validation
 
+Les deux scènes publiques de l’Arbre Mojo ont permis de positionner les
+25 checks du catalogue. Les 19 marqueurs hors arène tombent sur le dessin
+ou à moins de quatre pixels du contour pour des fonds de 700 pixels de
+large. Les six checks de la salle 10 sont affichés dans l’arène. Les tests
+vérifient l’usage du numéro de salle, la navigation depuis Kokiri et
+l’affichage du plan du hall sans check. Le scan du NUP complet reste à
+contrôler pour ce donjon.
+
 Les deux scènes publiques de Jabu-Jabu contiennent les 21 checks du
 catalogue de référence. Le recoupement place 2 checks au rez-de-chaussée,
 7 au sous-sol, 4 à l’étage et 8 dans l’arène. Hors arène, 12 marqueurs
