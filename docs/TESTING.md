@@ -168,3 +168,8 @@ changement de fichier le plus récent sont testés. Des snapshots mémoire
 synthétiques traversent le vrai moteur OotrR et vérifient l’actualisation
 avant sauvegarde, le repli partiel des coffres, la mauvaise seed et
 la déconnexion. Aucun processus de jeu n’a été attaché pendant ces tests.
+
+Les 51 tests et le build portable passent sur
+[Windows CI](https://github.com/Hylieno/Map-oot-rando/actions/runs/45098305166).
+Avec les métadonnées de la seed fournie, les 86 indicateurs ont également été
+vérifiés via une mémoire synthétique au-dessus d’une sauvegarde non collectée.
