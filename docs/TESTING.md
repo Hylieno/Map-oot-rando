@@ -102,3 +102,8 @@ d’une sauvegarde antérieure, une interruption et le refus d’une autre seed.
 Les 32 tests, y compris le suivi OotrR sur sauvegarde synthétique, passent
 sur Windows. L’exécutable compilé charge aussi le moteur et le monde de
 logique épinglés. [Windows CI](https://github.com/Hylieno/Map-oot-rando/actions/runs/45091882761)
+
+L’alignement vérifie la géométrie des vues enfant et adulte à partir de repères
+approximatifs lus sur les captures. Il accepte un repère isolé incohérent si
+quatre autres concordent, et refuse des repères insuffisants ou incompatibles.
+Cette reproduction reste distincte d’une validation avec le diagnostic exact.

@@ -45,5 +45,17 @@ class FieldAtlasTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'quatre maisons'):
             align_kokiri_image(image, references[:3])
         references[0] = (references[0][0], (1050, 700))
+        background = align_kokiri_image(image, references)
+        for name, position in references[1:]:
+            self.assertLess(dist(apply(background.world_to_image, position),
+                                 tuple(2 * v for v in HOUSE_PIXELS[name])), 24)
+        references[1] = (references[1][0], (1400, 820))
         with self.assertRaisesRegex(ValueError, 'ne correspondent pas'):
             align_kokiri_image(image, references)
+
+    def test_child_alignment_from_schematic_screenshot(self):
+        from PIL import Image
+        from map_oot_rando.field_atlas import HOUSE_PIXELS, align_kokiri_image
+        refs = list(zip(HOUSE_PIXELS, [(568, 368), (684, 267), (716, 510),
+                                     (870, 521), (976, 520)]))
+        self.assertEqual(len(align_kokiri_image(Image.new('RGB', (900, 498)), refs).corners()), 4)

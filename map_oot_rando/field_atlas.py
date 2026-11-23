@@ -1,11 +1,13 @@
 """Open the published Kokiri background from its author on explicit request."""
 from hashlib import sha256
+from itertools import combinations
+from math import hypot
 from io import BytesIO
 from urllib.request import Request, urlopen
 
 from resvg_py import svg_to_bytes
 
-from .aerial import read_image
+from .aerial import AerialImage, apply, read_image
 
 SOURCE = 'https://oot.gousse.cool/content/maps/7e802ffa8684f3cd.svg'
 DIGEST = '7e802ffa8684f3cdbe4e342c5f8b3312918b50bc1b1f1904ecc3957cb9d7abc0'
@@ -34,19 +36,46 @@ HOUSE_PIXELS = {
 
 
 def align_kokiri_image(image, references):
-    """Fit a common transform using the matching house centers."""
-    from math import hypot
-    from .aerial import AerialImage, apply
-
+    """Fit the house centers, allowing a single inconsistent landmark."""
     matches = {}
     for name, position in references:
         if name in HOUSE_PIXELS:
-            matches.setdefault(name, set()).add(position)
+            matches.setdefault(name, set()).add(tuple(position))
     pairs = [(next(iter(positions)), HOUSE_PIXELS[name])
              for name, positions in sorted(matches.items()) if len(positions) == 1]
     if len(pairs) < 4:
         raise ValueError('Il faut au moins quatre maisons identifiables dans cette vue.')
 
+    try:
+        coefficients, basis, error = _fit_houses(pairs)
+        if max(error) <= 18:
+            return _aligned_image(image, coefficients, basis)
+    except ValueError:
+        pass
+
+    candidates = []
+    if len(pairs) >= 5:
+        for subset in combinations(pairs, len(pairs) - 1):
+            try:
+                coefficients, basis, error = _fit_houses(subset)
+            except ValueError:
+                continue
+            if max(error) <= 12:
+                candidates.append((sum(value ** 2 for value in error), coefficients, basis))
+    if not candidates:
+        raise ValueError('Les maisons de cette vue ne correspondent pas assez au dessin de Field Atlas.')
+
+    _, best, basis = min(candidates)
+    # Multiple coherent results are only acceptable if they agree throughout
+    # the sampled village, not merely around each individual subset.
+    for _, other, _ in candidates:
+        if any(hypot(*(a - b for a, b in zip(apply(best, point), apply(other, point)))) > 18
+               for point, _ in pairs):
+            raise ValueError('Plusieurs alignements possibles. Aucun fond n’a été appliqué.')
+    return _aligned_image(image, best, basis)
+
+
+def _fit_houses(pairs):
     world, target = zip(*pairs)
     count = len(pairs)
     x0, z0 = (sum(axis) / count for axis in zip(*world))
@@ -66,14 +95,20 @@ def align_kokiri_image(image, references):
         a = (zz * xt - xz * zt) / determinant
         b = (xx * zt - xz * xt) / determinant
         coefficients.extend((a, b, center - a*x0 - b*z0))
-    for point, expected in pairs:
-        sx, sy = apply(coefficients, point)
-        if hypot(sx - expected[0], sy - expected[1]) > 18:
-            raise ValueError('Les maisons de cette vue ne correspondent pas assez au dessin de Field Atlas.')
+    a, b, _, d, e, _ = coefficients
+    sx, sz = hypot(a, d), hypot(b, e)
+    if (a * e - b * d <= 0 or abs(a * b + d * e) > 0.25 * sx * sz
+            or not 0.65 <= sx / sz <= 1.55):
+        raise ValueError('La transformation déforme trop le dessin.')
 
-    # Encode the fitted transform as three control points for the existing map
-    # renderer and JSON format. The basis uses the scale of the sampled houses.
+    errors = [hypot(actual[0] - expected[0], actual[1] - expected[1])
+              for point, expected in pairs for actual in [apply(coefficients, point)]]
+    # Encode the fit as three control points for the existing JSON format.
     basis = [(x0, z0), (x0 + (xx/count)**0.5, z0), (x0, z0 + (zz/count)**0.5)]
+    return coefficients, basis, errors
+
+
+def _aligned_image(image, coefficients, basis):
     pixels = [(x * image.width / 900, y * image.height / 498)
               for x, y in (apply(coefficients, point) for point in basis)]
     return AerialImage(image, pixels, basis, source='field-atlas')
