@@ -125,5 +125,5 @@ un repère protégé. Les écarts qui nécessitent une déformation excessive
 sont refusés. Sur le fond original et les deux vues de la seed fournie,
 la distance image entre le marqueur du coffre de l’épée et le centre de
 l’enclos passe de 31,4 à 1,3 pixels à la résolution 1 800 × 996. Cette mesure
-compare le centre du geste de calibration et le motif reconnu dans le raster.
+compare le centre du marqueur et le motif reconnu dans le raster.
 Les 105 placements couverts et les quatre hors du dessin restent identiques.
