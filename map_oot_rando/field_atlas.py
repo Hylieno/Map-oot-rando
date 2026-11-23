@@ -41,6 +41,10 @@ DMT_DIGEST = 'db76ca2b051650690012b8d3eb737e1856cfdbb6eaddd7ef896f7a953c8104d7'
 REGION_MAPS['DeathMountainTrail'] = dict.fromkeys(('Child', 'Adult'), ('field-atlas-death-mountain', DMT_DIGEST))
 GORON_DIGEST = 'bd62600104b51d5d42bb658c34d41bcc7f421b3d8c79e9393ef024a80a774e14'
 REGION_MAPS['GoronCity'] = dict.fromkeys(('Child', 'Adult'), ('field-atlas-goron-city', GORON_DIGEST))
+REGION_MAPS['DodongoCavern'] = {
+    '1F': ('field-atlas-dodongo-1f', '9df7f3e24787a2e6f4bed707ed26e46687c4bf76779b2fa1d854a11ff0c7b111'),
+    '2F': ('field-atlas-dodongo-2f', '4193834d6b36cf47e8f52b8d138a5fcb2124373b693c73b748f9c6b50c271f49'),
+}
 REGION_CALIBRATION = 1
 
 
@@ -74,7 +78,7 @@ def align_region_image(image, references, region, age):
             'Rocher au virage sud': (200, 1226),
         }
         holdout = {'Vers la Caverne Dodongo': (181, 861)}
-    else:
+    elif region == 'GoronCity':
         controls = {
             'Repère nord Goron': (351, 64),
             'Vers le mont du Péril': (362, 631),
@@ -83,6 +87,26 @@ def align_region_image(image, references, region, age):
             'Seuil nord Goron': (351, 93),
         }
         holdout = {'Galerie est Goron': (543, 448)}
+    elif age == '1F':
+        controls = {
+            'Vers le mont du Péril': (247, 591),
+            'Plateforme centrale Dodongo': (248, 359),
+            'Escaliers nord Dodongo': (180, 70),
+            'Plateforme nord-ouest Dodongo': (542, 245),
+            'Plateforme nord-est Dodongo': (612, 244),
+            'Plateforme sud-est Dodongo': (612, 284),
+        }
+        holdout = {'Salle ouest basse Dodongo': (74, 428), 'Plateforme ouest Dodongo': (505, 263)}
+    else:
+        controls = {
+            'Salle ouest haute Dodongo': (79, 254),
+            'Plateforme centrale Dodongo': (243, 204),
+            'Plateforme haute Dodongo': (550, 116),
+            'Îlot nord-ouest Dodongo': (581, 176),
+            'Îlot sud Dodongo': (614, 212),
+            'Îlot est Dodongo': (633, 201),
+        }
+        holdout = {'Îlot nord Dodongo': (601, 152)}
     return registered_background(image, references, controls, holdout, source=REGION_MAPS[region][age][0],
                                  calibration=REGION_CALIBRATION, require_validation=True)
 

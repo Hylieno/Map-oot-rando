@@ -13,6 +13,13 @@ GORON_VIEWS = {age: tuple(f'{view} · {level}' for level in GORON_LEVELS)
                for age, view in REGION_VIEWS['GoronCity'].items()}
 REGION_VIEWS['GoronCity'] = {age: views[0] for age, views in GORON_VIEWS.items()}
 GORON_FLOORS = {view: index for views in GORON_VIEWS.values() for index, view in enumerate(views)}
+DODONGO_LEVELS = ('Rez-de-chaussée', 'Étage', 'Arène du boss')
+DODONGO_VIEWS = tuple(f'{REGION_NAMES["DodongoCavern"]} · {level}' for level in DODONGO_LEVELS)
+REGION_VIEWS['DodongoCavern'] = {None: DODONGO_VIEWS[0]}
+FLOOR_OPTIONS = {
+    **{view: tuple(zip(GORON_LEVELS, views)) for views in GORON_VIEWS.values() for view in views},
+    **dict.fromkeys(DODONGO_VIEWS, tuple(zip(DODONGO_LEVELS, DODONGO_VIEWS))),
+}
 AGE_VIEWS = REGION_VIEWS['KokiriForest']
 VIEWS = {label: (region, age) for region, ages in REGION_VIEWS.items()
          for age, label in ages.items()}
@@ -24,6 +31,7 @@ UNDERGROUND_LABELS = {view for ages in UNDERGROUND_VIEWS.values() for view in ag
 VIEWS.update({view: (region, age) for region, ages in UNDERGROUND_VIEWS.items()
               for age, view in ages.items()})
 VIEWS.update({view: ('GoronCity', age) for age, views in GORON_VIEWS.items() for view in views})
+VIEWS.update(dict.fromkeys(DODONGO_VIEWS, ('DodongoCavern', None)))
 NEIGHBORS = {
     'KokiriForest': {'LostWood': 'front_of_lost_wood_entrance',
                      'HyruleField': 'front_of_hyrule_field_entrance'},
@@ -34,8 +42,10 @@ NEIGHBORS = {
     'KakarikoVillage': {'HyruleField': 'Vers la plaine d’Hyrule', 'Graveyard': 'Vers le cimetière',
                         'DeathMountainTrail': 'Vers le Mont du Péril'},
     'Graveyard': {'KakarikoVillage': 'Vers Cocorico'},
-    'DeathMountainTrail': {'KakarikoVillage': 'Vers Cocorico', 'GoronCity': 'Repère Goron'},
+    'DeathMountainTrail': {'KakarikoVillage': 'Vers Cocorico', 'GoronCity': 'Repère Goron',
+                           'DodongoCavern': 'Vers la Caverne Dodongo'},
     'GoronCity': {'DeathMountainTrail': 'Vers le mont du Péril'},
+    'DodongoCavern': {'DeathMountainTrail': 'Vers le mont du Péril'},
 }
 KAKARIKO_ENTRANCES = {
     'HyruleField': 'Vers la plaine d’Hyrule',
@@ -85,6 +95,22 @@ ENTRANCE_LABELS = {
         'DeathMountainTrail': 'Vers le mont du Péril',
         'LostWood': 'Repère des Bois Perdus',
     },
+    'DodongoCavern': {'DeathMountainTrail': 'Vers le mont du Péril'},
+}
+DODONGO_ANCHORS = {
+    'Land_DodongoCave_01_Floor_A_04': 'Plateforme centrale Dodongo',
+    'Land_DodongoCave_19_Floor_A_01': 'Escaliers nord Dodongo',
+    'Land_DodongoCave_05_Floor_A_01': 'Plateforme nord-ouest Dodongo',
+    'Land_DodongoCave_05_Floor_A_08': 'Plateforme nord-est Dodongo',
+    'Land_DodongoCave_05_Floor_A_09': 'Plateforme sud-est Dodongo',
+    'Land_DodongoCave_11_Floor_A_01': 'Salle ouest basse Dodongo',
+    'Land_DodongoCave_05_Floor_A_06': 'Plateforme ouest Dodongo',
+    'Land_DodongoCave_12_Floor_A_01': 'Salle ouest haute Dodongo',
+    'Land_DodongoCave_05_Floor_A_03': 'Plateforme haute Dodongo',
+    'Land_DodongoCave_16_Floor_A_06': 'Îlot nord-ouest Dodongo',
+    'Land_DodongoCave_16_Floor_A_05': 'Îlot sud Dodongo',
+    'Land_DodongoCave_16_Floor_A_01': 'Îlot est Dodongo',
+    'Land_DodongoCave_16_Floor_A_07': 'Îlot nord Dodongo',
 }
 GORON_ANCHORS = {
     'Land_Goron_Ground_A_05': 'Place centrale Goron',
@@ -142,6 +168,8 @@ def projection_points(region, sources):
                 label = 'Rocher au virage sud'
             elif region == 'GoronCity':
                 label = GORON_ANCHORS.get(gyaml)
+            elif region == 'DodongoCavern':
+                label = DODONGO_ANCHORS.get(gyaml)
             elif gyaml == 'Land_HrlField_Bridge_A_01':
                 label = 'Pont de la rivière'
             elif gyaml == 'Enemy_Skulltula_Gold' and actor.get('Hash') == 2177746409373494991:
@@ -203,6 +231,9 @@ def read_scenes(document):
 def view_name(resource):
     """Group scene layers within a region and age."""
     region = resource_region(resource)
+    if region == 'DodongoCavern' and resource in (
+            f'Banc/{region}/{region}_{layer}{MAP_SUFFIX}' for layer in ('Static', 'Dynamic')):
+        return DODONGO_VIEWS[0]
     if region == 'KakarikoVillage' and resource in (
             f'Banc/{region}/{region}_Adult_Alternative_{layer}{MAP_SUFFIX}'
             for layer in ('Static', 'Dynamic')):
@@ -223,6 +254,12 @@ def location_view(row):
         y = row.position[1]
         floor = sum(y < boundary for boundary in (112.5, 107.5, 101.5, 96.5))
         return GORON_VIEWS[VIEWS[view][1]][floor]
+    if view == DODONGO_VIEWS[0] and row.position is not None:
+        y = row.position[1]
+        if y < 82:
+            return DODONGO_VIEWS[2]
+        if y >= 105:
+            return DODONGO_VIEWS[1]
     return view
 
 

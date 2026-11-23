@@ -19,7 +19,8 @@ from .model import REGION_NAMES, load_metadata, resource_region, select
 from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
-from .scene import (BURNT_VILLAGE, GORON_FLOORS, GORON_LEVELS, GORON_VIEWS, NEIGHBORS, REGION_VIEWS,
+from .scene import (BURNT_VILLAGE, DODONGO_VIEWS, FLOOR_OPTIONS, GORON_FLOORS, GORON_LEVELS, GORON_VIEWS,
+                    NEIGHBORS, REGION_VIEWS,
                     UNDERGROUND_LABELS, UNDERGROUND_VIEWS, VIEWS,
                     field_atlas_scene, group_scenes, location_view, read_scenes, view_name)
 from .simulation import Simulation, demo_document
@@ -155,8 +156,8 @@ class MapApplication:
         }
         self.overview_button = ttk.Button(tools, text='Zones voisines', command=self.toggle_overview)
         self.floor_button = ttk.Button(tools, command=self.toggle_floor)
-        self.goron_floor_picker = ttk.Combobox(tools, state='readonly', width=27)
-        self.goron_floor_picker.bind('<<ComboboxSelected>>', self.choose_goron_floor)
+        self.floor_picker = ttk.Combobox(tools, state='readonly', width=27)
+        self.floor_picker.bind('<<ComboboxSelected>>', self.choose_floor)
         self.canvas = tk.Canvas(panel, background='#18252b', highlightthickness=0)
         self.canvas.pack(fill='both', expand=True)
         self.canvas.bind('<Configure>', self.resized)
@@ -214,6 +215,7 @@ class MapApplication:
         prefer = [label for label in VIEWS if label in views]
         self.resources['values'] = prefer + sorted(views - set(prefer))
         first_positioned = next((location_view(r) for r in locations if r.position is not None), '')
+        self.navigation_age = None
         self.resource.set(prefer[0] if prefer else first_positioned or next(iter(sorted(views)), ''))
         self.categories['values'] = ['Toutes'] + sorted({r.category for r in locations})
         self.category.set('Toutes')
@@ -437,8 +439,8 @@ class MapApplication:
 
     def aerial_references(self, resource, *, include_checks=True, quiet=False):
         reference_view = resource
-        if not include_checks and resource in GORON_FLOORS:
-            reference_view = GORON_VIEWS[VIEWS[resource][1]][0]
+        if not include_checks and resource in FLOOR_OPTIONS:
+            reference_view = FLOOR_OPTIONS[resource][0][1]
         scene = (self.scenes.get(reference_view, {}) if include_checks
                  else field_atlas_scene(self.scenes, reference_view))
         references = [(name.replace('_', ' '), tuple(point))
@@ -494,7 +496,8 @@ class MapApplication:
         resource = self.resource.get()
         region, age = VIEWS.get(resource, (self.current_region(), None))
         config = PAUSE_MAPS.get(region)
-        region_atlas = REGION_MAPS.get(region, {}).get(age)
+        atlas_key = {DODONGO_VIEWS[0]: '1F', DODONGO_VIEWS[1]: '2F'}.get(resource, age)
+        region_atlas = REGION_MAPS.get(region, {}).get(atlas_key)
         if (self.simulation or resource not in VIEWS or resource in UNDERGROUND_LABELS
                 or GORON_FLOORS.get(resource) == len(GORON_LEVELS) - 1
                 or (config is None and region_atlas is None)):
@@ -538,8 +541,8 @@ class MapApplication:
                     image = cached.get(source)
                     if region_atlas:
                         if image is None:
-                            image = load_atlas_image(digest, width=650)
-                        background = align_region_image(image, references, region, age)
+                            image = load_atlas_image(digest, width=700 if region == 'DodongoCavern' else 650)
+                        background = align_region_image(image, references, region, atlas_key)
                     elif source == 'field-atlas':
                         if image is None:
                             image = load_kokiri_image()
@@ -663,6 +666,10 @@ class MapApplication:
     def sync_age(self):
         if not self.save_age or not self.follow_age.get():
             return
+        if self.resource.get() in DODONGO_VIEWS:
+            self.navigation_age = self.save_age
+            self.refresh_navigation()
+            return
         if self.resource.get() == BURNT_VILLAGE and self.save_age == 'Adult' and self.kakariko_burned is None:
             return
         view = self.view_for_region(self.current_region(), age=self.save_age)
@@ -685,6 +692,8 @@ class MapApplication:
     def view_for_region(self, region, *, age=None):
         if age is None:
             _, age = VIEWS.get(self.resource.get(), (self.current_region(), self.save_age))
+        if age is None:
+            age = self.navigation_age
         # A known age must be preserved across the transition.
         ages = REGION_VIEWS[region]
         candidates = (ages[age],) if age in ages else ages.values()
@@ -718,14 +727,16 @@ class MapApplication:
             self.resource.set(view)
             self.resource_changed(manual=False)
 
-    def choose_goron_floor(self, _event):
-        _, age = VIEWS[self.resource.get()]
-        index = GORON_LEVELS.index(self.goron_floor_picker.get())
-        self.resource.set(GORON_VIEWS[age][index])
+    def choose_floor(self, _event):
+        options = dict(FLOOR_OPTIONS[self.resource.get()])
+        self.resource.set(options[self.floor_picker.get()])
         self.resource_changed(manual=False)
 
     def refresh_navigation(self):
         region = self.current_region()
+        _, age = VIEWS.get(self.resource.get(), (None, None))
+        if age is not None:
+            self.navigation_age = age
         name = REGION_NAMES[region]
         self.banner.set('SIMULATION - noms et positions fictifs' if self.simulation else
                         f'{name} - seed importée')
@@ -747,15 +758,13 @@ class MapApplication:
         else:
             self.floor_button.pack_forget()
         view = self.resource.get()
-        if view in GORON_FLOORS:
-            _, age = VIEWS[view]
-            self.goron_floor_picker.configure(values=tuple(
-                level for level, floor_view in zip(GORON_LEVELS, GORON_VIEWS[age])
-                if floor_view in self.resources['values']))
-            self.goron_floor_picker.set(GORON_LEVELS[GORON_FLOORS[view]])
-            self.goron_floor_picker.pack(side='left', padx=5)
+        if view in FLOOR_OPTIONS:
+            self.floor_picker.configure(values=tuple(level for level, floor_view in FLOOR_OPTIONS[view]
+                                                    if floor_view in self.resources['values']))
+            self.floor_picker.set(next(level for level, floor_view in FLOOR_OPTIONS[view] if floor_view == view))
+            self.floor_picker.pack(side='left', padx=5)
         else:
-            self.goron_floor_picker.pack_forget()
+            self.floor_picker.pack_forget()
 
     def resource_changed(self, *, manual=True):
         self.overview_open = False
@@ -860,6 +869,8 @@ class MapApplication:
         name = REGION_NAMES[region]
         if self.resource.get() in GORON_FLOORS:
             name = f'{name} · {GORON_LEVELS[GORON_FLOORS[self.resource.get()]]}'
+        elif self.resource.get() in DODONGO_VIEWS:
+            name = self.resource.get()
         exits = {}
         if not self.simulation:
             for neighbor, portal in NEIGHBORS[region].items():
@@ -900,7 +911,7 @@ class MapApplication:
             for y in ys:
                 self.canvas.create_line(0, y, width, y, fill='#2c414a')
             heading = (f'{self.resource.get()} | Schéma X/Z'
-                       if self.resource.get() in UNDERGROUND_LABELS or self.resource.get() in GORON_FLOORS
+                       if self.resource.get() in UNDERGROUND_LABELS or self.resource.get() in FLOOR_OPTIONS
                        else f'Schéma X/Z | Grille : {step:g} unités')
         self.canvas.create_text(12, 12, anchor='nw', fill=heading_color, text=heading)
         for neighbor, exit_point in exits.values():
@@ -961,10 +972,12 @@ class MapApplication:
         self.overview_open = False
         self.selected = row
         if row.position is not None:
-            if self.resource.get() != location_view(row):
-                if self.save_age is not None:
+            target = location_view(row)
+            if self.resource.get() != target:
+                _, age = VIEWS.get(target, (None, None))
+                if self.save_age is not None and age is not None:
                     self.follow_age.set(False)
-                self.resource.set(location_view(row))
+                self.resource.set(target)
                 self.refresh_navigation()
                 self.ensure_atlas()
             self.viewport.center(self.display_point(row.project()), self.canvas.winfo_width(),

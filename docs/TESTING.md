@@ -1,5 +1,11 @@
 # Validation
 
+Le recoupement de la caverne Dodongo avec le catalogue a retrouvé 30 IDs.
+Le scan local sans packs d’acteurs en a positionné 19, dont les deux checks
+de l’arène. L’erreur sur les repères indépendants est d’environ 8 pixels
+au rez-de-chaussée et 1,3 à l’étage sur des fonds de 700 pixels de large.
+Le test Tk vérifie la navigation entre les étages et le retour à l’âge suivi.
+
 Les quatre ressources du Village Goron ont été recoupées avec les 52 IDs
 du catalogue. Le scan local sans packs d’acteurs a positionné 19 IDs.
 La galerie est, exclue du calcul d’alignement, est à 4,2 pixels du repère

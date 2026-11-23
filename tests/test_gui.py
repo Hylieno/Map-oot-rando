@@ -378,14 +378,43 @@ class GuiTests(unittest.TestCase):
         ]
         app.load(doc)
         self.assertEqual(app.resource.get(), GORON_VIEWS['Child'][0])
-        self.assertEqual(tuple(app.goron_floor_picker['values']), GORON_LEVELS)
-        app.goron_floor_picker.set(GORON_LEVELS[2])
-        app.choose_goron_floor(None)
+        self.assertEqual(tuple(app.floor_picker['values']), GORON_LEVELS)
+        app.floor_picker.set(GORON_LEVELS[2])
+        app.choose_floor(None)
         self.assertEqual({row.id for row in app.visible}, {'Child-2'})
         app.save_age = 'Adult'
         app.sync_age()
         self.assertEqual(app.resource.get(), GORON_VIEWS['Adult'][2])
         self.assertEqual({row.id for row in app.visible}, {'Adult-2'})
+
+    def test_dodongo_shared_floors_follow_age_only_on_exit(self):
+        from map_oot_rando.scene import DODONGO_LEVELS, DODONGO_VIEWS, REGION_VIEWS
+
+        app = self.app
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=list(REGION_VIEWS))
+        row = doc['locations'][0]
+        doc['locations'] = [
+            dict(row, id=f'dodongo-{index}', position=(0, height, 0),
+                 resource='Banc/DodongoCavern/DodongoCavern_Static.bcett.byml.zs')
+            for index, height in enumerate((100, 113, 73))
+        ] + [
+            dict(row, id=age, resource=f'Banc/DeathMountainTrail/DeathMountainTrail_{age}_Static.bcett.byml.zs')
+            for age in ('Child', 'Adult')
+        ]
+        app.load(doc)
+        app.resource.set(REGION_VIEWS['DeathMountainTrail']['Adult'])
+        app.resource_changed()
+        app.open_neighbor('DodongoCavern')
+        self.assertEqual(app.resource.get(), DODONGO_VIEWS[0])
+        app.floor_picker.set(DODONGO_LEVELS[2])
+        app.choose_floor(None)
+        self.assertEqual({row.id for row in app.visible}, {'dodongo-2'})
+        self.assertEqual(app.view_for_region('DeathMountainTrail'), REGION_VIEWS['DeathMountainTrail']['Adult'])
+        app.save_age = 'Child'
+        app.sync_age()
+        self.assertEqual(app.resource.get(), DODONGO_VIEWS[2])
+        app.open_neighbor('DeathMountainTrail')
+        self.assertEqual(app.resource.get(), REGION_VIEWS['DeathMountainTrail']['Child'])
 
     def test_overlapping_markers_can_both_be_selected(self):
         from unittest.mock import patch

@@ -11,6 +11,7 @@ LOST_WOOD_EVENT_ACTORS = {
 EVENT_ACTORS = {
     'LostWood': {actor: ident for ident, actor in LOST_WOOD_EVENT_ACTORS.items()},
     'GoronCity': {('Npc_Goron_Darunia_Child', None): 'npc#GC Darunias Joy'},
+    'DodongoCavern': {('Enemy_DungeonBoss_Dodongo', None): 'boss#King Dodongo'},
 }
 DEKU_THEATER_CHECKS = ('npc#Deku Theater Skull Mask', 'npc#Deku Theater Mask of Truth')
 GROTTO_ENTRANCE_ACTORS = {
@@ -132,7 +133,8 @@ def bind_catalogue(document, catalogue):
     names = {name: region for region, name in REGION_NAMES.items()}
     names.update({'Lost Woods': 'LostWood', 'the Lost Woods': 'LostWood', 'Hyrule Field': 'HyruleField',
                   'Sacred Forest Meadow': 'SacredForestMeadow', 'Kakariko Village': 'KakarikoVillage',
-                  'Death Mountain Trail': 'DeathMountainTrail', 'Goron City': 'GoronCity'})
+                  'Death Mountain Trail': 'DeathMountainTrail', 'Goron City': 'GoronCity',
+                  "Dodongo's Cavern": 'DodongoCavern'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']

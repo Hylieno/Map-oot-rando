@@ -1,6 +1,6 @@
 # Map-oot-rando
 
-Compagnon de carte local pour OotrR avec Kokiri Forest, les Bois Perdus, le Bosquet sacré, la plaine d’Hyrule, Cocorico, le cimetière, le mont du Péril et le Village Goron.
+Compagnon de carte local pour OotrR avec Kokiri Forest, les Bois Perdus, le Bosquet sacré, la plaine d’Hyrule, Cocorico, le cimetière, le mont du Péril, le Village Goron et la caverne Dodongo.
 
 La simulation utilise des positions fictives.
 L’import local lit les coordonnées de la seed et le suivi lit les états d’OotrR
@@ -56,6 +56,9 @@ aligné pour les deux âges. **Souterrains** ouvre les checks en grotte.
 Depuis le mont du Péril, le [Village Goron](https://oot.gousse.cool/goron-city)
 propose quatre galeries et une grotte. Le sélecteur d’étage limite les marqueurs
 au niveau affiché. La grotte utilise un schéma.
+La [caverne Dodongo](https://oot.gousse.cool/dodongos-cavern) est accessible
+depuis le mont du Péril. Le rez-de-chaussée et l’étage ont leurs propres
+fonds. L’arène du boss utilise un schéma et affiche séparément le boss et son cœur.
 
 Pour une image locale, l’application lit automatiquement un fichier de coordonnées
 `.wld`, `.pgw` ou `.jgw` de même nom s’il utilise le repère X/Z du jeu. Une image

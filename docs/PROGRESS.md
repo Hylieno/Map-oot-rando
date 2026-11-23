@@ -1,5 +1,10 @@
 # Checkpoint — 22 novembre 2026
 
+La caverne Dodongo est reliée au mont du Péril. Les deux fonds Field Atlas
+sont alignés indépendamment. L’arène présente deux checks avec leurs
+coordonnées d’acteur et leurs IDs de suivi. Les étages sont communs aux
+deux âges. Le retour au mont du Péril reprend le dernier âge choisi ou suivi.
+
 Le Village Goron est relié au mont du Péril. Le fond est vérifié pour les
 deux âges. Les quatre étages et la grotte séparent les checks selon leurs
 coordonnées. La vue conserve l’étage lors d’un changement d’âge si cet

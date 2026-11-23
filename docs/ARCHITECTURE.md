@@ -22,6 +22,9 @@ repère X/Z. L’âge reste indépendant du niveau.
 Au Village Goron, les vues par étage déduisent le niveau de la hauteur Y
 de chaque placement. Les étages principaux partagent le repère X/Z du
 fond Field Atlas. L’ID et les coordonnées XYZ d’origine restent disponibles.
+La caverne Dodongo utilise des ressources communes aux deux âges. Le menu
+d’étage est partagé avec le Village Goron. Le dernier âge connu reste
+disponible quand l’utilisateur rejoint une zone extérieure.
 
 Référence inspectée : Mozencaz/OotrR,
 `283d3ec0f161d32e168afac45e502442c1ffb081`.

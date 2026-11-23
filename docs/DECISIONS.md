@@ -14,6 +14,8 @@
 - Village Goron. Le fond commun est vérifié avec un repère indépendant sur
   la galerie est. Les marqueurs sont filtrés par étage et la grotte conserve
   une vue schématique.
+- Caverne Dodongo. Un fond distinct est calibré pour chaque étage.
+  L’arène est sous les deux plans et garde une vue schématique.
 
 - Python sans dépendance pour le socle ; Tkinter prévu, cohérent avec OotrR.
 - Ne pas développer une seconde logique d'accessibilité ni un lecteur mémoire.
