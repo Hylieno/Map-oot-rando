@@ -158,3 +158,7 @@ Une sauvegarde binaire synthétique vérifie le passage enfant/adulte et un
 rafraîchissement sans modification. Un test Tk vérifie le basculement et
 le maintien du choix manuel. Le workflow ouvre aussi la fenêtre de
 l’exécutable compilé et sélectionne puis marque un check simulé.
+
+Les 48 tests Windows passent. Le job vérifie aussi le chargement du moteur
+OotrR et ouvre la fenêtre de l’exécutable avant d’y sélectionner et marquer
+un check simulé. [Windows CI](https://github.com/Hylieno/Map-oot-rando/actions/runs/45097335491).
