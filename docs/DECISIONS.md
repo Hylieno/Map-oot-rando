@@ -24,6 +24,10 @@
 - Arbre Mojo. Le hall commun à plusieurs niveaux utilise la hauteur. Les
   autres salles recoupées utilisent le numéro d’origine. Les six checks
   de la salle de Gohma s’affichent dans l’arène.
+- Temple de la Forêt. Les cours et les passerelles utilisent les numéros
+  de salle vérifiés. Le coffre de la clé du boss, sans numéro de salle,
+  utilise sa hauteur et le plan correspondant. Le cœur et Ganon spectral
+  ont une vue dédiée.
 - Link. Le marqueur et le changement automatique de zone sont deux commandes
   distinctes. Les coordonnées sont lues via la connexion mémoire OotrR.
   Les décalages du module et les champs de pose viennent de la documentation

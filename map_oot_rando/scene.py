@@ -23,17 +23,21 @@ JABU_LEVELS = ('Rez-de-chaussée', 'Sous-sol', 'Étage', 'Arène de Barinade')
 JABU_VIEWS = tuple(f'{REGION_NAMES["InsideJabuJabuBelly"]} · {level}' for level in JABU_LEVELS)
 DEKU_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', 'Sous-sol', 'Sous-sol profond', 'Arène de Gohma')
 DEKU_VIEWS = tuple(f'{REGION_NAMES["InsideTheDekuTree"]} · {level}' for level in DEKU_LEVELS)
+FOREST_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', 'Sous-sol', 'Sous-sol profond', 'Arène du boss')
+FOREST_VIEWS = tuple(f'{REGION_NAMES["ForestTemple"]} · {level}' for level in FOREST_LEVELS)
 DUNGEON_FLOORS = {
     'DodongoCavern': tuple(zip(DODONGO_LEVELS, DODONGO_VIEWS)),
     'FireTemple': tuple(zip(FIRE_LEVELS, FIRE_VIEWS)),
     'InsideJabuJabuBelly': tuple(zip(JABU_LEVELS, JABU_VIEWS)),
     'InsideTheDekuTree': tuple(zip(DEKU_LEVELS, DEKU_VIEWS)),
+    'ForestTemple': tuple(zip(FOREST_LEVELS, FOREST_VIEWS)),
 }
 DUNGEON_ATLAS_KEYS = {
     **dict(zip(DODONGO_VIEWS, ('1F', '2F'))),
     **dict(zip(FIRE_VIEWS, ('1F', '2F', '3F', '4F', '5F'))),
     **dict(zip(JABU_VIEWS, ('1F', 'S1', '2F'))),
     **dict(zip(DEKU_VIEWS, ('1F', '2F', '3F', 'S1', 'S2'))),
+    **dict(zip(FOREST_VIEWS, ('1F', '2F', '3F', 'S1', 'S2'))),
 }
 FOUNTAIN_DUNGEON_AGES = {'IceCavern': 'Adult', 'InsideJabuJabuBelly': 'Child'}
 JABU_ROOM_VIEWS = {
@@ -48,6 +52,13 @@ DEKU_ROOM_VIEWS = {
     **dict.fromkeys((4, 5, 11), DEKU_VIEWS[3]),
     9: DEKU_VIEWS[4],
     10: DEKU_VIEWS[5],
+}
+FOREST_ROOM_VIEWS = {
+    **dict.fromkeys((2, 4, 6, 12, 14, 22), FOREST_VIEWS[0]),
+    **dict.fromkeys((0, 8, 16, 17, 18), FOREST_VIEWS[1]),
+    15: FOREST_VIEWS[3],
+    27: FOREST_VIEWS[4],
+    29: FOREST_VIEWS[5],
 }
 for region, floors in DUNGEON_FLOORS.items():
     REGION_VIEWS[region] = {None: floors[0][1]}
@@ -77,7 +88,9 @@ NEIGHBORS = {
                  'GoronCity': 'Vers le Village Goron', 'ZoraRiver': 'Vers la Rivière Zora'},
     'HyruleField': {'KokiriForest': 'front_of_lost_wood_bridge_entrance',
                     'KakarikoVillage': 'Vers Cocorico', 'ZoraRiver': 'Vers la Rivière Zora'},
-    'SacredForestMeadow': {'LostWood': 'front_of_lost_wood_entrance'},
+    'SacredForestMeadow': {'LostWood': 'front_of_lost_wood_entrance',
+                           'ForestTemple': 'outside_of_forest_temple_entrance'},
+    'ForestTemple': {'SacredForestMeadow': 'Vers le Bosquet sacré'},
     'KakarikoVillage': {'HyruleField': 'Vers la plaine d’Hyrule', 'Graveyard': 'Vers le cimetière',
                         'DeathMountainTrail': 'Vers le Mont du Péril'},
     'Graveyard': {'KakarikoVillage': 'Vers Cocorico'},
@@ -146,6 +159,7 @@ ENTRANCE_LABELS = {
     'IceCavern': NEIGHBORS['IceCavern'],
     'InsideJabuJabuBelly': NEIGHBORS['InsideJabuJabuBelly'],
     'InsideTheDekuTree': NEIGHBORS['InsideTheDekuTree'],
+    'ForestTemple': NEIGHBORS['ForestTemple'],
     'DeathMountainTrail': {
         'DeathMountainCrater': 'Repère du cratère',
         'DodongoCavern': 'Repère Dodongo',
@@ -373,6 +387,21 @@ def location_view(row):
             return DEKU_VIEWS[2]
         if y >= 104:
             return DEKU_VIEWS[1]
+    if view == FOREST_VIEWS[0] and row.position is not None:
+        if row.dungeon_room in FOREST_ROOM_VIEWS:
+            return FOREST_ROOM_VIEWS[row.dungeon_room]
+        x, y, z = row.position
+        if row.id == 'boss#Phantom Ganon' or row.category == 'full_bossheart' or (
+                row.dungeon_room is None and -15 <= x <= 15 and -79 <= z <= -48 and 72 <= y <= 83):
+            return FOREST_VIEWS[5]
+        if y < 66:
+            return FOREST_VIEWS[4]
+        if y < 90:
+            return FOREST_VIEWS[3]
+        if y >= 120:
+            return FOREST_VIEWS[2]
+        if y >= 109:
+            return FOREST_VIEWS[1]
     if view == DODONGO_VIEWS[0] and row.position is not None:
         y = row.position[1]
         if y < 82:

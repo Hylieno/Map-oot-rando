@@ -5,6 +5,23 @@ from map_oot_rando.scene import extract_scenes, read_scenes
 
 
 class SceneTests(unittest.TestCase):
+    def test_forest_temple_distinguishes_raised_checks_from_their_rooms(self):
+        from map_oot_rando.model import Location
+        from map_oot_rando.scene import FOREST_VIEWS, location_view
+
+        region = 'ForestTemple'
+        path = f'Banc/{region}/{region}_Static.bcett.byml.zs'
+        for room, point, floor in (
+            (0, (11.28, 119.84, 64), 1),
+            (14, (44.27, 112.07, -38.24), 0),
+            (27, (-3.43, 65.6, 17.17), 4),
+            (29, (-3.24, 74.73, -64.43), 5),
+            (None, (-49.46, 129.5, -63.71), 2),
+        ):
+            with self.subTest(room=room, point=point):
+                row = Location('test', 'Check', 'test', path, point, region=region, dungeon_room=room)
+                self.assertEqual(location_view(row), FOREST_VIEWS[floor])
+
     def test_deku_uses_room_for_checks_and_height_for_open_entrance_hall(self):
         from map_oot_rando.model import Location
         from map_oot_rando.scene import DEKU_VIEWS, location_view

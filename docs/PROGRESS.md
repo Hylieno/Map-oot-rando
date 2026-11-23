@@ -2,7 +2,9 @@
 
 L’Arbre Mojo est accessible depuis Kokiri. Les cinq plans et la vue de
 l’arène affichent les 25 checks du catalogue. L’étage garde son plan même
-lorsqu’aucun check de la seed n’y est placé.
+lorsqu’aucun check de la seed n’y est placé. Le Temple de la Forêt est
+relié au Bosquet sacré et affiche aussi 25 checks. Le build de ce jalon
+embarque les deux donjons.
 
 La rivière Zora affiche les 54 checks du catalogue de référence. Les deux
 vues gardent les placements propres à leur âge et l’accès aux Bois Perdus.

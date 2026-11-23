@@ -23,6 +23,7 @@ REGION_NAMES = {
     'IceCavern': 'Caverne de glace',
     'InsideJabuJabuBelly': 'Ventre de Jabu-Jabu',
     'InsideTheDekuTree': 'Intérieur de l’Arbre Mojo',
+    'ForestTemple': 'Temple de la Forêt',
 }
 # These scenes have buried actor placements below their surface.
 SURFACE_MIN_Y = {'Graveyard': 92, 'DeathMountainTrail': 80, 'DeathMountainCrater': 90}

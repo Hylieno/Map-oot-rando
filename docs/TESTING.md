@@ -1,5 +1,12 @@
 # Validation
 
+Les deux scènes publiques du Temple de la Forêt contiennent les 25 checks
+du catalogue. Les 23 marqueurs hors arène tombent sur les plans ou à un
+pixel du dessin, sur des fonds de 700 pixels de large. Le test d’étage
+couvre la vigne de l’entrée, le balcon de la cour, la salle tournante,
+l’arène et le coffre de la clé du boss. Le scan du NUP complet reste à
+contrôler pour le donjon.
+
 Les deux scènes publiques de l’Arbre Mojo ont permis de positionner les
 25 checks du catalogue. Les 19 marqueurs hors arène tombent sur le dessin
 ou à moins de quatre pixels du contour pour des fonds de 700 pixels de

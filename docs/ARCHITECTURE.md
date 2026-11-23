@@ -35,7 +35,7 @@ La caverne Dodongo utilise des ressources communes aux deux âges. Le menu
 d’étage est partagé avec le Village Goron. Le dernier âge connu reste
 disponible quand l’utilisateur rejoint une zone extérieure. La Caverne de
 glace utilise ce même principe avec une seule vue.
-Chez Jabu-Jabu et dans l’Arbre Mojo, le champ facultatif `dungeon_room` conserve le numéro de
+Chez Jabu-Jabu, dans l’Arbre Mojo et au Temple de la Forêt, le champ facultatif `dungeon_room` conserve le numéro de
 salle trouvé dans les données du jeu. L’attribution à un étage privilégie
 la salle, car des acteurs suspendus peuvent dépasser la hauteur de leur étage.
 Le Temple du Feu réutilise ce sélecteur. Ses cinq images sont des recadrages

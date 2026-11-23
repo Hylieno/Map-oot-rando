@@ -18,11 +18,11 @@ from .model import Location, REGION_NAMES, SURFACE_MIN_Y, load_metadata, resourc
 from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
-from .scene import (BURNT_VILLAGE, DEKU_VIEWS, DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS, FIRE_VIEWS, FLOOR_OPTIONS,
+from .scene import (BURNT_VILLAGE, DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS, FIRE_VIEWS, FLOOR_OPTIONS,
                     FOUNTAIN_DUNGEON_AGES,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS,
-                    JABU_VIEWS, NEIGHBORS, REGION_VIEWS, SHARED_DUNGEONS,
+                    NEIGHBORS, REGION_VIEWS, SHARED_DUNGEONS,
                     UNDERGROUND_LABELS, UNDERGROUND_VIEWS, VIEWS,
                     field_atlas_scene, group_scenes, location_view, read_scenes, view_name)
 from .simulation import Simulation, demo_document
@@ -249,9 +249,9 @@ class MapApplication:
         self.details.set('Sélectionnez un emplacement.')
         views = {location_view(row) for row in locations if row.position is not None}
         views.update(self.scenes.keys() & VIEWS.keys())
-        for floors in (FIRE_VIEWS, JABU_VIEWS, DEKU_VIEWS):
-            if floors[0] in views:
-                views.update(floors[:-1])
+        for floors in DUNGEON_FLOORS.values():
+            if floors[0][1] in views:
+                views.update(view for _, view in floors if view in DUNGEON_ATLAS_KEYS)
         for goron_views in GORON_VIEWS.values():
             points = {name for name, _ in self.scenes.get(goron_views[0], {}).get('points', ())}
             for target, floor in (('DeathMountainCrater', GORON_CRATER_FLOOR),

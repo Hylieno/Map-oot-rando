@@ -66,6 +66,13 @@ DEKU_VIEWBOXES = {
     'S1': (-37, -32, 863, 658),
     'S2': (344, 74, 268, 491),
 }
+FOREST_VIEWBOXES = {
+    '1F': (-39, -27, 931, 974),
+    '2F': (-37, -36, 903, 949),
+    '3F': (-35, -19, 904, 585),
+    'S1': (238, 142, 345, 345),
+    'S2': (323, 157, 304, 395),
+}
 SHARED_FIELD_FRAMES = {
     'HyruleField': ((-50, -49, 950, 739), (1.4552, 504.27, 1.4867, 11.89)),
     'SacredForestMeadow': ((190, -8, 492, 1821), (6.15, 487.31, 6.15, 1062.72)),
@@ -84,6 +91,7 @@ for region, frame, viewboxes in (
     ('FireTemple', (3.965, 354.2, 3.9651, 218.31), FIRE_VIEWBOXES),
     ('InsideJabuJabuBelly', (7.6, 392, 7.6, 1580), JABU_VIEWBOXES),
     ('InsideTheDekuTree', (8.5609, 733.86, 8.9211, 139.64), DEKU_VIEWBOXES),
+    ('ForestTemple', (5.5747, 462.29, 5.6324, 406.55), FOREST_VIEWBOXES),
 ):
     FIELD_FRAMES[region] = {level: (viewbox, frame) for level, viewbox in viewboxes.items()}
 for region, source, digest in (
@@ -118,6 +126,13 @@ REGION_MAPS['InsideTheDekuTree'] = {
     '3F': ('field-atlas-deku-3f', '7131d6d95fc34dc18df9590c8cac2584e01526cb96579682ba45ea3abe67e72e'),
     'S1': ('field-atlas-deku-s1', 'f997dee7cf0824c342246bec941e98bac8e7e1c1377d59e36aabfc661d738ca5'),
     'S2': ('field-atlas-deku-s2', '70efa8003bf43468ef3efe598bcf756ced7dacbf1d203657b1f5bb554df4cb50'),
+}
+REGION_MAPS['ForestTemple'] = {
+    '1F': ('field-atlas-forest-1f', 'dd87dda0d106bc26d59b87841d6e52f5a5d5d9bfa1d16d35820af1ab8674eae2'),
+    '2F': ('field-atlas-forest-2f', '79bf55e5fd3ac9baa5ac97a8f813af5ce2d66ff3766737856b39020b7f5a132d'),
+    '3F': ('field-atlas-forest-3f', '4ae5a5642885668f29d466cea5d7716b7d09526bad1f30f5ee1305b04e86367a'),
+    'S1': ('field-atlas-forest-s1', '6cbf450c90cd3ed53dfe3249f7775c4b34eb3dae5419c2d380b8acde5afb0c07'),
+    'S2': ('field-atlas-forest-s2', '3f1bf57ae45da9a1d0c7b9b3752290d36957d6144716f69e0d35d29bb8624a56'),
 }
 REGION_CALIBRATION = 1
 
