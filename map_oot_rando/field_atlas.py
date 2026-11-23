@@ -1,13 +1,12 @@
 """Open and align published Field Atlas backgrounds."""
-from hashlib import sha256
 from itertools import combinations
 from math import hypot
 from io import BytesIO
-from urllib.request import Request, urlopen
 
 from resvg_py import svg_to_bytes
 
 from .aerial import AerialImage, apply, read_image
+from .background_assets import verified_asset
 from .image_warp import align_local
 
 SOURCE = 'https://oot.gousse.cool/content/maps/7e802ffa8684f3cd.svg'
@@ -21,13 +20,7 @@ def load_kokiri_image():
 
 def load_atlas_image(digest, *, width, height=None, url=None):
     url = url or f'https://oot.gousse.cool/content/maps/{digest[:16]}.svg'
-    request = Request(url, headers={'User-Agent': 'Map-oot-rando/1.0'})
-    with urlopen(request, timeout=8) as response:
-        if response.url != url:
-            raise ValueError('Adresse Field Atlas modifiée.')
-        data = response.read(100_001)
-    if sha256(data).hexdigest() != digest:
-        raise ValueError('Le fond Field Atlas a changé. Il doit être vérifié avant utilisation.')
+    data = verified_asset(url, digest, provider='Field Atlas', extension='svg', limit=100_000)
     dimensions = {'width': width}
     if height is not None:
         dimensions['height'] = height

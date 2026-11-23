@@ -75,8 +75,8 @@ class MapProjectionTests(unittest.TestCase):
             asset = scratch.getvalue()
             config = replace(PAUSE_MAPS['HyruleField'], digest=sha256(asset).hexdigest())
             with (patch.dict(PAUSE_MAPS, HyruleField=config),
-                  patch('map_oot_rando.questfern.local_tracker_dir', return_value=Path(folder)),
-                  patch('map_oot_rando.questfern.urlopen') as download):
+                  patch('map_oot_rando.background_assets.local_tracker_dir', return_value=Path(folder)),
+                  patch('map_oot_rando.background_assets.urlopen') as download):
                 response = BytesIO(asset)
                 response.url = config.url
                 download.return_value = response

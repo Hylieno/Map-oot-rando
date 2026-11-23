@@ -1,5 +1,7 @@
 from hashlib import sha256
 from io import BytesIO
+from pathlib import Path
+from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
 
@@ -11,17 +13,25 @@ class Response(BytesIO):
 
 
 class FieldAtlasTests(unittest.TestCase):
+    def setUp(self):
+        self.folder = self.enterContext(TemporaryDirectory())
+        self.enterContext(patch('map_oot_rando.background_assets.local_tracker_dir',
+                                return_value=Path(self.folder)))
+
     def test_rasterizes_expected_svg(self):
         data = (b'<svg xmlns="http://www.w3.org/2000/svg" width="900" height="498">'
                 b'<rect width="900" height="498" fill="#00ff00"/></svg>')
-        with (patch('map_oot_rando.field_atlas.urlopen', return_value=Response(data)),
+        with (patch('map_oot_rando.background_assets.urlopen', return_value=Response(data)) as download,
               patch('map_oot_rando.field_atlas.DIGEST', sha256(data).hexdigest())):
             image = load_kokiri_image()
+            download.side_effect = OSError('offline')
+            self.assertEqual(load_kokiri_image().size, image.size)
+            download.assert_called_once()
         self.assertEqual(image.size, (1800, 996))
         self.assertEqual(image.getpixel((100, 100)), (0, 255, 0))
 
     def test_rejects_changed_image_before_rendering(self):
-        with (patch('map_oot_rando.field_atlas.urlopen', return_value=Response(b'changed')),
+        with (patch('map_oot_rando.background_assets.urlopen', return_value=Response(b'changed')),
               patch('map_oot_rando.field_atlas.svg_to_bytes') as render):
             with self.assertRaisesRegex(ValueError, 'fond Field Atlas a changé'):
                 load_kokiri_image()

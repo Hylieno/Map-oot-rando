@@ -37,7 +37,7 @@ Les fonds par défaut de [Kokiri](https://questfern.com/oot/guides/interactive-m
 [Bosquet sacré](https://questfern.com/oot/guides/interactive-map/?area=grove) viennent de Questfern.
 L’application les charge à la demande et vérifie la projection avant de
 l’afficher. **Fond de carte** permet de choisir Field Atlas, un fond local ou
-le schéma. Les fonds Questfern téléchargés sont conservés sur ce poste pour les
+le schéma. Les fonds Questfern et Field Atlas téléchargés sont conservés sur ce poste pour les
 prochains imports hors ligne. **Enregistrer la carte…** inclut le fond affiché dans le JSON.
 
 Les Bois Perdus s’ouvrent sur un schéma sans icônes d’objet préimprimées.
