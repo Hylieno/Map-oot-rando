@@ -1,5 +1,11 @@
 # Checkpoint — 22 novembre 2026
 
+Le Village Goron est relié au mont du Péril. Le fond est vérifié pour les
+deux âges. Les quatre étages et la grotte séparent les checks selon leurs
+coordonnées. La vue conserve l’étage lors d’un changement d’âge si cet
+étage est disponible. Les deux checks des Gorons roulants restent à
+associer à un emplacement vérifié.
+
 Le mont du Péril est relié à Cocorico. Les vues enfant et adulte utilisent
 un fond Field Atlas validé. Les six rupees enfouies de la seed de référence
 appartiennent à la vue souterraine. Chaque mise à jour du code lance les tests Windows et

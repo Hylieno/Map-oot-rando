@@ -8,6 +8,10 @@ LOST_WOOD_EVENT_ACTORS = {
     'scrub#LW Deku Scrub Near Bridge': ('Enemy_Scrub_Business', 'Enemy_Scrub_Business_DekuStickPouch_01'),
     'scrub#LW Deku Scrub Grotto Front': ('Enemy_Scrub_Business', 'Enemy_Scrub_Business_DekuNutsPouch_01'),
 }
+EVENT_ACTORS = {
+    'LostWood': {actor: ident for ident, actor in LOST_WOOD_EVENT_ACTORS.items()},
+    'GoronCity': {('Npc_Goron_Darunia_Child', None): 'npc#GC Darunias Joy'},
+}
 DEKU_THEATER_CHECKS = ('npc#Deku Theater Skull Mask', 'npc#Deku Theater Mask of Truth')
 GROTTO_ENTRANCE_ACTORS = {
     'SacredForestMeadow#7995233962349162969': (8456945034417122929, 'Land_Kokiri_HidingHoleCover_A_01'),
@@ -91,11 +95,12 @@ def world_check_rows(maps, checks, eligible):
 
 
 def event_check_rows(maps, eligible):
-    """Locate event rewards at their unique NPC in each Lost Woods age."""
-    ids = {actor: ident for ident, actor in LOST_WOOD_EVENT_ACTORS.items()}
+    """Locate event rewards at their unique NPC in each age."""
     candidates = {}
     for path, source in maps.items():
-        if resource_region(path) != 'LostWood':
+        region = resource_region(path)
+        ids = EVENT_ACTORS.get(region)
+        if ids is None:
             continue
         age_frame = path.removesuffix('.bcett.byml.zs').rsplit('_', 1)[0]
         for actor in source['root'].get('Actors', ()):
@@ -104,7 +109,7 @@ def event_check_rows(maps, eligible):
             ident = ids.get((actor.get('Gyaml'), event))
             position = actor.get('Translate')
             checks = (ident,) if ident else ()
-            if (actor.get('Gyaml') == 'Enemy_Scrub_ForestStage_Elder'
+            if (region == 'LostWood' and actor.get('Gyaml') == 'Enemy_Scrub_ForestStage_Elder'
                     and actor.get('Name') == 'ScrubForestStageElder' and age_frame.endswith('_Child')):
                 checks = DEKU_THEATER_CHECKS
             if position and checks and eligible(path, actor):
@@ -127,7 +132,7 @@ def bind_catalogue(document, catalogue):
     names = {name: region for region, name in REGION_NAMES.items()}
     names.update({'Lost Woods': 'LostWood', 'the Lost Woods': 'LostWood', 'Hyrule Field': 'HyruleField',
                   'Sacred Forest Meadow': 'SacredForestMeadow', 'Kakariko Village': 'KakarikoVillage',
-                  'Death Mountain Trail': 'DeathMountainTrail'})
+                  'Death Mountain Trail': 'DeathMountainTrail', 'Goron City': 'GoronCity'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']

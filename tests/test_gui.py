@@ -364,6 +364,29 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(app.resource.get(), UNDERGROUND_VIEWS['Graveyard']['Child'])
         self.assertEqual(app.selected.id, buried['id'])
 
+    def test_goron_floor_picker_keeps_age_and_tracker_following(self):
+        from map_oot_rando.scene import GORON_LEVELS, GORON_VIEWS, REGION_VIEWS
+
+        app = self.app
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=list(REGION_VIEWS))
+        row = doc['locations'][0]
+        doc['locations'] = [
+            dict(row, id=f'{age}-{level}', position=(0, height, 0),
+                 resource=f'Banc/GoronCity/GoronCity_{age}_Static.bcett.byml.zs')
+            for age in ('Child', 'Adult')
+            for level, height in enumerate((114, 110.8, 103.3, 98.4, 94.8))
+        ]
+        app.load(doc)
+        self.assertEqual(app.resource.get(), GORON_VIEWS['Child'][0])
+        self.assertEqual(tuple(app.goron_floor_picker['values']), GORON_LEVELS)
+        app.goron_floor_picker.set(GORON_LEVELS[2])
+        app.choose_goron_floor(None)
+        self.assertEqual({row.id for row in app.visible}, {'Child-2'})
+        app.save_age = 'Adult'
+        app.sync_age()
+        self.assertEqual(app.resource.get(), GORON_VIEWS['Adult'][2])
+        self.assertEqual({row.id for row in app.visible}, {'Adult-2'})
+
     def test_overlapping_markers_can_both_be_selected(self):
         from unittest.mock import patch
 

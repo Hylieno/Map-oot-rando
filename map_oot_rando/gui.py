@@ -19,7 +19,8 @@ from .model import REGION_NAMES, load_metadata, resource_region, select
 from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
-from .scene import (BURNT_VILLAGE, NEIGHBORS, REGION_VIEWS, UNDERGROUND_LABELS, UNDERGROUND_VIEWS, VIEWS,
+from .scene import (BURNT_VILLAGE, GORON_FLOORS, GORON_LEVELS, GORON_VIEWS, NEIGHBORS, REGION_VIEWS,
+                    UNDERGROUND_LABELS, UNDERGROUND_VIEWS, VIEWS,
                     field_atlas_scene, group_scenes, location_view, read_scenes, view_name)
 from .simulation import Simulation, demo_document
 from .view import Viewport
@@ -154,6 +155,8 @@ class MapApplication:
         }
         self.overview_button = ttk.Button(tools, text='Zones voisines', command=self.toggle_overview)
         self.floor_button = ttk.Button(tools, command=self.toggle_floor)
+        self.goron_floor_picker = ttk.Combobox(tools, state='readonly', width=27)
+        self.goron_floor_picker.bind('<<ComboboxSelected>>', self.choose_goron_floor)
         self.canvas = tk.Canvas(panel, background='#18252b', highlightthickness=0)
         self.canvas.pack(fill='both', expand=True)
         self.canvas.bind('<Configure>', self.resized)
@@ -433,8 +436,11 @@ class MapApplication:
                 messagebox.showerror('Enregistrement impossible', str(error), parent=self.root)
 
     def aerial_references(self, resource, *, include_checks=True, quiet=False):
-        scene = (self.scenes.get(resource, {}) if include_checks
-                 else field_atlas_scene(self.scenes, resource))
+        reference_view = resource
+        if not include_checks and resource in GORON_FLOORS:
+            reference_view = GORON_VIEWS[VIEWS[resource][1]][0]
+        scene = (self.scenes.get(reference_view, {}) if include_checks
+                 else field_atlas_scene(self.scenes, reference_view))
         references = [(name.replace('_', ' '), tuple(point))
                       for name, point in scene.get('points', ())]
         for name, low, high in scene.get('rooms', ()):
@@ -490,6 +496,7 @@ class MapApplication:
         config = PAUSE_MAPS.get(region)
         region_atlas = REGION_MAPS.get(region, {}).get(age)
         if (self.simulation or resource not in VIEWS or resource in UNDERGROUND_LABELS
+                or GORON_FLOORS.get(resource) == len(GORON_LEVELS) - 1
                 or (config is None and region_atlas is None)):
             if manual:
                 messagebox.showinfo('Fond de carte', 'Aucun fond intégré validé pour cette vue.',
@@ -659,6 +666,10 @@ class MapApplication:
         if self.resource.get() == BURNT_VILLAGE and self.save_age == 'Adult' and self.kakariko_burned is None:
             return
         view = self.view_for_region(self.current_region(), age=self.save_age)
+        if self.resource.get() in GORON_FLOORS:
+            same_floor = GORON_VIEWS[self.save_age][GORON_FLOORS[self.resource.get()]]
+            if same_floor in self.resources['values']:
+                view = same_floor
         if self.resource.get() in UNDERGROUND_LABELS:
             underground = UNDERGROUND_VIEWS[self.current_region()][self.save_age]
             if underground in self.resources['values']:
@@ -707,6 +718,12 @@ class MapApplication:
             self.resource.set(view)
             self.resource_changed(manual=False)
 
+    def choose_goron_floor(self, _event):
+        _, age = VIEWS[self.resource.get()]
+        index = GORON_LEVELS.index(self.goron_floor_picker.get())
+        self.resource.set(GORON_VIEWS[age][index])
+        self.resource_changed(manual=False)
+
     def refresh_navigation(self):
         region = self.current_region()
         name = REGION_NAMES[region]
@@ -729,6 +746,16 @@ class MapApplication:
             self.floor_button.pack(side='left', padx=5)
         else:
             self.floor_button.pack_forget()
+        view = self.resource.get()
+        if view in GORON_FLOORS:
+            _, age = VIEWS[view]
+            self.goron_floor_picker.configure(values=tuple(
+                level for level, floor_view in zip(GORON_LEVELS, GORON_VIEWS[age])
+                if floor_view in self.resources['values']))
+            self.goron_floor_picker.set(GORON_LEVELS[GORON_FLOORS[view]])
+            self.goron_floor_picker.pack(side='left', padx=5)
+        else:
+            self.goron_floor_picker.pack_forget()
 
     def resource_changed(self, *, manual=True):
         self.overview_open = False
@@ -831,6 +858,8 @@ class MapApplication:
         parchment = bool(aerial and aerial.source in PAUSE_SOURCES)
         region = self.current_region()
         name = REGION_NAMES[region]
+        if self.resource.get() in GORON_FLOORS:
+            name = f'{name} · {GORON_LEVELS[GORON_FLOORS[self.resource.get()]]}'
         exits = {}
         if not self.simulation:
             for neighbor, portal in NEIGHBORS[region].items():
@@ -870,7 +899,8 @@ class MapApplication:
                 self.canvas.create_line(x, 0, x, height, fill='#2c414a')
             for y in ys:
                 self.canvas.create_line(0, y, width, y, fill='#2c414a')
-            heading = (f'{self.resource.get()} | Schéma X/Z' if self.resource.get() in UNDERGROUND_LABELS
+            heading = (f'{self.resource.get()} | Schéma X/Z'
+                       if self.resource.get() in UNDERGROUND_LABELS or self.resource.get() in GORON_FLOORS
                        else f'Schéma X/Z | Grille : {step:g} unités')
         self.canvas.create_text(12, 12, anchor='nw', fill=heading_color, text=heading)
         for neighbor, exit_point in exits.values():

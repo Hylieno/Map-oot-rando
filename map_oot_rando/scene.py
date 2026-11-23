@@ -6,6 +6,13 @@ from .model import REGION_NAMES, SURFACE_MIN_Y, resource_region
 MAP_SUFFIX = '.bcett.byml.zs'
 REGION_VIEWS = {region: {'Child': f'{name} · Enfant', 'Adult': f'{name} · Adulte'}
                 for region, name in REGION_NAMES.items()}
+# The four galleries are centered on Y=115, 110, 105 and 100. The lava cave chests lie below them.
+GORON_LEVELS = ('Galerie supérieure', 'Galerie intermédiaire haute', 'Galerie intermédiaire basse',
+                'Rez-de-chaussée', 'Grotte')
+GORON_VIEWS = {age: tuple(f'{view} · {level}' for level in GORON_LEVELS)
+               for age, view in REGION_VIEWS['GoronCity'].items()}
+REGION_VIEWS['GoronCity'] = {age: views[0] for age, views in GORON_VIEWS.items()}
+GORON_FLOORS = {view: index for views in GORON_VIEWS.values() for index, view in enumerate(views)}
 AGE_VIEWS = REGION_VIEWS['KokiriForest']
 VIEWS = {label: (region, age) for region, ages in REGION_VIEWS.items()
          for age, label in ages.items()}
@@ -16,6 +23,7 @@ UNDERGROUND_VIEWS = {region: {age: f'{view} · Souterrains' for age, view in REG
 UNDERGROUND_LABELS = {view for ages in UNDERGROUND_VIEWS.values() for view in ages.values()}
 VIEWS.update({view: (region, age) for region, ages in UNDERGROUND_VIEWS.items()
               for age, view in ages.items()})
+VIEWS.update({view: ('GoronCity', age) for age, views in GORON_VIEWS.items() for view in views})
 NEIGHBORS = {
     'KokiriForest': {'LostWood': 'front_of_lost_wood_entrance',
                      'HyruleField': 'front_of_hyrule_field_entrance'},
@@ -26,7 +34,8 @@ NEIGHBORS = {
     'KakarikoVillage': {'HyruleField': 'Vers la plaine d’Hyrule', 'Graveyard': 'Vers le cimetière',
                         'DeathMountainTrail': 'Vers le Mont du Péril'},
     'Graveyard': {'KakarikoVillage': 'Vers Cocorico'},
-    'DeathMountainTrail': {'KakarikoVillage': 'Vers Cocorico'},
+    'DeathMountainTrail': {'KakarikoVillage': 'Vers Cocorico', 'GoronCity': 'Repère Goron'},
+    'GoronCity': {'DeathMountainTrail': 'Vers le mont du Péril'},
 }
 KAKARIKO_ENTRANCES = {
     'HyruleField': 'Vers la plaine d’Hyrule',
@@ -71,6 +80,16 @@ ENTRANCE_LABELS = {
         'GoronCity': 'Repère Goron',
         'KakarikoVillage': 'Repère Cocorico',
     },
+    'GoronCity': {
+        'DeathMountainCrater': 'Repère nord Goron',
+        'DeathMountainTrail': 'Vers le mont du Péril',
+        'LostWood': 'Repère des Bois Perdus',
+    },
+}
+GORON_ANCHORS = {
+    'Land_Goron_Ground_A_05': 'Place centrale Goron',
+    'Land_Goron_Ground_A_31': 'Seuil nord Goron',
+    'Land_Goron_Ground_A_11': 'Galerie est Goron',
 }
 TRAIL_LABELS = {
     'crater_entrance': 'Vers le cratère',
@@ -110,7 +129,7 @@ def projection_points(region, sources):
                     label = GROVE_STAIRS.get(actor.get('Hash'))
             elif gyaml == 'MapIconEntranceAnchor':
                 dynamic = actor.get('Dynamic')
-                if isinstance(dynamic, dict) and dynamic.get('IsVisible') is not False:
+                if isinstance(dynamic, dict) and (region == 'GoronCity' or dynamic.get('IsVisible') is not False):
                     entrances = ENTRANCE_LABELS.get(region, {})
                     label = entrances.get(dynamic.get('Location'))
             elif region == 'KakarikoVillage':
@@ -121,12 +140,18 @@ def projection_points(region, sources):
                     label = GRAVEYARD_STONES.get(actor.get('Hash'))
             elif region == 'DeathMountainTrail' and gyaml == 'Land_DeathMtTrail_Rock_A_06':
                 label = 'Rocher au virage sud'
+            elif region == 'GoronCity':
+                label = GORON_ANCHORS.get(gyaml)
             elif gyaml == 'Land_HrlField_Bridge_A_01':
                 label = 'Pont de la rivière'
             elif gyaml == 'Enemy_Skulltula_Gold' and actor.get('Hash') == 2177746409373494991:
                 label = 'Arbre isolé près de Kokiri'
             if label:
-                points.add((label, (position[0], position[2])))
+                x, z = position[0], position[2]
+                if region == 'GoronCity' and gyaml == 'MapIconEntranceAnchor':
+                    # The passage has two story variants with indistinguishable anchors.
+                    x, z = round(x, 4), round(z, 4)
+                points.add((label, (x, z)))
     return points
 
 
@@ -194,6 +219,10 @@ def location_view(row):
     if row.underground and view in VIEWS:
         region, age = VIEWS[view]
         return UNDERGROUND_VIEWS[region][age]
+    if view in GORON_FLOORS and row.position is not None:
+        y = row.position[1]
+        floor = sum(y < boundary for boundary in (112.5, 107.5, 101.5, 96.5))
+        return GORON_VIEWS[VIEWS[view][1]][floor]
     return view
 
 

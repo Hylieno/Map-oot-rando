@@ -11,6 +11,9 @@
   physiques. Les placements adultes sont séparés par variante de scène.
 - Cimetière. La surface et les placements enfouis sont séparés par altitude
   vérifiée dans cette scène.
+- Village Goron. Le fond commun est vérifié avec un repère indépendant sur
+  la galerie est. Les marqueurs sont filtrés par étage et la grotte conserve
+  une vue schématique.
 
 - Python sans dépendance pour le socle ; Tkinter prévu, cohérent avec OotrR.
 - Ne pas développer une seconde logique d'accessibilité ni un lecteur mémoire.

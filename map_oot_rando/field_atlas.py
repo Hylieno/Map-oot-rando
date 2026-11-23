@@ -39,6 +39,8 @@ REGION_MAPS = {
 }
 DMT_DIGEST = 'db76ca2b051650690012b8d3eb737e1856cfdbb6eaddd7ef896f7a953c8104d7'
 REGION_MAPS['DeathMountainTrail'] = dict.fromkeys(('Child', 'Adult'), ('field-atlas-death-mountain', DMT_DIGEST))
+GORON_DIGEST = 'bd62600104b51d5d42bb658c34d41bcc7f421b3d8c79e9393ef024a80a774e14'
+REGION_MAPS['GoronCity'] = dict.fromkeys(('Child', 'Adult'), ('field-atlas-goron-city', GORON_DIGEST))
 REGION_CALIBRATION = 1
 
 
@@ -63,7 +65,7 @@ def align_region_image(image, references, region, age):
             'Monument royal': (462, 132),
         }
         holdout = {'Maison du gardien': (174, 211), 'Stèle royale sud': (433, 150)}
-    else:
+    elif region == 'DeathMountainTrail':
         controls = {
             'Repère du cratère': (485, 134),
             'Repère Goron': (345, 541),
@@ -72,6 +74,15 @@ def align_region_image(image, references, region, age):
             'Rocher au virage sud': (200, 1226),
         }
         holdout = {'Vers la Caverne Dodongo': (181, 861)}
+    else:
+        controls = {
+            'Repère nord Goron': (351, 64),
+            'Vers le mont du Péril': (362, 631),
+            'Repère des Bois Perdus': (519, 363),
+            'Place centrale Goron': (353, 379),
+            'Seuil nord Goron': (351, 93),
+        }
+        holdout = {'Galerie est Goron': (543, 448)}
     return registered_background(image, references, controls, holdout, source=REGION_MAPS[region][age][0],
                                  calibration=REGION_CALIBRATION, require_validation=True)
 

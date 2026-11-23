@@ -1,5 +1,11 @@
 # Validation
 
+Les quatre ressources du Village Goron ont été recoupées avec les 52 IDs
+du catalogue. Le scan local sans packs d’acteurs a positionné 19 IDs.
+La galerie est, exclue du calcul d’alignement, est à 4,2 pixels du repère
+projeté dans les deux vues de 650 × 695 pixels. Le test Tk vérifie le
+filtrage par étage et sa conservation lors d’un changement d’âge.
+
 Les quatre ressources publiques du mont du Péril contiennent les acteurs
 correspondant à 29 des 31 IDs du catalogue local. Les deux vues ont les
 quatre passages attendus. Ce recoupement vérifie les identifiants physiques

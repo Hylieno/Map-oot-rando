@@ -19,6 +19,9 @@ condition de scène. Les checks partagés gardent le même ID de suivi.
 Au cimetière, le champ local `underground` distingue les placements fiables
 sous la surface. Les deux niveaux gardent la même source Banc et le même
 repère X/Z. L’âge reste indépendant du niveau.
+Au Village Goron, les vues par étage déduisent le niveau de la hauteur Y
+de chaque placement. Les étages principaux partagent le repère X/Z du
+fond Field Atlas. L’ID et les coordonnées XYZ d’origine restent disponibles.
 
 Référence inspectée : Mozencaz/OotrR,
 `283d3ec0f161d32e168afac45e502442c1ffb081`.

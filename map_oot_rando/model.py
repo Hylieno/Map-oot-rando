@@ -13,6 +13,7 @@ REGION_NAMES = {
     'KakarikoVillage': 'Cocorico',
     'Graveyard': 'Cimetière',
     'DeathMountainTrail': 'Mont du Péril',
+    'GoronCity': 'Village Goron',
 }
 # The surface of each of these two Bancs sits above its buried actor placements.
 SURFACE_MIN_Y = {'Graveyard': 92, 'DeathMountainTrail': 80}

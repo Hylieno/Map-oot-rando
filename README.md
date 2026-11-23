@@ -1,6 +1,6 @@
 # Map-oot-rando
 
-Compagnon de carte local pour OotrR avec Kokiri Forest, les Bois Perdus, le Bosquet sacré, la plaine d’Hyrule, Cocorico, le cimetière et le mont du Péril.
+Compagnon de carte local pour OotrR avec Kokiri Forest, les Bois Perdus, le Bosquet sacré, la plaine d’Hyrule, Cocorico, le cimetière, le mont du Péril et le Village Goron.
 
 La simulation utilise des positions fictives.
 L’import local lit les coordonnées de la seed et le suivi lit les états d’OotrR
@@ -53,6 +53,9 @@ ouvre directement la bonne vue quand un check a des coordonnées.
 Le mont du Péril est accessible depuis Cocorico. Le fond
 [Field Atlas du sentier](https://oot.gousse.cool/death-mountain-trail) est
 aligné pour les deux âges. **Souterrains** ouvre les checks en grotte.
+Depuis le mont du Péril, le [Village Goron](https://oot.gousse.cool/goron-city)
+propose quatre galeries et une grotte. Le sélecteur d’étage limite les marqueurs
+au niveau affiché. La grotte utilise un schéma.
 
 Pour une image locale, l’application lit automatiquement un fichier de coordonnées
 `.wld`, `.pgw` ou `.jgw` de même nom s’il utilise le repère X/Z du jeu. Une image
