@@ -43,6 +43,11 @@ jobs:
           Set-Content -Path invalid.nup -Value 'Invalid test input'
           $app = Start-Process -FilePath dist/Map-oot-rando/Map-oot-rando.exe -ArgumentList '--check-bundled-import', 'invalid.nup' -Wait -PassThru
           if ($app.ExitCode -ne 0) { exit $app.ExitCode }
+      - name: Verify frozen map window
+        shell: pwsh
+        run: |
+          $app = Start-Process -FilePath dist/Map-oot-rando/Map-oot-rando.exe -ArgumentList '--check-bundled-gui' -Wait -PassThru
+          if ($app.ExitCode -ne 0) { exit $app.ExitCode }
       - name: Include usage and limitations
         shell: pwsh
         run: |

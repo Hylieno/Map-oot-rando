@@ -8,7 +8,7 @@ from map_oot_rando.save_profiles import SaveProfiles
 class SaveProfilesTests(unittest.TestCase):
     def test_remembers_verified_files_per_seed_and_retains_paths_when_paused(self):
         with TemporaryDirectory() as directory:
-            root = Path(directory)
+            root = Path(directory).resolve()
             path = root / 'state' / 'profiles.json'
             first = SaveProfiles(path)
             first.remember('seed-a', root / 'seed-a', root / 'one' / 'progress.sav')

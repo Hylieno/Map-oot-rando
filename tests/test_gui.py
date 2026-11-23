@@ -247,7 +247,7 @@ class GuiTests(unittest.TestCase):
         doc = demo_document()
         doc.update(provenance='ootrr-scan', seed_id='seed-resume')
         with TemporaryDirectory() as directory:
-            tmp = Path(directory)
+            tmp = Path(directory).resolve()
             (tmp / 'manifest.json').write_text('{}')
             save = tmp / 'progress.sav'
             save.touch()
