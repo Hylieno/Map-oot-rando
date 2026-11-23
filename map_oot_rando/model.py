@@ -5,6 +5,13 @@ import math
 UPSTREAM_REVISION = 'eb6682704f7589b5a0c07ac0e49d89fef4108545'
 OLDER_EXPORT_REVISIONS = frozenset({'283d3ec0f161d32e168afac45e502442c1ffb081'})
 STATUSES = frozenset({'available', 'blocked', 'unknown', 'completed', 'partial'})
+REGION_NAMES = {'KokiriForest': 'Kokiri Forest', 'LostWood': 'Bois Perdus'}
+
+
+def resource_region(resource):
+    banc, _, remainder = resource.partition('/')
+    region, separator, _ = remainder.partition('/')
+    return region if banc == 'Banc' and separator and region in REGION_NAMES else None
 
 
 @dataclass(frozen=True)
@@ -16,6 +23,7 @@ class Location:
     position: tuple[float, float, float] | None
 
     alias: str = ''
+    region: str = 'KokiriForest'
 
     def project(self):
         """Raw X/Z plan, +Z downward; Y retained, orientation unverified in game."""
@@ -29,6 +37,11 @@ def load_metadata(document):
         raise ValueError('Unsupported upstream revision')
     if document.get('provenance') not in {'synthetic', 'ootrr-scan'}:
         raise ValueError('Explicit coordinate provenance required')
+    regions = document.get('regions', ('KokiriForest',))
+    if (not isinstance(regions, (list, tuple)) or not regions or regions[0] != document['region']
+            or any(not isinstance(region, str) or region not in REGION_NAMES for region in regions)
+            or len(set(regions)) != len(regions)):
+        raise ValueError('Régions de la carte invalides')
     result, seen = [], set()
     for row in document['locations']:
         for field in ('id', 'name', 'category', 'resource'):
@@ -43,7 +56,11 @@ def load_metadata(document):
         alias = row.get('alias', '')
         if not isinstance(alias, str):
             raise ValueError('Invalid search alias')
-        location = Location(row['id'], row['name'], row['category'], row['resource'], position, alias)
+        frame = resource_region(row['resource'])
+        region = row.get('region', frame or document['region'])
+        if region not in regions or (frame is not None and frame != region):
+            raise ValueError('Région de l’emplacement invalide')
+        location = Location(row['id'], row['name'], row['category'], row['resource'], position, alias, region)
         # The tracker identifies the check, while the scan may report multiple
         # placements in a single resource. Collapse only identical records.
         if location not in seen:

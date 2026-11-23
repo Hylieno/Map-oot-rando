@@ -1,8 +1,8 @@
 # Map-oot-rando
 
-Compagnon de carte local pour OotrR, première zone visée : Kokiri Forest.
+Compagnon de carte local pour OotrR avec Kokiri Forest et les Bois Perdus.
 
-**Préversion Kokiri Forest.** La simulation utilise des positions fictives.
+La simulation utilise des positions fictives.
 L’import local lit les coordonnées de la seed et le suivi lit les états d’OotrR
 depuis une sauvegarde. Les checks sans correspondance certaine restent dans la liste.
 
@@ -21,6 +21,8 @@ et exécuter cette commande. La validation locale a été faite sous Linux, pas 
 - Molette : zoom ; glisser sur le fond : déplacement ; « Ajuster la vue » : cadrage.
 - Recherche par nom ou ID, puis Entrée ou sélection dans la liste pour centrer.
 - Choisir Enfant ou Adulte. Les couches Static et Dynamic sont réunies. La hauteur Y est dans les détails.
+- **Vers les Bois Perdus** et **Retour à Kokiri** changent de zone en gardant l’âge affiché et le suivi de la partie.
+  Réimporter le NUP et le `checks.json` pour ajouter les Bois Perdus à une carte enregistrée plus ancienne.
 - Filtres de catégorie/statut ; décocher « Récupéré » pour masquer les checks gris.
 - En simulation, sélectionner un check puis changer son statut ou la connexion.
   En déconnexion, l'affichage conserve le dernier état ; la reconnexion publie les
@@ -32,6 +34,9 @@ Le fond par défaut est la [carte de Kokiri publiée par Questfern](https://ques
 L’application la charge depuis sa source et vérifie la projection avant de
 l’afficher. **Fond de carte** permet de choisir Field Atlas, un fond local ou
 le schéma. **Enregistrer la carte…** permet de rouvrir le fond hors ligne.
+
+Les Bois Perdus s’ouvrent sur un schéma sans icônes d’objet préimprimées.
+Les entrées et les checks positionnés utilisent les coordonnées des ressources locales.
 
 Pour une image locale, l’application lit automatiquement un fichier de coordonnées
 `.wld`, `.pgw` ou `.jgw` de même nom s’il utilise le repère X/Z du jeu. Une image

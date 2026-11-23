@@ -1,5 +1,14 @@
 # Validation
 
+L’import des Bois Perdus a été recoupé avec le catalogue réel et les
+[placements publics](https://github.com/MrCheeze/oot-switch2-tools/tree/c9027ee50e7efd36cc3109d5990f170b7f0b4611/Banc/LostWood).
+Les 13 IDs de la seed ont été retrouvés, dont neuf associés à des coordonnées
+par ce recoupement. Le hash du rocher correspond aux deux âges dans les
+Bancs publics. Sa lecture par le scanner complet nécessite le pack d’acteur
+du NUP. Les tests Tk couvrent le changement de zone, le suivi d’âge, le
+cloisonnement des listes et l’état du coffre commun. Cette vérification
+ne couvre pas une session réelle dans les Bois Perdus.
+
 Commande exécutée sous Linux avec Python :
 `python -m unittest discover -s tests -v` — **8 tests réussis**.
 

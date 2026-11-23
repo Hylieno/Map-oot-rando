@@ -15,11 +15,11 @@ from .map_projection import georeferenced_background
 from .questfern import CALIBRATION as PAUSE_CALIBRATION, SOURCE_ID as PAUSE_SOURCE
 from .questfern import align_pause_map, load_pause_map
 from .export import import_seed
-from .model import load_metadata, select
+from .model import REGION_NAMES, load_metadata, resource_region, select
 from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
-from .scene import AGE_VIEWS, field_atlas_scene, group_scenes, read_scenes, view_name
+from .scene import AGE_VIEWS, NEIGHBORS, REGION_VIEWS, VIEWS, field_atlas_scene, group_scenes, read_scenes, view_name
 from .simulation import Simulation, demo_document
 from .view import Viewport
 
@@ -34,7 +34,7 @@ LABELS = dict(available='Accessible', blocked='Bloqué', unknown='Inconnu', comp
 class MapApplication:
     def __init__(self, root, document=None, *, profiles=None):
         self.root = root
-        root.title('Map-oot-rando - Kokiri Forest')
+        root.title('Map-oot-rando')
         root.geometry('1180x760')
         self.viewport = Viewport()
         self.selected = None
@@ -94,7 +94,7 @@ class MapApplication:
         search = ttk.Entry(sidebar, textvariable=self.query, width=38)
         search.pack(fill='x')
         search.bind('<Return>', lambda e: self.choose_first())
-        ttk.Label(sidebar, text='Vue de la forêt').pack(anchor='w', pady=(10, 0))
+        ttk.Label(sidebar, text='Zone et âge').pack(anchor='w', pady=(10, 0))
         self.resources = ttk.Combobox(sidebar, textvariable=self.resource, state='readonly', width=38)
         self.resources.pack(fill='x')
         self.resources.bind('<<ComboboxSelected>>', lambda e: self.resource_changed())
@@ -140,6 +140,7 @@ class MapApplication:
         backgrounds.add_command(label='Ouvrir une image locale…', command=self.choose_aerial)
         backgrounds.add_command(label='Afficher le schéma', command=self.remove_aerial)
         self.atlas_button.configure(menu=backgrounds)
+        self.neighbor_button = ttk.Button(tools, command=self.open_neighbor)
         self.canvas = tk.Canvas(panel, background='#18252b', highlightthickness=0)
         self.canvas.pack(fill='both', expand=True)
         self.canvas.bind('<Configure>', self.resized)
@@ -190,10 +191,9 @@ class MapApplication:
         self.store = self.simulation.store if self.simulation else StateStore(document.get('seed_id', ''), [r.id for r in locations])
         self.selected = None
         self.details.set('Sélectionnez un emplacement.')
-        self.banner.set('SIMULATION - noms et positions fictifs' if self.simulation else
-                        'Kokiri Forest - seed importée')
         views = {view_name(row.resource) for row in locations if row.position is not None}
-        prefer = [label for label in AGE_VIEWS.values() if label in views]
+        views.update(self.scenes.keys() & VIEWS.keys())
+        prefer = [label for label in VIEWS if label in views]
         self.resources['values'] = prefer + sorted(views - set(prefer))
         first_positioned = next((view_name(r.resource) for r in locations if r.position is not None), '')
         self.resource.set(prefer[0] if prefer else first_positioned or next(iter(sorted(views)), ''))
@@ -204,9 +204,7 @@ class MapApplication:
         else:
             self.sim_controls.pack_forget()
         self.query.set('')
-        self.render()
-        self.fit()
-        self.ensure_atlas()
+        self.resource_changed(manual=False)
         if not self.simulation:
             resume = self.save_profiles.get(self.store.seed_id, automatic=True)
             if resume:
@@ -398,7 +396,7 @@ class MapApplication:
             return
         # Keep only map metadata. No image, save bytes, local path or item rewards.
         diagnostic = {key: self.document[key] for key in (
-            'schema_version', 'region', 'upstream_revision', 'provenance',
+            'schema_version', 'region', 'regions', 'upstream_revision', 'provenance',
             'locations', 'scenes', 'diagnostics', 'map_capture_candidates') if key in self.document}
         try:
             Path(path).write_text(json.dumps(diagnostic, ensure_ascii=False, indent=2), encoding='utf-8')
@@ -406,7 +404,7 @@ class MapApplication:
             messagebox.showerror('Enregistrement impossible', str(error), parent=self.root)
 
     def save_map(self):
-        path = filedialog.asksaveasfilename(parent=self.root, initialfile='kokiri.json',
+        path = filedialog.asksaveasfilename(parent=self.root, initialfile='carte.json',
                                             defaultextension='.json', filetypes=[('Carte JSON', '*.json')])
         if path:
             try:
@@ -467,7 +465,7 @@ class MapApplication:
         resource = self.resource.get()
         if self.simulation or resource not in AGE_VIEWS.values():
             if manual:
-                messagebox.showinfo('Field Atlas', 'Choisis la vue enfant ou adulte de Kokiri Forest.',
+                messagebox.showinfo('Fond de carte', 'Les fonds intégrés sont disponibles pour Kokiri Forest.',
                                     parent=self.root)
             return
         saved = self.aerial.get(resource)
@@ -574,10 +572,12 @@ class MapApplication:
         if not hasattr(self, 'locations'):
             return
         view = self.resource.get()
+        region = self.current_region()
         searching = bool(self.query.get().strip())
         rows = [row for row in self.locations
-                if searching or view_name(row.resource) == view or row.position is None]
-        unique = {(row.id, view_name(row.resource), row.position): row for row in rows}
+                if searching or view_name(row.resource) == view
+                or (row.position is None and row.region == region)]
+        unique = {(row.id, row.region, view_name(row.resource), row.position): row for row in rows}
         self.visible = select(unique.values(), self.store.states, self.query.get(),
                               {k for k, v in self.status_vars.items() if v.get()},
                               None if self.category.get() == 'Toutes' else {self.category.get()})
@@ -610,11 +610,41 @@ class MapApplication:
         self.draw()
 
     def sync_age(self):
-        view = AGE_VIEWS.get(self.save_age)
+        view = REGION_VIEWS[self.current_region()].get(self.save_age)
         if (view and self.follow_age.get() and view != self.resource.get()
                 and view in self.resources['values']):
             self.resource.set(view)
             self.resource_changed(manual=False)
+
+    def current_region(self):
+        view = self.resource.get()
+        return VIEWS[view][0] if view in VIEWS else resource_region(view) or 'KokiriForest'
+
+    def neighbor_view(self):
+        region, age = VIEWS.get(self.resource.get(), (self.current_region(), self.save_age))
+        neighbor, _ = NEIGHBORS[region]
+        # A known age must be preserved across the transition.
+        ages = REGION_VIEWS[neighbor]
+        candidates = (ages[age],) if age in ages else ages.values()
+        return next((view for view in candidates if view in self.resources['values']), None)
+
+    def open_neighbor(self):
+        view = self.neighbor_view()
+        if view:
+            self.resource.set(view)
+            self.resource_changed(manual=False)
+
+    def refresh_navigation(self):
+        region = self.current_region()
+        name = REGION_NAMES[region]
+        self.banner.set('SIMULATION - noms et positions fictifs' if self.simulation else
+                        f'{name} - seed importée')
+        if not self.simulation and self.neighbor_view():
+            self.neighbor_button.configure(text='Vers les Bois Perdus' if region == 'KokiriForest'
+                                           else 'Retour à Kokiri')
+            self.neighbor_button.pack(side='left', padx=5)
+        else:
+            self.neighbor_button.pack_forget()
 
     def resource_changed(self, *, manual=True):
         if manual and self.save_age is not None:
@@ -622,6 +652,9 @@ class MapApplication:
         self.selected = None
         self.manual_button.pack_forget()
         self.details.set('Sélectionnez un emplacement.')
+        self.refresh_navigation()
+        if self.current_region() == 'LostWood':
+            self.import_status.set('')
         self.render()
         self.fit()
         self.ensure_atlas()
@@ -665,11 +698,18 @@ class MapApplication:
         self.canvas.delete('all')
         self.background_photo = None
         self.markers = {}
+        self.navigation_markers = set()
         width, height = self.canvas.winfo_width(), self.canvas.winfo_height()
         scene = self.scenes.get(self.resource.get())
         captions = []
         aerial = self.aerial.get(self.resource.get())
         parchment = bool(aerial and aerial.source == PAUSE_SOURCE)
+        region = self.current_region()
+        name = REGION_NAMES[region]
+        _, portal = NEIGHBORS[region]
+        exit_points = {tuple(position) for label, position in (scene or {}).get('points', ()) if label == portal}
+        exit_point = (next(iter(exit_points)) if not self.simulation
+                      and len(exit_points) == 1 and self.neighbor_view() else None)
         heading_color = '#292019' if parchment else '#d2e1da'
         if aerial:
             self.canvas.configure(background=PARCHMENT if parchment else '#18252b')
@@ -677,8 +717,8 @@ class MapApplication:
                       if parchment else aerial.render(self.viewport, (width, height)))
             self.background_photo = ImageTk.PhotoImage(raster, master=self.canvas)
             self.canvas.create_image(0, 0, image=self.background_photo, anchor='nw', tags='aerial')
-            heading = ('Kokiri Forest | Carte du jeu · Questfern' if aerial.source == PAUSE_SOURCE
-                       else 'Kokiri Forest | Vue aérienne calibrée')
+            heading = (f'{name} | Carte du jeu · Questfern' if parchment
+                       else f'{name} | Vue aérienne calibrée')
         elif scene:
             self.canvas.configure(background='#263c34')
             for name, low, high in scene['rooms']:
@@ -688,11 +728,13 @@ class MapApplication:
                                              outline='#aacbb4', width=2, tags='scene')
                 captions.append((name, (x1 + x2) / 2, min(y1, y2) - 10))
             for name, point in scene['points']:
+                if point == exit_point and name == portal:
+                    continue
                 x, y = self.viewport.screen(point)
                 self.canvas.create_polygon(x, y-5, x+5, y, x, y+5, x-5, y,
                                            fill='#b4dec0', tags='scene')
                 captions.append((name, x, y - 13))
-            heading = 'Kokiri Forest | Maisons et repères (schéma)'
+            heading = f'{REGION_NAMES[region]} | Repères du jeu (schéma)'
         else:
             self.canvas.configure(background='#18252b')
             step, xs, ys = self.viewport.grid(width, height)
@@ -702,6 +744,14 @@ class MapApplication:
                 self.canvas.create_line(0, y, width, y, fill='#2c414a')
             heading = f'Schéma X/Z | Grille : {step:g} unités'
         self.canvas.create_text(12, 12, anchor='nw', fill=heading_color, text=heading)
+        if exit_point and (not aerial or aerial.covers(exit_point)):
+            x, y = self.viewport.screen(self.display_point(exit_point))
+            marker = self.canvas.create_polygon(x, y-9, x+9, y, x, y+9, x-9, y,
+                                                fill='#147c82', outline='#ebfbef', width=2,
+                                                tags=('zone-navigation',))
+            self.navigation_markers.add(marker)
+            captions.append(('Vers les Bois Perdus' if region == 'KokiriForest' else 'Retour à Kokiri',
+                             x, y - 16))
         rows = [row for row in self.visible if view_name(row.resource) == self.resource.get()
                 and row.position is not None
                 and (self.show_outside.get() or row == self.selected or not self.outside(row))]
@@ -753,6 +803,7 @@ class MapApplication:
                 if self.save_age is not None:
                     self.follow_age.set(False)
                 self.resource.set(view_name(row.resource))
+                self.refresh_navigation()
                 self.ensure_atlas()
             self.viewport.center(self.display_point(row.project()), self.canvas.winfo_width(),
                                  self.canvas.winfo_height())
@@ -791,6 +842,9 @@ class MapApplication:
     def press(self, event):
         self.drag = None
         for item in reversed(self.canvas.find_overlapping(event.x-3, event.y-3, event.x+3, event.y+3)):
+            if item in self.navigation_markers:
+                self.open_neighbor()
+                return
             if item in self.markers:
                 self.choose(self.markers[item])
                 return

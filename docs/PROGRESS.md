@@ -1,5 +1,13 @@
 # Checkpoint — 22 novembre 2026
 
+Le suivi de Kokiri a été confirmé par l’utilisateur sur son build. L’import
+couvre désormais aussi les Bois Perdus. Le coffre partagé conserve un état
+unique et les cinq checks d’événements associés à des acteurs identifiables
+utilisent leurs positions dans les Bancs. Le théâtre Mojo et le cadeau de
+Saria restent dans la liste en attendant une représentation vérifiée.
+Le schéma sans icônes est disponible. Une vue aérienne détaillée et la
+navigation continue entre zones à la molette restent à valider.
+
 Branche : `dev/kokiri-foundation`.
 Upstream : `283d3ec0f161d32e168afac45e502442c1ffb081`.
 

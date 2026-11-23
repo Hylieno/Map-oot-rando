@@ -1,5 +1,9 @@
 # Décisions
 
+- Bois Perdus. Les boutons et les repères de passage relient des vues distinctes.
+  Le schéma utilise les repères du jeu. Les icônes et la canopée de la capture
+  Questfern masquent le détail nécessaire pour valider une carte de terrain.
+
 - Python sans dépendance pour le socle ; Tkinter prévu, cohérent avec OotrR.
 - Ne pas développer une seconde logique d'accessibilité ni un lecteur mémoire.
 - Réutiliser une session existante ; l'intégration événementielle reste à coder.

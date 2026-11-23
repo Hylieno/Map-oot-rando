@@ -282,6 +282,35 @@ class GuiTests(unittest.TestCase):
         app.sync_age()
         self.assertEqual(app.resource.get(), AGE_VIEWS['Adult'])
 
+    def test_adjacent_zone_preserves_age_and_shared_check_state(self):
+        from map_oot_rando.scene import REGION_VIEWS
+
+        app = self.app
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=['KokiriForest', 'LostWood'])
+        row = doc['locations'][0]
+        doc['locations'] = [
+            dict(row, resource=f'Banc/{region}/{region}_{age}_Static.bcett.byml.zs')
+            for region in REGION_VIEWS for age in ('Child', 'Adult')
+        ] + [dict(id='lost-event', name='Lost event', category='npc',
+                  region='LostWood', resource='Emplacements sans position', position=None)]
+        child_resource = doc['locations'][0]['resource']
+        doc['scenes'] = {child_resource: {'rooms': [], 'points': [('front_of_lost_wood_entrance', (10, 20))]}}
+        app.load(doc)
+        self.assertEqual({r.id for r in app.visible}, {row['id']})
+        portal, = app.navigation_markers
+        left, top, right, bottom = app.canvas.bbox(portal)
+        app.press(SimpleNamespace(x=(left + right) // 2, y=(top + bottom) // 2))
+        self.assertEqual(app.resource.get(), REGION_VIEWS['LostWood']['Child'])
+        self.assertEqual({r.id for r in app.visible}, {row['id'], 'lost-event'})
+        self.assertFalse(app.canvas.find_withtag('aerial'))
+        app.store.states[row['id']] = 'completed'
+        app.save_age = 'Adult'
+        app.sync_age()
+        self.assertEqual(app.resource.get(), REGION_VIEWS['LostWood']['Adult'])
+        app.neighbor_button.invoke()
+        self.assertEqual(app.resource.get(), REGION_VIEWS['KokiriForest']['Adult'])
+        self.assertEqual(app.store.states[row['id']], 'completed')
+
     def test_choose_save_uses_a_directory_picker(self):
         from pathlib import Path
         from tempfile import TemporaryDirectory

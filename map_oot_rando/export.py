@@ -7,8 +7,8 @@ import struct
 import subprocess
 import sys
 
-from .metadata import bind_catalogue, export_scan, world_check_rows
-from .model import UPSTREAM_REVISION
+from .metadata import bind_catalogue, event_check_rows, export_scan, world_check_rows
+from .model import REGION_NAMES, UPSTREAM_REVISION
 from .scene import extract_scenes
 
 
@@ -40,10 +40,14 @@ def scan_game(path, progress=None, world_checks=()):
     with nup.stream:
         members = effective_members(nup)
         maps, groups, _, extra = scan_world(nup, dictionaries(nup), members, progress)
-    document = export_scan(groups, extra, provenance='ootrr-scan')
+    document = export_scan(groups, extra, provenance='ootrr-scan', regions=tuple(REGION_NAMES))
+
+    def eligible(path, actor):
+        return not inaccessible_child_actor(path, actor)
+
+    document['locations'].extend(event_check_rows(maps, eligible))
     if world_checks:
-        document['locations'].extend(world_check_rows(
-            maps, world_checks, lambda path, actor: not inaccessible_child_actor(path, actor)))
+        document['locations'].extend(world_check_rows(maps, world_checks, eligible))
     document['scenes'] = extract_scenes(maps, landmarks)
     document['map_capture_candidates'] = map_capture_catalogue(members)
     return document
@@ -53,19 +57,19 @@ def import_seed(nup, checks, progress=None):
     """Read local inputs and prepare the map document shared by both entry points."""
     catalogue = json.loads(Path(checks).read_text(encoding='utf-8-sig'))
     world_checks = [check for check in catalogue['checks']
-                    if check['id'].startswith('KokiriForest#')
-                    and check['id'].split('#', 2)[1].isdecimal() and check['id'].count('#') == 2]
+                    if check['id'].partition('#')[0] in REGION_NAMES
+                    and check['id'].count('#') == 2 and check['id'].split('#', 2)[1].isdecimal()]
     scanned = scan_game(nup, progress, world_checks)
     document = bind_catalogue(scanned, catalogue)
     if not document['locations']:
-        raise ValueError('Aucun check de Kokiri Forest dans le catalogue')
+        raise ValueError('Aucun check de Kokiri Forest ou des Bois Perdus dans le catalogue')
     if not any(row['position'] is not None for row in document['locations']):
         raise ValueError('Aucun point du NUP ne correspond à cette seed. Vérifie le NUP et le checks.json.')
     return document
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Exporter les points de Kokiri Forest')
+    parser = argparse.ArgumentParser(description='Exporter les points de Kokiri Forest et des Bois Perdus')
     parser.add_argument('--ootrr', type=Path, required=True, help='Copie locale du dépôt OotrR')
     parser.add_argument('--nup', type=Path, required=True, help='NUP local du jeu mis à jour')
     parser.add_argument('--checks', type=Path, required=True, help='checks.json de la seed OotrR')

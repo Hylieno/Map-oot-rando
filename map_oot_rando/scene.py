@@ -1,14 +1,33 @@
 """Map symbols derived from OotrR landmarks in the active resource's coordinates."""
 from math import isfinite
 
-KOKIRI = 'Banc/KokiriForest/'
+from .model import REGION_NAMES, resource_region
+
 MAP_SUFFIX = '.bcett.byml.zs'
+REGION_VIEWS = {region: {'Child': f'{name} · Enfant', 'Adult': f'{name} · Adulte'}
+                for region, name in REGION_NAMES.items()}
+AGE_VIEWS = REGION_VIEWS['KokiriForest']
+VIEWS = {label: (region, age) for region, ages in REGION_VIEWS.items()
+         for age, label in ages.items()}
+NEIGHBORS = {
+    'KokiriForest': ('LostWood', 'front_of_lost_wood_entrance'),
+    'LostWood': ('KokiriForest', 'arrivee_de_kokiri'),
+}
+LOST_WOOD_POINT_LABELS = {
+    'front_of_sacred_forest_meadow_entrance': 'Vers le Bosquet sacré',
+    'goron_city_side_before_entrance': 'Vers le Village Goron',
+    'goron_city_side_after_entrance': 'Vers le Village Goron',
+    'zora_river_entrance': 'Vers la Rivière Zora',
+}
 
 
 def extract_scenes(maps, landmarks):
     scenes = {}
     for path in sorted(maps):
-        if not path.startswith(KOKIRI) or not path.endswith(MAP_SUFFIX):
+        region = resource_region(path)
+        if region is None or not path.endswith(MAP_SUFFIX):
+            continue
+        if region != 'KokiriForest' and view_name(path) not in VIEWS:
             continue
         # Static and dynamic resources with the same scene and age use one frame.
         # Keep generic resource names and the other age independent.
@@ -19,13 +38,21 @@ def extract_scenes(maps, landmarks):
             sibling = base + ('_Static' if layer == 'Dynamic' else '_Dynamic') + MAP_SUFFIX
             if sibling in maps:
                 sources[sibling] = maps[sibling]
-        marks = landmarks(sources).get('KokiriForest', {})
+        marks = landmarks(sources).get(region, {})
         rooms = sorted({(name, (low[0], low[2]), (high[0], high[2]))
                         for name, low, high in marks.get('rooms', ())})
-        points = sorted({(name, (position[0], position[2]))
-                         for name, position in marks.get('points', ())})
+        labels = LOST_WOOD_POINT_LABELS if region == 'LostWood' else {}
+        points = {(labels.get(name, name), (position[0], position[2]))
+                  for name, position in marks.get('points', ())}
+        if region == 'LostWood':
+            for source in sources.values():
+                for actor in source['root'].get('Actors', ()):
+                    position = actor.get('Translate')
+                    if (position and actor.get('Gyaml') == 'StartPos'
+                            and actor.get('Name') == 'LostWood_Entrance'):
+                        points.add(('arrivee_de_kokiri', (position[0], position[2])))
         if rooms or points:
-            scenes[path] = {'rooms': rooms, 'points': points}
+            scenes[path] = {'rooms': rooms, 'points': sorted(points)}
     return scenes
 
 
@@ -44,13 +71,11 @@ def read_scenes(document):
     return scenes
 
 
-AGE_VIEWS = {'Child': 'Kokiri Forest · Enfant', 'Adult': 'Kokiri Forest · Adulte'}
-
-
 def view_name(resource):
-    """Group the known Kokiri layers without mixing different ages."""
-    for age, label in AGE_VIEWS.items():
-        if resource in (f'{KOKIRI}KokiriForest_{age}_{layer}{MAP_SUFFIX}'
+    """Group scene layers within a region and age."""
+    region = resource_region(resource)
+    for age, label in REGION_VIEWS.get(region, {}).items():
+        if resource in (f'Banc/{region}/{region}_{age}_{layer}{MAP_SUFFIX}'
                         for layer in ('Static', 'Dynamic')):
             return label
     return resource

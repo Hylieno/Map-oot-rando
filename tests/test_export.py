@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from map_oot_rando.export import main
-from map_oot_rando.metadata import bind_catalogue, export_scan
+from map_oot_rando.metadata import bind_catalogue, event_check_rows, export_scan
 from map_oot_rando.model import load_metadata, select
 
 
@@ -61,6 +61,31 @@ class ExportTests(unittest.TestCase):
         self.assertEqual([row.id for row in matches], ['123', '123'])
         self.assertEqual(len({row.resource for row in matches}), 1)
         self.assertEqual([row.project() for row in matches], [(1, 3), (10, 30)])
+
+    def test_shared_check_has_one_id_and_two_separate_region_frames(self):
+        ident = 'LostWood#456'
+        groups = {ident: [
+            dict(resource='Banc/KokiriForest/Child', position=[1, 2, 3]),
+            dict(resource='Banc/LostWood/Child', position=[4, 5, 6]),
+        ]}
+        catalogue = dict(self.catalogue, checks=self.catalogue['checks'] + [
+            dict(id=ident, name='Shared', category='chest', zone='LostWood')])
+        document = export_scan(groups, {}, provenance='synthetic', regions=('KokiriForest', 'LostWood'))
+        rows = load_metadata(bind_catalogue(document, catalogue))
+        self.assertEqual([(row.region, row.project()) for row in rows if row.id == ident],
+                         [('KokiriForest', (1, 3)), ('LostWood', (4, 6))])
+        self.assertEqual(next(row.region for row in rows if row.id == 'ap#other'), 'LostWood')
+
+    def test_lost_woods_event_match_rejects_ambiguous_npc_and_wrong_talk(self):
+        child = 'Banc/LostWood/LostWood_Child_Static.bcett.byml.zs'
+        adult = child.replace('_Child_', '_Adult_')
+        npc = dict(Gyaml='Npc_SkullKid_Child', Translate=[1, 2, 3])
+        wrong_scrub = dict(Gyaml='Enemy_Scrub_Business', Translate=[7, 8, 9],
+                           Dynamic={'TalkEventName': 'Enemy_Scrub_Business_Refill'})
+        maps = {child: {'root': {'Actors': [npc, wrong_scrub]}},
+                adult: {'root': {'Actors': [npc, dict(npc, Translate=[4, 5, 6])]}}}
+        self.assertEqual([(row['id'], row['resource']) for row in event_check_rows(maps, lambda *_: True)],
+                         [('npc#LW Skull Kid', child)])
 
     def test_legacy_world_id_requires_hash_field_and_eligible_variant(self):
         from map_oot_rando.metadata import world_check_rows

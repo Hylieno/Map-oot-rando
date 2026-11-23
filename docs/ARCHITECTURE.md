@@ -1,5 +1,12 @@
 # Architecture et audit initial
 
+Une carte importée peut conserver plusieurs régions dans le champ facultatif
+`regions` du format v1. La ressource Banc détermine le repère d’une position.
+Un check sans position garde la zone de son catalogue. Un même ID peut avoir une
+position dans deux régions, comme le coffre du pont, et garde un état unique
+dans le tracker. La navigation par entrée conserve l’âge et chaque vue
+calcule son cadrage dans ses propres coordonnées.
+
 Référence inspectée : Mozencaz/OotrR,
 `283d3ec0f161d32e168afac45e502442c1ffb081`.
 Le dépôt Map-oot-rando ne contenait initialement que AGENTS.md ; branche distante

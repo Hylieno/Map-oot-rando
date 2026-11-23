@@ -1,11 +1,19 @@
 """Export already-labelled OotrR scan results without reading or copying game assets."""
-from .model import UPSTREAM_REVISION, load_metadata
+from .model import UPSTREAM_REVISION, load_metadata, resource_region
+
+LOST_WOOD_EVENT_ACTORS = {
+    'npc#LW Skull Kid': ('Npc_SkullKid_Child', None),
+    'npc#LW Ocarina Memory Game': ('Npc_SkullKid_Child_02', None),
+    'npc#LW Target in Woods': ('NPC_Scrub_Deku_TargetPractice', None),
+    'scrub#LW Deku Scrub Near Bridge': ('Enemy_Scrub_Business', 'Enemy_Scrub_Business_DekuStickPouch_01'),
+    'scrub#LW Deku Scrub Grotto Front': ('Enemy_Scrub_Business', 'Enemy_Scrub_Business_DekuNutsPouch_01'),
+}
 
 
-def export_scan(groups, extra, *, provenance):
+def export_scan(groups, extra, *, provenance, regions=('KokiriForest',)):
     """Consume scan_world chest groups and extra sources; never generate labels.
 
-    Caller must scan the full world before restricting to Kokiri Forest so OotrR
+    Caller must scan the full world before restricting the regions so OotrR
     numbering remains authoritative. No positions are inferred for event checks.
     """
     rows, diagnostics = [], []
@@ -14,18 +22,20 @@ def export_scan(groups, extra, *, provenance):
     for gid, category, variants in entries:
         for variant in variants:
             resource = variant.get('resource', '')
-            if not resource.startswith('Banc/KokiriForest/'):
+            if resource_region(resource) not in regions:
                 continue
             position = variant.get('position')
             if position is None:
                 diagnostics.append(f'{gid}: missing coordinates in {resource}')
             rows.append(dict(id=gid, name=variant.get('label') or gid,
                              category=category, resource=resource, position=position))
-        if not variants and gid.startswith('KokiriForest#'):
+        if not variants and gid.partition('#')[0] in regions:
             diagnostics.append(f'{gid}: no positioned variants')
     document = dict(schema_version=1, region='KokiriForest',
                     upstream_revision=UPSTREAM_REVISION, provenance=provenance,
                     locations=rows, diagnostics=diagnostics)
+    if tuple(regions) != ('KokiriForest',):
+        document['regions'] = list(regions)
     load_metadata(document)
     return document
 
@@ -36,12 +46,13 @@ def world_check_rows(maps, checks, eligible):
     requested = {check['id']: check for check in checks}
     rows = []
     for path, resource in maps.items():
-        if not path.startswith('Banc/KokiriForest/'):
+        region = resource_region(path)
+        if region is None:
             continue
         for actor in resource['root'].get('Actors', ()):
             if type(actor.get('Hash')) is not int or not eligible(path, actor):
                 continue
-            prefix = f"KokiriForest#{actor['Hash']}#"
+            prefix = f"{region}#{actor['Hash']}#"
             dynamic = actor.get('Dynamic')
             fields = ['Gyaml', *(dynamic if isinstance(dynamic, dict) else ())]
             for field in fields:
@@ -52,14 +63,37 @@ def world_check_rows(maps, checks, eligible):
                                      resource=path, position=actor.get('Translate')))
     return rows
 
+
+def event_check_rows(maps, eligible):
+    """Locate event rewards at their unique NPC in each Lost Woods age."""
+    ids = {actor: ident for ident, actor in LOST_WOOD_EVENT_ACTORS.items()}
+    candidates = {}
+    for path, source in maps.items():
+        if resource_region(path) != 'LostWood':
+            continue
+        age_frame = path.removesuffix('.bcett.byml.zs').rsplit('_', 1)[0]
+        for actor in source['root'].get('Actors', ()):
+            dynamic = actor.get('Dynamic')
+            event = dynamic.get('TalkEventName') if isinstance(dynamic, dict) else None
+            ident = ids.get((actor.get('Gyaml'), event))
+            position = actor.get('Translate')
+            if ident and position and eligible(path, actor):
+                candidates.setdefault((ident, age_frame), []).append(
+                    dict(id=ident, name=ident.partition('#')[2], category='event',
+                         resource=path, position=position))
+    return [rows[0] for rows in candidates.values() if len(rows) == 1]
+
+
 def bind_catalogue(document, catalogue):
-    """Use the seed's names and IDs; keep unmatched Kokiri entries searchable."""
+    """Use the seed's names and IDs and keep unmatched entries searchable."""
     if (catalogue.get('schema_version') != 1 or not isinstance(catalogue.get('seed_id'), str)
             or not catalogue['seed_id']):
         raise ValueError('Catalogue OotrR v1 avec seed_id requis')
     by_id = {}
     for row in document['locations']:
         by_id.setdefault(row['id'], []).append(row)
+    regions = document.get('regions', ('KokiriForest',))
+    names = {'Kokiri Forest': 'KokiriForest', 'Lost Woods': 'LostWood', 'the Lost Woods': 'LostWood'}
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']
@@ -70,12 +104,13 @@ def bind_catalogue(document, catalogue):
         if not matches and ident.isdecimal():
             # OotrR's original Kokiri chest mode uses the bare actor hash.
             matches = by_id.get('KokiriForest#' + ident, ())
-        if not matches and (check.get('zone') != 'KokiriForest'
-                            and check.get('region') not in {'Kokiri Forest', 'KokiriForest'}
-                            and not ident.startswith('KokiriForest#')):
-            continue
         if not matches:
-            matches = [dict(resource='Emplacements sans position', position=None)]
+            candidates = (check.get('zone'), names.get(check.get('region'), check.get('region')),
+                          ident.partition('#')[0])
+            region = next((value for value in candidates if value in regions), None)
+            if region is None:
+                continue
+            matches = [dict(resource='Emplacements sans position', position=None, region=region)]
         if all(row['position'] is None for row in matches):
             diagnostics.append(f'{ident}: coordonnées absentes pour ce check')
         for row in matches:
