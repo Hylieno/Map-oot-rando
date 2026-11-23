@@ -32,6 +32,7 @@ from .world_map import WORLD_PINS, WORLD_SIZE, load_world_map
 ATLAS_BACKGROUND = '#0d1f2e'
 WORLD_BACKGROUND = '#47351c'
 OVERVIEW_SCALE = 0.42
+AGE_LABELS = {'Child': 'Enfant', 'Adult': 'Adulte'}
 
 COLORS = dict(available='#37b76b', blocked='#e45c5c', unknown='#e6c548', completed='#929ba5', partial='#ed9f57')
 LABELS = dict(available='Accessible', blocked='Bloqué', unknown='Inconnu', completed='Récupéré', partial='Partiellement accessible')
@@ -137,7 +138,7 @@ class MapApplication:
         ages = ttk.Frame(sidebar)
         ages.pack(fill='x', pady=(4, 2))
         self.age_buttons = {}
-        for age, label in (('Child', 'Enfant'), ('Adult', 'Adulte')):
+        for age, label in AGE_LABELS.items():
             button = ttk.Button(ages, text=label, command=lambda value=age: self.choose_age(value))
             button.pack(side='left', padx=(0, 5))
             self.age_buttons[age] = button
@@ -207,12 +208,13 @@ class MapApplication:
         locations = load_metadata(document)  # Validate before replacing current state.
         scenes = group_scenes(read_scenes(document))
         synthetic = document['provenance'] == 'synthetic'
-        self.aerial = {}
+        aerial = {}
         for resource, row in sorted(document.get('aerial', {}).items()):
             view = view_name(resource)
             spec = background_spec(view)
             if synthetic or spec and (row.get('source'), row.get('calibration')) == spec[:2]:
-                self.aerial[view] = AerialImage.from_document(row)
+                aerial[view] = AerialImage.from_document(row)
+        self.aerial = aerial
         self.atlas_failed = set()
         self.atlas_loading = None
         self.atlas_generation += 1
@@ -260,6 +262,8 @@ class MapApplication:
         self.views = prefer + sorted(views - set(prefer))
         available_regions = {VIEWS[view][0] for view in self.views if view in VIEWS}
         self.zone_targets = {label: region for region, label in REGION_NAMES.items() if region in available_regions}
+        if BURNT_VILLAGE in self.views:
+            self.zone_targets[BURNT_VILLAGE] = None
         self.zone_targets.update((view, None) for view in self.views if view not in VIEWS)
         self.zones['values'] = tuple(self.zone_targets)
         first_positioned = next((location_view(r) for r in locations if r.position is not None), '')
@@ -601,7 +605,7 @@ class MapApplication:
 
     def ensure_atlas(self):
         view = self.resource.get()
-        if self.simulation or self.atlas_loading or view in self.aerial or view in self.atlas_failed:
+        if self.simulation or view in self.aerial or view in self.atlas_failed:
             return
         spec = background_spec(view)
         if spec is None:
@@ -612,6 +616,8 @@ class MapApplication:
             self.aerial[view] = lost_woods_plan()
             self.render()
             self.fit()
+            return
+        if self.atlas_loading:
             return
         atlas_key = DUNGEON_ATLAS_KEYS.get(view, age)
         references = self.aerial_references(view)
@@ -837,10 +843,12 @@ class MapApplication:
         if age is not None:
             self.navigation_age = age
         name = REGION_NAMES[region]
-        self.zones.set(name if self.resource.get() in VIEWS else self.resource.get())
+        view = self.resource.get()
+        self.zones.set(view if view == BURNT_VILLAGE or view not in VIEWS else name)
         for choice, button in self.age_buttons.items():
             supported = region in DUNGEON_FLOORS or self.view_for_age(choice)
             active = choice == (age or self.navigation_age)
+            button.configure(text=AGE_LABELS[choice] + (' ✓' if active else ''))
             button.state(['disabled' if self.simulation or active or not supported else '!disabled'])
         self.banner.set('SIMULATION - noms et positions fictifs' if self.simulation else
                         f'{name} - seed importée')
