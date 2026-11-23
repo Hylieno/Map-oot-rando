@@ -145,3 +145,6 @@ boutique indépendante passe de 9,7 à 8,3 pixels. La boutique seule passe de 12
 à 15,0 pixels. Il s’agit d’un meilleur compromis global, avec les mêmes
 105 placements couverts. Les tests vérifient aussi les bords du parchemin et
 le centrage d’un marqueur dans le repère de l’image.
+
+Les 43 tests et le build portable passent sur
+[Windows CI](https://github.com/Hylieno/Map-oot-rando/actions/runs/45096561485).
