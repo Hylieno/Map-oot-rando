@@ -13,7 +13,7 @@ from .field_atlas import align_kokiri_image, load_kokiri_image
 from .export import import_seed
 from .model import load_metadata, select
 from .state import StateStore
-from .scene import read_scenes
+from .scene import AGE_VIEWS, group_scenes, read_scenes, view_name
 from .simulation import Simulation, demo_document
 from .view import Viewport
 
@@ -36,6 +36,9 @@ class MapApplication:
         self.banner = tk.StringVar()
         self.import_status = tk.StringVar()
         self.import_events = Queue()
+        self.atlas_image = None
+        self.atlas_generation = 0
+        self.show_outside = tk.BooleanVar(value=False)
         self.connection = tk.StringVar()
         self.details = tk.StringVar(value='Sélectionnez un emplacement.')
         self.count = tk.StringVar()
@@ -62,7 +65,7 @@ class MapApplication:
         search = ttk.Entry(sidebar, textvariable=self.query, width=38)
         search.pack(fill='x')
         search.bind('<Return>', lambda e: self.choose_first())
-        ttk.Label(sidebar, text='Ressource / variante').pack(anchor='w', pady=(10, 0))
+        ttk.Label(sidebar, text='Vue de la forêt').pack(anchor='w', pady=(10, 0))
         self.resources = ttk.Combobox(sidebar, textvariable=self.resource, state='readonly', width=38)
         self.resources.pack(fill='x')
         self.resources.bind('<<ComboboxSelected>>', lambda e: self.resource_changed())
@@ -73,7 +76,8 @@ class MapApplication:
         for key in COLORS:
             ttk.Checkbutton(sidebar, text=LABELS[key], variable=self.status_vars[key],
                             command=self.render).pack(anchor='w')
-        ttk.Label(sidebar, text='Décochez « Récupéré » pour les masquer.').pack(anchor='w')
+        ttk.Checkbutton(sidebar, text='Afficher les checks hors du fond',
+                        variable=self.show_outside, command=self.render).pack(anchor='w')
         self.results = tk.Listbox(sidebar, height=10, exportselection=False)
         self.results.pack(fill='both', expand=True, pady=8)
         self.results.bind('<<ListboxSelect>>', self.choose_list)
@@ -110,9 +114,15 @@ class MapApplication:
 
     def load(self, document):
         locations = load_metadata(document)  # Validate before replacing current state.
-        scenes = read_scenes(document)
-        aerial = {resource: AerialImage.from_document(row)
-                  for resource, row in document.get('aerial', {}).items()}
+        scenes = group_scenes(read_scenes(document))
+        aerial = {view_name(resource): AerialImage.from_document(row)
+                  for resource, row in sorted(document.get('aerial', {}).items())}
+        self.atlas_disabled = set()
+        self.atlas_failed = set()
+        self.atlas_loading = None
+        self.atlas_generation += 1
+        self.atlas_button.state(['!disabled'])
+        self.atlas_button.configure(text='Fond Field Atlas…')
         self.scenes = scenes
         self.aerial = aerial
         self.document = document
@@ -124,9 +134,11 @@ class MapApplication:
         self.details.set('Sélectionnez un emplacement.')
         self.banner.set('SIMULATION - noms et positions fictifs' if self.simulation else
                         'Kokiri Forest - métadonnées importées ; tracker non connecté')
-        self.resources['values'] = sorted({r.resource for r in locations})
-        first_positioned = next((r.resource for r in locations if r.position is not None), None)
-        self.resource.set(first_positioned or (self.resources['values'][0] if locations else ''))
+        views = {view_name(row.resource) for row in locations}
+        prefer = [label for label in AGE_VIEWS.values() if label in views]
+        self.resources['values'] = prefer + sorted(views - set(prefer))
+        first_positioned = next((view_name(r.resource) for r in locations if r.position is not None), '')
+        self.resource.set(prefer[0] if prefer else first_positioned or next(iter(sorted(views)), ''))
         self.categories['values'] = ['Toutes'] + sorted({r.category for r in locations})
         self.category.set('Toutes')
         if self.simulation:
@@ -136,6 +148,7 @@ class MapApplication:
         self.query.set('')
         self.render()
         self.fit()
+        self.ensure_atlas()
 
     def choose_seed(self):
         nup = filedialog.askopenfilename(parent=self.root, title='Choisir le fichier NUP du jeu',
@@ -189,7 +202,7 @@ class MapApplication:
             except OSError as error:
                 messagebox.showerror('Enregistrement impossible', str(error), parent=self.root)
 
-    def aerial_references(self, resource, *, include_checks=True):
+    def aerial_references(self, resource, *, include_checks=True, quiet=False):
         scene = self.scenes.get(resource, {})
         references = [(name.replace('_', ' '), tuple(point))
                       for name, point in scene.get('points', ())]
@@ -197,8 +210,10 @@ class MapApplication:
             references.append((name.replace('_', ' '), ((low[0] + high[0])/2, (low[1] + high[1])/2)))
         if include_checks:
             references.extend((row.name, row.project()) for row in self.locations
-                              if row.resource == resource and row.position is not None)
+                              if view_name(row.resource) == resource and row.position is not None)
         if len({point for _, point in references}) < 3:
+            if quiet:
+                return None
             messagebox.showinfo('Vue aérienne', 'Cette vue doit avoir au moins trois repères positionnés.',
                                 parent=self.root)
             return None
@@ -222,41 +237,64 @@ class MapApplication:
         self.align_background(resource, image, references)
 
     def choose_field_atlas(self):
+        self.ensure_atlas(manual=True)
+
+    def ensure_atlas(self, *, manual=False):
         resource = self.resource.get()
-        if self.simulation:
-            messagebox.showinfo('Field Atlas', 'Importe d’abord ton jeu et ta seed pour aligner la carte.',
-                                parent=self.root)
+        if self.simulation or resource not in AGE_VIEWS.values():
+            if manual:
+                messagebox.showinfo('Field Atlas', 'Choisis la vue enfant ou adulte de Kokiri Forest.',
+                                    parent=self.root)
             return
-        references = self.aerial_references(resource, include_checks=False)
+        if (self.atlas_loading or not manual and
+                resource in self.aerial.keys() | self.atlas_disabled | self.atlas_failed):
+            return
+        references = self.aerial_references(resource, include_checks=False, quiet=not manual)
         if references is None:
             return
-        document = self.document
+        generation = self.atlas_generation
+        cached = self.atlas_image
         result = Queue()
+        self.atlas_loading = resource
         self.atlas_button.state(['disabled'])
         self.atlas_button.configure(text='Chargement Field Atlas…')
 
         def load():
+            image = cached
             try:
-                result.put((align_kokiri_image(load_kokiri_image(), references), None))
+                image = image or load_kokiri_image()
+                result.put((image, align_kokiri_image(image, references), None))
             except (OSError, ValueError) as error:
-                result.put((None, str(error)))
+                result.put((image, None, str(error)))
 
         def finish():
+            if generation != self.atlas_generation:
+                return
             try:
-                background, error = result.get_nowait()
+                image, background, error = result.get_nowait()
             except Empty:
                 self.root.after(100, finish)
                 return
+            self.atlas_loading = None
+            self.atlas_image = image
             self.atlas_button.state(['!disabled'])
             self.atlas_button.configure(text='Fond Field Atlas…')
-            if self.document is not document or self.resource.get() != resource:
-                return
             if error:
-                messagebox.showerror('Field Atlas indisponible', error, parent=self.root)
-            else:
+                self.atlas_failed.add(resource)
+                if self.resource.get() == resource:
+                    self.import_status.set('Fond indisponible. Vue schématique affichée.')
+                    if manual:
+                        messagebox.showerror('Field Atlas indisponible', error, parent=self.root)
+            elif resource not in self.atlas_disabled or manual:
+                self.atlas_disabled.discard(resource)
+                self.atlas_failed.discard(resource)
                 self.aerial[resource] = background
-                self.fit()
-                self.import_status.set('Fond Field Atlas aligné sur les maisons. Position approximative.')
+                if self.resource.get() == resource:
+                    self.render()
+                    self.fit()
+                    self.import_status.set('Fond Field Atlas aligné sur les maisons. Position approximative.')
+            if self.resource.get() != resource:
+                self.ensure_atlas()
 
         Thread(target=load, daemon=True).start()
         self.root.after(100, finish)
@@ -269,7 +307,10 @@ class MapApplication:
         align_image(self.root, image, references, install)
 
     def remove_aerial(self):
-        if self.aerial.pop(self.resource.get(), None) is not None:
+        view = self.resource.get()
+        self.atlas_disabled.add(view)
+        if self.aerial.pop(view, None) is not None:
+            self.render()
             self.fit()
 
     def open_metadata(self):
@@ -286,7 +327,12 @@ class MapApplication:
     def render(self):
         if not hasattr(self, 'locations'):
             return
-        self.visible = select(self.locations, self.store.states, self.query.get(),
+        view = self.resource.get()
+        searching = bool(self.query.get().strip())
+        rows = [row for row in self.locations
+                if searching or view_name(row.resource) == view or row.position is None]
+        unique = {(row.id, view_name(row.resource), row.position): row for row in rows}
+        self.visible = select(unique.values(), self.store.states, self.query.get(),
                               {k for k, v in self.status_vars.items() if v.get()},
                               None if self.category.get() == 'Toutes' else {self.category.get()})
         self.results.delete(0, 'end')
@@ -295,12 +341,15 @@ class MapApplication:
             label = row.name
             if row.position is None:
                 label += ' [sans coordonnées]'
+            elif self.outside(row):
+                label += ' [hors du fond]'
             elif placements[row.id] > 1:
                 coordinates = ', '.join(f'{value:g}' for value in row.position)
                 label += f' [{coordinates}]'
             self.results.insert('end', label)
-        missing = sum(r.position is None for r in self.locations)
-        self.count.set(f'{len(self.visible)} résultat(s) | {missing} sans coordonnées | '
+        missing = sum(r.position is None for r in self.visible)
+        outside = sum(self.outside(row) for row in self.visible)
+        self.count.set(f'{len(self.visible)} résultat(s) | {missing} sans coordonnées | {outside} hors du fond | '
                        'Molette : zoom ; glisser le fond : déplacer ; Entrée : premier résultat')
         mode = {'simulation': 'SIMULATION connectée', 'disconnected': 'Déconnecté - dernier état conservé',
                 'save': 'Sauvegarde uniquement', 'live': 'Mémoire du jeu'}[self.store.connection]
@@ -312,7 +361,13 @@ class MapApplication:
     def resource_changed(self):
         self.selected = None
         self.details.set('Sélectionnez un emplacement.')
+        self.render()
         self.fit()
+        self.ensure_atlas()
+
+    def outside(self, row):
+        background = self.aerial.get(view_name(row.resource))
+        return bool(background and row.position is not None and not background.covers(row.project()))
 
     def resized(self, event):
         if getattr(self, 'fit_pending', False):
@@ -324,7 +379,8 @@ class MapApplication:
         self.fit_pending = self.canvas.winfo_width() <= 1 or self.canvas.winfo_height() <= 1
         if self.fit_pending:
             return
-        points = [r.project() for r in self.visible if r.resource == self.resource.get() and r.position is not None]
+        points = [r.project() for r in self.visible if view_name(r.resource) == self.resource.get() and r.position is not None
+                  and (self.show_outside.get() or not self.outside(r))]
         aerial = self.aerial.get(self.resource.get())
         scene = self.scenes.get(self.resource.get(), {}) if not aerial else {}
         if aerial:
@@ -374,8 +430,9 @@ class MapApplication:
                 self.canvas.create_line(0, y, width, y, fill='#2c414a')
             heading = f'Schéma X/Z | Grille : {step:g} unités'
         self.canvas.create_text(12, 12, anchor='nw', fill='#d2e1da', text=heading)
-        rows = [row for row in self.visible if row.resource == self.resource.get()
-                and row.position is not None]
+        rows = [row for row in self.visible if view_name(row.resource) == self.resource.get()
+                and row.position is not None
+                and (self.show_outside.get() or row == self.selected or not self.outside(row))]
         rows.sort(key=lambda row: row == self.selected)
         labels = []
         for row in rows:
@@ -408,17 +465,20 @@ class MapApplication:
 
     def choose(self, row):
         self.selected = row
-        self.resource.set(row.resource)
         if row.position is not None:
+            if self.resource.get() != view_name(row.resource):
+                self.resource.set(view_name(row.resource))
+                self.ensure_atlas()
             self.viewport.center(row.project(), self.canvas.winfo_width(), self.canvas.winfo_height())
         self.show_details()
         self.draw()
 
     def show_details(self):
         row = self.selected
-        self.details.set(f'{row.name}\nID : {row.id}\n{row.category}\n{row.resource}\n'
+        self.details.set(f'{row.name}\nID : {row.id}\n{row.category}\n{view_name(row.resource)}\n'
                          f'XYZ : {row.position if row.position is not None else "inconnues"}\n'
-                         f'État : {LABELS[self.store.states.get(row.id, "unknown")]}')
+                         f'État : {LABELS[self.store.states.get(row.id, "unknown")]}'
+                         + ('\nHors du dessin Field Atlas' if self.outside(row) else ''))
 
     def choose_first(self):
         if self.visible:

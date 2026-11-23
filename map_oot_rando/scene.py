@@ -42,3 +42,25 @@ def read_scenes(document):
                                or not isfinite(v) for v in point) for point in entry[1:])):
                     raise ValueError('Repère de carte invalide')
     return scenes
+
+
+AGE_VIEWS = {'Child': 'Kokiri Forest · Enfant', 'Adult': 'Kokiri Forest · Adulte'}
+
+
+def view_name(resource):
+    """Group the known Kokiri layers without mixing different ages."""
+    for age, label in AGE_VIEWS.items():
+        if resource in (f'{KOKIRI}KokiriForest_{age}_{layer}{MAP_SUFFIX}'
+                        for layer in ('Static', 'Dynamic')):
+            return label
+    return resource
+
+
+def group_scenes(scenes):
+    grouped = {}
+    for resource, scene in scenes.items():
+        view = grouped.setdefault(view_name(resource), {'rooms': set(), 'points': set()})
+        view['rooms'].update((name, tuple(low), tuple(high)) for name, low, high in scene['rooms'])
+        view['points'].update((name, tuple(point)) for name, point in scene['points'])
+    return {key: {kind: sorted(rows) for kind, rows in scene.items()}
+            for key, scene in grouped.items()}

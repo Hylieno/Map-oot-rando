@@ -109,3 +109,8 @@ Le chargement de Field Atlas aligne désormais le dessin sur au moins quatre
 maisons présentes dans la vue. Les centres dessinés sont des repères visuels
 et l’ajustement affine est contrôlé sur toutes les maisons appariées. Si les
 repères manquent ou divergent, le fond actuel est conservé.
+
+Les couches Static et Dynamic sont réunies dans les vues Enfant et Adulte. Le
+fond Field Atlas se charge en arrière-plan à l’ouverture d’une vue sans fond
+enregistré. Les checks hors du dessin restent dans la liste et leurs
+coordonnées d’origine sont préservées.

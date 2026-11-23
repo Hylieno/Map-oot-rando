@@ -36,8 +36,9 @@ def read_image(source):
 
 
 class AerialImage:
-    def __init__(self, image, pixels, world):
+    def __init__(self, image, pixels, world, *, source=None):
         self.image = image
+        self.source = source
         self.pixels = pixels
         self.world = world
         self.world_to_image = affine(world, pixels)
@@ -46,6 +47,23 @@ class AerialImage:
     def corners(self):
         w, h = self.image.size
         return [apply(self.image_to_world, p) for p in [(0, 0), (w, 0), (w, h), (0, h)]]
+
+    def covers(self, point):
+        x, y = apply(self.world_to_image, point)
+        if not (0 <= x < self.image.width and 0 <= y < self.image.height):
+            return False
+        if self.source != 'field-atlas':
+            return True
+        # The verified drawing uses muted navy for its background and grid.
+        # Sample a small area to tolerate antialiasing at the edge of a path.
+        x, y = int(x), int(y)
+        for dx, dy in ((0, 0), (-4, 0), (4, 0), (0, -4), (0, 4)):
+            u, v = x + dx, y + dy
+            if 0 <= u < self.image.width and 0 <= v < self.image.height:
+                _, green, blue = self.image.getpixel((u, v))
+                if green > 75 or blue > 83:
+                    return True
+        return False
 
     def render(self, viewport, size):
         a, b, c, d, e, f = self.world_to_image
@@ -59,7 +77,7 @@ class AerialImage:
         stream = BytesIO()
         self.image.save(stream, 'PNG')
         return {'image': base64.b64encode(stream.getvalue()).decode('ascii'),
-                'pixels': self.pixels, 'world': self.world}
+                'pixels': self.pixels, 'world': self.world, 'source': self.source}
 
     @classmethod
     def from_document(cls, row):
@@ -69,4 +87,4 @@ class AerialImage:
                for points in coordinates):
             raise ValueError('Calibrage du fond image invalide.')
         image = read_image(BytesIO(base64.b64decode(row['image'], validate=True)))
-        return cls(image, *coordinates)
+        return cls(image, *coordinates, source=row.get('source'))

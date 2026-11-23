@@ -30,3 +30,13 @@ class AerialTests(unittest.TestCase):
         rendered = restored.render(viewport, (50, 50))
         self.assertEqual(rendered.getpixel((25, 27)), (255, 0, 0))
         self.assertEqual(rendered.getpixel((8, 10)), (0, 0, 0))
+
+    def test_field_atlas_coverage_excludes_grid_and_outside_image(self):
+        image = Image.new('RGB', (40, 40), '#17344a')
+        image.putpixel((20, 20), (31, 85, 119))
+        points = [(0, 0), (40, 0), (0, 40)]
+        background = AerialImage(image, points, points, source='field-atlas')
+        saved = AerialImage.from_document(background.to_document())
+        self.assertTrue(saved.covers((20, 20)))
+        self.assertFalse(saved.covers((5, 5)))
+        self.assertFalse(saved.covers((-1, 20)))

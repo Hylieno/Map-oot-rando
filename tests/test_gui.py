@@ -143,3 +143,34 @@ class GuiTests(unittest.TestCase):
         app.resource.set('SIMULATION / intérieur')
         app.resource_changed()
         self.assertFalse(app.canvas.find_withtag('aerial'))
+
+    def test_kokiri_age_merges_layers_and_lists_uncovered_checks(self):
+        from PIL import Image
+        from map_oot_rando.aerial import AerialImage
+        from map_oot_rando.scene import AGE_VIEWS
+
+        child = 'Banc/KokiriForest/KokiriForest_Child_Dynamic.bcett.byml.zs'
+        static = child.replace('Dynamic', 'Static')
+        adult = child.replace('Child', 'Adult')
+        doc = demo_document()
+        doc['locations'] = [
+            dict(doc['locations'][0], resource=child, position=[50, 0, 50]),
+            dict(doc['locations'][1], resource=static, position=[170, 0, 30]),
+            dict(doc['locations'][2], resource=adult, position=[10, 0, 10]),
+        ]
+        background = AerialImage(Image.new('RGB', (100, 100), 'green'),
+                                 [(0, 0), (100, 0), (0, 100)], [(0, 0), (100, 0), (0, 100)])
+        doc['aerial'] = {child: background.to_document()}
+        app = self.app
+        app.load(doc)
+        self.assertEqual(app.resource.get(), AGE_VIEWS['Child'])
+        self.assertEqual(len(app.visible), 2)
+        self.assertIn('hors du fond', app.results.get(1))
+        visible_pins = lambda: {row.id for row in app.markers.values()}
+        self.assertEqual(visible_pins(), {app.visible[0].id})
+        app.choose(app.visible[1])
+        self.assertEqual(visible_pins(), {row.id for row in app.visible})
+        app.resource.set(AGE_VIEWS['Adult'])
+        app.resource_changed()
+        self.assertEqual(len(app.visible), 1)
+        self.assertFalse(app.canvas.find_withtag('aerial'))

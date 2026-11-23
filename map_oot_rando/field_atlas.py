@@ -76,4 +76,4 @@ def align_kokiri_image(image, references):
     basis = [(x0, z0), (x0 + (xx/count)**0.5, z0), (x0, z0 + (zz/count)**0.5)]
     pixels = [(x * image.width / 900, y * image.height / 498)
               for x, y in (apply(coefficients, point) for point in basis)]
-    return AerialImage(image, pixels, basis)
+    return AerialImage(image, pixels, basis, source='field-atlas')
