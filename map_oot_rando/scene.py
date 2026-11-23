@@ -21,8 +21,10 @@ NEIGHBORS = {
     'HyruleField': {'KokiriForest': 'front_of_lost_wood_bridge_entrance',
                     'KakarikoVillage': 'Vers Cocorico'},
     'SacredForestMeadow': {'LostWood': 'front_of_lost_wood_entrance'},
-    'KakarikoVillage': {'HyruleField': 'Vers la plaine d’Hyrule', 'Graveyard': 'Vers le cimetière'},
+    'KakarikoVillage': {'HyruleField': 'Vers la plaine d’Hyrule', 'Graveyard': 'Vers le cimetière',
+                        'DeathMountainTrail': 'Vers le Mont du Péril'},
     'Graveyard': {'KakarikoVillage': 'Vers Cocorico'},
+    'DeathMountainTrail': {'KakarikoVillage': 'Vers Cocorico'},
 }
 KAKARIKO_ENTRANCES = {
     'HyruleField': 'Vers la plaine d’Hyrule',
@@ -57,6 +59,17 @@ HYRULE_ANCHORS = {
     'GerudoValley': 'Vers la Vallée Gerudo',
     'LakeHylia': 'Vers le Lac Hylia',
 }
+ENTRANCE_LABELS = {
+    'KakarikoVillage': KAKARIKO_ENTRANCES,
+    'Graveyard': {'KakarikoVillage': 'Vers Cocorico'},
+    'HyruleField': HYRULE_ANCHORS,
+}
+TRAIL_LABELS = {
+    'crater_entrance': 'Vers le cratère',
+    'dodongo_cavern_entrance': 'Vers la Caverne Dodongo',
+    'goron_city_entrance': 'Vers le Village Goron',
+    'kakariko_entrance': 'Vers Cocorico',
+}
 GROVE_ANCHORS = {
     'Obj_WarpPoint_A_02': 'Plateforme de téléportation',
     'Land_ForestTemple_StoneFrame_A_01': 'Seuil du temple',
@@ -90,8 +103,7 @@ def projection_points(region, sources):
             elif gyaml == 'MapIconEntranceAnchor':
                 dynamic = actor.get('Dynamic')
                 if isinstance(dynamic, dict) and dynamic.get('IsVisible') is not False:
-                    entrances = {'KakarikoVillage': KAKARIKO_ENTRANCES,
-                                 'Graveyard': {'KakarikoVillage': 'Vers Cocorico'}}.get(region, HYRULE_ANCHORS)
+                    entrances = ENTRANCE_LABELS.get(region, {})
                     label = entrances.get(dynamic.get('Location'))
             elif region == 'KakarikoVillage':
                 label = KAKARIKO_BUILDINGS.get(gyaml)
@@ -128,7 +140,7 @@ def extract_scenes(maps, landmarks):
         marks = landmarks(sources).get(region, {})
         rooms = sorted({(name, (low[0], low[2]), (high[0], high[2]))
                         for name, low, high in marks.get('rooms', ())})
-        labels = LOST_WOOD_POINT_LABELS if region == 'LostWood' else {}
+        labels = {'LostWood': LOST_WOOD_POINT_LABELS, 'DeathMountainTrail': TRAIL_LABELS}.get(region, {})
         points = {(labels.get(name, name), (position[0], position[2]))
                   for name, position in marks.get('points', ())}
         if region != 'KokiriForest':

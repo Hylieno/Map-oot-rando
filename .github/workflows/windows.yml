@@ -16,6 +16,22 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Decide whether to package a preview
+        id: preview
+        shell: pwsh
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $package = $env:EVENT_NAME -eq 'workflow_dispatch'
+          if (-not $package -and $env:PR_HEAD) {
+            $subject = git log -1 --format=%s $env:PR_HEAD
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $package = $subject.EndsWith('[preview]', [System.StringComparison]::Ordinal)
+          }
+          "package=$($package.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -28,33 +44,41 @@ jobs:
           ref: eb6682704f7589b5a0c07ac0e49d89fef4108545
           path: upstream-ootrr
           persist-credentials: false
-      - name: Install packager and scanner dependencies
-        run: python -m pip install pyinstaller==6.11.1 'zstandard>=0.23,<1' 'evfl>=1.3,<2'
+      - name: Install scanner dependencies
+        run: python -m pip install 'zstandard>=0.23,<1' 'evfl>=1.3,<2'
       - name: Tests including Tk
         env:
           MAP_REQUIRE_DISPLAY: '1'
           PYTHONPATH: upstream-ootrr/src
         run: python -m unittest discover -s tests -v
+      - name: Install packager
+        if: steps.preview.outputs.package == 'true'
+        run: python -m pip install pyinstaller==6.11.1
       - name: Build portable preview
+        if: steps.preview.outputs.package == 'true'
         run: python -m PyInstaller --noconfirm --clean --windowed --onedir --name Map-oot-rando --copy-metadata resvg-py --add-data "upstream-ootrr/src/oot_rando/logic/world:oot_rando/logic/world" --paths . --paths upstream-ootrr/src packaging/launcher.py
       - name: Verify frozen scanner
+        if: steps.preview.outputs.package == 'true'
         shell: pwsh
         run: |
           Set-Content -Path invalid.nup -Value 'Invalid test input'
           $app = Start-Process -FilePath dist/Map-oot-rando/Map-oot-rando.exe -ArgumentList '--check-bundled-import', 'invalid.nup' -Wait -PassThru
           if ($app.ExitCode -ne 0) { exit $app.ExitCode }
       - name: Verify frozen map window
+        if: steps.preview.outputs.package == 'true'
         shell: pwsh
         run: |
           $app = Start-Process -FilePath dist/Map-oot-rando/Map-oot-rando.exe -ArgumentList '--check-bundled-gui' -Wait -PassThru
           if ($app.ExitCode -ne 0) { exit $app.ExitCode }
       - name: Include usage and limitations
+        if: steps.preview.outputs.package == 'true'
         shell: pwsh
         run: |
           Copy-Item upstream-ootrr/LICENSE dist/Map-oot-rando/OotrR-LICENSE.txt
           Copy-Item README.md dist/Map-oot-rando/
           Copy-Item docs/TESTING.md dist/Map-oot-rando/
       - uses: actions/upload-artifact@v4
+        if: steps.preview.outputs.package == 'true'
         with:
           name: Map-oot-rando-windows-x64-preview
           path: dist/Map-oot-rando/

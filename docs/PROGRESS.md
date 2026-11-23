@@ -1,5 +1,10 @@
 # Checkpoint — 22 novembre 2026
 
+Le mont du Péril est relié à Cocorico. Les vues enfant et adulte utilisent
+les passages du jeu et les checks importés. Le fond texturé reste en cours
+de validation. Chaque mise à jour du code lance les tests Windows et
+seuls les jalons marqués `[preview]` déclenchent aussi un build.
+
 Le cimetière est accessible depuis Cocorico. Field Atlas fournit le fond
 de surface. Les checks en sous-sol ont une vue schématique par âge.
 Les intérieurs de tombe et la course de Dampé restent à dessiner.

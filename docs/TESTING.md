@@ -1,5 +1,10 @@
 # Validation
 
+Les quatre ressources publiques du mont du Péril contiennent les acteurs
+correspondant à 29 des 31 IDs du catalogue local. Les deux vues ont les
+quatre passages attendus. Ce recoupement vérifie les identifiants physiques
+et les repères, avant le scan du NUP complet.
+
 Les fonds du cimetière ont passé le recalage automatique pour les deux âges.
 Deux repères indépendants de l’ajustement valident l’alignement. Le test Tk
 vérifie le filtrage de surface et l’ouverture d’un check souterrain par recherche.

@@ -12,6 +12,7 @@ REGION_NAMES = {
     'SacredForestMeadow': 'Bosquet sacré',
     'KakarikoVillage': 'Cocorico',
     'Graveyard': 'Cimetière',
+    'DeathMountainTrail': 'Mont du Péril',
 }
 
 

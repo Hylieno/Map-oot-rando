@@ -796,14 +796,13 @@ class MapApplication:
         self.canvas.create_text(12, 12, anchor='nw', fill='#292019', text='Zones voisines')
         self.canvas.create_text(12, 32, anchor='nw', fill='#292019',
                                 text='Clique sur une zone pour l’ouvrir. Zoome pour revenir.')
-        regions = [region, *neighbors]
-        span = min(width * 0.34, 270)
+        middle = len(neighbors) // 2
+        regions = [*neighbors[:middle], region, *neighbors[middle:]]
+        span = min(width / len(regions), 270)
         card = min(span * 0.44, 105)
         y = max(height * 0.53, 80)
         xs = {name: width / 2 + (index - (len(regions) - 1)/2) * span
               for index, name in enumerate(regions)}
-        if len(neighbors) == 2:
-            xs[region], xs[neighbors[0]] = xs[neighbors[0]], xs[region]
         for neighbor in neighbors:
             self.canvas.create_line(xs[region], y, xs[neighbor], y, fill='#7b6845', width=3)
         for name, x in xs.items():

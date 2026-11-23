@@ -1,6 +1,6 @@
 # Map-oot-rando
 
-Compagnon de carte local pour OotrR avec Kokiri Forest, les Bois Perdus, le Bosquet sacré, la plaine d’Hyrule, Cocorico et le cimetière.
+Compagnon de carte local pour OotrR avec Kokiri Forest, les Bois Perdus, le Bosquet sacré, la plaine d’Hyrule, Cocorico, le cimetière et le mont du Péril.
 
 La simulation utilise des positions fictives.
 L’import local lit les coordonnées de la seed et le suivi lit les états d’OotrR
@@ -50,6 +50,8 @@ Les vues adulte et après l’incendie utilisent la même image avec leurs propr
 Le [cimetière](https://oot.gousse.cool/graveyard) a aussi un fond Field Atlas.
 **Souterrains** ouvre les checks enfouis dans une vue schématique. La recherche
 ouvre directement la bonne vue quand un check a des coordonnées.
+Le mont du Péril est accessible depuis Cocorico. Il utilise pour l’instant
+un schéma des checks et des passages relevés dans les ressources du jeu.
 
 Pour une image locale, l’application lit automatiquement un fichier de coordonnées
 `.wld`, `.pgw` ou `.jgw` de même nom s’il utilise le repère X/Z du jeu. Une image
@@ -111,8 +113,10 @@ python -m unittest discover -s tests -v
 Sans écran, les tests Tk sont ignorés explicitement. Définir
 `MAP_REQUIRE_DISPLAY=1` pour exiger leur exécution (utilisé dans le workflow).
 
-Le workflow **Windows portable preview** teste puis construit avec PyInstaller
-un dossier portable x64. Après un run réussi, télécharger l'artifact
+Le workflow **Windows portable preview** exécute les tests pour chaque mise à
+jour pertinente de la PR. Un lancement manuel ou un commit de jalon dont le
+message se termine par `[preview]` construit aussi le dossier portable x64.
+Après une compilation réussie, télécharger l'artifact
 `Map-oot-rando-windows-x64-preview`, tout extraire et lancer `Map-oot-rando.exe`.
 Il s'exécute sur les modifications pertinentes de PR ou manuellement une fois
 le workflow disponible sur la branche par défaut. Aucune Release publiée.
