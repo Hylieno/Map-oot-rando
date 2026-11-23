@@ -1,5 +1,14 @@
 # Checkpoint — 23 novembre 2026
 
+Le dézoom ouvre la carte générale d’Hyrule. Les cartes locales utilisent
+Field Atlas et les options de changement de fond ont été retirées. Le plan
+des Bois Perdus indique l’itinéraire normal jusqu’au Bosquet sacré, ainsi
+que les raccourcis pour le Village Goron et la rivière Zora. Les boutons
+Enfant et Adulte sont séparés du sélecteur de zone. Le marqueur de Link peut
+suivre la position mémoire fournie par Ocarina Atlas. Le changement automatique
+de zone se désactive séparément.
+
+
 Le Temple du Feu est relié au cratère. Les cinq plans partagent un repère
 commun et le sélecteur reste disponible même sur un étage vide de la seed.
 Les 40 checks du catalogue de référence ont été retrouvés dans les scènes

@@ -21,10 +21,10 @@ et exécuter cette commande. La validation locale a été faite sous Linux, pas 
 - Molette : zoom ; glisser sur le fond : déplacement ; « Ajuster la vue » : cadrage.
 - Recherche par nom ou ID, puis Entrée ou sélection dans la liste pour centrer.
 - Si plusieurs marqueurs se recouvrent, cliquer sur leur point commun ouvre la liste des checks.
-- Choisir Enfant ou Adulte. Les couches Static et Dynamic sont réunies. La hauteur Y est dans les détails.
-- Dézoomer ou cliquer sur **Zones voisines** pour voir les zones reliées. Cliquer sur une zone ou sur un repère
-  de passage pour changer de carte en gardant l’âge et le suivi. Réimporter le NUP et le `checks.json`
-  pour ajouter les nouvelles zones à une carte enregistrée plus ancienne.
+- Utilise les boutons **Enfant** et **Adulte** à côté du sélecteur de zone. Les couches Static et Dynamic sont réunies.
+- Dézoome jusqu’à la **Carte d’Hyrule** ou ouvre-la avec le bouton. Les zones disponibles sont cliquables.
+  Les repères de passage relient directement les cartes locales.
+- Réimporte le NUP et le `checks.json` si une ancienne carte enregistrée ne contient pas les nouveaux passages.
 - Filtres de catégorie/statut ; décocher « Récupéré » pour masquer les checks gris.
 - En simulation, sélectionner un check puis changer son statut ou la connexion.
   En déconnexion, l'affichage conserve le dernier état ; la reconnexion publie les
@@ -32,16 +32,15 @@ et exécuter cette commande. La validation locale a été faite sous Linux, pas 
 
 ## Fonds de carte
 
-Les fonds par défaut de [Kokiri](https://questfern.com/oot/guides/interactive-map/?area=kokiri), de la
-[plaine d’Hyrule](https://questfern.com/oot/guides/interactive-map/?area=field) et du
-[Bosquet sacré](https://questfern.com/oot/guides/interactive-map/?area=grove) viennent de Questfern.
-L’application les charge à la demande et vérifie la projection avant de
-l’afficher. **Fond de carte** permet de choisir Field Atlas, un fond local ou
-le schéma. Les fonds Questfern et Field Atlas téléchargés sont conservés sur ce poste pour les
-prochains imports hors ligne. **Enregistrer la carte…** inclut le fond affiché dans le JSON.
+Les plans Field Atlas se chargent automatiquement. Les fonds téléchargés sont conservés pour
+les prochaines ouvertures hors ligne. Un ancien fond Questfern ou personnalisé est écarté
+à l’ouverture de la carte. Les vues sans plan publié conservent un schéma dans la même palette.
+L’illustration générale est celle de Nintendúo, publiée par Field Atlas et également
+utilisée par Ocarina Atlas. [Field Atlas](https://oot.gousse.cool/) · [Ocarina Atlas](https://github.com/antonioalvromero/Ocarina-Atlas)
 
-Les Bois Perdus s’ouvrent sur un schéma sans icônes d’objet préimprimées.
-Les entrées et les checks positionnés utilisent les coordonnées des ressources locales.
+Dans les Bois Perdus, le tracé doré indique le chemin normal de Kokiri au Bosquet
+sacré. Les marqueurs de passage ouvrent le Village Goron et la rivière Zora. Leurs
+passages permettent aussi de revenir aux Bois Perdus. La rivière a ici une carte de transit.
 Les deux récompenses du Théâtre Mojo partagent un marqueur à l’entrée.
 Au Bosquet sacré, les deux coffres enfouis sont repérés par l’accès à leur
 grotte. Les détails conservent les coordonnées XYZ du coffre.
@@ -66,17 +65,19 @@ Le cratère mène au Temple du Feu. Les cinq niveaux utilisent les plans
 Field Atlas et le sélecteur d’étage. Volvagia et son cœur ont une vue
 schématique séparée. [Plans du Temple du Feu](https://oot.gousse.cool/fire-temple)
 
-Pour une image locale, l’application lit automatiquement un fichier de coordonnées
-`.wld`, `.pgw` ou `.jgw` de même nom s’il utilise le repère X/Z du jeu. Une image
-sans coordonnées peut être calibrée manuellement à l’aide de trois repères.
-Les nouveaux diagnostics d’import listent les noms des ressources de capture
-candidates dans le conteneur local, sans inclure leur contenu.
-
 Les checks hors du fond restent consultables dans la liste. Sélectionner
 leur entrée affiche leur position réelle, et la case **Afficher les checks
 hors du fond** permet de les afficher ensemble.
 
 ## Suivre la partie
+
+Pour afficher Link, lance Ocarina Atlas avec son suivi mémoire et coche
+**Position de Link (Ocarina Atlas)** dans Map-oot-rando. La connexion locale
+utilise le port par défaut 3000. **Suivre Link entre les zones** ouvre la
+carte de sa nouvelle zone lorsqu’il change de scène ou d’âge. Décoche cette
+option pour continuer à consulter d’autres cartes. Les checks restent suivis
+par OotrR.
+
 
 Clique sur **Choisir le dossier de sauvegardes…** et indique le dossier qui
 contient les sauvegardes de ton jeu. L’application cherche dans les sous-dossiers

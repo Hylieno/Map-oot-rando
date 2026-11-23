@@ -1,10 +1,13 @@
 # Décisions
 
-- Bois Perdus. Les boutons et les repères de passage relient des vues distinctes.
-  Le schéma utilise les repères du jeu. Les icônes et la canopée de la capture
-  Questfern masquent le détail nécessaire pour valider une carte de terrain.
-- Plaine d’Hyrule. Le fond Questfern fonctionne avec cinq repères et un arbre
-  de contrôle. La validation du fond est indépendante du contenu de la seed.
+- La carte générale réutilise l’illustration Nintendúo et les positions
+  géographiques publiées par Ocarina Atlas. Tous les fonds locaux publiés
+  viennent de Field Atlas et se chargent automatiquement.
+- Bois Perdus. Le plan et l’itinéraire sont dessinés à partir des carrefours
+  et passages observés dans les scènes du jeu. Les raccourcis Goron et Zora
+  sont navigables dans les deux sens. Zora sert de carte de transit.
+- Link. Le marqueur et le changement automatique de zone sont deux commandes
+  distinctes. Les coordonnées viennent de l’API mémoire locale d’Ocarina Atlas.
 - Bosquet sacré. Les entrées de grotte viennent des acteurs physiques
   correspondants. Les coordonnées en sous-sol restent accessibles dans les détails.
 - Cocorico. Les fonds Field Atlas sans icônes sont validés sur six repères

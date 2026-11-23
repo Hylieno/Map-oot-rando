@@ -54,6 +54,17 @@ FIRE_VIEWBOXES = {
     '4F': (18, 41, 548, 286),
     '5F': (24, 90, 622, 258),
 }
+FIELD_FRAMES = {
+    'HyruleField': ((-50, -49, 950, 739), (1.4552, 504.27, 1.4867, 11.89)),
+    'SacredForestMeadow': ((190, -8, 492, 1821), (6.15, 487.31, 6.15, 1062.72)),
+    'ZoraRiver': ((-48, -40, 951, 444), (3.2759, 352.05, 3.2953, 225.64)),
+}
+for region, source, digest in (
+    ('HyruleField', 'hyrule-field', '2cca33a54d435cd8bb42931514d1ac4698e116e683bf9967bfd7b2ced752d252'),
+    ('SacredForestMeadow', 'sacred-meadow', '30559071ebb5f020ae7dd00ddc13b4a17c11f202d91df6d1501193eda34a859a'),
+    ('ZoraRiver', 'zora-river', '9da62a4f11abba11eed170548a34c90e129420350bdedbb74b4a0f0d74e0aaf4'),
+):
+    REGION_MAPS[region] = dict.fromkeys(('Child', 'Adult'), (f'field-atlas-{source}', digest))
 REGION_MAPS['FireTemple'] = {
     '1F': ('field-atlas-fire-1f', '3f16cb7f3303f228886c0e2d2427bca559002202f0c0c88b93beda28cbbfb457'),
     '2F': ('field-atlas-fire-2f', '61e73d8ecb54aa8a84d6fb46d985aba949a6c0993bd9f9b101bb4ae7777b909b'),
@@ -64,26 +75,27 @@ REGION_MAPS['FireTemple'] = {
 REGION_CALIBRATION = 1
 
 
-def align_fire_floor(image, floor):
-    """Place a crop of the Fire Temple capture in the common dungeon frame."""
-    left, top, width, height = FIRE_VIEWBOXES[floor]
+def align_capture(image, viewbox, frame, source):
+    """Place a crop of a calibrated orthographic capture in X/Z."""
+    left, top, width, height = viewbox
     scale = image.width / width
     if abs(height * scale - image.height) > 1:
-        raise ValueError('Les dimensions du plan du Temple du Feu sont incompatibles.')
-    # Calibration measured by Ocarina Atlas. Each Field Atlas SVG crops the
-    # same orthographic capture, using the per-level viewBox.
-    frame = (3.965 * scale, 0, (354.2 - left) * scale,
-             0, 3.9651 * scale, (218.31 - top) * scale)
+        raise ValueError('Les dimensions du plan sont incompatibles.')
+    sx, ox, sz, oz = frame
+    matrix = (sx * scale, 0, (ox - left) * scale, 0, sz * scale, (oz - top) * scale)
     basis = [(0, 0), (50, 0), (0, 50)]
-    return AerialImage(image, [apply(frame, point) for point in basis], basis,
-                       source=REGION_MAPS['FireTemple'][floor][0], calibration=REGION_CALIBRATION)
+    return AerialImage(image, [apply(matrix, point) for point in basis], basis,
+                       source=source, calibration=REGION_CALIBRATION)
 
 
 def align_region_image(image, references, region, age):
     from .map_projection import registered_background
 
+    source = REGION_MAPS[region][age][0]
     if region == 'FireTemple':
-        return align_fire_floor(image, age)
+        return align_capture(image, FIRE_VIEWBOXES[age], (3.965, 354.2, 3.9651, 218.31), source)
+    if region in FIELD_FRAMES:
+        return align_capture(image, *FIELD_FRAMES[region], source)
     if region == 'KakarikoVillage':
         controls = {
             'Vers la plaine d’Hyrule': (42, 346),

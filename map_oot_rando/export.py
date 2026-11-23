@@ -9,7 +9,7 @@ import sys
 
 from .metadata import (add_surface_entrances, bind_catalogue, event_check_rows, export_scan,
                        fire_check_rows, world_check_rows)
-from .model import REGION_NAMES, SURFACE_MIN_Y, UPSTREAM_REVISION, resource_region
+from .model import REGION_NAMES, SURFACE_MIN_Y, TRANSIT_REGIONS, UPSTREAM_REVISION, resource_region
 from .scene import extract_scenes
 
 
@@ -41,7 +41,8 @@ def scan_game(path, progress=None, world_checks=(), fire_checks=()):
     with nup.stream:
         members = effective_members(nup)
         maps, groups, _, extra = scan_world(nup, dictionaries(nup), members, progress)
-    document = export_scan(groups, extra, provenance='ootrr-scan', regions=tuple(REGION_NAMES))
+    check_regions = tuple(region for region in REGION_NAMES if region not in TRANSIT_REGIONS)
+    document = export_scan(groups, extra, provenance='ootrr-scan', regions=check_regions)
 
     def eligible(path, actor):
         return not inaccessible_child_actor(path, actor)
@@ -65,7 +66,7 @@ def import_seed(nup, checks, progress=None):
     """Read local inputs and prepare the map document shared by both entry points."""
     catalogue = json.loads(Path(checks).read_text(encoding='utf-8-sig'))
     world_checks = [check for check in catalogue['checks']
-                    if check['id'].partition('#')[0] in REGION_NAMES
+                    if check['id'].partition('#')[0] in REGION_NAMES.keys() - TRANSIT_REGIONS
                     and check['id'].count('#') == 2 and check['id'].split('#', 2)[1].isdecimal()]
     fire_checks = [check for check in catalogue['checks'] if check['id'].startswith('FireTemple#')]
     scanned = scan_game(nup, progress, world_checks, fire_checks)

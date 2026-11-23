@@ -1,6 +1,7 @@
 """Local Tk map. Importing this module never starts a tracker or memory reader."""
 from collections import Counter
 import json
+from math import cos, radians, sin
 from pathlib import Path
 from queue import Empty, Queue
 from threading import Event, Lock, Thread
@@ -8,36 +9,46 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from PIL import Image, ImageTk
 
-from .aerial import AerialImage, read_image
-from .aerial_dialog import align_image
-from .field_atlas import (CALIBRATION, REGION_CALIBRATION, REGION_MAPS, align_region_image,
+from .aerial import AerialImage
+from .field_atlas import (CALIBRATION, FIELD_FRAMES, REGION_CALIBRATION, REGION_MAPS, align_region_image,
                            align_kokiri_image, load_atlas_image, load_kokiri_image)
-from .map_projection import georeferenced_background
-from .questfern import PAUSE_MAPS, SOURCE_ID as PAUSE_SOURCE, align_pause_map, load_pause_map
+from .link_position import read_link_position
+from .lost_woods import CALIBRATION as LOST_CALIBRATION, SOURCE as LOST_SOURCE, lost_woods_plan
 from .export import import_seed
-from .model import REGION_NAMES, load_metadata, resource_region, select
+from .model import Location, REGION_NAMES, SURFACE_MIN_Y, load_metadata, resource_region, select
 from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
 from .scene import (BURNT_VILLAGE, DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS, FIRE_VIEWS, FLOOR_OPTIONS,
-                    GORON_CRATER_FLOOR, GORON_FLOORS,
+                    GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS,
                     NEIGHBORS, REGION_VIEWS,
                     UNDERGROUND_LABELS, UNDERGROUND_VIEWS, VIEWS,
                     field_atlas_scene, group_scenes, location_view, read_scenes, view_name)
 from .simulation import Simulation, demo_document
 from .view import Viewport
+from .world_map import WORLD_PINS, WORLD_SIZE, load_world_map
 
-PARCHMENT = '#d1bc80'
-PAPER_COLORS = dict(available='#176346', blocked='#aa2540', unknown='#40359b',
-                    completed='#535b6a', partial='#8a450d')
-PAUSE_SOURCES = {config.source for config in PAUSE_MAPS.values()}
-BUILTIN_BACKGROUNDS = PAUSE_SOURCES | {'field-atlas', *(source for maps in REGION_MAPS.values()
-                                                      for source, _ in maps.values())}
-OVERVIEW_SCALE = 0.6
+ATLAS_BACKGROUND = '#0d1f2e'
+WORLD_BACKGROUND = '#47351c'
+OVERVIEW_SCALE = 0.42
 
 COLORS = dict(available='#37b76b', blocked='#e45c5c', unknown='#e6c548', completed='#929ba5', partial='#ed9f57')
 LABELS = dict(available='Accessible', blocked='Bloqué', unknown='Inconnu', completed='Récupéré', partial='Partiellement accessible')
+
+
+def background_spec(view):
+    region, age = VIEWS.get(view, (None, None))
+    if view in UNDERGROUND_LABELS or GORON_FLOORS.get(view) == len(GORON_LEVELS) - 1:
+        return None
+    if region == 'KokiriForest':
+        return 'field-atlas', CALIBRATION, None
+    if region == 'LostWood':
+        return LOST_SOURCE, LOST_CALIBRATION, None
+    entry = REGION_MAPS.get(region, {}).get(DUNGEON_ATLAS_KEYS.get(view, age))
+    if entry:
+        return entry[0], REGION_CALIBRATION, entry[1]
+    return None
 
 
 class MapApplication:
@@ -47,6 +58,15 @@ class MapApplication:
         root.geometry('1180x760')
         self.viewport = Viewport()
         self.overview_open = False
+        self.world_loading = False
+        self.world_callback = None
+        self.world_image = None
+        self.world_photo_size = None
+        self.world_photo = None
+        self.link = None
+        self.link_area = None
+        self.link_stop = Event()
+        self.link_callback = None
         self.fitted_scale = self.viewport.scale
         self.selected = None
         self.drag = None
@@ -59,11 +79,15 @@ class MapApplication:
         self.import_events = Queue()
         self.atlas_images = {}
         self.atlas_generation = 0
+        self.atlas_callback = None
         self.save_generation = 0
         self.tracking_owner = Lock()
         self.tracking_stop = Event()
         self.use_live = Event()
         self.live_requested = tk.BooleanVar(value=False)
+        self.show_link = tk.BooleanVar(value=False)
+        self.follow_link = tk.BooleanVar(value=True)
+        self.link_status = tk.StringVar()
         root.protocol('WM_DELETE_WINDOW', self.close_window)
         self.save_profiles = profiles if profiles is not None else SaveProfiles(local_tracker_dir() / 'profiles.json')
         self.save_commands = None
@@ -106,13 +130,27 @@ class MapApplication:
         search = ttk.Entry(sidebar, textvariable=self.query, width=38)
         search.pack(fill='x')
         search.bind('<Return>', lambda e: self.choose_first())
-        ttk.Label(sidebar, text='Zone et âge').pack(anchor='w', pady=(10, 0))
-        self.resources = ttk.Combobox(sidebar, textvariable=self.resource, state='readonly', width=38)
-        self.resources.pack(fill='x')
-        self.resources.bind('<<ComboboxSelected>>', lambda e: self.resource_changed())
+        ttk.Label(sidebar, text='Zone').pack(anchor='w', pady=(10, 0))
+        self.zones = ttk.Combobox(sidebar, state='readonly', width=33)
+        self.zones.pack(fill='x')
+        self.zones.bind('<<ComboboxSelected>>', self.choose_zone)
+        ages = ttk.Frame(sidebar)
+        ages.pack(fill='x', pady=(4, 2))
+        self.age_buttons = {}
+        for age, label in (('Child', 'Enfant'), ('Adult', 'Adulte')):
+            button = ttk.Button(ages, text=label, command=lambda value=age: self.choose_age(value))
+            button.pack(side='left', padx=(0, 5))
+            self.age_buttons[age] = button
         self.follow_age_check = ttk.Checkbutton(sidebar, text='Suivre l’âge sauvegardé',
                                                 variable=self.follow_age, command=self.sync_age)
         self.follow_age_check.pack(anchor='w')
+        self.link_check = ttk.Checkbutton(sidebar, text='Position de Link (Ocarina Atlas)',
+                                          variable=self.show_link, command=self.configure_link)
+        self.link_check.pack(anchor='w')
+        self.follow_link_check = ttk.Checkbutton(sidebar, text='Suivre Link entre les zones',
+                                                 variable=self.follow_link, command=self.resume_follow_link)
+        self.follow_link_check.pack(anchor='w')
+        ttk.Label(sidebar, textvariable=self.link_status, wraplength=270).pack(anchor='w')
         ttk.Label(sidebar, text='Catégorie').pack(anchor='w', pady=(10, 0))
         self.categories = ttk.Combobox(sidebar, textvariable=self.category, state='readonly')
         self.categories.pack(fill='x')
@@ -143,20 +181,11 @@ class MapApplication:
         tools = ttk.Frame(panel)
         tools.pack(fill='x')
         ttk.Button(tools, text='Ajuster la vue', command=self.fit_detail).pack(side='left')
-        self.atlas_button = ttk.Menubutton(tools, text='Fond de carte ▾')
-        self.atlas_button.pack(side='left', padx=5)
-        backgrounds = tk.Menu(self.atlas_button, tearoff=False)
-        backgrounds.add_command(label='Carte du jeu (Questfern)',
-                                command=lambda: self.choose_atlas(PAUSE_SOURCE))
-        backgrounds.add_command(label='Field Atlas', command=lambda: self.choose_atlas('field-atlas'))
-        backgrounds.add_command(label='Ouvrir une image locale…', command=self.choose_aerial)
-        backgrounds.add_command(label='Afficher le schéma', command=self.remove_aerial)
-        self.atlas_button.configure(menu=backgrounds)
         self.neighbor_buttons = {
             region: ttk.Button(tools, text=name, command=lambda target=region: self.open_neighbor(target))
             for region, name in REGION_NAMES.items()
         }
-        self.overview_button = ttk.Button(tools, text='Zones voisines', command=self.toggle_overview)
+        self.overview_button = ttk.Button(tools, text='Carte d’Hyrule', command=self.toggle_overview)
         self.floor_button = ttk.Button(tools, command=self.toggle_floor)
         self.floor_picker = ttk.Combobox(tools, state='readonly', width=27)
         self.floor_picker.bind('<<ComboboxSelected>>', self.choose_floor)
@@ -177,18 +206,20 @@ class MapApplication:
     def load(self, document, *, seed_folder=None):
         locations = load_metadata(document)  # Validate before replacing current state.
         scenes = group_scenes(read_scenes(document))
-        aerial = {view_name(resource): AerialImage.from_document(row)
-                  for resource, row in sorted(document.get('aerial', {}).items())}
-        self.atlas_disabled = set()
+        synthetic = document['provenance'] == 'synthetic'
+        self.aerial = {}
+        for resource, row in sorted(document.get('aerial', {}).items()):
+            view = view_name(resource)
+            spec = background_spec(view)
+            if synthetic or spec and (row.get('source'), row.get('calibration')) == spec[:2]:
+                self.aerial[view] = AerialImage.from_document(row)
         self.atlas_failed = set()
         self.atlas_loading = None
         self.atlas_generation += 1
-        self.atlas_button.state(['!disabled'])
-        self.atlas_button.configure(text='Fond de carte ▾')
+        if self.atlas_callback is not None:
+            self.root.after_cancel(self.atlas_callback)
+            self.atlas_callback = None
         self.scenes = scenes
-        self.aerial = aerial
-        self.preferred_background = ('field-atlas' if document.get('preferred_background') == 'field-atlas'
-                                     else PAUSE_SOURCE)
         self.document = document
         self.seed_folder = seed_folder
         self.tracking_stop.set()
@@ -204,6 +235,9 @@ class MapApplication:
         self.save_detail = ''
         self.locations = locations
         self.simulation = Simulation(locations) if document['provenance'] == 'synthetic' else None
+        if self.simulation:
+            self.show_link.set(False)
+        self.link_check.state(['disabled' if self.simulation else '!disabled'])
         self.save_button.state(['disabled' if self.simulation else '!disabled'])
         track_state = 'disabled' if self.simulation or not document.get('seed_id') else '!disabled'
         self.track_button.state([track_state])
@@ -217,11 +251,17 @@ class MapApplication:
         if FIRE_VIEWS[0] in views:
             views.update(FIRE_VIEWS[:-1])
         for goron_views in GORON_VIEWS.values():
-            points = self.scenes.get(goron_views[0], {}).get('points', ())
-            if any(name == NEIGHBORS['GoronCity']['DeathMountainCrater'] for name, _ in points):
-                views.add(goron_views[GORON_CRATER_FLOOR])
+            points = {name for name, _ in self.scenes.get(goron_views[0], {}).get('points', ())}
+            for target, floor in (('DeathMountainCrater', GORON_CRATER_FLOOR),
+                                  ('LostWood', GORON_LOST_WOODS_FLOOR)):
+                if NEIGHBORS['GoronCity'][target] in points:
+                    views.add(goron_views[floor])
         prefer = [label for label in VIEWS if label in views]
-        self.resources['values'] = prefer + sorted(views - set(prefer))
+        self.views = prefer + sorted(views - set(prefer))
+        available_regions = {VIEWS[view][0] for view in self.views if view in VIEWS}
+        self.zone_targets = {label: region for region, label in REGION_NAMES.items() if region in available_regions}
+        self.zone_targets.update((view, None) for view in self.views if view not in VIEWS)
+        self.zones['values'] = tuple(self.zone_targets)
         first_positioned = next((location_view(r) for r in locations if r.position is not None), '')
         self.navigation_age = None
         self.resource.set(prefer[0] if prefer else first_positioned or next(iter(sorted(views)), ''))
@@ -233,6 +273,7 @@ class MapApplication:
             self.sim_controls.pack_forget()
         self.query.set('')
         self.resource_changed(manual=False)
+        self.configure_link()
         if not self.simulation:
             resume = self.save_profiles.get(self.store.seed_id, automatic=True)
             if resume:
@@ -314,8 +355,111 @@ class MapApplication:
         else:
             self.use_live.clear()
 
+    def configure_link(self):
+        self.link_stop.set()
+        if self.link_callback is not None:
+            self.root.after_cancel(self.link_callback)
+            self.link_callback = None
+        self.link = None
+        self.link_area = None
+        enabled = self.show_link.get() and not self.simulation
+        self.follow_link_check.state(['!disabled' if enabled else 'disabled'])
+        self.link_status.set('Connexion à Ocarina Atlas…' if enabled else '')
+        self.draw()
+        if not enabled:
+            return
+        cancel = self.link_stop = Event()
+        samples = Queue(maxsize=1)
+
+        def listen():
+            while not cancel.is_set():
+                position = read_link_position()
+                try:
+                    samples.get_nowait()
+                except Empty:
+                    pass
+                samples.put_nowait(position)
+                cancel.wait(0.3)
+
+        def publish():
+            try:
+                position = samples.get_nowait()
+            except Empty:
+                pass
+            else:
+                self.update_link(position)
+            self.link_callback = self.root.after(100, publish)
+
+        Thread(target=listen, daemon=True).start()
+        self.link_callback = self.root.after(100, publish)
+
+    def link_region(self):
+        scene = self.link.scene
+        return {'LostWoods': 'LostWood', 'ZorasRiver': 'ZoraRiver'}.get(scene, scene)
+
+    def link_view(self):
+        region = self.link_region()
+        age = self.link.age
+        if region not in REGION_VIEWS:
+            return None
+        view = self.view_for_region(region, age=age, from_portal=False)
+        if region in DUNGEON_FLOORS or region == 'GoronCity' or region in SURFACE_MIN_Y:
+            suffix = 'Static' if region in DUNGEON_FLOORS else f'{age}_Static'
+            path = f'Banc/{region}/{region}_{suffix}.bcett.byml.zs'
+            position = self.link.x, self.link.y, self.link.z
+            underground = region in SURFACE_MIN_Y and self.link.y < SURFACE_MIN_Y[region]
+            row = Location('', '', '', path, position, region=region, underground=underground)
+            level = location_view(row)
+            if region == 'FireTemple' and self.link.x < -68 and -15 < self.link.z < 15 and 95 < self.link.y < 112:
+                level = FIRE_VIEWS[-1]
+            if level in self.views:
+                return level
+            if region in DUNGEON_FLOORS and self.link.map_id:
+                return next((label for label in self.views if VIEWS.get(label) == (region, None)
+                             and DUNGEON_ATLAS_KEYS.get(label) == self.link.map_id), view)
+        return view
+
+    def update_link(self, position):
+        changed = self.link != position
+        self.link = position
+        area = (self.link_region(), position.age) if position else None
+        if area != self.link_area:
+            self.link_area = area
+            if self.follow_link.get() and self.resume_follow_link():
+                return
+        view = self.link_view() if position else None
+        self.link_status.set('Link en direct' if view else 'Zone de Link hors carte' if position
+                             else 'Ocarina Atlas · En attente de la mémoire du jeu')
+        if changed:
+            self.draw()
+
+    def resume_follow_link(self):
+        if self.follow_link.get() and self.link:
+            view = self.link_view()
+            if view and (self.resource.get() != view or self.overview_open):
+                self.resource.set(view)
+                self.link_status.set('Link en direct')
+                self.resource_changed(manual=False)
+                return True
+        return False
+
+    def draw_link_pin(self, x, y, yaw):
+        angle = radians(yaw)
+        axis_x, axis_y = sin(angle), -cos(angle)
+        arrow = (x + 12*axis_x, y + 12*axis_y,
+                 x - 5*axis_x - 7*axis_y, y - 5*axis_y + 7*axis_x,
+                 x - 2*axis_x, y - 2*axis_y,
+                 x - 5*axis_x + 7*axis_y, y - 5*axis_y - 7*axis_x)
+        self.canvas.create_oval(x-11, y-11, x+11, y+11, fill='#0a332f',
+                                outline='#9df4b4', width=2, tags='player-pin')
+        self.canvas.create_polygon(*arrow, fill='#9df4b4', outline='#0a332f', tags='player-pin')
+
     def close_window(self):
         self.tracking_stop.set()
+        self.link_stop.set()
+        for callback in (self.atlas_callback, self.world_callback, self.link_callback):
+            if callback is not None:
+                self.root.after_cancel(callback)
         self.root.destroy()
 
     def stop_tracking(self):
@@ -439,185 +583,86 @@ class MapApplication:
         if path:
             try:
                 with open(path, 'w', encoding='utf-8') as stream:
-                    json.dump(dict(self.document, preferred_background=self.preferred_background,
-                                   aerial={k: v.to_document() for k, v in self.aerial.items()}),
-                              stream, ensure_ascii=False, indent=2)
+                    document = dict(self.document, aerial={k: v.to_document() for k, v in self.aerial.items()})
+                    document.pop('preferred_background', None)
+                    json.dump(document, stream, ensure_ascii=False, indent=2)
             except OSError as error:
                 messagebox.showerror('Enregistrement impossible', str(error), parent=self.root)
 
-    def aerial_references(self, resource, *, include_checks=True, quiet=False):
-        reference_view = resource
-        if not include_checks and resource in FLOOR_OPTIONS:
-            reference_view = FLOOR_OPTIONS[resource][0][1]
-        scene = (self.scenes.get(reference_view, {}) if include_checks
-                 else field_atlas_scene(self.scenes, reference_view))
+    def aerial_references(self, resource):
+        reference_view = FLOOR_OPTIONS[resource][0][1] if resource in FLOOR_OPTIONS else resource
+        scene = field_atlas_scene(self.scenes, reference_view)
         references = [(name.replace('_', ' '), tuple(point))
                       for name, point in scene.get('points', ())]
         for name, low, high in scene.get('rooms', ()):
             label = 'shop room' if name == 'shop' else name.replace('_', ' ')
             references.append((label, ((low[0] + high[0])/2, (low[1] + high[1])/2)))
-        if include_checks:
-            references.extend((row.name, row.project()) for row in self.locations
-                              if location_view(row) == resource and row.position is not None)
-        if len({point for _, point in references}) < 3:
-            if quiet:
-                return None
-            messagebox.showinfo('Vue aérienne', 'Cette vue doit avoir au moins trois repères positionnés.',
-                                parent=self.root)
-            return None
         return references
 
-    def choose_aerial(self):
-        resource = self.resource.get()
-        path = filedialog.askopenfilename(parent=self.root, title='Choisir une image vue du ciel',
-                                          filetypes=[('PNG ou JPEG', '*.png *.jpg *.jpeg')])
-        if not path:
+    def ensure_atlas(self):
+        view = self.resource.get()
+        if self.simulation or self.atlas_loading or view in self.aerial or view in self.atlas_failed:
             return
-        try:
-            background = georeferenced_background(path)
-            if background:
-                self.aerial[resource] = background
-                self.render()
-                self.fit()
-                self.import_status.set('Fond aligné sur le fichier de coordonnées.')
-                return
-            image = read_image(path)
-        except (OSError, ValueError, Image.DecompressionBombError) as error:
-            messagebox.showerror('Image impossible à ouvrir', str(error), parent=self.root)
+        spec = background_spec(view)
+        if spec is None:
             return
-
-        references = self.aerial_references(resource)
-        if references is not None:
-            self.align_background(resource, image, references)
-
-    def choose_atlas(self, source):
-        region = self.current_region()
-        if region == 'KokiriForest':
-            self.preferred_background = source
-        elif (source == 'field-atlas') != (region in REGION_MAPS):
-            messagebox.showinfo('Fond de carte', 'Cette source de fond n’est pas intégrée pour cette zone.',
-                                parent=self.root)
+        source, _, digest = spec
+        region, age = VIEWS[view]
+        if region == 'LostWood':
+            self.aerial[view] = lost_woods_plan()
+            self.render()
+            self.fit()
             return
-        self.ensure_atlas(manual=True)
-
-    def ensure_atlas(self, *, manual=False):
-        resource = self.resource.get()
-        region, age = VIEWS.get(resource, (self.current_region(), None))
-        config = PAUSE_MAPS.get(region)
-        atlas_key = DUNGEON_ATLAS_KEYS.get(resource, age)
-        region_atlas = REGION_MAPS.get(region, {}).get(atlas_key)
-        if (self.simulation or resource not in VIEWS or resource in UNDERGROUND_LABELS
-                or GORON_FLOORS.get(resource) == len(GORON_LEVELS) - 1
-                or (config is None and region_atlas is None)):
-            if manual:
-                messagebox.showinfo('Fond de carte', 'Aucun fond intégré validé pour cette vue.',
-                                    parent=self.root)
+        atlas_key = DUNGEON_ATLAS_KEYS.get(view, age)
+        references = self.aerial_references(view)
+        if region not in FIELD_FRAMES and region != 'FireTemple' and len({point for _, point in references}) < 3:
             return
-        if region_atlas:
-            preferred, digest = region_atlas
-            calibration = REGION_CALIBRATION
-        elif region == 'KokiriForest' and self.preferred_background == 'field-atlas':
-            preferred, calibration = 'field-atlas', CALIBRATION
-        else:
-            preferred, calibration = config.source, config.calibration
-        saved = self.aerial.get(resource)
-        current = saved and (saved.source not in BUILTIN_BACKGROUNDS
-                             or (saved.source == preferred and saved.calibration == calibration))
-        if (self.atlas_loading or not manual and
-                (current or resource in self.atlas_disabled | self.atlas_failed)):
-            return
-        references = (() if region == 'FireTemple'
-                      else self.aerial_references(resource, include_checks=False, quiet=not manual))
-        if references is None:
-            return
-        generation = self.atlas_generation
-        # Older Field Atlas JSON saved the original, unwarped raster. Reuse it
-        # for an offline upgrade, but never warp a processed image twice.
-        cached = dict(self.atlas_images)
-        if saved and saved.source == 'field-atlas' and saved.calibration is None:
-            cached.setdefault('field-atlas', saved.image)
         details = [(row.name, row.project()) for row in self.locations
-                   if location_view(row) == resource and row.position is not None]
+                   if location_view(row) == view and row.position is not None]
+        generation = self.atlas_generation
+        cached = self.atlas_images.get(source)
         result = Queue()
-        self.atlas_loading = resource
-        self.atlas_button.state(['disabled'])
-        self.atlas_button.configure(text='Chargement du fond…')
+        self.atlas_loading = view
 
         def load():
-            candidates = [PAUSE_SOURCE, 'field-atlas'] if preferred == PAUSE_SOURCE and not manual else [preferred]
-            for source in candidates:
-                try:
-                    image = cached.get(source)
-                    if region_atlas:
-                        if image is None:
-                            width = 700 if resource in DUNGEON_ATLAS_KEYS else 650
-                            image = load_atlas_image(digest, width=width)
-                        background = align_region_image(image, references, region, atlas_key)
-                    elif source == 'field-atlas':
-                        if image is None:
-                            image = load_kokiri_image()
-                        background = align_kokiri_image(image, references, details)
-                    else:
-                        if image is None:
-                            image = load_pause_map(region)
-                        background = align_pause_map(image, references, details, region=region)
-                    cached[source] = image
-                    result.put((cached, background, None))
-                    return
-                except (OSError, ValueError) as error:
-                    problem = str(error)
-            result.put((cached, None, problem))
+            try:
+                if region == 'KokiriForest':
+                    image = cached if cached is not None else load_kokiri_image()
+                    background = align_kokiri_image(image, references, details)
+                else:
+                    width = 700 if view in DUNGEON_ATLAS_KEYS else 650
+                    image = cached if cached is not None else load_atlas_image(digest, width=width)
+                    background = align_region_image(image, references, region, atlas_key)
+                result.put((image, background))
+            except (OSError, ValueError):
+                result.put((None, None))
 
         def finish():
+            self.atlas_callback = None
             if generation != self.atlas_generation:
                 return
             try:
-                images, background, error = result.get_nowait()
+                image, background = result.get_nowait()
             except Empty:
-                self.root.after(100, finish)
+                self.atlas_callback = self.root.after(100, finish)
                 return
             self.atlas_loading = None
-            self.atlas_images = images
-            self.atlas_button.state(['!disabled'])
-            self.atlas_button.configure(text='Fond de carte ▾')
-            if error:
-                self.atlas_failed.add(resource)
-                if self.resource.get() == resource:
-                    self.import_status.set('Mise à jour du fond indisponible.' if saved else
-                                           'Fond indisponible. Vue schématique affichée.')
-                    if manual:
-                        messagebox.showerror('Fond indisponible', error, parent=self.root)
-            elif resource not in self.atlas_disabled or manual:
-                self.atlas_disabled.discard(resource)
-                if background.source == preferred:
-                    self.atlas_failed.discard(resource)
-                else:
-                    self.atlas_failed.add(resource)
-                self.aerial[resource] = background
-                if self.resource.get() == resource:
+            if background:
+                self.atlas_images[source] = image
+                self.aerial[view] = background
+                if self.resource.get() == view:
+                    self.import_status.set('')
                     self.render()
                     self.fit()
-                    label = 'Questfern' if background.source in PAUSE_SOURCES else 'Field Atlas'
-                    self.import_status.set(f'Fond {label} aligné.')
-            if self.resource.get() != resource:
+            else:
+                self.atlas_failed.add(view)
+                if self.resource.get() == view:
+                    self.import_status.set('Fond indisponible. Vue schématique affichée.')
+            if self.resource.get() != view:
                 self.ensure_atlas()
 
         Thread(target=load, daemon=True).start()
-        self.root.after(100, finish)
-
-    def align_background(self, resource, image, references):
-        def install(background):
-            self.aerial[resource] = background
-            self.fit()
-
-        align_image(self.root, image, references, install)
-
-    def remove_aerial(self):
-        view = self.resource.get()
-        self.atlas_disabled.add(view)
-        if self.aerial.pop(view, None) is not None:
-            self.render()
-            self.fit()
+        self.atlas_callback = self.root.after(100, finish)
 
     def open_metadata(self):
         path = filedialog.askopenfilename(filetypes=[('Métadonnées JSON', '*.json')])
@@ -676,30 +721,61 @@ class MapApplication:
     def sync_age(self):
         if not self.save_age or not self.follow_age.get():
             return
+        if self.follow_link.get() and self.link and self.link_region() == self.current_region():
+            return
+        if self.overview_open:
+            self.navigation_age = self.save_age
+            return
         if self.current_region() in DUNGEON_FLOORS:
             self.navigation_age = self.save_age
             self.refresh_navigation()
             return
         if self.resource.get() == BURNT_VILLAGE and self.save_age == 'Adult' and self.kakariko_burned is None:
             return
-        view = self.view_for_region(self.current_region(), age=self.save_age)
-        if self.resource.get() in GORON_FLOORS:
-            same_floor = GORON_VIEWS[self.save_age][GORON_FLOORS[self.resource.get()]]
-            if same_floor in self.resources['values']:
-                view = same_floor
-        if self.resource.get() in UNDERGROUND_LABELS:
-            underground = UNDERGROUND_VIEWS[self.current_region()][self.save_age]
-            if underground in self.resources['values']:
-                view = underground
+        view = self.view_for_age(self.save_age)
         if view and view != self.resource.get():
             self.resource.set(view)
             self.resource_changed(manual=False)
+
+    def view_for_age(self, age):
+        view = self.view_for_region(self.current_region(), age=age, from_portal=False)
+        if self.resource.get() in GORON_FLOORS:
+            same_floor = GORON_VIEWS[age][GORON_FLOORS[self.resource.get()]]
+            if same_floor in self.views:
+                view = same_floor
+        if self.resource.get() in UNDERGROUND_LABELS:
+            underground = UNDERGROUND_VIEWS[self.current_region()][age]
+            if underground in self.views:
+                view = underground
+        return view
+
+    def choose_age(self, age):
+        if self.current_region() in DUNGEON_FLOORS:
+            self.navigation_age = age
+            self.follow_age.set(False)
+            self.refresh_navigation()
+            self.draw()
+            return
+        view = self.view_for_age(age)
+        if view:
+            self.resource.set(view)
+            self.resource_changed()
+
+    def choose_zone(self, _event):
+        target = self.zones.get()
+        region = self.zone_targets.get(target)
+        view = self.browse_view(region) if region else target
+        if view in self.views:
+            self.resource.set(view)
+            self.resource_changed(manual=False)
+        else:
+            self.refresh_navigation()
 
     def current_region(self):
         view = self.resource.get()
         return VIEWS[view][0] if view in VIEWS else resource_region(view) or 'KokiriForest'
 
-    def view_for_region(self, region, *, age=None):
+    def view_for_region(self, region, *, age=None, from_portal=True):
         if age is None:
             _, age = VIEWS.get(self.resource.get(), (self.current_region(), self.save_age))
         if age is None:
@@ -707,18 +783,29 @@ class MapApplication:
         # A known age must be preserved across the transition.
         ages = REGION_VIEWS[region]
         candidates = (ages[age],) if age in ages else ages.values()
-        if region == 'GoronCity' and self.current_region() == 'DeathMountainCrater' and age in GORON_VIEWS:
-            candidates = (GORON_VIEWS[age][GORON_CRATER_FLOOR], *candidates)
+        if from_portal and region == 'GoronCity' and age in GORON_VIEWS:
+            origin = self.current_region()
+            floor = {'DeathMountainCrater': GORON_CRATER_FLOOR,
+                     'LostWood': GORON_LOST_WOODS_FLOOR}.get(origin)
+            if floor is not None:
+                candidates = (GORON_VIEWS[age][floor], *candidates)
         if (region == 'KakarikoVillage' and age == 'Adult' and self.follow_age.get()
                 and self.kakariko_burned):
             candidates = (BURNT_VILLAGE, *candidates)
-        return next((view for view in candidates if view in self.resources['values']), None)
+        return next((view for view in candidates if view in self.views), None)
 
     def open_neighbor(self, region):
-        view = self.view_for_region(region)
+        view = self.browse_view(region) if self.overview_open else self.view_for_region(region)
         if view:
             self.resource.set(view)
             self.resource_changed(manual=False)
+
+    def browse_view(self, region):
+        view = self.view_for_region(region, from_portal=False)
+        return view or next((label for label in self.views if VIEWS.get(label, (None, None))[0] == region), None)
+
+    def world_targets(self):
+        return {region: view for region in WORLD_PINS if (view := self.browse_view(region))}
 
     def available_neighbors(self):
         region = self.current_region()
@@ -731,7 +818,7 @@ class MapApplication:
             return None
         underground = UNDERGROUND_VIEWS[region][age]
         target = REGION_VIEWS[region][age] if view == underground else underground
-        return target if target in self.resources['values'] else None
+        return target if target in self.views else None
 
     def toggle_floor(self):
         view = self.floor_target()
@@ -750,6 +837,11 @@ class MapApplication:
         if age is not None:
             self.navigation_age = age
         name = REGION_NAMES[region]
+        self.zones.set(name if self.resource.get() in VIEWS else self.resource.get())
+        for choice, button in self.age_buttons.items():
+            supported = region in DUNGEON_FLOORS or self.view_for_age(choice)
+            active = choice == (age or self.navigation_age)
+            button.state(['disabled' if self.simulation or active or not supported else '!disabled'])
         self.banner.set('SIMULATION - noms et positions fictifs' if self.simulation else
                         f'{name} - seed importée')
         neighbors = self.available_neighbors() if not self.simulation else []
@@ -758,7 +850,7 @@ class MapApplication:
                 button.pack(side='left', padx=5)
             else:
                 button.pack_forget()
-        if neighbors:
+        if not self.simulation and self.world_targets():
             self.overview_button.pack(side='left', padx=5)
         else:
             self.overview_button.pack_forget()
@@ -772,7 +864,7 @@ class MapApplication:
         view = self.resource.get()
         if view in FLOOR_OPTIONS:
             self.floor_picker.configure(values=tuple(level for level, floor_view in FLOOR_OPTIONS[view]
-                                                    if floor_view in self.resources['values']))
+                                                    if floor_view in self.views))
             self.floor_picker.set(next(level for level, floor_view in FLOOR_OPTIONS[view] if floor_view == view))
             self.floor_picker.pack(side='left', padx=5)
         else:
@@ -786,10 +878,10 @@ class MapApplication:
         self.manual_button.pack_forget()
         self.details.set('Sélectionnez un emplacement.')
         self.refresh_navigation()
-        if self.current_region() == 'LostWood':
-            self.import_status.set('')
+        self.import_status.set('')
         self.render()
         self.fit()
+        self.atlas_failed.discard(self.resource.get())
         self.ensure_atlas()
 
     def outside(self, row):
@@ -802,10 +894,6 @@ class MapApplication:
         else:
             self.draw()
 
-    def display_point(self, point):
-        aerial = self.aerial.get(self.resource.get())
-        return aerial.image_point(point) if aerial and aerial.source in PAUSE_SOURCES else point
-
     def fit_detail(self):
         self.overview_open = False
         self.fit()
@@ -813,23 +901,47 @@ class MapApplication:
     def toggle_overview(self):
         if self.overview_open:
             self.fit_detail()
-        elif not self.simulation and self.available_neighbors():
-            self.overview_open = True
-            self.draw()
+        elif not self.simulation and self.world_targets():
+            self.show_world()
+
+    def show_world(self):
+        self.overview_open = True
+        self.draw()
+        if self.world_image is not None or self.world_loading is True:
+            return
+        self.world_loading = True
+        result = Queue()
+
+        def prepare():
+            try:
+                result.put(load_world_map())
+            except (OSError, ValueError):
+                result.put(None)
+
+        def finish():
+            self.world_callback = None
+            try:
+                self.world_image = result.get_nowait()
+            except Empty:
+                self.world_callback = self.root.after(100, finish)
+                return
+            self.world_loading = 'unavailable' if self.world_image is None else False
+            if self.overview_open:
+                self.draw()
+
+        Thread(target=prepare, daemon=True).start()
+        self.world_callback = self.root.after(100, finish)
 
     def fit(self):
         self.fit_pending = self.canvas.winfo_width() <= 1 or self.canvas.winfo_height() <= 1
         if self.fit_pending:
             return
-        points = [self.display_point(r.project()) for r in self.visible if location_view(r) == self.resource.get() and r.position is not None
+        points = [r.project() for r in self.visible if location_view(r) == self.resource.get() and r.position is not None
                   and (self.show_outside.get() or not self.outside(r))]
         aerial = self.aerial.get(self.resource.get())
         scene = self.scenes.get(self.resource.get(), {}) if not aerial else {}
         if aerial:
-            if aerial.source in PAUSE_SOURCES:
-                points.extend(((0, 0), aerial.image.size))
-            else:
-                points.extend(aerial.corners())
+            points.extend(aerial.corners())
         points.extend(point for _, point in scene.get('points', ()))
         for _, low, high in scene.get('rooms', ()):
             points.extend((low, high))
@@ -838,29 +950,39 @@ class MapApplication:
         self.draw()
 
     def draw_overview(self, width, height):
+        self.canvas.configure(background=WORLD_BACKGROUND)
+        map_w, map_h = WORLD_SIZE
+        scale = min(width / map_w, height / map_h)
+        size = max(1, round(map_w * scale)), max(1, round(map_h * scale))
+        left, top = (width - size[0])/2, (height - size[1])/2
+        if self.world_image is not None:
+            if self.world_photo_size != size:
+                self.world_photo = ImageTk.PhotoImage(self.world_image.resize(size, Image.Resampling.LANCZOS),
+                                                      master=self.canvas)
+                self.world_photo_size = size
+            self.canvas.create_image(left, top, anchor='nw', image=self.world_photo, tags='world-map')
         region = self.current_region()
-        neighbors = self.available_neighbors()
-        self.canvas.configure(background=PARCHMENT)
-        self.canvas.create_text(12, 12, anchor='nw', fill='#292019', text='Zones voisines')
-        self.canvas.create_text(12, 32, anchor='nw', fill='#292019',
-                                text='Clique sur une zone pour l’ouvrir. Zoome pour revenir.')
-        middle = len(neighbors) // 2
-        regions = [*neighbors[:middle], region, *neighbors[middle:]]
-        span = min(width / len(regions), 270)
-        card = min(span * 0.44, 105)
-        y = max(height * 0.53, 80)
-        xs = {name: width / 2 + (index - (len(regions) - 1)/2) * span
-              for index, name in enumerate(regions)}
-        for neighbor in neighbors:
-            self.canvas.create_line(xs[region], y, xs[neighbor], y, fill='#7b6845', width=3)
-        for name, x in xs.items():
-            active = name == region
-            box = self.canvas.create_rectangle(x-card, y-28, x+card, y+28, width=2,
-                                               outline='#645237', fill='#30544e' if active else '#eee0b6')
-            label = self.canvas.create_text(x, y, width=card * 1.85, justify='center',
-                                            text=REGION_NAMES[name],
-                                            fill='#fff9e9' if active else '#292019')
-            self.navigation_markers[box] = self.navigation_markers[label] = name
+        for target in self.world_targets():
+            u, v = WORLD_PINS[target]
+            x, y = left + u * size[0], top + v * size[1]
+            color = '#8ae8c1' if target == region else '#ffca91' if target in DUNGEON_FLOORS else '#fff3ca'
+            if target in DUNGEON_FLOORS:
+                pin = self.canvas.create_polygon(x, y-7, x+7, y, x, y+7, x-7, y,
+                                                 fill=color, outline='#2e2718', width=2)
+            else:
+                pin = self.canvas.create_oval(x-6, y-6, x+6, y+6, fill=color, outline='#2e2718', width=2)
+            label = self.canvas.create_text(x, y+10, anchor='n', text=REGION_NAMES[target], fill='#fff7de')
+            l, t, r, b = self.canvas.bbox(label)
+            box = self.canvas.create_rectangle(l-3, t-1, r+3, b+1, outline='#9a7947', fill='#342615')
+            self.canvas.tag_lower(box, label)
+            for item in (pin, label, box):
+                self.navigation_markers[item] = target
+            if self.link and self.link_region() == target:
+                self.draw_link_pin(x + 12, y - 12, self.link.yaw)
+        text = 'Hyrule · Choisis une zone'
+        if self.world_loading == 'unavailable':
+            text = 'Hyrule · Illustration indisponible'
+        self.canvas.create_text(12, 12, anchor='nw', text=text, fill='#fff7de')
 
     def draw(self):
         if not hasattr(self, 'visible'):
@@ -876,7 +998,6 @@ class MapApplication:
         scene = self.scenes.get(self.resource.get())
         captions = []
         aerial = self.aerial.get(self.resource.get())
-        parchment = bool(aerial and aerial.source in PAUSE_SOURCES)
         region = self.current_region()
         name = REGION_NAMES[region]
         if self.resource.get() in GORON_FLOORS:
@@ -887,31 +1008,30 @@ class MapApplication:
         if not self.simulation:
             for neighbor, portal in NEIGHBORS[region].items():
                 portal_scene = scene or {}
-                if region == 'GoronCity' and neighbor == 'DeathMountainCrater':
-                    if GORON_FLOORS.get(self.resource.get()) != GORON_CRATER_FLOOR:
+                if region == 'GoronCity' and neighbor in {'DeathMountainCrater', 'LostWood'}:
+                    floor = GORON_CRATER_FLOOR if neighbor == 'DeathMountainCrater' else GORON_LOST_WOODS_FLOOR
+                    if GORON_FLOORS.get(self.resource.get()) != floor:
                         continue
                     age = VIEWS[self.resource.get()][1]
                     portal_scene = self.scenes.get(GORON_VIEWS[age][0], {})
                 points = {tuple(p) for label, p in portal_scene.get('points', ()) if label == portal}
                 if len(points) == 1 and self.view_for_region(neighbor):
                     exits[portal] = (neighbor, points.pop())
-        heading_color = '#292019' if parchment else '#d2e1da'
+        heading_color = '#d2e1da'
         if aerial:
-            self.canvas.configure(background=PARCHMENT if parchment else '#18252b')
-            raster = (aerial.render_image_view(self.viewport, (width, height), fillcolor=PARCHMENT, blend_paper=True)
-                      if parchment else aerial.render(self.viewport, (width, height)))
+            self.canvas.configure(background=ATLAS_BACKGROUND)
+            raster = aerial.render(self.viewport, (width, height), fillcolor=ATLAS_BACKGROUND)
             self.background_photo = ImageTk.PhotoImage(raster, master=self.canvas)
             self.canvas.create_image(0, 0, image=self.background_photo, anchor='nw', tags='aerial')
-            heading = (f'{name} | Carte du jeu · Questfern' if parchment
-                       else f'{name} | Field Atlas' if aerial.source in BUILTIN_BACKGROUNDS
-                       else f'{name} | Vue aérienne calibrée')
+            attribution = 'Itinéraire vers le Bosquet sacré' if aerial.source == LOST_SOURCE else 'Field Atlas'
+            heading = f'{name} | {attribution}'
         elif scene:
-            self.canvas.configure(background='#263c34')
+            self.canvas.configure(background=ATLAS_BACKGROUND)
             for name, low, high in scene['rooms']:
                 x1, y1 = self.viewport.screen(low)
                 x2, y2 = self.viewport.screen(high)
-                self.canvas.create_rectangle(x1, y1, x2, y2, fill='#466356',
-                                             outline='#aacbb4', width=2, tags='scene')
+                self.canvas.create_rectangle(x1, y1, x2, y2, fill='#1f5577',
+                                             outline='#7bb6ce', width=2, tags='scene')
                 captions.append((name, (x1 + x2) / 2, min(y1, y2) - 10))
             for name, point in scene['points']:
                 if name in exits:
@@ -922,7 +1042,7 @@ class MapApplication:
                 captions.append((name, x, y - 13))
             heading = f'{REGION_NAMES[region]} | Repères du jeu (schéma)'
         else:
-            self.canvas.configure(background='#18252b')
+            self.canvas.configure(background=ATLAS_BACKGROUND)
             step, xs, ys = self.viewport.grid(width, height)
             for x in xs:
                 self.canvas.create_line(x, 0, x, height, fill='#2c414a')
@@ -932,29 +1052,28 @@ class MapApplication:
                        if self.resource.get() in UNDERGROUND_LABELS or self.resource.get() in FLOOR_OPTIONS
                        else f'Schéma X/Z | Grille : {step:g} unités')
         self.canvas.create_text(12, 12, anchor='nw', fill=heading_color, text=heading)
+        exit_names = {}
         for neighbor, exit_point in exits.values():
             if aerial and not aerial.covers(exit_point):
                 continue
-            x, y = self.viewport.screen(self.display_point(exit_point))
+            x, y = self.viewport.screen(exit_point)
             marker = self.canvas.create_polygon(x, y-9, x+9, y, x, y+9, x-9, y,
                                                 fill='#147c82', outline='#ebfbef', width=2,
                                                 tags=('zone-navigation',))
             self.navigation_markers[marker] = neighbor
-            captions.append((REGION_NAMES[neighbor], x, y - 16))
+            exit_name = REGION_NAMES[neighbor]
+            exit_names[exit_name] = neighbor
+            captions.append((exit_name, x, y - 16))
         rows = [row for row in self.visible if location_view(row) == self.resource.get()
                 and row.position is not None
                 and (self.show_outside.get() or row == self.selected or not self.outside(row))]
         rows.sort(key=lambda row: row == self.selected)
         labels = []
         for row in rows:
-            x, y = self.viewport.screen(self.display_point(row.project()))
-            palette = PAPER_COLORS if parchment else COLORS
-            color = palette[self.store.states.get(row.id, 'unknown')]
-            radius = 5.5 if parchment else 7
-            outline = '#fff9ea' if parchment or row == self.selected else color
-            if parchment and row == self.selected:
-                ring = radius + 3
-                self.canvas.create_oval(x-ring, y-ring, x+ring, y+ring, outline='#252038', width=2)
+            x, y = self.viewport.screen(row.project())
+            color = COLORS[self.store.states.get(row.id, 'unknown')]
+            radius = 7
+            outline = '#fff9ea' if row == self.selected else color
             item = self.canvas.create_oval(x-radius, y-radius, x+radius, y+radius,
                                           fill=color, outline=outline, width=2, tags='check-pin')
             self.markers[item] = row
@@ -978,11 +1097,11 @@ class MapApplication:
             used.append((left, top, right, bottom))
             if row is not None:
                 self.markers[label] = row
-                if parchment:
-                    box = self.canvas.create_rectangle(left-2, top-1, right+2, bottom+1,
-                                                       fill='#2d263b', outline='', tags='check-label')
-                    self.canvas.tag_lower(box, label)
-                    self.markers[box] = row
+            elif name in exit_names:
+                self.navigation_markers[label] = exit_names[name]
+        if self.link and self.resource.get() == self.link_view():
+            x, y = self.viewport.screen((self.link.x, self.link.z))
+            self.draw_link_pin(x, y, self.link.yaw)
         if not self.markers:
             self.canvas.create_text(25, 35, anchor='nw', text='Aucun marqueur positionné pour cette vue.', fill=heading_color)
 
@@ -998,7 +1117,7 @@ class MapApplication:
                 self.resource.set(target)
                 self.refresh_navigation()
                 self.ensure_atlas()
-            self.viewport.center(self.display_point(row.project()), self.canvas.winfo_width(),
+            self.viewport.center(row.project(), self.canvas.winfo_width(),
                                  self.canvas.winfo_height())
         self.show_details()
         self.draw()
@@ -1077,9 +1196,10 @@ class MapApplication:
             return
         self.viewport.zoom(factor, (x, y))
         if (factor < 1 and self.viewport.scale < self.fitted_scale * OVERVIEW_SCALE
-                and not self.simulation and self.available_neighbors()):
-            self.overview_open = True
-        self.draw()
+                and not self.simulation and self.world_targets()):
+            self.show_world()
+        else:
+            self.draw()
 
     def simulate(self, status):
         if self.simulation and self.selected:

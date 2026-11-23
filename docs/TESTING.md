@@ -1,5 +1,15 @@
 # Validation
 
+Les tests Tk couvrent le dézoom vers la carte générale, la navigation par âge,
+les raccourcis des Bois Perdus dans les deux sens et le suivi de Link avec ou
+sans changement automatique de zone. Les tests de télémétrie filtrent les
+positions périmées et les positions issues de la sauvegarde.
+Les projections Field Atlas de la plaine, du Bosquet sacré et de la rivière
+Zora ont été recoupées avec les passages des scènes publiques.
+Une session Tk a chargé les vrais fonds et l’illustration d’Hyrule. Un
+serveur local simulant Ocarina Atlas a vérifié le parcours jusqu’à l’affichage
+du marqueur. Une partie réelle dans l’émulateur reste à vérifier.
+
 Le catalogue de référence du Temple du Feu compte 40 checks. Les deux scènes
 publiques et les résolveurs de placement en retrouvent 40, dont Volvagia et
 son cœur. Les 38 autres marqueurs tombent sur le dessin de leur étage ou à

@@ -7,9 +7,14 @@ position dans deux régions, comme le coffre du pont, et garde un état unique
 dans le tracker. La navigation par entrée conserve l’âge et chaque vue
 calcule son cadrage dans ses propres coordonnées.
 
-La vue **Zones voisines** utilise les relations entre zones. La molette
-l’ouvre au-delà d’un seuil par rapport au cadrage de la carte active.
-Les liens servent à naviguer entre les cartes calibrées indépendamment.
+La **Carte d’Hyrule** s’ouvre au dézoom et place toutes les zones disponibles
+sur une illustration à l’aide de coordonnées normalisées. Les passages locaux
+utilisent leurs coordonnées de scène. Le sélecteur de zone, les boutons d’âge
+et le sélecteur d’étage manipulent la même vue.
+Le marqueur de Link interroge l’API locale d’Ocarina Atlas en lecture seule.
+La position est validée par date, source mémoire, scène, âge et coordonnées.
+La navigation suivie réagit aux transitions, tandis que les checks viennent
+de la session indépendante OotrR.
 Le champ facultatif `entrance` indique où accéder à un check souterrain
 sur une carte de surface. Le rendu projette cet accès et les détails
 conservent la position XYZ de l’acteur.

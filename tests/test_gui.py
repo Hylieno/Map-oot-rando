@@ -22,7 +22,7 @@ class GuiTests(unittest.TestCase):
 
     def tearDown(self):
         if hasattr(self, 'root'):
-            self.root.destroy()
+            self.app.close_window()
             self.assertEqual(self.errors, [])
 
     def test_search_selection_marker_update_and_filters(self):
@@ -175,18 +175,20 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(len(app.visible), 1)
         self.assertFalse(app.canvas.find_withtag('aerial'))
 
-    def test_import_automatically_loads_pause_map_without_dialog(self):
+    def test_import_automatically_loads_field_atlas_over_legacy_preference(self):
         from unittest.mock import patch
         from PIL import Image
-        from map_oot_rando.questfern import LANDMARKS, SIZE, SOURCE_ID
+        from map_oot_rando.field_atlas import HOUSE_PIXELS
 
         resource = 'Banc/KokiriForest/KokiriForest_Adult_Dynamic.bcett.byml.zs'
         doc = demo_document()
         doc['provenance'] = 'ootrr-scan'
         doc['locations'] = [dict(doc['locations'][0], resource=resource)]
+        doc['preferred_background'] = 'questfern-kokiri'
+        doc['aerial'] = {resource: {'source': 'questfern-kokiri', 'calibration': 1}}
         doc['scenes'] = {resource: dict(
             rooms=[(name.replace(' ', '_'), [x-1, y-1], [x+1, y+1])
-                   for name, (x, y) in LANDMARKS.items() if name.endswith('house')],
+                   for name, (x, y) in HOUSE_PIXELS.items()],
             points=[],
         )}
         app = self.app
@@ -197,30 +199,27 @@ class GuiTests(unittest.TestCase):
             else:
                 self.root.after(20, wait_for_background)
 
-        with (patch('map_oot_rando.gui.load_pause_map',
-                    return_value=Image.new('RGB', SIZE, 'white')) as download,
-              patch('map_oot_rando.gui.align_image') as manual):
+        with patch('map_oot_rando.gui.load_kokiri_image',
+                   return_value=Image.new('RGB', (1800, 996), '#1f5577')) as download:
             app.load(doc)
             self.root.after(20, wait_for_background)
             deadline = self.root.after(2000, self.root.quit)
             self.root.mainloop()
             self.root.after_cancel(deadline)
             self.assertTrue(app.canvas.find_withtag('aerial'))
-            self.assertEqual(app.aerial[app.resource.get()].source, SOURCE_ID)
+            self.assertEqual(app.aerial[app.resource.get()].source, 'field-atlas')
             download.assert_called_once()
-            manual.assert_not_called()
 
-    def test_parchment_uses_image_coordinates_and_high_contrast_checks(self):
+    def test_atlas_uses_world_coordinates_and_a_uniform_canvas(self):
         from PIL import Image
         from map_oot_rando.aerial import AerialImage
-        from map_oot_rando.gui import PAPER_COLORS, PARCHMENT
-        from map_oot_rando.questfern import SOURCE_ID
+        from map_oot_rando.gui import ATLAS_BACKGROUND
 
         doc = demo_document()
         row = doc['locations'][0]
         a = AerialImage(Image.new('RGB', (200, 160), '#26774a'),
                         [(0, 0), (200, 0), (0, 160)], [(-50, -50), (50, -40), (-40, 50)],
-                        source=SOURCE_ID)
+                        source='field-atlas')
         doc['aerial'] = {row['resource']: a.to_document()}
         app = self.app
         app.load(doc)
@@ -230,9 +229,8 @@ class GuiTests(unittest.TestCase):
         app.choose(loc)
         marker = next(item for item, r in app.markers.items()
                       if r == loc and app.canvas.type(item) == 'oval')
-        self.assertEqual(app.canvas.cget('background'), PARCHMENT)
-        self.assertEqual(app.canvas.itemcget(marker, 'fill'), PAPER_COLORS['unknown'])
-        self.assertTrue(app.canvas.find_withtag('check-label'))
+        self.assertEqual(app.canvas.cget('background'), ATLAS_BACKGROUND)
+        self.assertEqual(app.canvas.itemcget(marker, 'fill'), COLORS['unknown'])
         x1, y1, x2, y2 = app.canvas.coords(marker)
         self.assertAlmostEqual((x1 + x2) / 2, app.canvas.winfo_width() / 2)
         self.assertAlmostEqual((y1 + y2) / 2, app.canvas.winfo_height() / 2)
@@ -283,6 +281,7 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(app.resource.get(), AGE_VIEWS['Adult'])
 
     def test_adjacent_zone_preserves_age_and_shared_check_state(self):
+        from PIL import Image
         from map_oot_rando.scene import REGION_VIEWS
 
         app = self.app
@@ -297,12 +296,12 @@ class GuiTests(unittest.TestCase):
         doc['scenes'] = {child_resource: {'rooms': [], 'points': [('front_of_lost_wood_entrance', (10, 20))]}}
         app.load(doc)
         self.assertEqual({r.id for r in app.visible}, {row['id']})
-        portal, = app.navigation_markers
+        portal, = app.canvas.find_withtag('zone-navigation')
         left, top, right, bottom = app.canvas.bbox(portal)
         app.press(SimpleNamespace(x=(left + right) // 2, y=(top + bottom) // 2))
         self.assertEqual(app.resource.get(), REGION_VIEWS['LostWood']['Child'])
         self.assertEqual({r.id for r in app.visible}, {row['id'], 'lost-event'})
-        self.assertFalse(app.canvas.find_withtag('aerial'))
+        self.assertTrue(app.canvas.find_withtag('aerial'))
         app.store.states[row['id']] = 'completed'
         app.save_age = 'Adult'
         app.sync_age()
@@ -311,10 +310,13 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(app.resource.get(), REGION_VIEWS['KokiriForest']['Adult'])
         self.assertEqual(app.store.states[row['id']], 'completed')
 
-        for _ in range(3):
+        app.world_image = Image.new('RGB', (600, 436), '#d8c9a3')
+        for _ in range(5):
             app.zoom(1 / 1.2, 100, 100)
         self.assertTrue(app.overview_open)
-        self.assertEqual(set(app.navigation_markers.values()), {'KokiriForest', 'LostWood', 'HyruleField'})
+        self.assertTrue(app.canvas.find_withtag('world-map'))
+        self.assertIn('Graveyard', app.navigation_markers.values())
+        self.assertIn('DeathMountainCrater', app.navigation_markers.values())
         field = next(item for item, name in app.navigation_markers.items() if name == 'HyruleField')
         left, top, right, bottom = app.canvas.bbox(field)
         app.press(SimpleNamespace(x=(left + right) // 2, y=(top + bottom) // 2))
@@ -468,6 +470,69 @@ class GuiTests(unittest.TestCase):
             load_background.assert_called_once_with()
         app.open_neighbor('DeathMountainCrater')
         self.assertEqual(app.resource.get(), REGION_VIEWS['DeathMountainCrater']['Adult'])
+
+    def test_lost_woods_shortcuts_and_age_buttons(self):
+        from unittest.mock import patch
+        from map_oot_rando.scene import GORON_LOST_WOODS_FLOOR, GORON_VIEWS, REGION_VIEWS
+
+        app = self.app
+        regions = ('KokiriForest', 'LostWood', 'GoronCity', 'ZoraRiver')
+
+        def resource(region, age):
+            return f'Banc/{region}/{region}_{age}_Static.bcett.byml.zs'
+
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=list(regions), locations=[])
+        points = {
+            'LostWood': [('Vers le Village Goron', (24, -35.66)), ('Vers la Rivière Zora', (68.5, -25.6))],
+            'GoronCity': [('Repère des Bois Perdus', (26.7, -3.18))],
+            'ZoraRiver': [('Vers les Bois Perdus', (122.57, -11.8))],
+        }
+        doc['scenes'] = {resource(region, age): {'rooms': [], 'points': points[region]}
+                         for region in points for age in ('Child', 'Adult')}
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        self.assertEqual(app.zones.get(), 'Bois Perdus')
+        self.assertIn('Village Goron', app.zones['values'])
+        self.assertFalse(any('Adulte' in label for label in app.zones['values']))
+        app.age_buttons['Adult'].invoke()
+        self.assertEqual(app.resource.get(), REGION_VIEWS['LostWood']['Adult'])
+        for target, view in [('GoronCity', GORON_VIEWS['Adult'][GORON_LOST_WOODS_FLOOR]),
+                             ('ZoraRiver', REGION_VIEWS['ZoraRiver']['Adult'])]:
+            exits = app.canvas.find_withtag('zone-navigation')
+            pin = next(item for item in exits if app.navigation_markers[item] == target)
+            l, t, r, b = app.canvas.bbox(pin)
+            app.press(SimpleNamespace(x=(l+r)//2, y=(t+b)//2))
+            self.assertEqual(app.resource.get(), view)
+            self.assertIn('LostWood', app.navigation_markers.values())
+            app.open_neighbor('LostWood')
+            self.assertEqual(app.resource.get(), REGION_VIEWS['LostWood']['Adult'])
+
+    def test_link_pin_and_zone_follow_can_be_used_independently(self):
+        from dataclasses import replace
+        from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
+        from map_oot_rando.scene import REGION_VIEWS
+
+        app = self.app
+        regions = ('KokiriForest', 'LostWood', 'HyruleField')
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=list(regions), locations=[])
+        doc['scenes'] = {f'Banc/{region}/{region}_Child_Static.bcett.byml.zs':
+                         {'rooms': [], 'points': [('Centre', (0, 0))]} for region in regions}
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        sample = LinkPosition('KokiriForest', 'Child', 'principal', 0, 100, 0, 90)
+        app.update_link(sample)
+        self.assertTrue(app.canvas.find_withtag('player-pin'))
+        app.update_link(replace(sample, scene='LostWoods'))
+        self.assertEqual(app.resource.get(), REGION_VIEWS['LostWood']['Child'])
+        app.follow_link.set(False)
+        app.update_link(replace(sample, scene='HyruleField'))
+        self.assertEqual(app.current_region(), 'LostWood')
+        self.assertFalse(app.canvas.find_withtag('player-pin'))
+        app.open_neighbor('HyruleField')
+        self.assertTrue(app.canvas.find_withtag('player-pin'))
+        app.update_link(None)
+        self.assertFalse(app.canvas.find_withtag('player-pin'))
 
     def test_overlapping_markers_can_both_be_selected(self):
         from unittest.mock import patch

@@ -10,6 +10,7 @@ REGION_VIEWS = {region: {'Child': f'{name} · Enfant', 'Adult': f'{name} · Adul
 GORON_LEVELS = ('Galerie supérieure', 'Galerie intermédiaire haute', 'Galerie intermédiaire basse',
                 'Rez-de-chaussée', 'Grotte')
 GORON_CRATER_FLOOR = 3
+GORON_LOST_WOODS_FLOOR = 2
 GORON_VIEWS = {age: tuple(f'{view} · {level}' for level in GORON_LEVELS)
                for age, view in REGION_VIEWS['GoronCity'].items()}
 REGION_VIEWS['GoronCity'] = {age: views[0] for age, views in GORON_VIEWS.items()}
@@ -45,7 +46,8 @@ VIEWS.update({view: (region, None) for region, floors in DUNGEON_FLOORS.items() 
 NEIGHBORS = {
     'KokiriForest': {'LostWood': 'front_of_lost_wood_entrance',
                      'HyruleField': 'front_of_hyrule_field_entrance'},
-    'LostWood': {'KokiriForest': 'arrivee_de_kokiri', 'SacredForestMeadow': 'Vers le Bosquet sacré'},
+    'LostWood': {'KokiriForest': 'arrivee_de_kokiri', 'SacredForestMeadow': 'Vers le Bosquet sacré',
+                 'GoronCity': 'Vers le Village Goron', 'ZoraRiver': 'Vers la Rivière Zora'},
     'HyruleField': {'KokiriForest': 'front_of_lost_wood_bridge_entrance',
                     'KakarikoVillage': 'Vers Cocorico'},
     'SacredForestMeadow': {'LostWood': 'front_of_lost_wood_entrance'},
@@ -54,11 +56,13 @@ NEIGHBORS = {
     'Graveyard': {'KakarikoVillage': 'Vers Cocorico'},
     'DeathMountainTrail': {'KakarikoVillage': 'Vers Cocorico', 'GoronCity': 'Repère Goron',
                            'DodongoCavern': 'Vers la Caverne Dodongo', 'DeathMountainCrater': 'Repère du cratère'},
-    'GoronCity': {'DeathMountainTrail': 'Vers le mont du Péril', 'DeathMountainCrater': 'Repère nord Goron'},
+    'GoronCity': {'DeathMountainTrail': 'Vers le mont du Péril', 'DeathMountainCrater': 'Repère nord Goron',
+                  'LostWood': 'Repère des Bois Perdus'},
     'DodongoCavern': {'DeathMountainTrail': 'Vers le mont du Péril'},
     'DeathMountainCrater': {'DeathMountainTrail': 'Vers le mont du Péril', 'GoronCity': 'goron_city_entrance',
                            'FireTemple': 'Temple du Feu'},
     'FireTemple': {'DeathMountainCrater': 'Vers le cratère'},
+    'ZoraRiver': {'LostWood': 'Vers les Bois Perdus'},
 }
 KAKARIKO_ENTRANCES = {
     'HyruleField': 'Vers la plaine d’Hyrule',
@@ -173,6 +177,9 @@ def projection_points(region, sources):
             if region == 'LostWood':
                 if gyaml == 'StartPos' and actor.get('Name') == 'LostWood_Entrance':
                     label = 'arrivee_de_kokiri'
+            elif region == 'ZoraRiver':
+                if gyaml == 'FieldAndDungeonEntranceEventRequestActor' and actor.get('Name') == 'ZoraRiver_LostWoodSide':
+                    label = 'Vers les Bois Perdus'
             elif region == 'SacredForestMeadow':
                 label = GROVE_ANCHORS.get(gyaml)
                 if gyaml in {'Land_SacredForest_Prop_A_33', 'Land_SacredForest_Prop_A_41'}:

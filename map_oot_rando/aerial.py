@@ -118,13 +118,13 @@ class AerialImage:
                     return True
         return False
 
-    def render(self, viewport, size):
+    def render(self, viewport, size, *, fillcolor='#18252b'):
         a, b, c, d, e, f = self.world_to_image
         s = viewport.scale
         matrix = (a/s, b/s, c - (a * viewport.x + b * viewport.y)/s,
                   d/s, e/s, f - (d * viewport.x + e * viewport.y)/s)
         return self.image.transform(size, Image.Transform.AFFINE, matrix,
-                                    resample=Image.Resampling.BILINEAR, fillcolor='#18252b')
+                                    resample=Image.Resampling.BILINEAR, fillcolor=fillcolor)
 
     def to_document(self):
         stream = BytesIO()
