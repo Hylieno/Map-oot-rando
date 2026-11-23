@@ -88,3 +88,23 @@ jeu et la projection des checks restent fixes. Les fonds sans repère local
 vérifié utilisent l’alignement global. Le moteur de correction n’est pas
 spécifique à Kokiri, mais chaque dessin doit fournir des correspondances
 utilisables ou des coordonnées déjà alignées.
+
+### Projection contrôlée et source du fond
+
+Le fond principal de Kokiri est l’image du menu de jeu publiée par
+[Questfern](https://questfern.com/oot/guides/interactive-map/?area=kokiri). Son empreinte
+fixe le lien entre les pixels de contrôle et la version du fond. Une seule
+transformation globale est utilisée après contrôle des erreurs résiduelles,
+détection des projections déformées et prédiction des repères laissés de côté.
+La boutique est un repère indépendant lorsqu’elle est disponible.
+Pour les captures qui fournissent déjà leur matrice de projection, l’import de
+fichiers world utilise les coordonnées X/Z directement. Aucun ajustement
+artistique n’est appliqué aux checks.
+
+Les tables de capture publiées par
+[Hyrule Tracker](https://github.com/jv-prado/hyrule-tracker/blob/5aa4239bf2801ff287713e0a1f77bdc7d6b5445b/src/core/position.ts)
+ont été comparées sur le SVG Field Atlas. Elles donnaient des écarts plus
+grands sur les maisons et sortaient deux placements supplémentaires du fond
+pour la seed testée. Le scanner recherche aussi les noms de ressources
+MapCapture et MapMenu dans le NUP local pour l’étude des projections natives.
+La découverte de noms ne suffit pas à valider une texture ou sa projection.

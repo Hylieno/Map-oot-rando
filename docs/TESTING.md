@@ -127,3 +127,11 @@ la distance image entre le marqueur du coffre de l’épée et le centre de
 l’enclos passe de 31,4 à 1,3 pixels à la résolution 1 800 × 996. Cette mesure
 compare le centre du marqueur et le motif reconnu dans le raster.
 Les 105 placements couverts et les quatre hors du dessin restent identiques.
+
+Sur l’image Questfern 1 400 × 709 et la seed réelle déjà fournie, les six
+repères de la projection ont un résidu maximal de 6,0 pixels dans les deux
+vues. En retirant chacun à tour de rôle, le plus grand écart est de 16,1 pixels.
+La boutique, exclue du calcul, est à 12,3 pixels. Les 105 placements couverts
+restent identiques. Reste à vérifier le jeu en direct et les secteurs sans
+repère indépendant. Les tests synthétiques couvrent l’amorçage du fond préféré,
+le rejet d’un repère indépendant incohérent et la projection d’un world file.

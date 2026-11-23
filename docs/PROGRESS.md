@@ -132,3 +132,7 @@ Un deuxième niveau de calibrage corrige localement le fond Field Atlas
 quand une correspondance fiable existe. Il est vérifié sur le coffre de
 l’épée de la seed fournie et sur des tests génériques à plusieurs repères.
 Les anciens fonds Field Atlas enregistrés se recalibrent à l’ouverture.
+
+Atlas principal changé vers le fond Kokiri du menu de jeu publié par
+Questfern. Projection validée avec la seed réelle et des repères exclus du
+calcul. Les backgrounds déjà géoréférencés s’ouvrent par world file.

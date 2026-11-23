@@ -11,6 +11,9 @@ from PIL import Image, ImageTk
 from .aerial import AerialImage, read_image
 from .aerial_dialog import align_image
 from .field_atlas import CALIBRATION, align_kokiri_image, load_kokiri_image
+from .map_projection import georeferenced_background
+from .questfern import CALIBRATION as PAUSE_CALIBRATION, SOURCE_ID as PAUSE_SOURCE
+from .questfern import align_pause_map, load_pause_map
 from .export import import_seed
 from .model import load_metadata, select
 from .state import StateStore
@@ -38,7 +41,7 @@ class MapApplication:
         self.banner = tk.StringVar()
         self.import_status = tk.StringVar()
         self.import_events = Queue()
-        self.atlas_image = None
+        self.atlas_images = {}
         self.atlas_generation = 0
         self.save_generation = 0
         self.show_outside = tk.BooleanVar(value=False)
@@ -107,12 +110,15 @@ class MapApplication:
         tools = ttk.Frame(panel)
         tools.pack(fill='x')
         ttk.Button(tools, text='Ajuster la vue', command=self.fit).pack(side='left')
-        ttk.Button(tools, text='Ajouter une vue aérienne…',
-                   command=self.choose_aerial).pack(side='left', padx=5)
-        self.atlas_button = ttk.Button(tools, text='Fond Field Atlas…', command=self.choose_field_atlas)
-        self.atlas_button.pack(side='left', padx=(0, 5))
-        ttk.Button(tools, text='Retirer le fond image',
-                   command=self.remove_aerial).pack(side='left')
+        self.atlas_button = ttk.Menubutton(tools, text='Fond de carte ▾')
+        self.atlas_button.pack(side='left', padx=5)
+        backgrounds = tk.Menu(self.atlas_button, tearoff=False)
+        backgrounds.add_command(label='Carte du jeu (Questfern)',
+                                command=lambda: self.choose_atlas(PAUSE_SOURCE))
+        backgrounds.add_command(label='Field Atlas', command=lambda: self.choose_atlas('field-atlas'))
+        backgrounds.add_command(label='Ouvrir une image locale…', command=self.choose_aerial)
+        backgrounds.add_command(label='Afficher le schéma', command=self.remove_aerial)
+        self.atlas_button.configure(menu=backgrounds)
         self.canvas = tk.Canvas(panel, background='#18252b', highlightthickness=0)
         self.canvas.pack(fill='both', expand=True)
         self.canvas.bind('<Configure>', self.resized)
@@ -136,9 +142,11 @@ class MapApplication:
         self.atlas_loading = None
         self.atlas_generation += 1
         self.atlas_button.state(['!disabled'])
-        self.atlas_button.configure(text='Fond Field Atlas…')
+        self.atlas_button.configure(text='Fond de carte ▾')
         self.scenes = scenes
         self.aerial = aerial
+        self.preferred_background = ('field-atlas' if document.get('preferred_background') == 'field-atlas'
+                                     else PAUSE_SOURCE)
         self.document = document
         self.seed_folder = seed_folder
         self.save_generation += 1
@@ -287,7 +295,7 @@ class MapApplication:
         # Keep only map metadata. No image, save bytes, local path or item rewards.
         diagnostic = {key: self.document[key] for key in (
             'schema_version', 'region', 'upstream_revision', 'provenance',
-            'locations', 'scenes', 'diagnostics') if key in self.document}
+            'locations', 'scenes', 'diagnostics', 'map_capture_candidates') if key in self.document}
         try:
             Path(path).write_text(json.dumps(diagnostic, ensure_ascii=False, indent=2), encoding='utf-8')
         except OSError as error:
@@ -299,7 +307,8 @@ class MapApplication:
         if path:
             try:
                 with open(path, 'w', encoding='utf-8') as stream:
-                    json.dump(dict(self.document, aerial={k: v.to_document() for k, v in self.aerial.items()}),
+                    json.dump(dict(self.document, preferred_background=self.preferred_background,
+                                   aerial={k: v.to_document() for k, v in self.aerial.items()}),
                               stream, ensure_ascii=False, indent=2)
             except OSError as error:
                 messagebox.showerror('Enregistrement impossible', str(error), parent=self.root)
@@ -310,7 +319,8 @@ class MapApplication:
         references = [(name.replace('_', ' '), tuple(point))
                       for name, point in scene.get('points', ())]
         for name, low, high in scene.get('rooms', ()):
-            references.append((name.replace('_', ' '), ((low[0] + high[0])/2, (low[1] + high[1])/2)))
+            label = 'shop room' if name == 'shop' else name.replace('_', ' ')
+            references.append((label, ((low[0] + high[0])/2, (low[1] + high[1])/2)))
         if include_checks:
             references.extend((row.name, row.project()) for row in self.locations
                               if view_name(row.resource) == resource and row.position is not None)
@@ -324,22 +334,29 @@ class MapApplication:
 
     def choose_aerial(self):
         resource = self.resource.get()
-        references = self.aerial_references(resource)
-        if references is None:
-            return
         path = filedialog.askopenfilename(parent=self.root, title='Choisir une image vue du ciel',
                                           filetypes=[('PNG ou JPEG', '*.png *.jpg *.jpeg')])
         if not path:
             return
         try:
+            background = georeferenced_background(path)
+            if background:
+                self.aerial[resource] = background
+                self.render()
+                self.fit()
+                self.import_status.set('Fond aligné sur le fichier de coordonnées.')
+                return
             image = read_image(path)
         except (OSError, ValueError, Image.DecompressionBombError) as error:
             messagebox.showerror('Image impossible à ouvrir', str(error), parent=self.root)
             return
 
-        self.align_background(resource, image, references)
+        references = self.aerial_references(resource)
+        if references is not None:
+            self.align_background(resource, image, references)
 
-    def choose_field_atlas(self):
+    def choose_atlas(self, source):
+        self.preferred_background = source
         self.ensure_atlas(manual=True)
 
     def ensure_atlas(self, *, manual=False):
@@ -350,7 +367,10 @@ class MapApplication:
                                     parent=self.root)
             return
         saved = self.aerial.get(resource)
-        current = saved and (saved.source != 'field-atlas' or saved.calibration == CALIBRATION)
+        preferred = self.preferred_background
+        current = saved and (saved.source not in {'field-atlas', PAUSE_SOURCE}
+                             or (saved.source == preferred and saved.calibration ==
+                                 (PAUSE_CALIBRATION if preferred == PAUSE_SOURCE else CALIBRATION)))
         if (self.atlas_loading or not manual and
                 (current or resource in self.atlas_disabled | self.atlas_failed)):
             return
@@ -360,51 +380,61 @@ class MapApplication:
         generation = self.atlas_generation
         # Older Field Atlas JSON saved the original, unwarped raster. Reuse it
         # for an offline upgrade, but never warp a processed image twice.
-        cached = self.atlas_image
-        if cached is None and saved and saved.source == 'field-atlas' and saved.calibration is None:
-            cached = saved.image
+        cached = dict(self.atlas_images)
+        if saved and saved.source == 'field-atlas' and saved.calibration is None:
+            cached.setdefault('field-atlas', saved.image)
         details = [(row.name, row.project()) for row in self.locations
                    if view_name(row.resource) == resource and row.position is not None]
         result = Queue()
         self.atlas_loading = resource
         self.atlas_button.state(['disabled'])
-        self.atlas_button.configure(text='Chargement Field Atlas…')
+        self.atlas_button.configure(text='Chargement du fond…')
 
         def load():
-            image = cached
-            try:
-                image = image or load_kokiri_image()
-                result.put((image, align_kokiri_image(image, references, details), None))
-            except (OSError, ValueError) as error:
-                result.put((image, None, str(error)))
+            sources = [preferred] if manual or preferred == 'field-atlas' else [PAUSE_SOURCE, 'field-atlas']
+            for source in sources:
+                try:
+                    loader, align = ((load_pause_map, align_pause_map) if source == PAUSE_SOURCE
+                                     else (load_kokiri_image, align_kokiri_image))
+                    if source not in cached:
+                        cached[source] = loader()
+                    result.put((cached, align(cached[source], references, details), None))
+                    return
+                except (OSError, ValueError) as error:
+                    problem = str(error)
+            result.put((cached, None, problem))
 
         def finish():
             if generation != self.atlas_generation:
                 return
             try:
-                image, background, error = result.get_nowait()
+                images, background, error = result.get_nowait()
             except Empty:
                 self.root.after(100, finish)
                 return
             self.atlas_loading = None
-            self.atlas_image = image
+            self.atlas_images = images
             self.atlas_button.state(['!disabled'])
-            self.atlas_button.configure(text='Fond Field Atlas…')
+            self.atlas_button.configure(text='Fond de carte ▾')
             if error:
                 self.atlas_failed.add(resource)
                 if self.resource.get() == resource:
                     self.import_status.set('Mise à jour du fond indisponible.' if saved else
                                            'Fond indisponible. Vue schématique affichée.')
                     if manual:
-                        messagebox.showerror('Field Atlas indisponible', error, parent=self.root)
+                        messagebox.showerror('Fond indisponible', error, parent=self.root)
             elif resource not in self.atlas_disabled or manual:
                 self.atlas_disabled.discard(resource)
-                self.atlas_failed.discard(resource)
+                if background.source == preferred:
+                    self.atlas_failed.discard(resource)
+                else:
+                    self.atlas_failed.add(resource)
                 self.aerial[resource] = background
                 if self.resource.get() == resource:
                     self.render()
                     self.fit()
-                    self.import_status.set('Fond Field Atlas calibré. Précision variable selon la zone.')
+                    label = 'Questfern' if background.source == PAUSE_SOURCE else 'Field Atlas'
+                    self.import_status.set(f'Fond {label} aligné.')
             if self.resource.get() != resource:
                 self.ensure_atlas()
 
@@ -523,7 +553,8 @@ class MapApplication:
             self.background_photo = ImageTk.PhotoImage(aerial.render(self.viewport, (width, height)),
                                                        master=self.canvas)
             self.canvas.create_image(0, 0, image=self.background_photo, anchor='nw', tags='aerial')
-            heading = 'Kokiri Forest | Vue aérienne calibrée'
+            heading = ('Kokiri Forest | Carte du jeu · Questfern' if aerial.source == PAUSE_SOURCE
+                       else 'Kokiri Forest | Vue aérienne calibrée')
         elif scene:
             self.canvas.configure(background='#263c34')
             for name, low, high in scene['rooms']:
@@ -596,7 +627,7 @@ class MapApplication:
         self.details.set(f'{row.name}\nID : {row.id}\n{row.category}\n{view_name(row.resource)}\n'
                          f'XYZ : {row.position if row.position is not None else "inconnues"}\n'
                          f'État : {LABELS[self.store.states.get(row.id, "unknown")]}'
-                         + ('\nHors du dessin Field Atlas' if self.outside(row) else '')
+                         + ('\nHors du fond de carte' if self.outside(row) else '')
                          + (f'\nObjet obtenu : {tracker["reward"]}' if tracker.get('reward') else '')
                          + ('\nCollecte sans indicateur de sauvegarde' if tracker.get('untracked') else '')
                          + ('\nÂmes manquantes : ' + ', '.join(tracker['missing_souls'])

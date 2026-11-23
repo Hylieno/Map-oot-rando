@@ -54,7 +54,7 @@ def align_kokiri_image(image, references, details=()):
         raise ValueError('Il faut au moins quatre maisons identifiables dans cette vue.')
 
     try:
-        coefficients, basis, error = _fit_houses(pairs)
+        coefficients, basis, error = fit_landmarks(pairs)
         if max(error) <= 18:
             return _aligned_image(image, coefficients, basis, pairs, details)
     except ValueError:
@@ -64,7 +64,7 @@ def align_kokiri_image(image, references, details=()):
     if len(pairs) >= 5:
         for subset in combinations(pairs, len(pairs) - 1):
             try:
-                coefficients, basis, error = _fit_houses(subset)
+                coefficients, basis, error = fit_landmarks(subset)
             except ValueError:
                 continue
             if max(error) <= 12:
@@ -82,7 +82,7 @@ def align_kokiri_image(image, references, details=()):
     return _aligned_image(image, best, basis, pairs, details)
 
 
-def _fit_houses(pairs):
+def fit_landmarks(pairs):
     world, target = zip(*pairs)
     count = len(pairs)
     x0, z0 = (sum(axis) / count for axis in zip(*world))

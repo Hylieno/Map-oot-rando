@@ -1,5 +1,6 @@
 """Align a user-provided overhead image with real X/Z coordinates."""
 import base64
+from functools import cached_property
 from io import BytesIO
 from math import isfinite
 
@@ -28,11 +29,11 @@ def apply(matrix, point):
     return a * x + b * y + c, d * x + e * y + f
 
 
-def read_image(source):
+def read_image(source, *, normalize_orientation=True):
     with Image.open(source, formats=['PNG', 'JPEG']) as image:
         if image.width * image.height > 16_000_000:
             raise ValueError('Image trop grande (maximum 16 millions de pixels).')
-        return ImageOps.exif_transpose(image).convert('RGB')
+        return (ImageOps.exif_transpose(image) if normalize_orientation else image).convert('RGB')
 
 
 class AerialImage:
@@ -49,10 +50,25 @@ class AerialImage:
         w, h = self.image.size
         return [apply(self.image_to_world, p) for p in [(0, 0), (w, 0), (w, h), (0, h)]]
 
+    @cached_property
+    def _hsv(self):
+        return self.image.convert('HSV')
+
     def covers(self, point):
         x, y = apply(self.world_to_image, point)
         if not (0 <= x < self.image.width and 0 <= y < self.image.height):
             return False
+        if self.source == 'questfern-kokiri':
+            # Look around the marker to avoid calling a light trail or icon
+            # background on an otherwise solid part of the pause map.
+            x, y = int(x), int(y)
+            colored = 0
+            for dy in (-6, 0, 6):
+                for dx in (-6, 0, 6):
+                    if 0 <= x+dx < self.image.width and 0 <= y+dy < self.image.height:
+                        hue, saturation, _ = self._hsv.getpixel((x+dx, y+dy))
+                        colored += hue < 23 or hue > 42 or saturation > 115
+            return colored >= 2
         if self.source != 'field-atlas':
             return True
         # The verified drawing uses muted navy for its background and grid.

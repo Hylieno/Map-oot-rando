@@ -75,3 +75,13 @@ class ExportTests(unittest.TestCase):
         result = world_check_rows(maps, checks, lambda path, actor: path.endswith('Adult'))
         self.assertEqual([(row['id'], row['resource'], row['position']) for row in result],
                          [('KokiriForest#123#Drop__DropActor', 'Banc/KokiriForest/Adult', [1, 2, 3])])
+
+    def test_capture_catalogue_reports_only_candidate_paths(self):
+        from map_oot_rando.export import map_capture_catalogue
+        result = map_capture_catalogue({
+            'Game/UI/MapMenuInfo.game__ui__MapMenuInfo.bgyml': object(),
+            'UI/Texture/MiniMapTest.bntx': object(),
+            'Banc/KokiriForest/Room': object(),
+        })
+        self.assertEqual(result, ['Game/UI/MapMenuInfo.game__ui__MapMenuInfo.bgyml',
+                                  'UI/Texture/MiniMapTest.bntx'])

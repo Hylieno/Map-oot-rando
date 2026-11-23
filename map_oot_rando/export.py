@@ -1,6 +1,7 @@
 """Read-only local export using a clean checkout of the supported OotrR revision."""
 import argparse
 import json
+import re
 from pathlib import Path
 import struct
 import subprocess
@@ -21,6 +22,12 @@ def verify_checkout(directory):
         raise ValueError(f'Copie OotrR propre à la révision {UPSTREAM_REVISION} requise')
 
 
+def map_capture_catalogue(members):
+    """Report candidate image/projection resource names, without exporting assets."""
+    candidates = re.compile(r'mapcapture|mapmenu|minimap|areamap|fieldmap', re.IGNORECASE)
+    return sorted(path for path in members if candidates.search(path))
+
+
 def scan_game(path, progress=None, world_checks=()):
     from oot_rando.formats.inspect_nup import Nup
     from oot_rando.formats.inspect_resources import dictionaries
@@ -31,13 +38,14 @@ def scan_game(path, progress=None, world_checks=()):
 
     nup = Nup(path)
     with nup.stream:
-        maps, groups, _, extra = scan_world(nup, dictionaries(nup), effective_members(nup),
-                                         progress)
+        members = effective_members(nup)
+        maps, groups, _, extra = scan_world(nup, dictionaries(nup), members, progress)
     document = export_scan(groups, extra, provenance='ootrr-scan')
     if world_checks:
         document['locations'].extend(world_check_rows(
             maps, world_checks, lambda path, actor: not inaccessible_child_actor(path, actor)))
     document['scenes'] = extract_scenes(maps, landmarks)
+    document['map_capture_candidates'] = map_capture_catalogue(members)
     return document
 
 

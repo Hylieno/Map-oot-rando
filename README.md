@@ -26,32 +26,20 @@ et exécuter cette commande. La validation locale a été faite sous Linux, pas 
   En déconnexion, l'affichage conserve le dernier état ; la reconnexion publie les
   changements simulés en attente.
 
-## Afficher une vue aérienne
+## Fonds de carte
 
-La vue charge automatiquement le [fond Kokiri Forest d’origine](https://oot.gousse.cool/content/maps/7e802ffa8684f3cd.svg)
-directement depuis [Field Atlas](https://oot.gousse.cool/kokiri-forest). Une connexion est
-nécessaire au premier chargement. L’application aligne le fond automatiquement
-si au moins quatre maisons correspondent aux repères. La vue Enfant peut utiliser
-les repères Adulte quand les trois entrées partagent le même repère de coordonnées.
-**Fond Field Atlas…** permet de réessayer en cas d’échec. Enregistre la carte
-pour la rouvrir hors ligne. Les positions sur le dessin
-restent approximatives dans les secteurs sans repères. Le fond peut être
-recalibré localement autour d’un point vérifié, sans modifier les coordonnées
-des checks. Les fonds Field Atlas des anciens JSON se recalibrent à l’ouverture.
+Le fond par défaut est la [carte de Kokiri publiée par Questfern](https://questfern.com/oot/guides/interactive-map/?area=kokiri).
+L’application la charge depuis sa source et vérifie la projection avant de
+l’afficher. **Fond de carte** permet de choisir Field Atlas, un fond local ou
+le schéma. **Enregistrer la carte…** permet de rouvrir le fond hors ligne.
 
-**Ajouter une vue aérienne…** permet aussi d’utiliser un PNG ou un JPEG local.
+Pour une image locale, l’application lit automatiquement un fichier de coordonnées
+`.wld`, `.pgw` ou `.jgw` de même nom s’il utilise le repère X/Z du jeu. Une image
+sans coordonnées peut être calibrée manuellement à l’aide de trois repères.
+Les nouveaux diagnostics d’import listent les noms des ressources de capture
+candidates dans le conteneur local, sans inclure leur contenu.
 
-Dans une carte importée, choisis la ressource à afficher puis clique sur
-**Ajouter une vue aérienne…**. Sélectionne ton image locale PNG ou JPEG, vue de
-dessus. Dans la fenêtre d’alignement, choisis trois repères bien espacés qui
-forment un triangle et clique à leur emplacement respectif sur l’image.
-**Afficher la carte** superpose les checks à l’image. **Enregistrer la carte…**
-conserve l’image et l’alignement dans le JSON, pour cette ressource.
-
-Le jeu et la seed fournissent les coordonnées. Le fond image est fourni
-séparément par l’utilisateur. Le schéma reste disponible en retirant le fond.
-
-Les checks hors du dessin restent consultables dans la liste. Sélectionner
+Les checks hors du fond restent consultables dans la liste. Sélectionner
 leur entrée affiche leur position réelle, et la case **Afficher les checks
 hors du fond** permet de les afficher ensemble.
 
