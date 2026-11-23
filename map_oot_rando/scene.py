@@ -62,7 +62,9 @@ NEIGHBORS = {
     'DeathMountainCrater': {'DeathMountainTrail': 'Vers le mont du Péril', 'GoronCity': 'goron_city_entrance',
                            'FireTemple': 'Temple du Feu'},
     'FireTemple': {'DeathMountainCrater': 'Vers le cratère'},
-    'ZoraRiver': {'LostWood': 'Vers les Bois Perdus', 'HyruleField': 'Vers la plaine d’Hyrule'},
+    'ZoraRiver': {'LostWood': 'Vers les Bois Perdus', 'HyruleField': 'Vers la plaine d’Hyrule',
+                  'ZoraDomain': 'Vers le Domaine Zora'},
+    'ZoraDomain': {'ZoraRiver': 'Vers la Rivière Zora'},
 }
 KAKARIKO_ENTRANCES = {
     'HyruleField': 'Vers la plaine d’Hyrule',
@@ -106,6 +108,8 @@ ENTRANCE_LABELS = {
     'KakarikoVillage': KAKARIKO_ENTRANCES,
     'Graveyard': {'KakarikoVillage': 'Vers Cocorico'},
     'HyruleField': HYRULE_ANCHORS,
+    'ZoraRiver': {'ZoraDomain': NEIGHBORS['ZoraRiver']['ZoraDomain']},
+    'ZoraDomain': NEIGHBORS['ZoraDomain'],
     'DeathMountainTrail': {
         'DeathMountainCrater': 'Repère du cratère',
         'DodongoCavern': 'Repère Dodongo',
@@ -182,9 +186,8 @@ def projection_points(region, sources):
             if region == 'LostWood':
                 if gyaml == 'StartPos' and actor.get('Name') == 'LostWood_Entrance':
                     label = 'arrivee_de_kokiri'
-            elif region == 'ZoraRiver':
-                if gyaml == 'FieldAndDungeonEntranceEventRequestActor':
-                    label = ZORA_RIVER_EXITS.get(actor.get('Name'))
+            elif region == 'ZoraRiver' and gyaml == 'FieldAndDungeonEntranceEventRequestActor':
+                label = ZORA_RIVER_EXITS.get(actor.get('Name'))
             elif region == 'SacredForestMeadow':
                 label = GROVE_ANCHORS.get(gyaml)
                 if gyaml in {'Land_SacredForest_Prop_A_33', 'Land_SacredForest_Prop_A_41'}:
@@ -277,6 +280,10 @@ def view_name(resource):
             f'Banc/{region}/{region}_Adult_Alternative_{layer}{MAP_SUFFIX}'
             for layer in ('Static', 'Dynamic')):
         return BURNT_VILLAGE
+    if region == 'ZoraDomain' and resource in (
+            f'Banc/{region}/{region}_Adult_Alternative_{layer}{MAP_SUFFIX}'
+            for layer in ('Static', 'Dynamic')):
+        return REGION_VIEWS[region]['Adult']
     for age, label in REGION_VIEWS.get(region, {}).items():
         if resource in (f'Banc/{region}/{region}_{age}_{layer}{MAP_SUFFIX}'
                         for layer in ('Static', 'Dynamic')):

@@ -1,5 +1,6 @@
 """Export already-labelled OotrR scan results without reading or copying game assets."""
 from fnmatch import fnmatchcase
+from math import dist
 
 from .model import REGION_NAMES, UPSTREAM_REVISION, load_metadata, resource_region
 
@@ -14,6 +15,10 @@ EVENT_ACTORS = {
     'LostWood': {actor: ident for ident, actor in LOST_WOOD_EVENT_ACTORS.items()},
     'GoronCity': {('Npc_Goron_Darunia_Child', None): 'npc#GC Darunias Joy'},
     'ZoraRiver': {('OcarinaPoint_MiniGame_FrogTenors', None): 'npc#ZR Frogs Ocarina Game'},
+    'ZoraDomain': {
+        ('MapIconFacilityAnchor', 'MiniGame_Diving_Mapicon'): 'npc#ZD Diving Minigame',
+        ('Npc_Zora_KingZora_adult', None): 'npc#ZD King Zora Thawed',
+    },
     'DodongoCavern': {('Enemy_DungeonBoss_Dodongo', None): 'boss#King Dodongo'},
     'FireTemple': {('Enemy_DungeonBoss_Volvagia', None): 'boss#Volvagia'},
     'DeathMountainCrater': {
@@ -41,7 +46,7 @@ CHECK_ACTOR_PATTERNS = {
     ('full_skulltula', 'gs'): ('Enemy_Skulltula_Gold',),
     ('full_bossheart', 'heart'): ('Obj_Heart_Container',),
 }
-PLACEMENT_REGIONS = frozenset({'FireTemple', 'ZoraRiver'})
+PLACEMENT_REGIONS = frozenset({'FireTemple', 'ZoraRiver', 'ZoraDomain'})
 
 
 def add_surface_entrances(rows, maps):
@@ -183,6 +188,16 @@ def event_check_rows(maps, eligible):
     return [rows[0] for rows in candidates.values() if len(rows) == 1]
 
 
+def domain_adult_placements(matches):
+    """Keep distinct placements when the two adult scene layers share a view."""
+    prefix = 'Banc/ZoraDomain/ZoraDomain_Adult_'
+    alternative = prefix + 'Alternative_'
+    regular = [row['position'] for row in matches if row['position']
+               and row['resource'].startswith(prefix) and not row['resource'].startswith(alternative)]
+    return [row for row in matches if not (row['resource'].startswith(alternative) and row['position']
+                                           and any(dist(row['position'], point) < 0.05 for point in regular))]
+
+
 def bind_catalogue(document, catalogue):
     """Use the seed's names and IDs and keep unmatched entries searchable."""
     if (catalogue.get('schema_version') != 1 or not isinstance(catalogue.get('seed_id'), str)
@@ -197,7 +212,7 @@ def bind_catalogue(document, catalogue):
                   'Sacred Forest Meadow': 'SacredForestMeadow', 'Kakariko Village': 'KakarikoVillage',
                   'Death Mountain Trail': 'DeathMountainTrail', 'Goron City': 'GoronCity',
                   "Dodongo's Cavern": 'DodongoCavern', 'Death Mountain Crater': 'DeathMountainCrater',
-                  'Fire Temple': 'FireTemple', "Zora's River": 'ZoraRiver'})
+                  'Fire Temple': 'FireTemple', "Zora's River": 'ZoraRiver', "Zora's Domain": 'ZoraDomain'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']
@@ -217,7 +232,7 @@ def bind_catalogue(document, catalogue):
             matches = [dict(resource='Emplacements sans position', position=None, region=region)]
         if all(row['position'] is None for row in matches):
             diagnostics.append(f'{ident}: coordonnées absentes pour ce check')
-        for row in matches:
+        for row in domain_adult_placements(matches):
             locations.append(dict(row, id=ident, name=check['name'],
                                   alias=row.get('name', ''), category=check['category']))
     result = dict(document, seed_id=catalogue['seed_id'], locations=locations,

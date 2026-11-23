@@ -76,6 +76,22 @@ class ExportTests(unittest.TestCase):
         self.assertEqual((child.project(), adult.project()), ((-15, 15), (-16, 15)))
         self.assertEqual((event.position, event.resource), (frogs['Translate'], path('Child', 'Static')))
 
+    def test_zora_domain_combines_adult_scenes_without_duplicate_placements(self):
+        from map_oot_rando.scene import REGION_VIEWS, location_view
+
+        ident = 'ZoraDomain#free#1056'
+        path = 'Banc/ZoraDomain/ZoraDomain_Adult_{}.bcett.byml.zs'
+        document = export_scan({}, {}, provenance='ootrr-scan', regions=('KokiriForest', 'ZoraDomain'))
+        document['locations'] = [
+            dict(id=ident, name='Rupee', category='full_freestanding', resource=path.format(layer), position=point)
+            for layer, point in [('Dynamic', (12, 60, -16)), ('Alternative_Dynamic', (12.02, 60, -16)),
+                                 ('Alternative_Dynamic', (30, 100, 0))]
+        ]
+        catalogue = dict(self.catalogue, checks=[dict(id=ident, name='Rupee', category='full_freestanding')])
+        rows = load_metadata(bind_catalogue(document, catalogue))
+        self.assertEqual([row.position for row in rows], [(12, 60, -16), (30, 100, 0)])
+        self.assertTrue(all(location_view(row) == REGION_VIEWS['ZoraDomain']['Adult'] for row in rows))
+
     def test_cli_creates_loadable_file_and_refuses_overwrite(self):
         with tempfile.TemporaryDirectory() as tmp:
             directory = Path(tmp)

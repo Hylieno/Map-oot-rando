@@ -3,6 +3,9 @@
 La rivière Zora affiche les 54 checks du catalogue de référence. Les deux
 vues gardent les placements propres à leur âge et l’accès aux Bois Perdus.
 Un deuxième passage relie la rivière à la plaine d’Hyrule dans les deux sens.
+Le Domaine Zora est accessible depuis la rivière. Ses 26 checks de référence
+sont placés. Le plan Field Atlas est commun aux deux âges, avec les acteurs
+du mini-jeu, de la boutique et du roi selon la scène.
 
 Le dézoom ouvre la carte générale d’Hyrule. Les cartes locales utilisent
 Field Atlas et les options de changement de fond ont été retirées. Le plan

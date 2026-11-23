@@ -42,7 +42,9 @@ Dans les Bois Perdus, le tracé doré indique le chemin normal de Kokiri au Bosq
 sacré. Les marqueurs de passage ouvrent le Village Goron et la rivière Zora. Leurs
 passages permettent aussi de revenir aux Bois Perdus. La rivière Zora est reliée
 à la plaine d’Hyrule et affiche ses checks enfant et adulte. Le coffre et les pots
-en grotte sont indiqués à leur entrée en surface.
+en grotte sont indiqués à leur entrée en surface. Le Domaine Zora se rejoint
+depuis la rivière. Ses checks incluent les rayons de la boutique et le mini-jeu
+de plongeon. Les variantes adultes partagent la même vue.
 Les deux récompenses du Théâtre Mojo partagent un marqueur à l’entrée.
 Au Bosquet sacré, les deux coffres enfouis sont repérés par l’accès à leur
 grotte. Les détails conservent les coordonnées XYZ du coffre.

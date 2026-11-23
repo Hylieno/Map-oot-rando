@@ -58,11 +58,13 @@ FIELD_FRAMES = {
     'HyruleField': ((-50, -49, 950, 739), (1.4552, 504.27, 1.4867, 11.89)),
     'SacredForestMeadow': ((190, -8, 492, 1821), (6.15, 487.31, 6.15, 1062.72)),
     'ZoraRiver': ((-48, -40, 951, 444), (3.2759, 352.05, 3.2953, 225.64)),
+    'ZoraDomain': ((-47, -47, 950, 612), (6.4055, 218.87, 6.3045, 315.57)),
 }
 for region, source, digest in (
     ('HyruleField', 'hyrule-field', '2cca33a54d435cd8bb42931514d1ac4698e116e683bf9967bfd7b2ced752d252'),
     ('SacredForestMeadow', 'sacred-meadow', '30559071ebb5f020ae7dd00ddc13b4a17c11f202d91df6d1501193eda34a859a'),
     ('ZoraRiver', 'zora-river', '9da62a4f11abba11eed170548a34c90e129420350bdedbb74b4a0f0d74e0aaf4'),
+    ('ZoraDomain', 'zora-domain', 'b95e0d63a7da7501193467fe251b484daa93ac88928c246a4c133a73c26d9711'),
 ):
     REGION_MAPS[region] = dict.fromkeys(('Child', 'Adult'), (f'field-atlas-{source}', digest))
 REGION_MAPS['FireTemple'] = {

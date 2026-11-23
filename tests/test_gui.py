@@ -476,7 +476,7 @@ class GuiTests(unittest.TestCase):
         from map_oot_rando.scene import GORON_LOST_WOODS_FLOOR, GORON_VIEWS, REGION_VIEWS
 
         app = self.app
-        regions = ('KokiriForest', 'LostWood', 'GoronCity', 'ZoraRiver', 'HyruleField')
+        regions = ('KokiriForest', 'LostWood', 'GoronCity', 'ZoraRiver', 'HyruleField', 'ZoraDomain')
 
         def resource(region, age):
             return f'Banc/{region}/{region}_{age}_Static.bcett.byml.zs'
@@ -485,8 +485,10 @@ class GuiTests(unittest.TestCase):
         points = {
             'LostWood': [('Vers le Village Goron', (24, -35.66)), ('Vers la Rivière Zora', (68.5, -25.6))],
             'GoronCity': [('Repère des Bois Perdus', (26.7, -3.18))],
-            'ZoraRiver': [('Vers les Bois Perdus', (122.57, -11.8)), ('Vers la plaine d’Hyrule', (-98, 28))],
+            'ZoraRiver': [('Vers les Bois Perdus', (122.57, -11.8)), ('Vers la plaine d’Hyrule', (-98, 28)),
+                          ('Vers le Domaine Zora', (150, -40))],
             'HyruleField': [('Vers la Rivière Zora', (211, 148))],
+            'ZoraDomain': [('Vers la Rivière Zora', (3.54, -42.38))],
         }
         doc['scenes'] = {resource(region, age): {'rooms': [], 'points': points[region]}
                          for region in points for age in ('Child', 'Adult')}
@@ -509,6 +511,11 @@ class GuiTests(unittest.TestCase):
                 self.assertIn('HyruleField', app.navigation_markers.values())
                 app.open_neighbor('HyruleField')
                 self.assertEqual(app.resource.get(), REGION_VIEWS['HyruleField']['Adult'])
+                self.assertIn('ZoraRiver', app.navigation_markers.values())
+                app.open_neighbor('ZoraRiver')
+                self.assertIn('ZoraDomain', app.navigation_markers.values())
+                app.open_neighbor('ZoraDomain')
+                self.assertEqual(app.resource.get(), REGION_VIEWS['ZoraDomain']['Adult'])
                 self.assertIn('ZoraRiver', app.navigation_markers.values())
                 app.open_neighbor('ZoraRiver')
             app.open_neighbor('LostWood')

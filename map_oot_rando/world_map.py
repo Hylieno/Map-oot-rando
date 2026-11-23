@@ -22,6 +22,7 @@ WORLD_PINS = {
     'DeathMountainCrater': (.6556, .1237),
     'FireTemple': (.6251, .1952),
     'ZoraRiver': (.5803, .5244),
+    'ZoraDomain': (.6859, .4747),
 }
 
 

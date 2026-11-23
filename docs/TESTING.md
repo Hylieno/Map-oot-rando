@@ -1,5 +1,12 @@
 # Validation
 
+Le Domaine Zora a été recoupé avec six ressources publiques et les 26 IDs
+du catalogue. La boutique utilise les positions de rayon renvoyées par
+OotrR. Le point de plongeon et le roi fournissent les deux repères
+d’événement. Les deux variantes adultes partagent les mêmes passages.
+Le test synthétique conserve un placement distinct tout en regroupant les
+doublons des deux scènes adultes.
+
 La rivière Zora a été recoupée sur les quatre scènes publiques du jeu.
 Les 54 identifiants du catalogue sont positionnés dans le fond Field Atlas,
 avec 40 placements enfant et 39 adulte. Dans chaque vue, le coffre et les

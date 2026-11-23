@@ -9,6 +9,9 @@
 - Rivière Zora. Le coffre et les pots enterrés utilisent leurs entrées de
   grotte. Le mini-jeu des grenouilles est repéré au point où Link joue de
   l’ocarina dans la scène enfant.
+- Domaine Zora. Les variantes adultes ont les mêmes passages et le même
+  plan. Leurs placements sont réunis dans la vue adulte. Un placement
+  commun à moins de 5 cm est représenté une fois avec l’ID OotrR d’origine.
 - Link. Le marqueur et le changement automatique de zone sont deux commandes
   distinctes. Les coordonnées sont lues via la connexion mémoire OotrR.
   Les décalages du module et les champs de pose viennent de la documentation
