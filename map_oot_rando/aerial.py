@@ -4,7 +4,7 @@ from functools import cached_property
 from io import BytesIO
 from math import isfinite
 
-from PIL import Image, ImageOps
+from PIL import Image, ImageChops, ImageOps
 
 
 def affine(source, target):
@@ -41,10 +41,46 @@ class AerialImage:
         self.image = image
         self.source = source
         self.calibration = calibration
+        self._paper_raster = None
         self.pixels = pixels
         self.world = world
         self.world_to_image = affine(world, pixels)
         self.image_to_world = affine(pixels, world)
+
+    def image_point(self, world_point):
+        return apply(self.world_to_image, world_point)
+
+    def render_image_view(self, viewport, size, *, fillcolor, blend_paper=False):
+        """Show the raster upright with screen navigation in image pixels."""
+        s = viewport.scale
+        matrix = (1/s, 0, -viewport.x/s, 0, 1/s, -viewport.y/s)
+        raster = self.image
+        if blend_paper:
+            if self._paper_raster is None or self._paper_raster[0] != fillcolor:
+                merged = Image.composite(raster, Image.new('RGB', raster.size, fillcolor),
+                                         self._paper_edge_mask)
+                self._paper_raster = (fillcolor, merged)
+            raster = self._paper_raster[1]
+        return raster.transform(size, Image.Transform.AFFINE, matrix,
+                                resample=Image.Resampling.BILINEAR, fillcolor=fillcolor)
+
+    @cached_property
+    def _paper_edge_mask(self):
+        width, height = self.image.size
+        margin = max(1, min(45, min(width, height) // 10))
+        def axis(length):
+            return [min(255, round(255 * min(i, length - i - 1) / margin))
+                    for i in range(length)]
+        horizontal = Image.new('L', (width, 1))
+        vertical = Image.new('L', (1, height))
+        horizontal.putdata(axis(width))
+        vertical.putdata(axis(height))
+        edge = ImageChops.darker(horizontal.resize((width, height)), vertical.resize((width, height)))
+        hue, saturation, _ = self._hsv.split()
+        # Fade only the paper. Terrain such as the western path must stay visible.
+        terrain = ImageChops.lighter(hue.point(lambda p: 255 if p < 23 or p > 42 else 0),
+                                     saturation.point(lambda p: 255 if p > 115 else 0))
+        return ImageChops.lighter(edge, terrain)
 
     def corners(self):
         w, h = self.image.size

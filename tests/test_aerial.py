@@ -40,3 +40,15 @@ class AerialTests(unittest.TestCase):
         self.assertTrue(saved.covers((20, 20)))
         self.assertFalse(saved.covers((5, 5)))
         self.assertFalse(saved.covers((-1, 20)))
+
+    def test_upright_view_blends_paper_at_zoomed_out_edges(self):
+        image = Image.new('RGB', (140, 100), '#d6c38c')
+        image.paste('#16834d', (0, 38, 20, 62))
+        a = AerialImage(image, [(0, 0), (140, 0), (0, 100)],
+                       [(100, 100), (200, 120), (70, 250)])
+        result = a.render_image_view(Viewport(1, 20, 30), (200, 150),
+                                     fillcolor='#d1bc80', blend_paper=True)
+        self.assertEqual(result.getpixel((0, 0)), (209, 188, 128))
+        self.assertEqual(result.getpixel((20, 30)), result.getpixel((0, 0)))
+        self.assertEqual(result.getpixel((20, 80)), (22, 131, 77))
+        self.assertEqual(result.getpixel((90, 80)), (214, 195, 140))

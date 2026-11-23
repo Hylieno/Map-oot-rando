@@ -7,7 +7,7 @@ from .aerial import read_image
 from .map_projection import registered_background
 
 SOURCE_ID = 'questfern-kokiri'
-CALIBRATION = 1
+CALIBRATION = 2
 SOURCE = 'https://questfern.com/maps/oot/kokiri.jpg'
 DIGEST = '4fcc36b84e2f9d17c56591e57d9e77cbefd0604bc3cb5b0071136cdc798d235b'
 SIZE = (1400, 709)

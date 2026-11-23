@@ -22,6 +22,10 @@ from .scene import AGE_VIEWS, field_atlas_scene, group_scenes, read_scenes, view
 from .simulation import Simulation, demo_document
 from .view import Viewport
 
+PARCHMENT = '#d1bc80'
+PAPER_COLORS = dict(available='#176346', blocked='#aa2540', unknown='#40359b',
+                    completed='#535b6a', partial='#8a450d')
+
 COLORS = dict(available='#37b76b', blocked='#e45c5c', unknown='#e6c548', completed='#929ba5', partial='#ed9f57')
 LABELS = dict(available='Accessible', blocked='Bloqué', unknown='Inconnu', completed='Récupéré', partial='Partiellement accessible')
 
@@ -522,16 +526,23 @@ class MapApplication:
         else:
             self.draw()
 
+    def display_point(self, point):
+        aerial = self.aerial.get(self.resource.get())
+        return aerial.image_point(point) if aerial and aerial.source == PAUSE_SOURCE else point
+
     def fit(self):
         self.fit_pending = self.canvas.winfo_width() <= 1 or self.canvas.winfo_height() <= 1
         if self.fit_pending:
             return
-        points = [r.project() for r in self.visible if view_name(r.resource) == self.resource.get() and r.position is not None
+        points = [self.display_point(r.project()) for r in self.visible if view_name(r.resource) == self.resource.get() and r.position is not None
                   and (self.show_outside.get() or not self.outside(r))]
         aerial = self.aerial.get(self.resource.get())
         scene = self.scenes.get(self.resource.get(), {}) if not aerial else {}
         if aerial:
-            points.extend(aerial.corners())
+            if aerial.source == PAUSE_SOURCE:
+                points.extend(((0, 0), aerial.image.size))
+            else:
+                points.extend(aerial.corners())
         points.extend(point for _, point in scene.get('points', ()))
         for _, low, high in scene.get('rooms', ()):
             points.extend((low, high))
@@ -548,10 +559,13 @@ class MapApplication:
         scene = self.scenes.get(self.resource.get())
         captions = []
         aerial = self.aerial.get(self.resource.get())
+        parchment = bool(aerial and aerial.source == PAUSE_SOURCE)
+        heading_color = '#292019' if parchment else '#d2e1da'
         if aerial:
-            self.canvas.configure(background='#18252b')
-            self.background_photo = ImageTk.PhotoImage(aerial.render(self.viewport, (width, height)),
-                                                       master=self.canvas)
+            self.canvas.configure(background=PARCHMENT if parchment else '#18252b')
+            raster = (aerial.render_image_view(self.viewport, (width, height), fillcolor=PARCHMENT, blend_paper=True)
+                      if parchment else aerial.render(self.viewport, (width, height)))
+            self.background_photo = ImageTk.PhotoImage(raster, master=self.canvas)
             self.canvas.create_image(0, 0, image=self.background_photo, anchor='nw', tags='aerial')
             heading = ('Kokiri Forest | Carte du jeu · Questfern' if aerial.source == PAUSE_SOURCE
                        else 'Kokiri Forest | Vue aérienne calibrée')
@@ -577,17 +591,23 @@ class MapApplication:
             for y in ys:
                 self.canvas.create_line(0, y, width, y, fill='#2c414a')
             heading = f'Schéma X/Z | Grille : {step:g} unités'
-        self.canvas.create_text(12, 12, anchor='nw', fill='#d2e1da', text=heading)
+        self.canvas.create_text(12, 12, anchor='nw', fill=heading_color, text=heading)
         rows = [row for row in self.visible if view_name(row.resource) == self.resource.get()
                 and row.position is not None
                 and (self.show_outside.get() or row == self.selected or not self.outside(row))]
         rows.sort(key=lambda row: row == self.selected)
         labels = []
         for row in rows:
-            x, y = self.viewport.screen(row.project())
-            color = COLORS[self.store.states.get(row.id, 'unknown')]
-            item = self.canvas.create_oval(x-7, y-7, x+7, y+7, fill=color,
-                                          outline='white' if row == self.selected else color, width=2)
+            x, y = self.viewport.screen(self.display_point(row.project()))
+            palette = PAPER_COLORS if parchment else COLORS
+            color = palette[self.store.states.get(row.id, 'unknown')]
+            radius = 5.5 if parchment else 7
+            outline = '#fff9ea' if parchment or row == self.selected else color
+            if parchment and row == self.selected:
+                ring = radius + 3
+                self.canvas.create_oval(x-ring, y-ring, x+ring, y+ring, outline='#252038', width=2)
+            item = self.canvas.create_oval(x-radius, y-radius, x+radius, y+radius,
+                                          fill=color, outline=outline, width=2)
             self.markers[item] = row
             right = x <= width * 0.7
             labels.append((row.name, x + (12 if right else -12), y,
@@ -608,8 +628,13 @@ class MapApplication:
             used.append((left, top, right, bottom))
             if row is not None:
                 self.markers[label] = row
+                if parchment:
+                    box = self.canvas.create_rectangle(left-2, top-1, right+2, bottom+1,
+                                                       fill='#2d263b', outline='', tags='check-label')
+                    self.canvas.tag_lower(box, label)
+                    self.markers[box] = row
         if not self.markers:
-            self.canvas.create_text(25, 35, anchor='nw', text='Aucun marqueur positionné pour cette vue.', fill='white')
+            self.canvas.create_text(25, 35, anchor='nw', text='Aucun marqueur positionné pour cette vue.', fill=heading_color)
 
     def choose(self, row):
         self.selected = row
@@ -617,7 +642,8 @@ class MapApplication:
             if self.resource.get() != view_name(row.resource):
                 self.resource.set(view_name(row.resource))
                 self.ensure_atlas()
-            self.viewport.center(row.project(), self.canvas.winfo_width(), self.canvas.winfo_height())
+            self.viewport.center(self.display_point(row.project()), self.canvas.winfo_width(),
+                                 self.canvas.winfo_height())
         self.show_details()
         self.draw()
 

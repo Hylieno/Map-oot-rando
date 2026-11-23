@@ -136,3 +136,7 @@ Les anciens fonds Field Atlas enregistrés se recalibrent à l’ouverture.
 Atlas principal changé vers le fond Kokiri du menu de jeu publié par
 Questfern. Projection validée avec la seed réelle et des repères exclus du
 calcul. Les backgrounds déjà géoréférencés s’ouvrent par world file.
+
+Le parchemin reste droit et se fond dans le fond uni au dézoom. Les checks
+inconnus sont violets, avec un contour clair et un libellé contrasté. La
+projection sélectionne le modèle qui prédit le mieux les repères omis.

@@ -36,3 +36,15 @@ class MapProjectionTests(unittest.TestCase):
         self.assertAlmostEqual(y, 220)
         with self.assertRaisesRegex(ValueError, 'indépendant'):
             registered_background(image, refs, control, {'independent': (320, 220)}, **options)
+
+    def test_prefers_similarity_when_affine_shear_only_fits_noise(self):
+        refs = [(str(i), p) for i, p in enumerate(((15, 23), (110, 25), (38, 142),
+                                                   (200, 190), (95, 80), (205, 55)))]
+        pixels = {str(i): (x + 130 + [1, 1, -1, 0, -1, -1][i],
+                           y + 160 + [0, -1, 1, 0, 1, -1][i])
+                  for i, (_, (x, y)) in enumerate(refs)}
+        result = registered_background(Image.new('RGB', (500, 500)), refs, pixels, {},
+                                       source='test', calibration=1)
+        a, b, _, d, e, _ = result.world_to_image
+        self.assertAlmostEqual(a, e)
+        self.assertAlmostEqual(b, -d)

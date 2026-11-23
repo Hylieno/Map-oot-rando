@@ -209,3 +209,30 @@ class GuiTests(unittest.TestCase):
             self.assertEqual(app.aerial[app.resource.get()].source, SOURCE_ID)
             download.assert_called_once()
             manual.assert_not_called()
+
+    def test_parchment_uses_image_coordinates_and_high_contrast_checks(self):
+        from PIL import Image
+        from map_oot_rando.aerial import AerialImage
+        from map_oot_rando.gui import PAPER_COLORS, PARCHMENT
+        from map_oot_rando.questfern import SOURCE_ID
+
+        doc = demo_document()
+        row = doc['locations'][0]
+        a = AerialImage(Image.new('RGB', (200, 160), '#26774a'),
+                        [(0, 0), (200, 0), (0, 160)], [(-50, -50), (50, -40), (-40, 50)],
+                        source=SOURCE_ID)
+        doc['aerial'] = {row['resource']: a.to_document()}
+        app = self.app
+        app.load(doc)
+        app.simulation.change(row['id'], 'unknown')
+        app.render()
+        loc = next(loc for loc in app.visible if loc.id == row['id'])
+        app.choose(loc)
+        marker = next(item for item, r in app.markers.items()
+                      if r == loc and app.canvas.type(item) == 'oval')
+        self.assertEqual(app.canvas.cget('background'), PARCHMENT)
+        self.assertEqual(app.canvas.itemcget(marker, 'fill'), PAPER_COLORS['unknown'])
+        self.assertTrue(app.canvas.find_withtag('check-label'))
+        x1, y1, x2, y2 = app.canvas.coords(marker)
+        self.assertAlmostEqual((x1 + x2) / 2, app.canvas.winfo_width() / 2)
+        self.assertAlmostEqual((y1 + y2) / 2, app.canvas.winfo_height() / 2)
