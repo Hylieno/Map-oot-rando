@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import math
 
 UPSTREAM_REVISION = '283d3ec0f161d32e168afac45e502442c1ffb081'
-STATUSES = frozenset({'available', 'blocked', 'unknown', 'completed'})
+STATUSES = frozenset({'available', 'blocked', 'unknown', 'completed', 'partial'})
 
 
 @dataclass(frozen=True)

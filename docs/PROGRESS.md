@@ -114,3 +114,10 @@ Les couches Static et Dynamic sont réunies dans les vues Enfant et Adulte. Le
 fond Field Atlas se charge en arrière-plan à l’ouverture d’une vue sans fond
 enregistré. Les checks hors du dessin restent dans la liste et leurs
 coordonnées d’origine sont préservées.
+
+La carte lit maintenant progress.sav via TrackerSession et actualise les
+statuts au fil des sauvegardes. Le lecteur mémoire reste désactivé. La jointure
+prend aussi en charge les anciens IDs avec hash d’acteur et champ de patch.
+Le rapport de diagnostic permet de transmettre les coordonnées sans fichier
+du jeu, sauvegarde ou image. Validation sur les données de la seed réelle
+toujours requise avant de déclarer le prototype final.

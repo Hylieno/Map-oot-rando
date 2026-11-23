@@ -61,3 +61,17 @@ class ExportTests(unittest.TestCase):
         self.assertEqual([row.id for row in matches], ['123', '123'])
         self.assertEqual(len({row.resource for row in matches}), 1)
         self.assertEqual([row.project() for row in matches], [(1, 3), (10, 30)])
+
+    def test_legacy_world_id_requires_hash_field_and_eligible_variant(self):
+        from map_oot_rando.metadata import world_check_rows
+        actor = dict(Hash=123, Gyaml='Item', Dynamic={'Drop__DropActor': 'Drop'}, Translate=[1, 2, 3])
+        maps = {
+            'Banc/KokiriForest/Child': {'root': {'Actors': [actor]}},
+            'Banc/KokiriForest/Adult': {'root': {'Actors': [actor]}},
+            'Banc/LostWood/Staging': {'root': {'Actors': [actor]}},
+        }
+        checks = [dict(id=f'KokiriForest#123#{field}', name=field, category='item')
+                  for field in ('Drop__DropActor', 'DoesNotExist')]
+        result = world_check_rows(maps, checks, lambda path, actor: path.endswith('Adult'))
+        self.assertEqual([(row['id'], row['resource'], row['position']) for row in result],
+                         [('KokiriForest#123#Drop__DropActor', 'Banc/KokiriForest/Adult', [1, 2, 3])])

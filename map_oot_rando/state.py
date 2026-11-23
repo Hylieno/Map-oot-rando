@@ -13,7 +13,7 @@ def tracker_states(session, identifiers):
         row = session.check_state(ident)
         access = row.get('access', 'unknown')
         result[ident] = 'completed' if row.get('completed') else (
-            access if access in {'available', 'blocked'} else 'unknown')
+            access if access in {'available', 'blocked', 'partial'} else 'unknown')
     return result
 
 

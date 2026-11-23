@@ -2,10 +2,9 @@
 
 Compagnon de carte local pour OotrR, première zone visée : Kokiri Forest.
 
-**Préversion : carte interactive et simulation fonctionnelles.** Les emplacements
-fournis sont fictifs, explicitement signalés. Aucune coordonnée réelle livrée,
-aucune connexion au vrai tracker pour l'instant. `KF_rock_1` reste un exemple de
-nomenclature, dont l'existence n'est pas présumée.
+**Préversion Kokiri Forest.** La simulation utilise des positions fictives.
+L’import local lit les coordonnées de la seed et le suivi lit les états d’OotrR
+depuis une sauvegarde. Les checks sans correspondance certaine restent dans la liste.
 
 ## Lancer localement
 
@@ -21,7 +20,7 @@ et exécuter cette commande. La validation locale a été faite sous Linux, pas 
 
 - Molette : zoom ; glisser sur le fond : déplacement ; « Ajuster la vue » : cadrage.
 - Recherche par nom ou ID, puis Entrée ou sélection dans la liste pour centrer.
-- Choisir une ressource pour isoler les variantes ; hauteur Y dans les détails.
+- Choisir Enfant ou Adulte. Les couches Static et Dynamic sont réunies. La hauteur Y est dans les détails.
 - Filtres de catégorie/statut ; décocher « Récupéré » pour masquer les checks gris.
 - En simulation, sélectionner un check puis changer son statut ou la connexion.
   En déconnexion, l'affichage conserve le dernier état ; la reconnexion publie les
@@ -29,11 +28,12 @@ et exécuter cette commande. La validation locale a été faite sous Linux, pas 
 
 ## Afficher une vue aérienne
 
-**Fond Field Atlas…** ouvre le [fond Kokiri Forest d’origine](https://oot.gousse.cool/content/maps/7e802ffa8684f3cd.svg)
+La vue charge automatiquement le [fond Kokiri Forest d’origine](https://oot.gousse.cool/content/maps/7e802ffa8684f3cd.svg)
 directement depuis [Field Atlas](https://oot.gousse.cool/kokiri-forest). Une connexion est
 nécessaire au premier chargement. L’application aligne le fond automatiquement
 si au moins quatre maisons correspondent aux repères de la ressource sélectionnée.
-Enregistre la carte pour la rouvrir hors ligne. Les positions sur le dessin
+**Fond Field Atlas…** permet de réessayer en cas d’échec. Enregistre la carte
+pour la rouvrir hors ligne. Les positions sur le dessin
 restent approximatives, surtout loin du village.
 
 **Ajouter une vue aérienne…** permet aussi d’utiliser un PNG ou un JPEG local.
@@ -47,6 +47,22 @@ conserve l’image et l’alignement dans le JSON, pour cette ressource.
 
 Le jeu et la seed fournissent les coordonnées. Le fond image est fourni
 séparément par l’utilisateur. Le schéma reste disponible en retirant le fond.
+
+Les checks hors du dessin restent consultables dans la liste. Sélectionner
+leur entrée affiche leur position réelle, et la case **Afficher les checks
+hors du fond** permet de les afficher ensemble.
+
+## Suivre une sauvegarde
+
+Dans la version Windows, clique sur **Suivre ma sauvegarde…** et sélectionne le
+fichier `progress.sav` associé à ta seed. Si tu as rouvert un JSON enregistré,
+l’application demande aussi le `checks.json` du dossier complet de cette seed.
+OotrR valide que la sauvegarde appartient à la seed. Les états sont actualisés
+quand le jeu écrit la sauvegarde. **Arrêter le suivi** conserve le dernier état
+affiché. L’application lit la sauvegarde sans la modifier.
+
+**Diagnostic de la carte…** exporte les IDs et les coordonnées pour vérifier une
+seed. Le rapport exclut l’image, l’identifiant de seed et la sauvegarde.
 
 ## Métadonnées locales
 
@@ -66,7 +82,7 @@ Ne pas commiter de ressources du jeu ni présenter une fixture comme réelle.
 python -m unittest discover -s tests -v
 ```
 
-Sans écran, les trois tests Tk sont ignorés explicitement. Définir
+Sans écran, les tests Tk sont ignorés explicitement. Définir
 `MAP_REQUIRE_DISPLAY=1` pour exiger leur exécution (utilisé dans le workflow).
 
 Le workflow **Windows portable preview** teste puis construit avec PyInstaller

@@ -30,6 +30,28 @@ def export_scan(groups, extra, *, provenance):
     return document
 
 
+
+def world_check_rows(maps, checks, eligible):
+    """Resolve legacy world-map check IDs by the actor hash and exact patch field."""
+    requested = {check['id']: check for check in checks}
+    rows = []
+    for path, resource in maps.items():
+        if not path.startswith('Banc/KokiriForest/'):
+            continue
+        for actor in resource['root'].get('Actors', ()):
+            if type(actor.get('Hash')) is not int or not eligible(path, actor):
+                continue
+            prefix = f"KokiriForest#{actor['Hash']}#"
+            dynamic = actor.get('Dynamic')
+            fields = ['Gyaml', *(dynamic if isinstance(dynamic, dict) else ())]
+            for field in fields:
+                ident = prefix + field
+                if ident in requested:
+                    check = requested[ident]
+                    rows.append(dict(id=ident, name=check['name'], category=check['category'],
+                                     resource=path, position=actor.get('Translate')))
+    return rows
+
 def bind_catalogue(document, catalogue):
     """Use the seed's names and IDs; keep unmatched Kokiri entries searchable."""
     if (catalogue.get('schema_version') != 1 or not isinstance(catalogue.get('seed_id'), str)

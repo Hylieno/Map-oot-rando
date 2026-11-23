@@ -6,7 +6,7 @@ import struct
 import subprocess
 import sys
 
-from .metadata import bind_catalogue, export_scan
+from .metadata import bind_catalogue, export_scan, world_check_rows
 from .model import UPSTREAM_REVISION
 from .scene import extract_scenes
 
@@ -21,18 +21,22 @@ def verify_checkout(directory):
         raise ValueError(f'Copie OotrR propre à la révision {UPSTREAM_REVISION} requise')
 
 
-def scan_game(path, progress=None):
+def scan_game(path, progress=None, world_checks=()):
     from oot_rando.formats.inspect_nup import Nup
     from oot_rando.formats.inspect_resources import dictionaries
     from oot_rando.game.check_names import landmarks
     from oot_rando.game.extra_sources import scan_world
     from oot_rando.game.world_maps import effective_members
+    from oot_rando.game.remake_world import inaccessible_child_actor
 
     nup = Nup(path)
     with nup.stream:
         maps, groups, _, extra = scan_world(nup, dictionaries(nup), effective_members(nup),
                                          progress)
     document = export_scan(groups, extra, provenance='ootrr-scan')
+    if world_checks:
+        document['locations'].extend(world_check_rows(
+            maps, world_checks, lambda path, actor: not inaccessible_child_actor(path, actor)))
     document['scenes'] = extract_scenes(maps, landmarks)
     return document
 
@@ -40,7 +44,10 @@ def scan_game(path, progress=None):
 def import_seed(nup, checks, progress=None):
     """Read local inputs and prepare the map document shared by both entry points."""
     catalogue = json.loads(Path(checks).read_text(encoding='utf-8-sig'))
-    scanned = scan_game(nup, progress) if progress else scan_game(nup)
+    world_checks = [check for check in catalogue['checks']
+                    if check['id'].startswith('KokiriForest#')
+                    and check['id'].split('#', 2)[1].isdecimal() and check['id'].count('#') == 2]
+    scanned = scan_game(nup, progress, world_checks)
     document = bind_catalogue(scanned, catalogue)
     if not document['locations']:
         raise ValueError('Aucun check de Kokiri Forest dans le catalogue')

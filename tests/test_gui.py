@@ -174,3 +174,37 @@ class GuiTests(unittest.TestCase):
         app.resource_changed()
         self.assertEqual(len(app.visible), 1)
         self.assertFalse(app.canvas.find_withtag('aerial'))
+
+    def test_import_automatically_loads_field_atlas_without_dialog(self):
+        from unittest.mock import patch
+        from PIL import Image
+        from map_oot_rando.field_atlas import HOUSE_PIXELS
+
+        resource = 'Banc/KokiriForest/KokiriForest_Adult_Dynamic.bcett.byml.zs'
+        doc = demo_document()
+        doc['provenance'] = 'ootrr-scan'
+        doc['locations'] = [dict(doc['locations'][0], resource=resource)]
+        doc['scenes'] = {resource: dict(
+            rooms=[(name.replace(' ', '_'), [x-1, y-1], [x+1, y+1])
+                   for name, (x, y) in HOUSE_PIXELS.items()],
+            points=[],
+        )}
+        app = self.app
+
+        def wait_for_background():
+            if app.canvas.find_withtag('aerial'):
+                self.root.quit()
+            else:
+                self.root.after(20, wait_for_background)
+
+        with (patch('map_oot_rando.gui.load_kokiri_image',
+                    return_value=Image.new('RGB', (900, 498), 'white')) as download,
+              patch('map_oot_rando.gui.align_image') as manual):
+            app.load(doc)
+            self.root.after(20, wait_for_background)
+            deadline = self.root.after(2000, self.root.quit)
+            self.root.mainloop()
+            self.root.after_cancel(deadline)
+            self.assertTrue(app.canvas.find_withtag('aerial'))
+            download.assert_called_once()
+            manual.assert_not_called()
