@@ -98,3 +98,7 @@ et le chargement automatique du fond via un SVG synthétique. Le test de suivi
 fait décoder des sauvegardes binaires synthétiques par le TrackerSession OotrR
 épinglé. Il vérifie un déblocage par inventaire, la collecte, la restauration
 d’une sauvegarde antérieure, une interruption et le refus d’une autre seed.
+
+Les 32 tests, y compris le suivi OotrR sur sauvegarde synthétique, passent
+sur Windows. L’exécutable compilé charge aussi le moteur et le monde de
+logique épinglés. [Windows CI](https://github.com/Hylieno/Map-oot-rando/actions/runs/45091882761)
