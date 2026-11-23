@@ -1,5 +1,14 @@
 # Validation
 
+Le catalogue de référence du Temple du Feu compte 40 checks. Les deux scènes
+publiques et les résolveurs de placement en retrouvent 40, dont Volvagia et
+son cœur. Les 38 autres marqueurs tombent sur le dessin de leur étage ou à
+un pixel de celui-ci, sur des images de 700 pixels de large. Le troisième
+étage, sans check dans cette seed, a été contrôlé sur trois repères physiques
+et reste accessible. Le test Tk vérifie le passage depuis le cratère,
+le filtrage par niveau et le retour à l’âge d’origine. Le NUP complet
+et la mémoire en jeu n’ont pas été utilisés pour cette validation.
+
 Le cratère du Péril a été recoupé avec les 37 IDs du catalogue. Le scan
 local sans packs d’acteurs en a positionné cinq, dont les deux coffres
 souterrains et la Grande Fée. Le fond est vérifié aux deux âges avec un

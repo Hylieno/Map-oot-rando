@@ -1,4 +1,9 @@
-# Checkpoint — 22 novembre 2026
+# Checkpoint — 23 novembre 2026
+
+Le Temple du Feu est relié au cratère. Les cinq plans partagent un repère
+commun et le sélecteur reste disponible même sur un étage vide de la seed.
+Les 40 checks du catalogue de référence ont été retrouvés dans les scènes
+publiques. L’arène de Volvagia utilise une vue schématique.
 
 Le cratère du Péril est relié au mont et au rez-de-chaussée du Village Goron.
 Le fond Field Atlas est validé aux deux âges, les grottes ont leur vue et

@@ -19,7 +19,8 @@ from .model import REGION_NAMES, load_metadata, resource_region, select
 from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
-from .scene import (BURNT_VILLAGE, DODONGO_VIEWS, FLOOR_OPTIONS, GORON_CRATER_FLOOR, GORON_FLOORS,
+from .scene import (BURNT_VILLAGE, DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS, FIRE_VIEWS, FLOOR_OPTIONS,
+                    GORON_CRATER_FLOOR, GORON_FLOORS,
                     GORON_LEVELS, GORON_VIEWS,
                     NEIGHBORS, REGION_VIEWS,
                     UNDERGROUND_LABELS, UNDERGROUND_VIEWS, VIEWS,
@@ -213,6 +214,8 @@ class MapApplication:
         self.details.set('Sélectionnez un emplacement.')
         views = {location_view(row) for row in locations if row.position is not None}
         views.update(self.scenes.keys() & VIEWS.keys())
+        if FIRE_VIEWS[0] in views:
+            views.update(FIRE_VIEWS[:-1])
         for goron_views in GORON_VIEWS.values():
             points = self.scenes.get(goron_views[0], {}).get('points', ())
             if any(name == NEIGHBORS['GoronCity']['DeathMountainCrater'] for name, _ in points):
@@ -501,7 +504,7 @@ class MapApplication:
         resource = self.resource.get()
         region, age = VIEWS.get(resource, (self.current_region(), None))
         config = PAUSE_MAPS.get(region)
-        atlas_key = {DODONGO_VIEWS[0]: '1F', DODONGO_VIEWS[1]: '2F'}.get(resource, age)
+        atlas_key = DUNGEON_ATLAS_KEYS.get(resource, age)
         region_atlas = REGION_MAPS.get(region, {}).get(atlas_key)
         if (self.simulation or resource not in VIEWS or resource in UNDERGROUND_LABELS
                 or GORON_FLOORS.get(resource) == len(GORON_LEVELS) - 1
@@ -523,7 +526,8 @@ class MapApplication:
         if (self.atlas_loading or not manual and
                 (current or resource in self.atlas_disabled | self.atlas_failed)):
             return
-        references = self.aerial_references(resource, include_checks=False, quiet=not manual)
+        references = (() if region == 'FireTemple'
+                      else self.aerial_references(resource, include_checks=False, quiet=not manual))
         if references is None:
             return
         generation = self.atlas_generation
@@ -546,7 +550,8 @@ class MapApplication:
                     image = cached.get(source)
                     if region_atlas:
                         if image is None:
-                            image = load_atlas_image(digest, width=700 if region == 'DodongoCavern' else 650)
+                            width = 700 if resource in DUNGEON_ATLAS_KEYS else 650
+                            image = load_atlas_image(digest, width=width)
                         background = align_region_image(image, references, region, atlas_key)
                     elif source == 'field-atlas':
                         if image is None:
@@ -671,7 +676,7 @@ class MapApplication:
     def sync_age(self):
         if not self.save_age or not self.follow_age.get():
             return
-        if self.resource.get() in DODONGO_VIEWS:
+        if self.current_region() in DUNGEON_FLOORS:
             self.navigation_age = self.save_age
             self.refresh_navigation()
             return
@@ -876,7 +881,7 @@ class MapApplication:
         name = REGION_NAMES[region]
         if self.resource.get() in GORON_FLOORS:
             name = f'{name} · {GORON_LEVELS[GORON_FLOORS[self.resource.get()]]}'
-        elif self.resource.get() in DODONGO_VIEWS:
+        elif region in DUNGEON_FLOORS and self.resource.get() in FLOOR_OPTIONS:
             name = self.resource.get()
         exits = {}
         if not self.simulation:

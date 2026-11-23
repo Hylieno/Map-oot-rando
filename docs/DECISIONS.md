@@ -19,6 +19,10 @@
 - Cratère du Péril. La corniche sud contrôle le recalage indépendamment.
   Les checks sous Y = 90 utilisent la vue souterraine. Le lien avec le
   Village Goron correspond au niveau de l’entrée côté cratère.
+- Temple du Feu. Les cinq recadrages Field Atlas sont indexés par leur contenu.
+  La projection X/Z et les seuils de niveaux suivent les mesures publiées
+  par Ocarina Atlas. L’arène utilise le centre référencé par l’acteur du boss.
+  [Source de la calibration](https://github.com/antonioalvromero/Ocarina-Atlas)
 
 - Python sans dépendance pour le socle ; Tkinter prévu, cohérent avec OotrR.
 - Ne pas développer une seconde logique d'accessibilité ni un lecteur mémoire.

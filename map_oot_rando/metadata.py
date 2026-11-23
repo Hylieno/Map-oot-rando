@@ -1,4 +1,6 @@
 """Export already-labelled OotrR scan results without reading or copying game assets."""
+from fnmatch import fnmatchcase
+
 from .model import REGION_NAMES, UPSTREAM_REVISION, load_metadata, resource_region
 
 LOST_WOOD_EVENT_ACTORS = {
@@ -12,6 +14,7 @@ EVENT_ACTORS = {
     'LostWood': {actor: ident for ident, actor in LOST_WOOD_EVENT_ACTORS.items()},
     'GoronCity': {('Npc_Goron_Darunia_Child', None): 'npc#GC Darunias Joy'},
     'DodongoCavern': {('Enemy_DungeonBoss_Dodongo', None): 'boss#King Dodongo'},
+    'FireTemple': {('Enemy_DungeonBoss_Volvagia', None): 'boss#Volvagia'},
     'DeathMountainCrater': {
         ('MapIconFacilityAnchor', 'HavePlayedEvent.Dm_FairyFountain_Wisdom'): 'fairy#DMC Great Fairy Reward',
     },
@@ -21,6 +24,15 @@ GROTTO_ENTRANCE_ACTORS = {
     'SacredForestMeadow#7995233962349162969': (8456945034417122929, 'Land_Kokiri_HidingHoleCover_A_01'),
     'SacredForestMeadow#1764383515296652106': (15024208487326008169, 'Land_SacredForest_HidingHoleCover_A_02'),
     **dict.fromkeys(DEKU_THEATER_CHECKS, (4876738002315557989, 'DestinationAnchor')),
+}
+FIRE_CHECK_ACTORS = {
+    ('full_chests', ''): 'Obj_TBox_*',
+    ('full_crates', 'crates'): 'Obj_BrokenBox_*',
+    ('full_pots', 'pots'): 'Obj_Pot_*',
+    ('full_rocks', 'rocks'): 'Obj_BrokenRock_*',
+    ('full_freestanding', 'free'): 'Obj_Heart',
+    ('full_skulltula', 'gs'): 'Enemy_Skulltula_Gold',
+    ('full_bossheart', 'heart'): 'Obj_Heart_Container',
 }
 
 
@@ -98,6 +110,28 @@ def world_check_rows(maps, checks, eligible):
     return rows
 
 
+def fire_check_rows(maps, checks, existing, eligible):
+    """Resolve Fire Temple checks absent from the pack-based scan by actor hash."""
+    positioned = {row['id'] for row in existing if row['position'] is not None}
+    requested = {}
+    for check in checks:
+        region, _, suffix = check['id'].partition('#')
+        kind, _, actor_hash = suffix.rpartition('#')
+        pattern = FIRE_CHECK_ACTORS.get((check['category'], kind))
+        if region == 'FireTemple' and pattern and actor_hash.isascii() and actor_hash.isdecimal():
+            if check['id'] not in positioned:
+                requested.setdefault(int(actor_hash), []).append((check, pattern))
+    for path, source in maps.items():
+        if resource_region(path) != 'FireTemple':
+            continue
+        for actor in source['root'].get('Actors', ()):
+            position = actor.get('Translate')
+            for check, pattern in requested.get(actor.get('Hash'), ()):
+                if position and fnmatchcase(actor.get('Gyaml', ''), pattern) and eligible(path, actor):
+                    yield dict(id=check['id'], name=check['name'], category=check['category'],
+                               resource=path, position=position)
+
+
 def event_check_rows(maps, eligible):
     """Locate event rewards at their unique NPC in each age."""
     candidates = {}
@@ -107,13 +141,24 @@ def event_check_rows(maps, eligible):
         if ids is None:
             continue
         age_frame = path.removesuffix('.bcett.byml.zs').rsplit('_', 1)[0]
-        for actor in source['root'].get('Actors', ()):
+        actors = source['root'].get('Actors', ())
+        for actor in actors:
             dynamic = actor.get('Dynamic')
             gyaml = actor.get('Gyaml')
             parameter = 'MapIconFacilityIsOpen' if gyaml == 'MapIconFacilityAnchor' else 'TalkEventName'
             event = dynamic.get(parameter) if isinstance(dynamic, dict) else None
             ident = ids.get((gyaml, event))
             position = actor.get('Translate')
+            if ident == 'boss#Volvagia':
+                # The model waits below the floor before the cutscene. The linked
+                # destination is the center used during the encounter.
+                centers = {link['Dst'] for link in actor.get('Links', ())
+                           if link.get('Name') == 'RoomCenter' and 'Dst' in link}
+                points = [anchor['Translate'] for anchor in actors
+                          if anchor.get('Hash') in centers and anchor.get('Gyaml') == 'DestinationAnchor'
+                          and anchor.get('Translate')]
+                if len(points) == 1:
+                    position = points[0]
             checks = (ident,) if ident else ()
             if (region == 'LostWood' and actor.get('Gyaml') == 'Enemy_Scrub_ForestStage_Elder'
                     and actor.get('Name') == 'ScrubForestStageElder' and age_frame.endswith('_Child')):
@@ -139,7 +184,8 @@ def bind_catalogue(document, catalogue):
     names.update({'Lost Woods': 'LostWood', 'the Lost Woods': 'LostWood', 'Hyrule Field': 'HyruleField',
                   'Sacred Forest Meadow': 'SacredForestMeadow', 'Kakariko Village': 'KakarikoVillage',
                   'Death Mountain Trail': 'DeathMountainTrail', 'Goron City': 'GoronCity',
-                  "Dodongo's Cavern": 'DodongoCavern', 'Death Mountain Crater': 'DeathMountainCrater'})
+                  "Dodongo's Cavern": 'DodongoCavern', 'Death Mountain Crater': 'DeathMountainCrater',
+                  'Fire Temple': 'FireTemple'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']

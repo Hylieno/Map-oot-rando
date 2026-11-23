@@ -47,12 +47,43 @@ REGION_MAPS['DodongoCavern'] = {
     '1F': ('field-atlas-dodongo-1f', '9df7f3e24787a2e6f4bed707ed26e46687c4bf76779b2fa1d854a11ff0c7b111'),
     '2F': ('field-atlas-dodongo-2f', '4193834d6b36cf47e8f52b8d138a5fcb2124373b693c73b748f9c6b50c271f49'),
 }
+FIRE_VIEWBOXES = {
+    '1F': (141, -30, 721, 506),
+    '2F': (163, 97, 663, 242),
+    '3F': (-24, -13, 780, 448),
+    '4F': (18, 41, 548, 286),
+    '5F': (24, 90, 622, 258),
+}
+REGION_MAPS['FireTemple'] = {
+    '1F': ('field-atlas-fire-1f', '3f16cb7f3303f228886c0e2d2427bca559002202f0c0c88b93beda28cbbfb457'),
+    '2F': ('field-atlas-fire-2f', '61e73d8ecb54aa8a84d6fb46d985aba949a6c0993bd9f9b101bb4ae7777b909b'),
+    '3F': ('field-atlas-fire-3f', '6b4577c27123e03dd824a9d7727d1c8c56930bbf4262277ff4249d810762f71a'),
+    '4F': ('field-atlas-fire-4f', '7d16228fa66665c302b458a7b9c255ef47fb30ff7c6df55a6e96aadafd2c504b'),
+    '5F': ('field-atlas-fire-5f', '1f1900c6bda818467de0e4dc9a9e0f4d5f8d720206268d97b686c2c2ac21ccf5'),
+}
 REGION_CALIBRATION = 1
+
+
+def align_fire_floor(image, floor):
+    """Place a crop of the Fire Temple capture in the common dungeon frame."""
+    left, top, width, height = FIRE_VIEWBOXES[floor]
+    scale = image.width / width
+    if abs(height * scale - image.height) > 1:
+        raise ValueError('Les dimensions du plan du Temple du Feu sont incompatibles.')
+    # Calibration measured by Ocarina Atlas. Each Field Atlas SVG crops the
+    # same orthographic capture, using the per-level viewBox.
+    frame = (3.965 * scale, 0, (354.2 - left) * scale,
+             0, 3.9651 * scale, (218.31 - top) * scale)
+    basis = [(0, 0), (50, 0), (0, 50)]
+    return AerialImage(image, [apply(frame, point) for point in basis], basis,
+                       source=REGION_MAPS['FireTemple'][floor][0], calibration=REGION_CALIBRATION)
 
 
 def align_region_image(image, references, region, age):
     from .map_projection import registered_background
 
+    if region == 'FireTemple':
+        return align_fire_floor(image, age)
     if region == 'KakarikoVillage':
         controls = {
             'Vers la plaine d’Hyrule': (42, 346),

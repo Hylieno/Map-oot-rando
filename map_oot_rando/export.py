@@ -7,7 +7,8 @@ import struct
 import subprocess
 import sys
 
-from .metadata import add_surface_entrances, bind_catalogue, event_check_rows, export_scan, world_check_rows
+from .metadata import (add_surface_entrances, bind_catalogue, event_check_rows, export_scan,
+                       fire_check_rows, world_check_rows)
 from .model import REGION_NAMES, SURFACE_MIN_Y, UPSTREAM_REVISION, resource_region
 from .scene import extract_scenes
 
@@ -28,7 +29,7 @@ def map_capture_catalogue(members):
     return sorted(path for path in members if candidates.search(path))
 
 
-def scan_game(path, progress=None, world_checks=()):
+def scan_game(path, progress=None, world_checks=(), fire_checks=()):
     from oot_rando.formats.inspect_nup import Nup
     from oot_rando.formats.inspect_resources import dictionaries
     from oot_rando.game.check_names import landmarks
@@ -48,6 +49,8 @@ def scan_game(path, progress=None, world_checks=()):
     document['locations'].extend(event_check_rows(maps, eligible))
     if world_checks:
         document['locations'].extend(world_check_rows(maps, world_checks, eligible))
+    if fire_checks:
+        document['locations'].extend(fire_check_rows(maps, fire_checks, document['locations'], eligible))
     add_surface_entrances(document['locations'], maps)
     for row in document['locations']:
         level = SURFACE_MIN_Y.get(resource_region(row['resource']))
@@ -64,7 +67,8 @@ def import_seed(nup, checks, progress=None):
     world_checks = [check for check in catalogue['checks']
                     if check['id'].partition('#')[0] in REGION_NAMES
                     and check['id'].count('#') == 2 and check['id'].split('#', 2)[1].isdecimal()]
-    scanned = scan_game(nup, progress, world_checks)
+    fire_checks = [check for check in catalogue['checks'] if check['id'].startswith('FireTemple#')]
+    scanned = scan_game(nup, progress, world_checks, fire_checks)
     document = bind_catalogue(scanned, catalogue)
     if not document['locations']:
         raise ValueError('Aucun check des zones prises en charge dans le catalogue')

@@ -16,6 +16,7 @@ REGION_NAMES = {
     'GoronCity': 'Village Goron',
     'DodongoCavern': 'Caverne Dodongo',
     'DeathMountainCrater': 'Cratère du Péril',
+    'FireTemple': 'Temple du Feu',
 }
 # These scenes have buried actor placements below their surface.
 SURFACE_MIN_Y = {'Graveyard': 92, 'DeathMountainTrail': 80, 'DeathMountainCrater': 90}

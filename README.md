@@ -1,6 +1,6 @@
 # Map-oot-rando
 
-Compagnon de carte local pour OotrR avec Kokiri Forest, les Bois Perdus, le Bosquet sacré, la plaine d’Hyrule, Cocorico, le cimetière, le mont du Péril, le Village Goron, la caverne Dodongo et le cratère du Péril.
+Compagnon de carte local pour OotrR avec Kokiri Forest, les Bois Perdus, le Bosquet sacré, la plaine d’Hyrule, Cocorico, le cimetière, le mont du Péril, le Village Goron, la caverne Dodongo, le cratère du Péril et le Temple du Feu.
 
 La simulation utilise des positions fictives.
 L’import local lit les coordonnées de la seed et le suivi lit les états d’OotrR
@@ -62,6 +62,9 @@ fonds. L’arène du boss utilise un schéma et affiche séparément le boss et 
 Le [cratère du Péril](https://oot.gousse.cool/death-mountain-crater) relie
 le mont du Péril au rez-de-chaussée du Village Goron. Les checks sous la
 surface sont accessibles via **Souterrains**.
+Le cratère mène au Temple du Feu. Les cinq niveaux utilisent les plans
+Field Atlas et le sélecteur d’étage. Volvagia et son cœur ont une vue
+schématique séparée. [Plans du Temple du Feu](https://oot.gousse.cool/fire-temple)
 
 Pour une image locale, l’application lit automatiquement un fichier de coordonnées
 `.wld`, `.pgw` ou `.jgw` de même nom s’il utilise le repère X/Z du jeu. Une image

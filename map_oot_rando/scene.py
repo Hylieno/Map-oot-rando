@@ -16,10 +16,19 @@ REGION_VIEWS['GoronCity'] = {age: views[0] for age, views in GORON_VIEWS.items()
 GORON_FLOORS = {view: index for views in GORON_VIEWS.values() for index, view in enumerate(views)}
 DODONGO_LEVELS = ('Rez-de-chaussée', 'Étage', 'Arène du boss')
 DODONGO_VIEWS = tuple(f'{REGION_NAMES["DodongoCavern"]} · {level}' for level in DODONGO_LEVELS)
-REGION_VIEWS['DodongoCavern'] = {None: DODONGO_VIEWS[0]}
+FIRE_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', '3e étage', '4e étage', 'Arène du boss')
+FIRE_VIEWS = tuple(f'{REGION_NAMES["FireTemple"]} · {level}' for level in FIRE_LEVELS)
+DUNGEON_FLOORS = {
+    'DodongoCavern': tuple(zip(DODONGO_LEVELS, DODONGO_VIEWS)),
+    'FireTemple': tuple(zip(FIRE_LEVELS, FIRE_VIEWS)),
+}
+DUNGEON_ATLAS_KEYS = {view: f'{level}F' for floors in DUNGEON_FLOORS.values()
+                      for level, (_, view) in enumerate(floors[:-1], start=1)}
+for region, floors in DUNGEON_FLOORS.items():
+    REGION_VIEWS[region] = {None: floors[0][1]}
 FLOOR_OPTIONS = {
     **{view: tuple(zip(GORON_LEVELS, views)) for views in GORON_VIEWS.values() for view in views},
-    **dict.fromkeys(DODONGO_VIEWS, tuple(zip(DODONGO_LEVELS, DODONGO_VIEWS))),
+    **{view: floors for floors in DUNGEON_FLOORS.values() for _, view in floors},
 }
 AGE_VIEWS = REGION_VIEWS['KokiriForest']
 VIEWS = {label: (region, age) for region, ages in REGION_VIEWS.items()
@@ -32,7 +41,7 @@ UNDERGROUND_LABELS = {view for ages in UNDERGROUND_VIEWS.values() for view in ag
 VIEWS.update({view: (region, age) for region, ages in UNDERGROUND_VIEWS.items()
               for age, view in ages.items()})
 VIEWS.update({view: ('GoronCity', age) for age, views in GORON_VIEWS.items() for view in views})
-VIEWS.update(dict.fromkeys(DODONGO_VIEWS, ('DodongoCavern', None)))
+VIEWS.update({view: (region, None) for region, floors in DUNGEON_FLOORS.items() for _, view in floors})
 NEIGHBORS = {
     'KokiriForest': {'LostWood': 'front_of_lost_wood_entrance',
                      'HyruleField': 'front_of_hyrule_field_entrance'},
@@ -47,7 +56,9 @@ NEIGHBORS = {
                            'DodongoCavern': 'Vers la Caverne Dodongo', 'DeathMountainCrater': 'Repère du cratère'},
     'GoronCity': {'DeathMountainTrail': 'Vers le mont du Péril', 'DeathMountainCrater': 'Repère nord Goron'},
     'DodongoCavern': {'DeathMountainTrail': 'Vers le mont du Péril'},
-    'DeathMountainCrater': {'DeathMountainTrail': 'Vers le mont du Péril', 'GoronCity': 'goron_city_entrance'},
+    'DeathMountainCrater': {'DeathMountainTrail': 'Vers le mont du Péril', 'GoronCity': 'goron_city_entrance',
+                           'FireTemple': 'Temple du Feu'},
+    'FireTemple': {'DeathMountainCrater': 'Vers le cratère'},
 }
 KAKARIKO_ENTRANCES = {
     'HyruleField': 'Vers la plaine d’Hyrule',
@@ -98,6 +109,7 @@ ENTRANCE_LABELS = {
         'LostWood': 'Repère des Bois Perdus',
     },
     'DodongoCavern': {'DeathMountainTrail': 'Vers le mont du Péril'},
+    'FireTemple': NEIGHBORS['FireTemple'],
     'DeathMountainCrater': {
         'DeathMountainTrail': 'Vers le mont du Péril',
         'GoronCity': 'Repère Goron depuis le cratère',
@@ -246,9 +258,9 @@ def read_scenes(document):
 def view_name(resource):
     """Group scene layers within a region and age."""
     region = resource_region(resource)
-    if region == 'DodongoCavern' and resource in (
+    if region in DUNGEON_FLOORS and resource in (
             f'Banc/{region}/{region}_{layer}{MAP_SUFFIX}' for layer in ('Static', 'Dynamic')):
-        return DODONGO_VIEWS[0]
+        return REGION_VIEWS[region][None]
     if region == 'KakarikoVillage' and resource in (
             f'Banc/{region}/{region}_Adult_Alternative_{layer}{MAP_SUFFIX}'
             for layer in ('Static', 'Dynamic')):
@@ -269,6 +281,12 @@ def location_view(row):
         y = row.position[1]
         floor = sum(y < boundary for boundary in (112.5, 107.5, 101.5, 96.5))
         return GORON_VIEWS[VIEWS[view][1]][floor]
+    if view == FIRE_VIEWS[0] and row.position is not None:
+        if row.id == 'boss#Volvagia' or row.category == 'full_bossheart':
+            return FIRE_VIEWS[-1]
+        # Floor cuts follow the native minimap. The arena shares the ground-floor elevation.
+        floor = sum(row.position[1] >= boundary for boundary in (124, 142, 164, 182))
+        return FIRE_VIEWS[floor]
     if view == DODONGO_VIEWS[0] and row.position is not None:
         y = row.position[1]
         if y < 82:

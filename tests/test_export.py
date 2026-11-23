@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from map_oot_rando.export import main
-from map_oot_rando.metadata import add_surface_entrances, bind_catalogue, event_check_rows, export_scan
+from map_oot_rando.metadata import add_surface_entrances, bind_catalogue, event_check_rows, export_scan, fire_check_rows
 from map_oot_rando.model import load_metadata, select
 
 
@@ -29,6 +29,22 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(select((chest, event), {}, 'KF_example'), (chest,))
         self.assertIsNone(event.project())
         self.assertEqual(len(result['diagnostics']), 1)
+
+    def test_fire_hash_fallback_checks_actor_type_and_keeps_scanner_result(self):
+        path = 'Banc/FireTemple/FireTemple_Static.bcett.byml.zs'
+        maps = {path: {'root': {'Actors': [
+            dict(Hash=1, Gyaml='Obj_Pot_A_03', Translate=[3, 145, 2]),
+            dict(Hash=2, Gyaml='Obj_Heart_Container', Translate=[0, 100, 0]),
+            dict(Hash=3, Gyaml='Obj_TBox_A_01_NoBake', Translate=[0, 102, 0]),
+        ]}}}
+        checks = [
+            dict(id='FireTemple#pots#1', category='full_pots', name='Pot'),
+            dict(id='FireTemple#free#2', category='full_freestanding', name='Heart'),
+            dict(id='FireTemple#3', category='full_chests', name='Chest'),
+        ]
+        existing = [dict(checks[2], position=[2, 102, 4])]
+        rows = list(fire_check_rows(maps, checks, existing, lambda *_: True))
+        self.assertEqual(rows, [dict(checks[0], resource=path, position=[3, 145, 2])])
 
     def test_cli_creates_loadable_file_and_refuses_overwrite(self):
         with tempfile.TemporaryDirectory() as tmp:

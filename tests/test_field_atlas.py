@@ -37,6 +37,20 @@ class FieldAtlasTests(unittest.TestCase):
                 load_kokiri_image()
         render.assert_not_called()
 
+    def test_fire_floors_align_without_seed_control_points(self):
+        from PIL import Image
+        from map_oot_rando.field_atlas import align_region_image
+
+        # The same X/Z has different pixel coordinates in each floor crop.
+        cases = [(492, (207, 241)), (256, (202, 128)), (403, (339, 208)),
+                 (366, (429, 226)), (291, (372, 144))]
+        for index, (height, expected) in enumerate(cases, start=1):
+            with self.subTest(floor=index):
+                atlas = align_region_image(Image.new('RGB', (700, height)), (), 'FireTemple', f'{index}F')
+                self.assertEqual(tuple(round(v) for v in atlas.image_point((0, 0))), expected)
+        with self.assertRaisesRegex(ValueError, 'dimensions'):
+            align_region_image(Image.new('RGB', (700, 320)), (), 'FireTemple', '5F')
+
     def test_death_mountain_checks_dodongo_independently(self):
         from PIL import Image
         from map_oot_rando.field_atlas import align_region_image

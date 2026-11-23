@@ -433,6 +433,42 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(app.resource.get(), GORON_VIEWS['Adult'][GORON_CRATER_FLOOR])
         self.assertEqual(set(app.navigation_markers.values()), {'DeathMountainCrater'})
 
+    def test_fire_temple_groups_layers_and_retains_empty_floor(self):
+        from unittest.mock import patch
+        from map_oot_rando.scene import FIRE_LEVELS, FIRE_VIEWS, REGION_VIEWS
+
+        app = self.app
+        load_background = self.enterContext(patch.object(app, 'ensure_atlas'))
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=list(REGION_VIEWS))
+        row = doc['locations'][0]
+        crater = 'Banc/DeathMountainCrater/DeathMountainCrater_Adult_Static.bcett.byml.zs'
+        fire = 'Banc/FireTemple/FireTemple_{}.bcett.byml.zs'
+        doc['locations'] = [
+            dict(row, id='crater', resource=crater),
+            dict(row, id='lower', resource=fire.format('Static'), position=(77, 141.1, 0)),
+            dict(row, id='upper', resource=fire.format('Dynamic'), position=(8, 145, 0)),
+            dict(row, id='boss#Volvagia', resource=fire.format('Static'), position=(-80, 102, 0)),
+            dict(row, id='boss-heart', category='full_bossheart',
+                 resource=fire.format('Dynamic'), position=(-76, 102, 0)),
+        ]
+        doc['scenes'] = {fire.format('Dynamic'): {'rooms': [], 'points': [('Vers le cratère', (0, 29.65))]}}
+        app.load(doc)
+        app.resource.set(REGION_VIEWS['DeathMountainCrater']['Adult'])
+        app.resource_changed()
+        app.open_neighbor('FireTemple')
+        self.assertEqual(app.resource.get(), FIRE_VIEWS[0])
+        self.assertEqual(tuple(app.floor_picker['values']), FIRE_LEVELS)
+        self.assertEqual(set(app.navigation_markers.values()), {'DeathMountainCrater'})
+        for floor, ids in [(1, {'lower'}), (2, {'upper'}), (3, set()),
+                           (5, {'boss#Volvagia', 'boss-heart'})]:
+            load_background.reset_mock()
+            app.floor_picker.set(FIRE_LEVELS[floor])
+            app.choose_floor(None)
+            self.assertEqual({item.id for item in app.visible}, ids)
+            load_background.assert_called_once_with()
+        app.open_neighbor('DeathMountainCrater')
+        self.assertEqual(app.resource.get(), REGION_VIEWS['DeathMountainCrater']['Adult'])
+
     def test_overlapping_markers_can_both_be_selected(self):
         from unittest.mock import patch
 

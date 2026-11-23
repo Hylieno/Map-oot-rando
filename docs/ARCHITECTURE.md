@@ -25,6 +25,11 @@ fond Field Atlas. L’ID et les coordonnées XYZ d’origine restent disponibles
 La caverne Dodongo utilise des ressources communes aux deux âges. Le menu
 d’étage est partagé avec le Village Goron. Le dernier âge connu reste
 disponible quand l’utilisateur rejoint une zone extérieure.
+Le Temple du Feu réutilise ce sélecteur. Ses cinq images sont des recadrages
+d’une même projection orthographique. Les marqueurs reprennent les placements
+du scan OotrR, avec résolution par type et identifiant d’acteur pour les
+checks du catalogue restés sans position. La catégorie du cœur de boss
+permet de le placer dans l’arène même à la hauteur du rez-de-chaussée.
 
 Référence inspectée : Mozencaz/OotrR,
 `283d3ec0f161d32e168afac45e502442c1ffb081`.
