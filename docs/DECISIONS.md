@@ -5,7 +5,10 @@
   viennent de Field Atlas et se chargent automatiquement.
 - Bois Perdus. Le plan et l’itinéraire sont dessinés à partir des carrefours
   et passages observés dans les scènes du jeu. Les raccourcis Goron et Zora
-  sont navigables dans les deux sens. Zora sert de carte de transit.
+  sont navigables dans les deux sens.
+- Rivière Zora. Le coffre et les pots enterrés utilisent leurs entrées de
+  grotte. Le mini-jeu des grenouilles est repéré au point où Link joue de
+  l’ocarina dans la scène enfant.
 - Link. Le marqueur et le changement automatique de zone sont deux commandes
   distinctes. Les coordonnées sont lues via la connexion mémoire OotrR.
   Les décalages du module et les champs de pose viennent de la documentation

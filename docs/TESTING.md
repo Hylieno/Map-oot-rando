@@ -1,5 +1,13 @@
 # Validation
 
+La rivière Zora a été recoupée sur les quatre scènes publiques du jeu.
+Les 54 identifiants du catalogue sont positionnés dans le fond Field Atlas,
+avec 40 placements enfant et 39 adulte. Dans chaque vue, le coffre et les
+trois pots enterrés apparaissent à l’entrée de leur grotte. Les tests
+vérifient les deux entrées du coffre, le point des grenouilles côté enfant
+et le passage avec la plaine. Le scan du NUP complet reste à valider pour
+cette zone.
+
 Les tests Tk couvrent le dézoom vers la carte générale, la navigation par âge,
 les raccourcis des Bois Perdus dans les deux sens et le suivi de Link avec ou
 sans changement automatique de zone. Les tests du lecteur de Link couvrent

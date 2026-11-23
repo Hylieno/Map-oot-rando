@@ -40,7 +40,9 @@ utilisée par Ocarina Atlas. [Field Atlas](https://oot.gousse.cool/) · [Ocarina
 
 Dans les Bois Perdus, le tracé doré indique le chemin normal de Kokiri au Bosquet
 sacré. Les marqueurs de passage ouvrent le Village Goron et la rivière Zora. Leurs
-passages permettent aussi de revenir aux Bois Perdus. La rivière a ici une carte de transit.
+passages permettent aussi de revenir aux Bois Perdus. La rivière Zora est reliée
+à la plaine d’Hyrule et affiche ses checks enfant et adulte. Le coffre et les pots
+en grotte sont indiqués à leur entrée en surface.
 Les deux récompenses du Théâtre Mojo partagent un marqueur à l’entrée.
 Au Bosquet sacré, les deux coffres enfouis sont repérés par l’accès à leur
 grotte. Les détails conservent les coordonnées XYZ du coffre.

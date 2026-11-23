@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from map_oot_rando.export import main
-from map_oot_rando.metadata import add_surface_entrances, bind_catalogue, event_check_rows, export_scan, fire_check_rows
+from map_oot_rando.metadata import add_surface_entrances, bind_catalogue, event_check_rows, export_scan, placed_check_rows
 from map_oot_rando.model import load_metadata, select
 
 
@@ -42,9 +42,39 @@ class ExportTests(unittest.TestCase):
             dict(id='FireTemple#free#2', category='full_freestanding', name='Heart'),
             dict(id='FireTemple#3', category='full_chests', name='Chest'),
         ]
-        existing = [dict(checks[2], position=[2, 102, 4])]
-        rows = list(fire_check_rows(maps, checks, existing, lambda *_: True))
+        existing = [dict(checks[2], resource=path, position=[2, 102, 4])]
+        rows = list(placed_check_rows(maps, checks, existing, lambda *_: True))
         self.assertEqual(rows, [dict(checks[0], resource=path, position=[3, 145, 2])])
+
+    def test_zora_grotto_keeps_exact_coordinates_with_age_specific_access(self):
+        def path(age, layer):
+            return f'Banc/ZoraRiver/ZoraRiver_{age}_{layer}.bcett.byml.zs'
+
+        chest = dict(Hash=8838426083116998768, Gyaml='Obj_TBox_A_01', Translate=(-16, 75, 30))
+        frogs = dict(Gyaml='OcarinaPoint_MiniGame_FrogTenors', Translate=(9, 102, -55))
+        maps = {}
+        entrances = {'Child': (15446115664186718191, (-15, 115, 15)),
+                     'Adult': (17321193928923817093, (-16, 115, 15))}
+        for age, (hash_id, point) in entrances.items():
+            maps[path(age, 'Static')] = {'root': {'Actors': [
+                dict(Hash=hash_id, Gyaml='DestinationAnchor', Translate=point),
+                *([frogs] if age == 'Child' else []),
+            ]}}
+            maps[path(age, 'Dynamic')] = {'root': {'Actors': [chest]}}
+        catalogue = dict(self.catalogue, checks=[
+            dict(id=f"ZoraRiver#{chest['Hash']}", name='Chest', category='full_chests', zone='ZoraRiver'),
+            dict(id='npc#ZR Frogs Ocarina Game', name='Frogs', category='full_npc', zone='ZoraRiver'),
+        ])
+        document = export_scan({}, {}, provenance='ootrr-scan', regions=('KokiriForest', 'ZoraRiver'))
+        existing = [dict(catalogue['checks'][0], resource=path('Child', 'Dynamic'), position=chest['Translate'])]
+        document['locations'].extend(existing)
+        document['locations'].extend(placed_check_rows(maps, catalogue['checks'], existing, lambda *_: True))
+        document['locations'].extend(event_check_rows(maps, lambda *_: True))
+        add_surface_entrances(document['locations'], maps)
+        child, adult, event = load_metadata(bind_catalogue(document, catalogue))
+        self.assertEqual(child.position, adult.position)
+        self.assertEqual((child.project(), adult.project()), ((-15, 15), (-16, 15)))
+        self.assertEqual((event.position, event.resource), (frogs['Translate'], path('Child', 'Static')))
 
     def test_cli_creates_loadable_file_and_refuses_overwrite(self):
         with tempfile.TemporaryDirectory() as tmp:

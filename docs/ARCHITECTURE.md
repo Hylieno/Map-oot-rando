@@ -19,6 +19,9 @@ La navigation suivie réagit aux transitions de scène ou d’âge.
 Le champ facultatif `entrance` indique où accéder à un check souterrain
 sur une carte de surface. Le rendu projette cet accès et les détails
 conservent la position XYZ de l’acteur.
+À la rivière Zora et au Temple du Feu, les identifiants typés du catalogue
+peuvent compléter le scan par correspondance du hash et du type d’acteur
+dans chaque scène, sans écraser un placement déjà produit pour cette vue.
 Les ressources `Adult_Alternative` de Cocorico ont une vue adulte distincte.
 Le suivi réutilise le snapshot accepté par OotrR et le manifest pour lire la
 condition de scène. Les checks partagés gardent le même ID de suivi.

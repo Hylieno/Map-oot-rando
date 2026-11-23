@@ -49,7 +49,7 @@ NEIGHBORS = {
     'LostWood': {'KokiriForest': 'arrivee_de_kokiri', 'SacredForestMeadow': 'Vers le Bosquet sacré',
                  'GoronCity': 'Vers le Village Goron', 'ZoraRiver': 'Vers la Rivière Zora'},
     'HyruleField': {'KokiriForest': 'front_of_lost_wood_bridge_entrance',
-                    'KakarikoVillage': 'Vers Cocorico'},
+                    'KakarikoVillage': 'Vers Cocorico', 'ZoraRiver': 'Vers la Rivière Zora'},
     'SacredForestMeadow': {'LostWood': 'front_of_lost_wood_entrance'},
     'KakarikoVillage': {'HyruleField': 'Vers la plaine d’Hyrule', 'Graveyard': 'Vers le cimetière',
                         'DeathMountainTrail': 'Vers le Mont du Péril'},
@@ -62,7 +62,7 @@ NEIGHBORS = {
     'DeathMountainCrater': {'DeathMountainTrail': 'Vers le mont du Péril', 'GoronCity': 'goron_city_entrance',
                            'FireTemple': 'Temple du Feu'},
     'FireTemple': {'DeathMountainCrater': 'Vers le cratère'},
-    'ZoraRiver': {'LostWood': 'Vers les Bois Perdus'},
+    'ZoraRiver': {'LostWood': 'Vers les Bois Perdus', 'HyruleField': 'Vers la plaine d’Hyrule'},
 }
 KAKARIKO_ENTRANCES = {
     'HyruleField': 'Vers la plaine d’Hyrule',
@@ -96,6 +96,11 @@ HYRULE_ANCHORS = {
     'KakarikoVillage': 'Vers Cocorico',
     'GerudoValley': 'Vers la Vallée Gerudo',
     'LakeHylia': 'Vers le Lac Hylia',
+    'ZoraRiver': 'Vers la Rivière Zora',
+}
+ZORA_RIVER_EXITS = {
+    'ZoraRiver_LostWoodSide': NEIGHBORS['ZoraRiver']['LostWood'],
+    'ZoraRiver_Entrance': NEIGHBORS['ZoraRiver']['HyruleField'],
 }
 ENTRANCE_LABELS = {
     'KakarikoVillage': KAKARIKO_ENTRANCES,
@@ -178,8 +183,8 @@ def projection_points(region, sources):
                 if gyaml == 'StartPos' and actor.get('Name') == 'LostWood_Entrance':
                     label = 'arrivee_de_kokiri'
             elif region == 'ZoraRiver':
-                if gyaml == 'FieldAndDungeonEntranceEventRequestActor' and actor.get('Name') == 'ZoraRiver_LostWoodSide':
-                    label = 'Vers les Bois Perdus'
+                if gyaml == 'FieldAndDungeonEntranceEventRequestActor':
+                    label = ZORA_RIVER_EXITS.get(actor.get('Name'))
             elif region == 'SacredForestMeadow':
                 label = GROVE_ANCHORS.get(gyaml)
                 if gyaml in {'Land_SacredForest_Prop_A_33', 'Land_SacredForest_Prop_A_41'}:

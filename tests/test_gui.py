@@ -476,7 +476,7 @@ class GuiTests(unittest.TestCase):
         from map_oot_rando.scene import GORON_LOST_WOODS_FLOOR, GORON_VIEWS, REGION_VIEWS
 
         app = self.app
-        regions = ('KokiriForest', 'LostWood', 'GoronCity', 'ZoraRiver')
+        regions = ('KokiriForest', 'LostWood', 'GoronCity', 'ZoraRiver', 'HyruleField')
 
         def resource(region, age):
             return f'Banc/{region}/{region}_{age}_Static.bcett.byml.zs'
@@ -485,7 +485,8 @@ class GuiTests(unittest.TestCase):
         points = {
             'LostWood': [('Vers le Village Goron', (24, -35.66)), ('Vers la Rivière Zora', (68.5, -25.6))],
             'GoronCity': [('Repère des Bois Perdus', (26.7, -3.18))],
-            'ZoraRiver': [('Vers les Bois Perdus', (122.57, -11.8))],
+            'ZoraRiver': [('Vers les Bois Perdus', (122.57, -11.8)), ('Vers la plaine d’Hyrule', (-98, 28))],
+            'HyruleField': [('Vers la Rivière Zora', (211, 148))],
         }
         doc['scenes'] = {resource(region, age): {'rooms': [], 'points': points[region]}
                          for region in points for age in ('Child', 'Adult')}
@@ -504,6 +505,12 @@ class GuiTests(unittest.TestCase):
             app.press(SimpleNamespace(x=(l+r)//2, y=(t+b)//2))
             self.assertEqual(app.resource.get(), view)
             self.assertIn('LostWood', app.navigation_markers.values())
+            if target == 'ZoraRiver':
+                self.assertIn('HyruleField', app.navigation_markers.values())
+                app.open_neighbor('HyruleField')
+                self.assertEqual(app.resource.get(), REGION_VIEWS['HyruleField']['Adult'])
+                self.assertIn('ZoraRiver', app.navigation_markers.values())
+                app.open_neighbor('ZoraRiver')
             app.open_neighbor('LostWood')
             self.assertEqual(app.resource.get(), REGION_VIEWS['LostWood']['Adult'])
 

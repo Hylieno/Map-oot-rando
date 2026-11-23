@@ -13,6 +13,7 @@ LOST_WOOD_EVENT_ACTORS = {
 EVENT_ACTORS = {
     'LostWood': {actor: ident for ident, actor in LOST_WOOD_EVENT_ACTORS.items()},
     'GoronCity': {('Npc_Goron_Darunia_Child', None): 'npc#GC Darunias Joy'},
+    'ZoraRiver': {('OcarinaPoint_MiniGame_FrogTenors', None): 'npc#ZR Frogs Ocarina Game'},
     'DodongoCavern': {('Enemy_DungeonBoss_Dodongo', None): 'boss#King Dodongo'},
     'FireTemple': {('Enemy_DungeonBoss_Volvagia', None): 'boss#Volvagia'},
     'DeathMountainCrater': {
@@ -20,28 +21,35 @@ EVENT_ACTORS = {
     },
 }
 DEKU_THEATER_CHECKS = ('npc#Deku Theater Skull Mask', 'npc#Deku Theater Mask of Truth')
+ZORA_POT_ENTRANCE = ((5489068764052953067, 'Land_Kokiri_HidingHoleCover_A_01'),)
 GROTTO_ENTRANCE_ACTORS = {
-    'SacredForestMeadow#7995233962349162969': (8456945034417122929, 'Land_Kokiri_HidingHoleCover_A_01'),
-    'SacredForestMeadow#1764383515296652106': (15024208487326008169, 'Land_SacredForest_HidingHoleCover_A_02'),
-    **dict.fromkeys(DEKU_THEATER_CHECKS, (4876738002315557989, 'DestinationAnchor')),
+    'SacredForestMeadow#7995233962349162969': ((8456945034417122929, 'Land_Kokiri_HidingHoleCover_A_01'),),
+    'SacredForestMeadow#1764383515296652106': ((15024208487326008169, 'Land_SacredForest_HidingHoleCover_A_02'),),
+    **dict.fromkeys(DEKU_THEATER_CHECKS, ((4876738002315557989, 'DestinationAnchor'),)),
+    'ZoraRiver#8838426083116998768': ((17321193928923817093, 'DestinationAnchor'),
+                                     (15446115664186718191, 'DestinationAnchor')),
+    **{f'ZoraRiver#pots#{pot}': ZORA_POT_ENTRANCE for pot in (
+        10869334366827386783, 5730330007630899881, 4776081376285256939,
+        8980910965654538945, 5095784848033030406, 8953658065056150046)},
 }
-FIRE_CHECK_ACTORS = {
-    ('full_chests', ''): 'Obj_TBox_*',
-    ('full_crates', 'crates'): 'Obj_BrokenBox_*',
-    ('full_pots', 'pots'): 'Obj_Pot_*',
-    ('full_rocks', 'rocks'): 'Obj_BrokenRock_*',
-    ('full_freestanding', 'free'): 'Obj_Heart',
-    ('full_skulltula', 'gs'): 'Enemy_Skulltula_Gold',
-    ('full_bossheart', 'heart'): 'Obj_Heart_Container',
+CHECK_ACTOR_PATTERNS = {
+    ('full_chests', ''): ('Obj_TBox_*',),
+    ('full_crates', 'crates'): ('Obj_BrokenBox_*',),
+    ('full_pots', 'pots'): ('Obj_Pot_*',),
+    ('full_rocks', 'rocks'): ('Obj_BrokenRock_*', 'Obj_LiftRock_*'),
+    ('full_freestanding', 'free'): ('Obj_Heart', 'Obj_Heart_Piece', 'Obj_Rupee_*'),
+    ('full_skulltula', 'gs'): ('Enemy_Skulltula_Gold',),
+    ('full_bossheart', 'heart'): ('Obj_Heart_Container',),
 }
+PLACEMENT_REGIONS = frozenset({'FireTemple', 'ZoraRiver'})
 
 
 def add_surface_entrances(rows, maps):
     """Place the surface marker at the known entrance of a buried check."""
-    entrance_ids = set(GROTTO_ENTRANCE_ACTORS.values())
+    entrance_ids = {key for keys in GROTTO_ENTRANCE_ACTORS.values() for key in keys}
     candidates = {}
     for path, source in maps.items():
-        if resource_region(path) not in {'SacredForestMeadow', 'LostWood'}:
+        if resource_region(path) not in {'SacredForestMeadow', 'LostWood', 'ZoraRiver'}:
             continue
         age_frame = path.rsplit('_', 1)[0]
         for actor in source['root'].get('Actors', ()):
@@ -49,9 +57,10 @@ def add_surface_entrances(rows, maps):
             if key in entrance_ids and actor.get('Translate'):
                 candidates.setdefault((age_frame, key), set()).add(tuple(actor['Translate']))
     for row in rows:
-        key = GROTTO_ENTRANCE_ACTORS.get(row['id'])
-        if key and row['position'] is not None:
-            points = candidates.get((row['resource'].rsplit('_', 1)[0], key), ())
+        keys = GROTTO_ENTRANCE_ACTORS.get(row['id'])
+        if keys and row['position'] is not None:
+            frame = row['resource'].rsplit('_', 1)[0]
+            points = {point for key in keys for point in candidates.get((frame, key), ())}
             if len(points) == 1:
                 row['entrance'] = next(iter(points))
 
@@ -110,24 +119,27 @@ def world_check_rows(maps, checks, eligible):
     return rows
 
 
-def fire_check_rows(maps, checks, existing, eligible):
-    """Resolve Fire Temple checks absent from the pack-based scan by actor hash."""
-    positioned = {row['id'] for row in existing if row['position'] is not None}
+def placed_check_rows(maps, checks, existing, eligible):
+    """Resolve typed catalogue IDs absent from the pack-based scan in each scene."""
+    positioned = {(row['id'], row['resource'].rsplit('_', 1)[0])
+                  for row in existing if row['position'] is not None}
     requested = {}
     for check in checks:
         region, _, suffix = check['id'].partition('#')
         kind, _, actor_hash = suffix.rpartition('#')
-        pattern = FIRE_CHECK_ACTORS.get((check['category'], kind))
-        if region == 'FireTemple' and pattern and actor_hash.isascii() and actor_hash.isdecimal():
-            if check['id'] not in positioned:
-                requested.setdefault(int(actor_hash), []).append((check, pattern))
+        patterns = CHECK_ACTOR_PATTERNS.get((check['category'], kind))
+        if region in PLACEMENT_REGIONS and patterns and actor_hash.isascii() and actor_hash.isdecimal():
+            requested.setdefault((region, int(actor_hash)), []).append((check, patterns))
     for path, source in maps.items():
-        if resource_region(path) != 'FireTemple':
+        region = resource_region(path)
+        if region not in PLACEMENT_REGIONS:
             continue
+        frame = path.rsplit('_', 1)[0]
         for actor in source['root'].get('Actors', ()):
             position = actor.get('Translate')
-            for check, pattern in requested.get(actor.get('Hash'), ()):
-                if position and fnmatchcase(actor.get('Gyaml', ''), pattern) and eligible(path, actor):
+            for check, patterns in requested.get((region, actor.get('Hash')), ()):
+                if (position and (check['id'], frame) not in positioned and eligible(path, actor)
+                        and any(fnmatchcase(actor.get('Gyaml', ''), pattern) for pattern in patterns)):
                     yield dict(id=check['id'], name=check['name'], category=check['category'],
                                resource=path, position=position)
 
@@ -185,7 +197,7 @@ def bind_catalogue(document, catalogue):
                   'Sacred Forest Meadow': 'SacredForestMeadow', 'Kakariko Village': 'KakarikoVillage',
                   'Death Mountain Trail': 'DeathMountainTrail', 'Goron City': 'GoronCity',
                   "Dodongo's Cavern": 'DodongoCavern', 'Death Mountain Crater': 'DeathMountainCrater',
-                  'Fire Temple': 'FireTemple'})
+                  'Fire Temple': 'FireTemple', "Zora's River": 'ZoraRiver'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']

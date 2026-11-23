@@ -8,8 +8,8 @@ import subprocess
 import sys
 
 from .metadata import (add_surface_entrances, bind_catalogue, event_check_rows, export_scan,
-                       fire_check_rows, world_check_rows)
-from .model import REGION_NAMES, SURFACE_MIN_Y, TRANSIT_REGIONS, UPSTREAM_REVISION, resource_region
+                       PLACEMENT_REGIONS, placed_check_rows, world_check_rows)
+from .model import REGION_NAMES, SURFACE_MIN_Y, UPSTREAM_REVISION, resource_region
 from .scene import extract_scenes
 
 
@@ -29,7 +29,7 @@ def map_capture_catalogue(members):
     return sorted(path for path in members if candidates.search(path))
 
 
-def scan_game(path, progress=None, world_checks=(), fire_checks=()):
+def scan_game(path, progress=None, world_checks=(), placement_checks=()):
     from oot_rando.formats.inspect_nup import Nup
     from oot_rando.formats.inspect_resources import dictionaries
     from oot_rando.game.check_names import landmarks
@@ -41,8 +41,7 @@ def scan_game(path, progress=None, world_checks=(), fire_checks=()):
     with nup.stream:
         members = effective_members(nup)
         maps, groups, _, extra = scan_world(nup, dictionaries(nup), members, progress)
-    check_regions = tuple(region for region in REGION_NAMES if region not in TRANSIT_REGIONS)
-    document = export_scan(groups, extra, provenance='ootrr-scan', regions=check_regions)
+    document = export_scan(groups, extra, provenance='ootrr-scan', regions=tuple(REGION_NAMES))
 
     def eligible(path, actor):
         return not inaccessible_child_actor(path, actor)
@@ -50,8 +49,8 @@ def scan_game(path, progress=None, world_checks=(), fire_checks=()):
     document['locations'].extend(event_check_rows(maps, eligible))
     if world_checks:
         document['locations'].extend(world_check_rows(maps, world_checks, eligible))
-    if fire_checks:
-        document['locations'].extend(fire_check_rows(maps, fire_checks, document['locations'], eligible))
+    if placement_checks:
+        document['locations'].extend(placed_check_rows(maps, placement_checks, document['locations'], eligible))
     add_surface_entrances(document['locations'], maps)
     for row in document['locations']:
         level = SURFACE_MIN_Y.get(resource_region(row['resource']))
@@ -66,10 +65,10 @@ def import_seed(nup, checks, progress=None):
     """Read local inputs and prepare the map document shared by both entry points."""
     catalogue = json.loads(Path(checks).read_text(encoding='utf-8-sig'))
     world_checks = [check for check in catalogue['checks']
-                    if check['id'].partition('#')[0] in REGION_NAMES.keys() - TRANSIT_REGIONS
+                    if check['id'].partition('#')[0] in REGION_NAMES
                     and check['id'].count('#') == 2 and check['id'].split('#', 2)[1].isdecimal()]
-    fire_checks = [check for check in catalogue['checks'] if check['id'].startswith('FireTemple#')]
-    scanned = scan_game(nup, progress, world_checks, fire_checks)
+    placement_checks = [check for check in catalogue['checks'] if check['id'].partition('#')[0] in PLACEMENT_REGIONS]
+    scanned = scan_game(nup, progress, world_checks, placement_checks)
     document = bind_catalogue(scanned, catalogue)
     if not document['locations']:
         raise ValueError('Aucun check des zones prises en charge dans le catalogue')

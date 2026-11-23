@@ -19,7 +19,6 @@ REGION_NAMES = {
     'FireTemple': 'Temple du Feu',
     'ZoraRiver': 'Rivière Zora',
 }
-TRANSIT_REGIONS = frozenset({'ZoraRiver'})
 # These scenes have buried actor placements below their surface.
 SURFACE_MIN_Y = {'Graveyard': 92, 'DeathMountainTrail': 80, 'DeathMountainCrater': 90}
 
