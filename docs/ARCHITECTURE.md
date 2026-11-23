@@ -7,6 +7,10 @@ position dans deux régions, comme le coffre du pont, et garde un état unique
 dans le tracker. La navigation par entrée conserve l’âge et chaque vue
 calcule son cadrage dans ses propres coordonnées.
 
+La vue **Zones voisines** utilise les relations entre zones. La molette
+l’ouvre au-delà d’un seuil par rapport au cadrage de la carte active.
+Les liens servent à naviguer entre les cartes calibrées indépendamment.
+
 Référence inspectée : Mozencaz/OotrR,
 `283d3ec0f161d32e168afac45e502442c1ffb081`.
 Le dépôt Map-oot-rando ne contenait initialement que AGENTS.md ; branche distante

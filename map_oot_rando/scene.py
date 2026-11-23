@@ -10,8 +10,10 @@ AGE_VIEWS = REGION_VIEWS['KokiriForest']
 VIEWS = {label: (region, age) for region, ages in REGION_VIEWS.items()
          for age, label in ages.items()}
 NEIGHBORS = {
-    'KokiriForest': ('LostWood', 'front_of_lost_wood_entrance'),
-    'LostWood': ('KokiriForest', 'arrivee_de_kokiri'),
+    'KokiriForest': {'LostWood': 'front_of_lost_wood_entrance',
+                     'HyruleField': 'front_of_hyrule_field_entrance'},
+    'LostWood': {'KokiriForest': 'arrivee_de_kokiri'},
+    'HyruleField': {'KokiriForest': 'front_of_lost_wood_bridge_entrance'},
 }
 LOST_WOOD_POINT_LABELS = {
     'front_of_sacred_forest_meadow_entrance': 'Vers le Bosquet sacré',
@@ -19,6 +21,37 @@ LOST_WOOD_POINT_LABELS = {
     'goron_city_side_after_entrance': 'Vers le Village Goron',
     'zora_river_entrance': 'Vers la Rivière Zora',
 }
+HYRULE_ANCHORS = {
+    'Market': 'Porte de la Citadelle',
+    'KakarikoVillage': 'Vers Cocorico',
+    'GerudoValley': 'Vers la Vallée Gerudo',
+    'LakeHylia': 'Vers le Lac Hylia',
+}
+
+
+def projection_points(region, sources):
+    points = set()
+    for source in sources.values():
+        for actor in source['root'].get('Actors', ()):
+            position = actor.get('Translate')
+            if not position:
+                continue
+            gyaml = actor.get('Gyaml')
+            label = None
+            if region == 'LostWood':
+                if gyaml == 'StartPos' and actor.get('Name') == 'LostWood_Entrance':
+                    label = 'arrivee_de_kokiri'
+            elif gyaml == 'MapIconEntranceAnchor':
+                dynamic = actor.get('Dynamic')
+                if isinstance(dynamic, dict) and dynamic.get('IsVisible') is not False:
+                    label = HYRULE_ANCHORS.get(dynamic.get('Location'))
+            elif gyaml == 'Land_HrlField_Bridge_A_01':
+                label = 'Pont de la rivière'
+            elif gyaml == 'Enemy_Skulltula_Gold' and actor.get('Hash') == 2177746409373494991:
+                label = 'Arbre isolé près de Kokiri'
+            if label:
+                points.add((label, (position[0], position[2])))
+    return points
 
 
 def extract_scenes(maps, landmarks):
@@ -44,13 +77,8 @@ def extract_scenes(maps, landmarks):
         labels = LOST_WOOD_POINT_LABELS if region == 'LostWood' else {}
         points = {(labels.get(name, name), (position[0], position[2]))
                   for name, position in marks.get('points', ())}
-        if region == 'LostWood':
-            for source in sources.values():
-                for actor in source['root'].get('Actors', ()):
-                    position = actor.get('Translate')
-                    if (position and actor.get('Gyaml') == 'StartPos'
-                            and actor.get('Name') == 'LostWood_Entrance'):
-                        points.add(('arrivee_de_kokiri', (position[0], position[2])))
+        if region in {'LostWood', 'HyruleField'}:
+            points.update(projection_points(region, sources))
         if rooms or points:
             scenes[path] = {'rooms': rooms, 'points': sorted(points)}
     return scenes

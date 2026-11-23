@@ -5,7 +5,11 @@ import math
 UPSTREAM_REVISION = 'eb6682704f7589b5a0c07ac0e49d89fef4108545'
 OLDER_EXPORT_REVISIONS = frozenset({'283d3ec0f161d32e168afac45e502442c1ffb081'})
 STATUSES = frozenset({'available', 'blocked', 'unknown', 'completed', 'partial'})
-REGION_NAMES = {'KokiriForest': 'Kokiri Forest', 'LostWood': 'Bois Perdus'}
+REGION_NAMES = {
+    'KokiriForest': 'Kokiri Forest',
+    'LostWood': 'Bois Perdus',
+    'HyruleField': 'Plaine d’Hyrule',
+}
 
 
 def resource_region(resource):

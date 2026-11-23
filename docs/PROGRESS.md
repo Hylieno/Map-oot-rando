@@ -1,5 +1,10 @@
 # Checkpoint — 22 novembre 2026
 
+La plaine d’Hyrule est accessible depuis Kokiri et utilise la carte Questfern.
+La vue des zones voisines s’ouvre au dézoom. Le fond est vérifié par âge et
+utilise un repère indépendant. Certains checks sont physiquement dans les
+sous-zones du Ranch ou du Lac, qui restent à représenter séparément.
+
 Le suivi de Kokiri a été confirmé par l’utilisateur sur son build. L’import
 couvre désormais aussi les Bois Perdus. Le coffre partagé conserve un état
 unique et les cinq checks d’événements associés à des acteurs identifiables

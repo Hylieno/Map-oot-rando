@@ -35,12 +35,15 @@ def _fit_similarity(pairs):
     return matrix, basis, [dist(apply(matrix, point), pixel) for point, pixel in pairs]
 
 
-def registered_background(image, references, control_pixels, validation_pixels, *, source, calibration):
+def registered_background(image, references, control_pixels, validation_pixels, *,
+                          source, calibration, require_validation=False):
     """Choose the model that best predicts references omitted from the fit."""
     pairs = _unique_pairs(references, control_pixels)
     if len(pairs) < 5:
         raise ValueError('Au moins cinq repères distincts sont nécessaires pour valider cette projection.')
     independent = _unique_pairs(references, validation_pixels)
+    if require_validation and len(independent) != len(validation_pixels):
+        raise ValueError('Un repère indépendant est absent ou ambigu.')
     size = min(image.size)
     candidates = []
     failures = []

@@ -1,6 +1,6 @@
 # Map-oot-rando
 
-Compagnon de carte local pour OotrR avec Kokiri Forest et les Bois Perdus.
+Compagnon de carte local pour OotrR avec Kokiri Forest, les Bois Perdus et la plaine d’Hyrule.
 
 La simulation utilise des positions fictives.
 L’import local lit les coordonnées de la seed et le suivi lit les états d’OotrR
@@ -21,8 +21,9 @@ et exécuter cette commande. La validation locale a été faite sous Linux, pas 
 - Molette : zoom ; glisser sur le fond : déplacement ; « Ajuster la vue » : cadrage.
 - Recherche par nom ou ID, puis Entrée ou sélection dans la liste pour centrer.
 - Choisir Enfant ou Adulte. Les couches Static et Dynamic sont réunies. La hauteur Y est dans les détails.
-- **Vers les Bois Perdus** et **Retour à Kokiri** changent de zone en gardant l’âge affiché et le suivi de la partie.
-  Réimporter le NUP et le `checks.json` pour ajouter les Bois Perdus à une carte enregistrée plus ancienne.
+- Dézoomer ou cliquer sur **Zones voisines** pour voir les zones reliées. Cliquer sur une zone ou sur un repère
+  de passage pour changer de carte en gardant l’âge et le suivi. Réimporter le NUP et le `checks.json`
+  pour ajouter les nouvelles zones à une carte enregistrée plus ancienne.
 - Filtres de catégorie/statut ; décocher « Récupéré » pour masquer les checks gris.
 - En simulation, sélectionner un check puis changer son statut ou la connexion.
   En déconnexion, l'affichage conserve le dernier état ; la reconnexion publie les
@@ -30,8 +31,9 @@ et exécuter cette commande. La validation locale a été faite sous Linux, pas 
 
 ## Fonds de carte
 
-Le fond par défaut est la [carte de Kokiri publiée par Questfern](https://questfern.com/oot/guides/interactive-map/?area=kokiri).
-L’application la charge depuis sa source et vérifie la projection avant de
+Les fonds par défaut de [Kokiri](https://questfern.com/oot/guides/interactive-map/?area=kokiri) et de la
+[plaine d’Hyrule](https://questfern.com/oot/guides/interactive-map/?area=field) viennent de Questfern.
+L’application les charge à la demande et vérifie la projection avant de
 l’afficher. **Fond de carte** permet de choisir Field Atlas, un fond local ou
 le schéma. **Enregistrer la carte…** permet de rouvrir le fond hors ligne.
 
@@ -105,9 +107,9 @@ Un build réussi ne constitue pas une validation avec le jeu.
 Voir [architecture](docs/ARCHITECTURE.md), [progression](docs/PROGRESS.md),
 [décisions](docs/DECISIONS.md) et [tests](docs/TESTING.md).
 
-Préversion compilée : [télécharger l'artifact Windows x64](https://github.com/Hylieno/Map-oot-rando/actions/runs/45098305166/artifacts/14784062487)
-(connexion GitHub requise ; rétention de 14 jours). Tests Tk et build CI réussis ;
-exécutable packagé pas encore validé manuellement.
+La [liste des builds Windows x64](https://github.com/Hylieno/Map-oot-rando/actions/workflows/windows.yml)
+donne accès aux artefacts des exécutions réussies. Connexion GitHub requise et
+rétention de 14 jours.
 
 ## Importer sa seed dans la version portable Windows
 

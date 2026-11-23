@@ -1,5 +1,5 @@
 """Export already-labelled OotrR scan results without reading or copying game assets."""
-from .model import UPSTREAM_REVISION, load_metadata, resource_region
+from .model import REGION_NAMES, UPSTREAM_REVISION, load_metadata, resource_region
 
 LOST_WOOD_EVENT_ACTORS = {
     'npc#LW Skull Kid': ('Npc_SkullKid_Child', None),
@@ -93,7 +93,8 @@ def bind_catalogue(document, catalogue):
     for row in document['locations']:
         by_id.setdefault(row['id'], []).append(row)
     regions = document.get('regions', ('KokiriForest',))
-    names = {'Kokiri Forest': 'KokiriForest', 'Lost Woods': 'LostWood', 'the Lost Woods': 'LostWood'}
+    names = {name: region for region, name in REGION_NAMES.items()}
+    names.update({'Lost Woods': 'LostWood', 'the Lost Woods': 'LostWood', 'Hyrule Field': 'HyruleField'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']

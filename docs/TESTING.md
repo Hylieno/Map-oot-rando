@@ -1,5 +1,11 @@
 # Validation
 
+Les quatre Bancs publics de la plaine d’Hyrule ont permis de retrouver les
+125 IDs du catalogue local. Une partie des positions dépend des packs
+d’acteurs du NUP. Le recalage sur six repères, dont un exclu de l’ajustement,
+donne un écart maximal de 15 pixels sur l’image source de 1 400 × 1 075 pour
+les deux âges. Le test Tk du passage entre zones vérifie aussi l’aperçu au dézoom.
+
 L’import des Bois Perdus a été recoupé avec le catalogue réel et les
 [placements publics](https://github.com/MrCheeze/oot-switch2-tools/tree/c9027ee50e7efd36cc3109d5990f170b7f0b4611/Banc/LostWood).
 Les 13 IDs de la seed ont été retrouvés, dont neuf associés à des coordonnées

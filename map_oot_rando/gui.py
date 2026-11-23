@@ -13,19 +13,22 @@ from .aerial_dialog import align_image
 from .field_atlas import CALIBRATION, align_kokiri_image, load_kokiri_image
 from .map_projection import georeferenced_background
 from .questfern import CALIBRATION as PAUSE_CALIBRATION, SOURCE_ID as PAUSE_SOURCE
-from .questfern import align_pause_map, load_pause_map
+from .questfern import (FIELD_CALIBRATION, FIELD_SOURCE_ID, align_field_map, align_pause_map,
+                        load_field_map, load_pause_map)
 from .export import import_seed
 from .model import REGION_NAMES, load_metadata, resource_region, select
 from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
-from .scene import AGE_VIEWS, NEIGHBORS, REGION_VIEWS, VIEWS, field_atlas_scene, group_scenes, read_scenes, view_name
+from .scene import NEIGHBORS, REGION_VIEWS, VIEWS, field_atlas_scene, group_scenes, read_scenes, view_name
 from .simulation import Simulation, demo_document
 from .view import Viewport
 
 PARCHMENT = '#d1bc80'
 PAPER_COLORS = dict(available='#176346', blocked='#aa2540', unknown='#40359b',
                     completed='#535b6a', partial='#8a450d')
+PAUSE_SOURCES = {PAUSE_SOURCE, FIELD_SOURCE_ID}
+OVERVIEW_SCALE = 0.6
 
 COLORS = dict(available='#37b76b', blocked='#e45c5c', unknown='#e6c548', completed='#929ba5', partial='#ed9f57')
 LABELS = dict(available='Accessible', blocked='Bloqué', unknown='Inconnu', completed='Récupéré', partial='Partiellement accessible')
@@ -37,6 +40,8 @@ class MapApplication:
         root.title('Map-oot-rando')
         root.geometry('1180x760')
         self.viewport = Viewport()
+        self.overview_open = False
+        self.fitted_scale = self.viewport.scale
         self.selected = None
         self.drag = None
         self.query = tk.StringVar()
@@ -130,7 +135,7 @@ class MapApplication:
         body.add(panel, weight=1)
         tools = ttk.Frame(panel)
         tools.pack(fill='x')
-        ttk.Button(tools, text='Ajuster la vue', command=self.fit).pack(side='left')
+        ttk.Button(tools, text='Ajuster la vue', command=self.fit_detail).pack(side='left')
         self.atlas_button = ttk.Menubutton(tools, text='Fond de carte ▾')
         self.atlas_button.pack(side='left', padx=5)
         backgrounds = tk.Menu(self.atlas_button, tearoff=False)
@@ -140,7 +145,11 @@ class MapApplication:
         backgrounds.add_command(label='Ouvrir une image locale…', command=self.choose_aerial)
         backgrounds.add_command(label='Afficher le schéma', command=self.remove_aerial)
         self.atlas_button.configure(menu=backgrounds)
-        self.neighbor_button = ttk.Button(tools, command=self.open_neighbor)
+        self.neighbor_buttons = {
+            region: ttk.Button(tools, text=name, command=lambda target=region: self.open_neighbor(target))
+            for region, name in REGION_NAMES.items()
+        }
+        self.overview_button = ttk.Button(tools, text='Zones voisines', command=self.toggle_overview)
         self.canvas = tk.Canvas(panel, background='#18252b', highlightthickness=0)
         self.canvas.pack(fill='both', expand=True)
         self.canvas.bind('<Configure>', self.resized)
@@ -458,21 +467,31 @@ class MapApplication:
             self.align_background(resource, image, references)
 
     def choose_atlas(self, source):
-        self.preferred_background = source
+        if self.current_region() == 'KokiriForest':
+            self.preferred_background = source
+        elif source == 'field-atlas':
+            messagebox.showinfo('Fond de carte', 'Le fond Field Atlas est intégré pour Kokiri Forest.',
+                                parent=self.root)
+            return
         self.ensure_atlas(manual=True)
 
     def ensure_atlas(self, *, manual=False):
         resource = self.resource.get()
-        if self.simulation or resource not in AGE_VIEWS.values():
+        region = self.current_region()
+        if self.simulation or resource not in VIEWS or region not in {'KokiriForest', 'HyruleField'}:
             if manual:
-                messagebox.showinfo('Fond de carte', 'Les fonds intégrés sont disponibles pour Kokiri Forest.',
+                messagebox.showinfo('Fond de carte', 'Aucun fond intégré validé pour cette vue.',
                                     parent=self.root)
             return
+        sources = {
+            PAUSE_SOURCE: (PAUSE_CALIBRATION, load_pause_map, align_pause_map),
+            'field-atlas': (CALIBRATION, load_kokiri_image, align_kokiri_image),
+            FIELD_SOURCE_ID: (FIELD_CALIBRATION, load_field_map, align_field_map),
+        }
         saved = self.aerial.get(resource)
-        preferred = self.preferred_background
-        current = saved and (saved.source not in {'field-atlas', PAUSE_SOURCE}
-                             or (saved.source == preferred and saved.calibration ==
-                                 (PAUSE_CALIBRATION if preferred == PAUSE_SOURCE else CALIBRATION)))
+        preferred = FIELD_SOURCE_ID if region == 'HyruleField' else self.preferred_background
+        current = saved and (saved.source not in sources
+                             or (saved.source == preferred and saved.calibration == sources[preferred][0]))
         if (self.atlas_loading or not manual and
                 (current or resource in self.atlas_disabled | self.atlas_failed)):
             return
@@ -493,11 +512,10 @@ class MapApplication:
         self.atlas_button.configure(text='Chargement du fond…')
 
         def load():
-            sources = [preferred] if manual or preferred == 'field-atlas' else [PAUSE_SOURCE, 'field-atlas']
-            for source in sources:
+            candidates = [PAUSE_SOURCE, 'field-atlas'] if preferred == PAUSE_SOURCE and not manual else [preferred]
+            for source in candidates:
                 try:
-                    loader, align = ((load_pause_map, align_pause_map) if source == PAUSE_SOURCE
-                                     else (load_kokiri_image, align_kokiri_image))
+                    _, loader, align = sources[source]
                     if source not in cached:
                         cached[source] = loader()
                     result.put((cached, align(cached[source], references, details), None))
@@ -535,7 +553,7 @@ class MapApplication:
                 if self.resource.get() == resource:
                     self.render()
                     self.fit()
-                    label = 'Questfern' if background.source == PAUSE_SOURCE else 'Field Atlas'
+                    label = 'Questfern' if background.source in PAUSE_SOURCES else 'Field Atlas'
                     self.import_status.set(f'Fond {label} aligné.')
             if self.resource.get() != resource:
                 self.ensure_atlas()
@@ -620,33 +638,41 @@ class MapApplication:
         view = self.resource.get()
         return VIEWS[view][0] if view in VIEWS else resource_region(view) or 'KokiriForest'
 
-    def neighbor_view(self):
-        region, age = VIEWS.get(self.resource.get(), (self.current_region(), self.save_age))
-        neighbor, _ = NEIGHBORS[region]
+    def view_for_region(self, region):
+        _, age = VIEWS.get(self.resource.get(), (self.current_region(), self.save_age))
         # A known age must be preserved across the transition.
-        ages = REGION_VIEWS[neighbor]
+        ages = REGION_VIEWS[region]
         candidates = (ages[age],) if age in ages else ages.values()
         return next((view for view in candidates if view in self.resources['values']), None)
 
-    def open_neighbor(self):
-        view = self.neighbor_view()
+    def open_neighbor(self, region):
+        view = self.view_for_region(region)
         if view:
             self.resource.set(view)
             self.resource_changed(manual=False)
+
+    def available_neighbors(self):
+        region = self.current_region()
+        return [neighbor for neighbor in NEIGHBORS[region] if self.view_for_region(neighbor)]
 
     def refresh_navigation(self):
         region = self.current_region()
         name = REGION_NAMES[region]
         self.banner.set('SIMULATION - noms et positions fictifs' if self.simulation else
                         f'{name} - seed importée')
-        if not self.simulation and self.neighbor_view():
-            self.neighbor_button.configure(text='Vers les Bois Perdus' if region == 'KokiriForest'
-                                           else 'Retour à Kokiri')
-            self.neighbor_button.pack(side='left', padx=5)
+        neighbors = self.available_neighbors() if not self.simulation else []
+        for neighbor, button in self.neighbor_buttons.items():
+            if neighbor in neighbors:
+                button.pack(side='left', padx=5)
+            else:
+                button.pack_forget()
+        if neighbors:
+            self.overview_button.pack(side='left', padx=5)
         else:
-            self.neighbor_button.pack_forget()
+            self.overview_button.pack_forget()
 
     def resource_changed(self, *, manual=True):
+        self.overview_open = False
         if manual and self.save_age is not None:
             self.follow_age.set(False)
         self.selected = None
@@ -671,7 +697,18 @@ class MapApplication:
 
     def display_point(self, point):
         aerial = self.aerial.get(self.resource.get())
-        return aerial.image_point(point) if aerial and aerial.source == PAUSE_SOURCE else point
+        return aerial.image_point(point) if aerial and aerial.source in PAUSE_SOURCES else point
+
+    def fit_detail(self):
+        self.overview_open = False
+        self.fit()
+
+    def toggle_overview(self):
+        if self.overview_open:
+            self.fit_detail()
+        elif not self.simulation and self.available_neighbors():
+            self.overview_open = True
+            self.draw()
 
     def fit(self):
         self.fit_pending = self.canvas.winfo_width() <= 1 or self.canvas.winfo_height() <= 1
@@ -682,7 +719,7 @@ class MapApplication:
         aerial = self.aerial.get(self.resource.get())
         scene = self.scenes.get(self.resource.get(), {}) if not aerial else {}
         if aerial:
-            if aerial.source == PAUSE_SOURCE:
+            if aerial.source in PAUSE_SOURCES:
                 points.extend(((0, 0), aerial.image.size))
             else:
                 points.extend(aerial.corners())
@@ -690,7 +727,34 @@ class MapApplication:
         for _, low, high in scene.get('rooms', ()):
             points.extend((low, high))
         self.viewport.fit(points, self.canvas.winfo_width(), self.canvas.winfo_height())
+        self.fitted_scale = self.viewport.scale
         self.draw()
+
+    def draw_overview(self, width, height):
+        region = self.current_region()
+        neighbors = self.available_neighbors()
+        self.canvas.configure(background=PARCHMENT)
+        self.canvas.create_text(12, 12, anchor='nw', fill='#292019', text='Zones voisines')
+        self.canvas.create_text(12, 32, anchor='nw', fill='#292019',
+                                text='Clique sur une zone pour l’ouvrir. Zoome pour revenir.')
+        regions = [region, *neighbors]
+        span = min(width * 0.34, 270)
+        card = min(span * 0.44, 105)
+        y = max(height * 0.53, 80)
+        xs = {name: width / 2 + (index - (len(regions) - 1)/2) * span
+              for index, name in enumerate(regions)}
+        if len(neighbors) == 2:
+            xs[region], xs[neighbors[0]] = xs[neighbors[0]], xs[region]
+        for neighbor in neighbors:
+            self.canvas.create_line(xs[region], y, xs[neighbor], y, fill='#7b6845', width=3)
+        for name, x in xs.items():
+            active = name == region
+            box = self.canvas.create_rectangle(x-card, y-28, x+card, y+28, width=2,
+                                               outline='#645237', fill='#30544e' if active else '#eee0b6')
+            label = self.canvas.create_text(x, y, width=card * 1.85, justify='center',
+                                            text=REGION_NAMES[name],
+                                            fill='#fff9e9' if active else '#292019')
+            self.navigation_markers[box] = self.navigation_markers[label] = name
 
     def draw(self):
         if not hasattr(self, 'visible'):
@@ -698,18 +762,23 @@ class MapApplication:
         self.canvas.delete('all')
         self.background_photo = None
         self.markers = {}
-        self.navigation_markers = set()
+        self.navigation_markers = {}
         width, height = self.canvas.winfo_width(), self.canvas.winfo_height()
+        if self.overview_open:
+            self.draw_overview(width, height)
+            return
         scene = self.scenes.get(self.resource.get())
         captions = []
         aerial = self.aerial.get(self.resource.get())
-        parchment = bool(aerial and aerial.source == PAUSE_SOURCE)
+        parchment = bool(aerial and aerial.source in PAUSE_SOURCES)
         region = self.current_region()
         name = REGION_NAMES[region]
-        _, portal = NEIGHBORS[region]
-        exit_points = {tuple(position) for label, position in (scene or {}).get('points', ()) if label == portal}
-        exit_point = (next(iter(exit_points)) if not self.simulation
-                      and len(exit_points) == 1 and self.neighbor_view() else None)
+        exits = {}
+        if not self.simulation:
+            for neighbor, portal in NEIGHBORS[region].items():
+                points = {tuple(p) for label, p in (scene or {}).get('points', ()) if label == portal}
+                if len(points) == 1 and self.view_for_region(neighbor):
+                    exits[portal] = (neighbor, points.pop())
         heading_color = '#292019' if parchment else '#d2e1da'
         if aerial:
             self.canvas.configure(background=PARCHMENT if parchment else '#18252b')
@@ -728,7 +797,7 @@ class MapApplication:
                                              outline='#aacbb4', width=2, tags='scene')
                 captions.append((name, (x1 + x2) / 2, min(y1, y2) - 10))
             for name, point in scene['points']:
-                if point == exit_point and name == portal:
+                if name in exits:
                     continue
                 x, y = self.viewport.screen(point)
                 self.canvas.create_polygon(x, y-5, x+5, y, x, y+5, x-5, y,
@@ -744,14 +813,15 @@ class MapApplication:
                 self.canvas.create_line(0, y, width, y, fill='#2c414a')
             heading = f'Schéma X/Z | Grille : {step:g} unités'
         self.canvas.create_text(12, 12, anchor='nw', fill=heading_color, text=heading)
-        if exit_point and (not aerial or aerial.covers(exit_point)):
+        for neighbor, exit_point in exits.values():
+            if aerial and not aerial.covers(exit_point):
+                continue
             x, y = self.viewport.screen(self.display_point(exit_point))
             marker = self.canvas.create_polygon(x, y-9, x+9, y, x, y+9, x-9, y,
                                                 fill='#147c82', outline='#ebfbef', width=2,
                                                 tags=('zone-navigation',))
-            self.navigation_markers.add(marker)
-            captions.append(('Vers les Bois Perdus' if region == 'KokiriForest' else 'Retour à Kokiri',
-                             x, y - 16))
+            self.navigation_markers[marker] = neighbor
+            captions.append((REGION_NAMES[neighbor], x, y - 16))
         rows = [row for row in self.visible if view_name(row.resource) == self.resource.get()
                 and row.position is not None
                 and (self.show_outside.get() or row == self.selected or not self.outside(row))]
@@ -797,6 +867,7 @@ class MapApplication:
             self.canvas.create_text(25, 35, anchor='nw', text='Aucun marqueur positionné pour cette vue.', fill=heading_color)
 
     def choose(self, row):
+        self.overview_open = False
         self.selected = row
         if row.position is not None:
             if self.resource.get() != view_name(row.resource):
@@ -843,12 +914,13 @@ class MapApplication:
         self.drag = None
         for item in reversed(self.canvas.find_overlapping(event.x-3, event.y-3, event.x+3, event.y+3)):
             if item in self.navigation_markers:
-                self.open_neighbor()
+                self.open_neighbor(self.navigation_markers[item])
                 return
             if item in self.markers:
                 self.choose(self.markers[item])
                 return
-        self.drag = (event.x, event.y)
+        if not self.overview_open:
+            self.drag = (event.x, event.y)
 
     def pan(self, event):
         if self.drag:
@@ -858,7 +930,14 @@ class MapApplication:
             self.draw()
 
     def zoom(self, factor, x, y):
+        if self.overview_open:
+            if factor > 1:
+                self.fit_detail()
+            return
         self.viewport.zoom(factor, (x, y))
+        if (factor < 1 and self.viewport.scale < self.fitted_scale * OVERVIEW_SCALE
+                and not self.simulation and self.available_neighbors()):
+            self.overview_open = True
         self.draw()
 
     def simulate(self, status):

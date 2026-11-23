@@ -286,7 +286,7 @@ class GuiTests(unittest.TestCase):
         from map_oot_rando.scene import REGION_VIEWS
 
         app = self.app
-        doc = dict(demo_document(), provenance='ootrr-scan', regions=['KokiriForest', 'LostWood'])
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=list(REGION_VIEWS))
         row = doc['locations'][0]
         doc['locations'] = [
             dict(row, resource=f'Banc/{region}/{region}_{age}_Static.bcett.byml.zs')
@@ -307,9 +307,19 @@ class GuiTests(unittest.TestCase):
         app.save_age = 'Adult'
         app.sync_age()
         self.assertEqual(app.resource.get(), REGION_VIEWS['LostWood']['Adult'])
-        app.neighbor_button.invoke()
+        app.neighbor_buttons['KokiriForest'].invoke()
         self.assertEqual(app.resource.get(), REGION_VIEWS['KokiriForest']['Adult'])
         self.assertEqual(app.store.states[row['id']], 'completed')
+
+        for _ in range(3):
+            app.zoom(1 / 1.2, 100, 100)
+        self.assertTrue(app.overview_open)
+        self.assertEqual(set(app.navigation_markers.values()), set(REGION_VIEWS))
+        field = next(item for item, name in app.navigation_markers.items() if name == 'HyruleField')
+        left, top, right, bottom = app.canvas.bbox(field)
+        app.press(SimpleNamespace(x=(left + right) // 2, y=(top + bottom) // 2))
+        self.assertEqual(app.resource.get(), REGION_VIEWS['HyruleField']['Adult'])
+        self.assertFalse(app.overview_open)
 
     def test_choose_save_uses_a_directory_picker(self):
         from pathlib import Path

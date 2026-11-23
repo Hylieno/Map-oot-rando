@@ -62,14 +62,14 @@ def import_seed(nup, checks, progress=None):
     scanned = scan_game(nup, progress, world_checks)
     document = bind_catalogue(scanned, catalogue)
     if not document['locations']:
-        raise ValueError('Aucun check de Kokiri Forest ou des Bois Perdus dans le catalogue')
+        raise ValueError('Aucun check des zones prises en charge dans le catalogue')
     if not any(row['position'] is not None for row in document['locations']):
         raise ValueError('Aucun point du NUP ne correspond à cette seed. Vérifie le NUP et le checks.json.')
     return document
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Exporter les points de Kokiri Forest et des Bois Perdus')
+    parser = argparse.ArgumentParser(description='Exporter les points des zones prises en charge')
     parser.add_argument('--ootrr', type=Path, required=True, help='Copie locale du dépôt OotrR')
     parser.add_argument('--nup', type=Path, required=True, help='NUP local du jeu mis à jour')
     parser.add_argument('--checks', type=Path, required=True, help='checks.json de la seed OotrR')

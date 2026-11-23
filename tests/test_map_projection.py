@@ -48,3 +48,16 @@ class MapProjectionTests(unittest.TestCase):
         a, b, _, d, e, _ = result.world_to_image
         self.assertAlmostEqual(a, e)
         self.assertAlmostEqual(b, -d)
+
+    def test_field_background_requires_an_unambiguous_independent_landmark(self):
+        from map_oot_rando.questfern import FIELD_HOLDOUT, FIELD_LANDMARKS, FIELD_SIZE, align_field_map
+
+        image = Image.new('RGB', FIELD_SIZE)
+        references = list(FIELD_LANDMARKS.items())
+        with self.assertRaisesRegex(ValueError, 'indépendant'):
+            align_field_map(image, references)
+        name, point = next(iter(FIELD_HOLDOUT.items()))
+        references.append((name, point))
+        self.assertEqual(align_field_map(image, references).image_point(point), point)
+        with self.assertRaisesRegex(ValueError, 'ambigu'):
+            align_field_map(image, references + [(name, (500, 500))])
