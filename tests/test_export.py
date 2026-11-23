@@ -103,6 +103,20 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(child_row.project(), (6, 8))
         self.assertEqual(adult_row.project(), (2, 4))
 
+    def test_deku_theater_keeps_both_child_checks_at_one_entrance(self):
+        child = 'Banc/LostWood/LostWood_Child_Static.bcett.byml.zs'
+        adult = child.replace('_Child_', '_Adult_')
+        elder = dict(Gyaml='Enemy_Scrub_ForestStage_Elder', Name='ScrubForestStageElder',
+                     Translate=[4, 81, 6])
+        entrance = dict(Gyaml='DestinationAnchor', Hash=4876738002315557989, Translate=[1, 100, 2])
+        resource = {'root': {'Actors': [elder, entrance]}}
+        maps = {child: resource, adult: resource}
+        rows = event_check_rows(maps, lambda *_: True)
+        add_surface_entrances(rows, maps)
+        self.assertEqual({row['id'] for row in rows}, {'npc#Deku Theater Skull Mask',
+                                                      'npc#Deku Theater Mask of Truth'})
+        self.assertTrue(all(row['resource'] == child and row['entrance'] == (1, 100, 2) for row in rows))
+
     def test_legacy_world_id_requires_hash_field_and_eligible_variant(self):
         from map_oot_rando.metadata import world_check_rows
         actor = dict(Hash=123, Gyaml='Item', Dynamic={'Drop__DropActor': 'Drop'}, Translate=[1, 2, 3])

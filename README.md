@@ -20,6 +20,7 @@ et exécuter cette commande. La validation locale a été faite sous Linux, pas 
 
 - Molette : zoom ; glisser sur le fond : déplacement ; « Ajuster la vue » : cadrage.
 - Recherche par nom ou ID, puis Entrée ou sélection dans la liste pour centrer.
+- Si plusieurs marqueurs se recouvrent, cliquer sur leur point commun ouvre la liste des checks.
 - Choisir Enfant ou Adulte. Les couches Static et Dynamic sont réunies. La hauteur Y est dans les détails.
 - Dézoomer ou cliquer sur **Zones voisines** pour voir les zones reliées. Cliquer sur une zone ou sur un repère
   de passage pour changer de carte en gardant l’âge et le suivi. Réimporter le NUP et le `checks.json`
@@ -36,10 +37,12 @@ Les fonds par défaut de [Kokiri](https://questfern.com/oot/guides/interactive-m
 [Bosquet sacré](https://questfern.com/oot/guides/interactive-map/?area=grove) viennent de Questfern.
 L’application les charge à la demande et vérifie la projection avant de
 l’afficher. **Fond de carte** permet de choisir Field Atlas, un fond local ou
-le schéma. **Enregistrer la carte…** permet de rouvrir le fond hors ligne.
+le schéma. Les fonds Questfern téléchargés sont conservés sur ce poste pour les
+prochains imports hors ligne. **Enregistrer la carte…** inclut le fond affiché dans le JSON.
 
 Les Bois Perdus s’ouvrent sur un schéma sans icônes d’objet préimprimées.
 Les entrées et les checks positionnés utilisent les coordonnées des ressources locales.
+Les deux récompenses du Théâtre Mojo partagent un marqueur à l’entrée.
 Au Bosquet sacré, les deux coffres enfouis sont repérés par l’accès à leur
 grotte. Les détails conservent les coordonnées XYZ du coffre.
 

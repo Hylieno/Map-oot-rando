@@ -156,6 +156,7 @@ class MapApplication:
         self.canvas.bind('<MouseWheel>', lambda e: self.zoom(1.2 if e.delta > 0 else 1 / 1.2, e.x, e.y))
         self.canvas.bind('<Button-4>', lambda e: self.zoom(1.2, e.x, e.y))
         self.canvas.bind('<Button-5>', lambda e: self.zoom(1 / 1.2, e.x, e.y))
+        self.marker_menu = tk.Menu(self.canvas, tearoff=False)
         ttk.Label(root, textvariable=self.count, padding=8).pack(fill='x')
         self.query.trace_add('write', lambda *args: self.render())
         self.load(document if document is not None else demo_document())
@@ -838,7 +839,7 @@ class MapApplication:
                 ring = radius + 3
                 self.canvas.create_oval(x-ring, y-ring, x+ring, y+ring, outline='#252038', width=2)
             item = self.canvas.create_oval(x-radius, y-radius, x+radius, y+radius,
-                                          fill=color, outline=outline, width=2)
+                                          fill=color, outline=outline, width=2, tags='check-pin')
             self.markers[item] = row
             right = x <= width * 0.7
             title = f'{row.name} · entrée' if row.entrance else row.name
@@ -915,15 +916,33 @@ class MapApplication:
 
     def press(self, event):
         self.drag = None
-        for item in reversed(self.canvas.find_overlapping(event.x-3, event.y-3, event.x+3, event.y+3)):
+        hits = self.canvas.find_overlapping(event.x-3, event.y-3, event.x+3, event.y+3)
+        for item in reversed(hits):
             if item in self.navigation_markers:
                 self.open_neighbor(self.navigation_markers[item])
                 return
             if item in self.markers:
+                if 'check-pin' in self.canvas.gettags(item):
+                    colocated = dict.fromkeys(self.markers[other] for other in reversed(hits)
+                                              if 'check-pin' in self.canvas.gettags(other))
+                    if len(colocated) > 1:
+                        self.choose_overlapping(colocated, event.x_root, event.y_root)
+                        return
                 self.choose(self.markers[item])
                 return
         if not self.overview_open:
             self.drag = (event.x, event.y)
+
+    def choose_overlapping(self, rows, x, y):
+        self.marker_menu.delete(0, 'end')
+        names = Counter(row.name for row in rows)
+        for row in rows:
+            label = row.name if names[row.name] == 1 else f'{row.name} · {row.id}'
+            self.marker_menu.add_command(label=label, command=lambda result=row: self.choose(result))
+        try:
+            self.marker_menu.tk_popup(x, y)
+        finally:
+            self.marker_menu.grab_release()
 
     def pan(self, event):
         if self.drag:

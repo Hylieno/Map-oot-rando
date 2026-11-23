@@ -9,11 +9,16 @@ Le Bosquet sacré est accessible depuis les Bois Perdus. Son fond Questfern
 est calibré avec des repères physiques et le marqueur de chaque coffre
 souterrain pointe vers l’entrée de sa grotte.
 
+Le cache local réutilise les fonds Questfern vérifiés après le premier
+téléchargement. Dans les Bois Perdus, les deux checks du Théâtre Mojo pointent
+vers la même entrée pour l’âge enfant. Le menu des points superposés permet
+de choisir les deux checks avec la souris.
+
 Le suivi de Kokiri a été confirmé par l’utilisateur sur son build. L’import
 couvre désormais aussi les Bois Perdus. Le coffre partagé conserve un état
 unique et les cinq checks d’événements associés à des acteurs identifiables
-utilisent leurs positions dans les Bancs. Le théâtre Mojo et le cadeau de
-Saria restent dans la liste en attendant une représentation vérifiée.
+utilisent leurs positions dans les Bancs. Le cadeau de Saria reste dans la
+liste en attendant une représentation vérifiée.
 Le schéma sans icônes est disponible. Une vue aérienne détaillée et la
 navigation continue entre zones à la molette restent à valider.
 

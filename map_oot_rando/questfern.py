@@ -2,10 +2,15 @@
 from dataclasses import dataclass
 from hashlib import sha256
 from io import BytesIO
+from pathlib import Path
+from tempfile import NamedTemporaryFile
 from urllib.request import Request, urlopen
 
 from .aerial import read_image
 from .map_projection import registered_background
+from .save_profiles import local_tracker_dir
+
+MAX_ASSET_BYTES = 2_000_000
 
 SOURCE_ID = 'questfern-kokiri'
 CALIBRATION = 2
@@ -71,14 +76,39 @@ PAUSE_MAPS = {
 
 def load_pause_map(region='KokiriForest'):
     config = PAUSE_MAPS[region]
+    cached = local_tracker_dir() / 'backgrounds' / f'{config.digest}.jpg'
+    try:
+        with cached.open('rb') as stream:
+            data = stream.read(MAX_ASSET_BYTES + 1)
+        if len(data) <= MAX_ASSET_BYTES and sha256(data).hexdigest() == config.digest:
+            return read_image(BytesIO(data))
+    except (OSError, ValueError):
+        pass
+
     request = Request(config.url, headers={'User-Agent': 'Map-oot-rando/1.0'})
     with urlopen(request, timeout=8) as response:
         if response.url != config.url:
             raise ValueError('Adresse Questfern modifiée.')
-        data = response.read(2_000_001)
-    if sha256(data).hexdigest() != config.digest:
+        data = response.read(MAX_ASSET_BYTES + 1)
+    if len(data) > MAX_ASSET_BYTES or sha256(data).hexdigest() != config.digest:
         raise ValueError('Le fond Questfern a changé. Sa projection doit être vérifiée.')
-    return read_image(BytesIO(data))
+    image = read_image(BytesIO(data))
+    temporary = None
+    try:
+        cached.parent.mkdir(parents=True, exist_ok=True)
+        with NamedTemporaryFile(dir=cached.parent, prefix='map-', suffix='.tmp', delete=False) as stream:
+            temporary = Path(stream.name)
+            stream.write(data)
+        temporary.replace(cached)
+    except OSError:
+        pass  # Viewing the map still works when the cache cannot be written.
+    finally:
+        if temporary:
+            try:
+                temporary.unlink(missing_ok=True)
+            except OSError:
+                pass
+    return image
 
 
 def align_pause_map(image, references, details=(), *, region='KokiriForest'):

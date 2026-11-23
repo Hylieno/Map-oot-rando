@@ -321,6 +321,25 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(app.resource.get(), REGION_VIEWS['HyruleField']['Adult'])
         self.assertFalse(app.overview_open)
 
+    def test_overlapping_markers_can_both_be_selected(self):
+        from unittest.mock import patch
+
+        app = self.app
+        document = demo_document()
+        first, second = document['locations'][:2]
+        second['position'] = first['position']
+        document['locations'] = [first, second]
+        app.load(document)
+        x, y = app.viewport.screen((first['position'][0], first['position'][2]))
+        event = SimpleNamespace(x=round(x), y=round(y), x_root=50, y_root=50)
+        with patch.object(app.marker_menu, 'tk_popup') as popup:
+            app.press(event)
+        popup.assert_called_once_with(50, 50)
+        app.marker_menu.invoke(0)
+        first_choice = app.selected.id
+        app.marker_menu.invoke(1)
+        self.assertEqual({first_choice, app.selected.id}, {first['id'], second['id']})
+
     def test_choose_save_uses_a_directory_picker(self):
         from pathlib import Path
         from tempfile import TemporaryDirectory

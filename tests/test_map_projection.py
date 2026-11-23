@@ -61,3 +61,30 @@ class MapProjectionTests(unittest.TestCase):
         self.assertEqual(align_pause_map(image, references, region='HyruleField').image_point(point), point)
         with self.assertRaisesRegex(ValueError, 'ambigu'):
             align_pause_map(image, references + [(name, (500, 500))], region='HyruleField')
+
+    def test_pause_map_reuses_only_verified_cache_bytes(self):
+        from dataclasses import replace
+        from hashlib import sha256
+        from io import BytesIO
+        from unittest.mock import patch
+        from map_oot_rando.questfern import PAUSE_MAPS, load_pause_map
+
+        with TemporaryDirectory() as folder:
+            scratch = BytesIO()
+            Image.new('RGB', (30, 20), 'white').save(scratch, format='JPEG')
+            asset = scratch.getvalue()
+            config = replace(PAUSE_MAPS['HyruleField'], digest=sha256(asset).hexdigest())
+            with (patch.dict(PAUSE_MAPS, HyruleField=config),
+                  patch('map_oot_rando.questfern.local_tracker_dir', return_value=Path(folder)),
+                  patch('map_oot_rando.questfern.urlopen') as download):
+                response = BytesIO(asset)
+                response.url = config.url
+                download.return_value = response
+                self.assertEqual(load_pause_map('HyruleField').size, (30, 20))
+                download.side_effect = OSError('offline')
+                self.assertEqual(load_pause_map('HyruleField').size, (30, 20))
+                download.assert_called_once()
+                cache, = (Path(folder) / 'backgrounds').iterdir()
+                cache.write_bytes(b'damaged')
+                with self.assertRaisesRegex(OSError, 'offline'):
+                    load_pause_map('HyruleField')

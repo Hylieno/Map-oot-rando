@@ -11,6 +11,10 @@ présente un écart maximal de 4,6 pixels sur 300 × 1 080, aux deux âges.
 Le test de métadonnées vérifie la conservation de la position d’un coffre
 et l’association de l’accès à la bonne ressource d’âge.
 
+Les tests couvrent la réutilisation hors ligne du cache, le rejet d’un cache
+endommagé, le choix entre deux marqueurs superposés et les deux récompenses
+du Théâtre Mojo associées à l’entrée dans la vue Enfant.
+
 L’import des Bois Perdus a été recoupé avec le catalogue réel et les
 [placements publics](https://github.com/MrCheeze/oot-switch2-tools/tree/c9027ee50e7efd36cc3109d5990f170b7f0b4611/Banc/LostWood).
 Les 13 IDs de la seed ont été retrouvés, dont neuf associés à des coordonnées
