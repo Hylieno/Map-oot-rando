@@ -23,6 +23,7 @@ WORLD_PINS = {
     'FireTemple': (.6251, .1952),
     'ZoraRiver': (.5803, .5244),
     'ZoraDomain': (.6859, .4747),
+    'ZoraFountain': (.8030, .5223),
 }
 
 

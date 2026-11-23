@@ -19,6 +19,9 @@ EVENT_ACTORS = {
         ('MapIconFacilityAnchor', 'MiniGame_Diving_Mapicon'): 'npc#ZD Diving Minigame',
         ('Npc_Zora_KingZora_adult', None): 'npc#ZD King Zora Thawed',
     },
+    'ZoraFountain': {
+        ('MapIconFacilityAnchor', 'HavePlayedEvent.Dm_FairyFountain_Frore'): 'fairy#ZF Great Fairy Reward',
+    },
     'DodongoCavern': {('Enemy_DungeonBoss_Dodongo', None): 'boss#King Dodongo'},
     'FireTemple': {('Enemy_DungeonBoss_Volvagia', None): 'boss#Volvagia'},
     'DeathMountainCrater': {
@@ -27,6 +30,8 @@ EVENT_ACTORS = {
 }
 DEKU_THEATER_CHECKS = ('npc#Deku Theater Skull Mask', 'npc#Deku Theater Mask of Truth')
 ZORA_POT_ENTRANCE = ((5489068764052953067, 'Land_Kokiri_HidingHoleCover_A_01'),)
+FOUNTAIN_CAVE_ENTRANCES = ((8723749739734887775, 'Land_ZoraFountain_Cave_A_01'),
+                          (9794916849655187961, 'Land_ZoraFountain_Cave_A_01'))
 GROTTO_ENTRANCE_ACTORS = {
     'SacredForestMeadow#7995233962349162969': ((8456945034417122929, 'Land_Kokiri_HidingHoleCover_A_01'),),
     'SacredForestMeadow#1764383515296652106': ((15024208487326008169, 'Land_SacredForest_HidingHoleCover_A_02'),),
@@ -36,6 +41,9 @@ GROTTO_ENTRANCE_ACTORS = {
     **{f'ZoraRiver#pots#{pot}': ZORA_POT_ENTRANCE for pot in (
         10869334366827386783, 5730330007630899881, 4776081376285256939,
         8980910965654538945, 5095784848033030406, 8953658065056150046)},
+    'ZoraFountain#gs#9537398183107003742': FOUNTAIN_CAVE_ENTRANCES,
+    'ZoraFountain#pots#14131098108744088630': FOUNTAIN_CAVE_ENTRANCES,
+    'ZoraFountain#pots#12389449717548603491': FOUNTAIN_CAVE_ENTRANCES,
 }
 CHECK_ACTOR_PATTERNS = {
     ('full_chests', ''): ('Obj_TBox_*',),
@@ -46,7 +54,7 @@ CHECK_ACTOR_PATTERNS = {
     ('full_skulltula', 'gs'): ('Enemy_Skulltula_Gold',),
     ('full_bossheart', 'heart'): ('Obj_Heart_Container',),
 }
-PLACEMENT_REGIONS = frozenset({'FireTemple', 'ZoraRiver', 'ZoraDomain'})
+PLACEMENT_REGIONS = frozenset({'FireTemple', 'ZoraRiver', 'ZoraDomain', 'ZoraFountain'})
 
 
 def add_surface_entrances(rows, maps):
@@ -54,7 +62,7 @@ def add_surface_entrances(rows, maps):
     entrance_ids = {key for keys in GROTTO_ENTRANCE_ACTORS.values() for key in keys}
     candidates = {}
     for path, source in maps.items():
-        if resource_region(path) not in {'SacredForestMeadow', 'LostWood', 'ZoraRiver'}:
+        if resource_region(path) not in {'SacredForestMeadow', 'LostWood', 'ZoraRiver', 'ZoraFountain'}:
             continue
         age_frame = path.rsplit('_', 1)[0]
         for actor in source['root'].get('Actors', ()):
@@ -212,7 +220,8 @@ def bind_catalogue(document, catalogue):
                   'Sacred Forest Meadow': 'SacredForestMeadow', 'Kakariko Village': 'KakarikoVillage',
                   'Death Mountain Trail': 'DeathMountainTrail', 'Goron City': 'GoronCity',
                   "Dodongo's Cavern": 'DodongoCavern', 'Death Mountain Crater': 'DeathMountainCrater',
-                  'Fire Temple': 'FireTemple', "Zora's River": 'ZoraRiver', "Zora's Domain": 'ZoraDomain'})
+                  'Fire Temple': 'FireTemple', "Zora's River": 'ZoraRiver', "Zora's Domain": 'ZoraDomain',
+                  "Zora's Fountain": 'ZoraFountain'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']

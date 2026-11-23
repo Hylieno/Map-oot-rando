@@ -64,7 +64,8 @@ NEIGHBORS = {
     'FireTemple': {'DeathMountainCrater': 'Vers le cratère'},
     'ZoraRiver': {'LostWood': 'Vers les Bois Perdus', 'HyruleField': 'Vers la plaine d’Hyrule',
                   'ZoraDomain': 'Vers le Domaine Zora'},
-    'ZoraDomain': {'ZoraRiver': 'Vers la Rivière Zora'},
+    'ZoraDomain': {'ZoraRiver': 'Vers la Rivière Zora', 'ZoraFountain': 'Vers la Fontaine Zora'},
+    'ZoraFountain': {'ZoraDomain': 'Vers le Domaine Zora'},
 }
 KAKARIKO_ENTRANCES = {
     'HyruleField': 'Vers la plaine d’Hyrule',
@@ -110,6 +111,7 @@ ENTRANCE_LABELS = {
     'HyruleField': HYRULE_ANCHORS,
     'ZoraRiver': {'ZoraDomain': NEIGHBORS['ZoraRiver']['ZoraDomain']},
     'ZoraDomain': NEIGHBORS['ZoraDomain'],
+    'ZoraFountain': NEIGHBORS['ZoraFountain'],
     'DeathMountainTrail': {
         'DeathMountainCrater': 'Repère du cratère',
         'DodongoCavern': 'Repère Dodongo',

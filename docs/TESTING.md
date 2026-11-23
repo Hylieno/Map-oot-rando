@@ -1,5 +1,12 @@
 # Validation
 
+À la Fontaine Zora, les quatre ressources publiques et le catalogue
+donnent 29 checks positionnés, avec 9 emplacements enfant et 22 adulte.
+Chaque fond inclut l’entrée du Domaine. Le test d’alignement vérifie
+la différence d’origine entre les deux fonds, et la navigation Tk
+vérifie l’aller-retour entre la Fontaine et le Domaine. Les données
+du NUP complet restent à contrôler pour les zones Zora.
+
 Le Domaine Zora a été recoupé avec six ressources publiques et les 26 IDs
 du catalogue. La boutique utilise les positions de rayon renvoyées par
 OotrR. Le point de plongeon et le roi fournissent les deux repères

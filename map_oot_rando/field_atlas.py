@@ -54,11 +54,18 @@ FIRE_VIEWBOXES = {
     '4F': (18, 41, 548, 286),
     '5F': (24, 90, 622, 258),
 }
-FIELD_FRAMES = {
+SHARED_FIELD_FRAMES = {
     'HyruleField': ((-50, -49, 950, 739), (1.4552, 504.27, 1.4867, 11.89)),
     'SacredForestMeadow': ((190, -8, 492, 1821), (6.15, 487.31, 6.15, 1062.72)),
     'ZoraRiver': ((-48, -40, 951, 444), (3.2759, 352.05, 3.2953, 225.64)),
     'ZoraDomain': ((-47, -47, 950, 612), (6.4055, 218.87, 6.3045, 315.57)),
+}
+FIELD_FRAMES = {region: dict.fromkeys(('Child', 'Adult'), frame)
+                for region, frame in SHARED_FIELD_FRAMES.items()}
+FIELD_FRAMES['ZoraFountain'] = {
+    # The entrance arrow is 77 SVG units farther north on the child drawing.
+    'Child': ((-44, -33, 927, 864), (7.0485, 200.7, 7.1346, 450.48)),
+    'Adult': ((-45, 10, 939, 902), (7.0485, 200.7, 7.1346, 527.48)),
 }
 for region, source, digest in (
     ('HyruleField', 'hyrule-field', '2cca33a54d435cd8bb42931514d1ac4698e116e683bf9967bfd7b2ced752d252'),
@@ -73,6 +80,10 @@ REGION_MAPS['FireTemple'] = {
     '3F': ('field-atlas-fire-3f', '6b4577c27123e03dd824a9d7727d1c8c56930bbf4262277ff4249d810762f71a'),
     '4F': ('field-atlas-fire-4f', '7d16228fa66665c302b458a7b9c255ef47fb30ff7c6df55a6e96aadafd2c504b'),
     '5F': ('field-atlas-fire-5f', '1f1900c6bda818467de0e4dc9a9e0f4d5f8d720206268d97b686c2c2ac21ccf5'),
+}
+REGION_MAPS['ZoraFountain'] = {
+    'Child': ('field-atlas-zora-fountain-child', 'ef682defc525b7c846650ed4e3355e5f9e75e68986a088970c677bd1c0a82fb8'),
+    'Adult': ('field-atlas-zora-fountain-adult', '7caf49666efec47db9bf937b93ef1464e378593342197f5e92cff69e3a7daf33'),
 }
 REGION_CALIBRATION = 1
 
@@ -97,7 +108,7 @@ def align_region_image(image, references, region, age):
     if region == 'FireTemple':
         return align_capture(image, FIRE_VIEWBOXES[age], (3.965, 354.2, 3.9651, 218.31), source)
     if region in FIELD_FRAMES:
-        return align_capture(image, *FIELD_FRAMES[region], source)
+        return align_capture(image, *FIELD_FRAMES[region][age], source)
     if region == 'KakarikoVillage':
         controls = {
             'Vers la plaine d’Hyrule': (42, 346),

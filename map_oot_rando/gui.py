@@ -385,7 +385,8 @@ class MapApplication:
 
     def link_region(self):
         scene = self.link.scene
-        return {'LostWoods': 'LostWood', 'ZorasRiver': 'ZoraRiver', 'ZorasDomain': 'ZoraDomain'}.get(scene, scene)
+        return {'LostWoods': 'LostWood', 'ZorasRiver': 'ZoraRiver', 'ZorasDomain': 'ZoraDomain',
+                'ZorasFountain': 'ZoraFountain'}.get(scene, scene)
 
     def link_view(self):
         region = self.link_region()

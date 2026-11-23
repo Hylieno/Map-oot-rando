@@ -18,6 +18,17 @@ class FieldAtlasTests(unittest.TestCase):
         self.enterContext(patch('map_oot_rando.background_assets.local_tracker_dir',
                                 return_value=Path(self.folder)))
 
+    def test_fountain_uses_a_distinct_capture_origin_for_each_age(self):
+        from PIL import Image
+        from map_oot_rando.field_atlas import align_region_image
+
+        point = (-19, -24.54)
+        child = align_region_image(Image.new('RGB', (650, 606)), (), 'ZoraFountain', 'Child')
+        adult = align_region_image(Image.new('RGB', (650, 625)), (), 'ZoraFountain', 'Adult')
+        self.assertEqual(tuple(round(p) for p in child.image_point(point)), (78, 216))
+        self.assertEqual(tuple(round(p) for p in adult.image_point(point)), (77, 237))
+        self.assertNotEqual(child.source, adult.source)
+
     def test_rasterizes_expected_svg(self):
         data = (b'<svg xmlns="http://www.w3.org/2000/svg" width="900" height="498">'
                 b'<rect width="900" height="498" fill="#00ff00"/></svg>')

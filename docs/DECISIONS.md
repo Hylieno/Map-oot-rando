@@ -12,6 +12,10 @@
 - Domaine Zora. Les variantes adultes ont les mêmes passages et le même
   plan. Leurs placements sont réunis dans la vue adulte. Un placement
   commun à moins de 5 cm est représenté une fois avec l’ID OotrR d’origine.
+- Fontaine Zora. Le repère du passage depuis le Domaine confirme des
+  origines nord-sud distinctes pour les fonds enfant et adulte. Les checks
+  derrière la paroi utilisent l’entrée du passage. Leurs coordonnées XYZ
+  restent consultables.
 - Link. Le marqueur et le changement automatique de zone sont deux commandes
   distinctes. Les coordonnées sont lues via la connexion mémoire OotrR.
   Les décalages du module et les champs de pose viennent de la documentation

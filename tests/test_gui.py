@@ -476,7 +476,7 @@ class GuiTests(unittest.TestCase):
         from map_oot_rando.scene import GORON_LOST_WOODS_FLOOR, GORON_VIEWS, REGION_VIEWS
 
         app = self.app
-        regions = ('KokiriForest', 'LostWood', 'GoronCity', 'ZoraRiver', 'HyruleField', 'ZoraDomain')
+        regions = ('KokiriForest', 'LostWood', 'GoronCity', 'ZoraRiver', 'HyruleField', 'ZoraDomain', 'ZoraFountain')
 
         def resource(region, age):
             return f'Banc/{region}/{region}_{age}_Static.bcett.byml.zs'
@@ -488,7 +488,8 @@ class GuiTests(unittest.TestCase):
             'ZoraRiver': [('Vers les Bois Perdus', (122.57, -11.8)), ('Vers la plaine d’Hyrule', (-98, 28)),
                           ('Vers le Domaine Zora', (150, -40))],
             'HyruleField': [('Vers la Rivière Zora', (211, 148))],
-            'ZoraDomain': [('Vers la Rivière Zora', (3.54, -42.38))],
+            'ZoraDomain': [('Vers la Rivière Zora', (3.54, -42.38)), ('Vers la Fontaine Zora', (92.58, 15.57))],
+            'ZoraFountain': [('Vers le Domaine Zora', (-19, -24.54))],
         }
         doc['scenes'] = {resource(region, age): {'rooms': [], 'points': points[region]}
                          for region in points for age in ('Child', 'Adult')}
@@ -517,6 +518,11 @@ class GuiTests(unittest.TestCase):
                 app.open_neighbor('ZoraDomain')
                 self.assertEqual(app.resource.get(), REGION_VIEWS['ZoraDomain']['Adult'])
                 self.assertIn('ZoraRiver', app.navigation_markers.values())
+                self.assertIn('ZoraFountain', app.navigation_markers.values())
+                app.open_neighbor('ZoraFountain')
+                self.assertEqual(app.resource.get(), REGION_VIEWS['ZoraFountain']['Adult'])
+                self.assertIn('ZoraDomain', app.navigation_markers.values())
+                app.open_neighbor('ZoraDomain')
                 app.open_neighbor('ZoraRiver')
             app.open_neighbor('LostWood')
             self.assertEqual(app.resource.get(), REGION_VIEWS['LostWood']['Adult'])

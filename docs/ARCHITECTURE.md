@@ -19,7 +19,7 @@ La navigation suivie réagit aux transitions de scène ou d’âge.
 Le champ facultatif `entrance` indique où accéder à un check souterrain
 sur une carte de surface. Le rendu projette cet accès et les détails
 conservent la position XYZ de l’acteur.
-À la rivière Zora, au Domaine Zora et au Temple du Feu, les identifiants typés du catalogue
+Dans les zones Zora et au Temple du Feu, les identifiants typés du catalogue
 peuvent compléter le scan par correspondance du hash et du type d’acteur
 dans chaque scène, sans écraser un placement déjà produit pour cette vue.
 Les ressources `Adult_Alternative` de Cocorico ont une vue adulte distincte.

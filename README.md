@@ -44,7 +44,9 @@ passages permettent aussi de revenir aux Bois Perdus. La rivière Zora est reli�
 à la plaine d’Hyrule et affiche ses checks enfant et adulte. Le coffre et les pots
 en grotte sont indiqués à leur entrée en surface. Le Domaine Zora se rejoint
 depuis la rivière. Ses checks incluent les rayons de la boutique et le mini-jeu
-de plongeon. Les variantes adultes partagent la même vue.
+de plongeon. Les variantes adultes partagent la même vue. Le Domaine donne
+accès à la Fontaine Zora, avec un plan Field Atlas par âge et un repère de
+passage pour les checks accessibles par la caverne.
 Les deux récompenses du Théâtre Mojo partagent un marqueur à l’entrée.
 Au Bosquet sacré, les deux coffres enfouis sont repérés par l’accès à leur
 grotte. Les détails conservent les coordonnées XYZ du coffre.
