@@ -11,6 +11,7 @@ REGION_NAMES = {
     'HyruleField': 'Plaine d’Hyrule',
     'SacredForestMeadow': 'Bosquet sacré',
     'KakarikoVillage': 'Cocorico',
+    'Graveyard': 'Cimetière',
 }
 
 
@@ -31,6 +32,7 @@ class Location:
     alias: str = ''
     region: str = 'KokiriForest'
     entrance: tuple[float, float, float] | None = None
+    underground: bool = False
 
     def project(self):
         """Raw X/Z plan, +Z downward; Y retained, orientation unverified in game."""
@@ -75,8 +77,11 @@ def load_metadata(document):
         region = row.get('region', frame or document['region'])
         if region not in regions or (frame is not None and frame != region):
             raise ValueError('Région de l’emplacement invalide')
+        underground = row.get('underground', False)
+        if type(underground) is not bool or (underground and (region != 'Graveyard' or position is None)):
+            raise ValueError('Niveau de carte invalide')
         location = Location(row['id'], row['name'], row['category'], row['resource'],
-                            position, alias, region, entrance)
+                            position, alias, region, entrance, underground)
         # The tracker identifies the check, while the scan may report multiple
         # placements in a single resource. Collapse only identical records.
         if location not in seen:

@@ -16,6 +16,9 @@ conservent la position XYZ de l’acteur.
 Les ressources `Adult_Alternative` de Cocorico ont une vue adulte distincte.
 Le suivi réutilise le snapshot accepté par OotrR et le manifest pour lire la
 condition de scène. Les checks partagés gardent le même ID de suivi.
+Au cimetière, le champ local `underground` distingue les placements fiables
+sous la surface. Les deux niveaux gardent la même source Banc et le même
+repère X/Z. L’âge reste indépendant du niveau.
 
 Référence inspectée : Mozencaz/OotrR,
 `283d3ec0f161d32e168afac45e502442c1ffb081`.

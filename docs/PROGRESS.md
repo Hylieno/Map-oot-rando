@@ -1,5 +1,9 @@
 # Checkpoint — 22 novembre 2026
 
+Le cimetière est accessible depuis Cocorico. Field Atlas fournit le fond
+de surface. Les checks en sous-sol ont une vue schématique par âge.
+Les intérieurs de tombe et la course de Dampé restent à dessiner.
+
 Cocorico est relié à la plaine. Ses fonds enfant et adulte de Field Atlas
 s’alignent automatiquement. Le suivi bascule vers la variante après
 l’incendie quand les données de la seed et de la partie confirment la

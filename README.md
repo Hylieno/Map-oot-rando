@@ -1,6 +1,6 @@
 # Map-oot-rando
 
-Compagnon de carte local pour OotrR avec Kokiri Forest, les Bois Perdus, le Bosquet sacré, la plaine d’Hyrule et Cocorico.
+Compagnon de carte local pour OotrR avec Kokiri Forest, les Bois Perdus, le Bosquet sacré, la plaine d’Hyrule, Cocorico et le cimetière.
 
 La simulation utilise des positions fictives.
 L’import local lit les coordonnées de la seed et le suivi lit les états d’OotrR
@@ -47,6 +47,9 @@ Au Bosquet sacré, les deux coffres enfouis sont repérés par l’accès à leu
 grotte. Les détails conservent les coordonnées XYZ du coffre.
 Cocorico utilise les [fonds sans icônes de Field Atlas](https://oot.gousse.cool/kakariko-village).
 Les vues adulte et après l’incendie utilisent la même image avec leurs propres checks.
+Le [cimetière](https://oot.gousse.cool/graveyard) a aussi un fond Field Atlas.
+**Souterrains** ouvre les checks enfouis dans une vue schématique. La recherche
+ouvre directement la bonne vue quand un check a des coordonnées.
 
 Pour une image locale, l’application lit automatiquement un fichier de coordonnées
 `.wld`, `.pgw` ou `.jgw` de même nom s’il utilise le repère X/Z du jeu. Une image

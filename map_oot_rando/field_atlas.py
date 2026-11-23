@@ -34,26 +34,42 @@ def load_atlas_image(digest, *, width, height=None, url=None):
     return read_image(BytesIO(svg_to_bytes(svg_string=data.decode('utf-8'), **dimensions)))
 
 
-KAKARIKO_MAPS = {
-    'Child': ('field-atlas-kakariko-child', 'ec8d8a9fcf46a7b5f159d3fa112772041a720270124fa28db9bf3391f41a6ec5'),
-    'Adult': ('field-atlas-kakariko-adult', 'a2991a3861d98c7331e597948d1370e63b0f14bff72d0a11eb3d1f7ce4b19979'),
+REGION_MAPS = {
+    'KakarikoVillage': {
+        'Child': ('field-atlas-kakariko-child', 'ec8d8a9fcf46a7b5f159d3fa112772041a720270124fa28db9bf3391f41a6ec5'),
+        'Adult': ('field-atlas-kakariko-adult', 'a2991a3861d98c7331e597948d1370e63b0f14bff72d0a11eb3d1f7ce4b19979'),
+    },
+    'Graveyard': {
+        'Child': ('field-atlas-graveyard-child', 'fad753b7a0f64d863530f30c6ad5b0f3962468a06ae274a6f85a2b0e6dce47f7'),
+        'Adult': ('field-atlas-graveyard-adult', '48cc191d6b543edae7d9432920c6ac7a237c229c8b937aee2a38b228259c4d00'),
+    },
 }
-KAKARIKO_CALIBRATION = 1
+REGION_CALIBRATION = 1
 
 
-def align_kakariko_image(image, references, age):
+def align_region_image(image, references, region, age):
     from .map_projection import registered_background
 
-    controls = {
-        'Vers la plaine d’Hyrule': (42, 346),
-        'Vers le Mont du Péril': (367 if age == 'Child' else 369, 43),
-        'Vers le cimetière': (608, 395),
-        'Maison au sud': (342, 498),
-        'Puits': (415, 314),
-    }
-    holdout = {'Moulin': (510, 313)}
-    return registered_background(image, references, controls, holdout, source=KAKARIKO_MAPS[age][0],
-                                 calibration=KAKARIKO_CALIBRATION, require_validation=True)
+    if region == 'KakarikoVillage':
+        controls = {
+            'Vers la plaine d’Hyrule': (42, 346),
+            'Vers le Mont du Péril': (367 if age == 'Child' else 369, 43),
+            'Vers le cimetière': (608, 395),
+            'Maison au sud': (342, 498),
+            'Puits': (415, 314),
+        }
+        holdout = {'Moulin': (510, 313)}
+    else:
+        controls = {
+            'Pilier nord du portail': (57, 137),
+            'Première tombe au nord': (240, 69),
+            'Tombe au sud-est': (337, 208),
+            'Tombe de la rangée centrale': (258, 146),
+            'Monument royal': (462, 132),
+        }
+        holdout = {'Maison du gardien': (174, 211), 'Stèle royale sud': (433, 150)}
+    return registered_background(image, references, controls, holdout, source=REGION_MAPS[region][age][0],
+                                 calibration=REGION_CALIBRATION, require_validation=True)
 
 
 # Centers read against the published 900 × 498 drawing. These are visual

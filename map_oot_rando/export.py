@@ -11,6 +11,7 @@ from .metadata import add_surface_entrances, bind_catalogue, event_check_rows, e
 from .model import REGION_NAMES, UPSTREAM_REVISION
 from .scene import extract_scenes
 
+GRAVEYARD_SURFACE_MIN_Y = 92
 
 def verify_checkout(directory):
     def git(*args):
@@ -49,6 +50,12 @@ def scan_game(path, progress=None, world_checks=()):
     if world_checks:
         document['locations'].extend(world_check_rows(maps, world_checks, eligible))
     add_surface_entrances(document['locations'], maps)
+    for row in document['locations']:
+        # In this scene, the buried rooms and Dampé's race are below the
+        # surface even where their X/Z coordinates overlap its tombstones.
+        if (row['resource'].startswith('Banc/Graveyard/') and row['position'] is not None
+                and row['position'][1] < GRAVEYARD_SURFACE_MIN_Y):
+            row['underground'] = True
     document['scenes'] = extract_scenes(maps, landmarks)
     document['map_capture_candidates'] = map_capture_catalogue(members)
     return document

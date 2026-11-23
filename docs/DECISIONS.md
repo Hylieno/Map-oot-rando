@@ -9,6 +9,8 @@
   correspondants. Les coordonnées en sous-sol restent accessibles dans les détails.
 - Cocorico. Les fonds Field Atlas sans icônes sont validés sur six repères
   physiques. Les placements adultes sont séparés par variante de scène.
+- Cimetière. La surface et les placements enfouis sont séparés par altitude
+  vérifiée dans cette scène.
 
 - Python sans dépendance pour le socle ; Tkinter prévu, cohérent avec OotrR.
 - Ne pas développer une seconde logique d'accessibilité ni un lecteur mémoire.

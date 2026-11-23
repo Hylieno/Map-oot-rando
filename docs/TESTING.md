@@ -1,5 +1,9 @@
 # Validation
 
+Les fonds du cimetière ont passé le recalage automatique pour les deux âges.
+Deux repères indépendants de l’ajustement valident l’alignement. Le test Tk
+vérifie le filtrage de surface et l’ouverture d’un check souterrain par recherche.
+
 À Cocorico, le catalogue local compte 76 IDs, dont 36 positionnés lors du
 recoupement avec les six placements publics seuls. Le reste peut dépendre
 des packs du NUP ou de correspondances d’événements. Les trois vues ont

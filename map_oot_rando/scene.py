@@ -11,6 +11,9 @@ VIEWS = {label: (region, age) for region, ages in REGION_VIEWS.items()
          for age, label in ages.items()}
 BURNT_VILLAGE = 'Cocorico · Après l’incendie'
 VIEWS[BURNT_VILLAGE] = ('KakarikoVillage', 'Adult')
+GRAVEYARD_UNDERGROUND = {age: f'{view} · Souterrains'
+                         for age, view in REGION_VIEWS['Graveyard'].items()}
+VIEWS.update({view: ('Graveyard', age) for age, view in GRAVEYARD_UNDERGROUND.items()})
 NEIGHBORS = {
     'KokiriForest': {'LostWood': 'front_of_lost_wood_entrance',
                      'HyruleField': 'front_of_hyrule_field_entrance'},
@@ -18,7 +21,8 @@ NEIGHBORS = {
     'HyruleField': {'KokiriForest': 'front_of_lost_wood_bridge_entrance',
                     'KakarikoVillage': 'Vers Cocorico'},
     'SacredForestMeadow': {'LostWood': 'front_of_lost_wood_entrance'},
-    'KakarikoVillage': {'HyruleField': 'Vers la plaine d’Hyrule'},
+    'KakarikoVillage': {'HyruleField': 'Vers la plaine d’Hyrule', 'Graveyard': 'Vers le cimetière'},
+    'Graveyard': {'KakarikoVillage': 'Vers Cocorico'},
 }
 KAKARIKO_ENTRANCES = {
     'HyruleField': 'Vers la plaine d’Hyrule',
@@ -29,6 +33,17 @@ KAKARIKO_ENTRANCES = {
 KAKARIKO_BUILDINGS = {
     'Land_Kakariko_WindmillHouse_A_01': 'Moulin',
     'Land_Kakariko_House_A_01': 'Maison au sud',
+}
+GRAVEYARD_LANDMARKS = {
+    'Obj_Graveyard_Tombstone_A_03': 'Monument royal',
+    'Obj_Graveyard_Tombstone_A_02': 'Stèle royale sud',
+    'Land_Graveyard_House_A_01': 'Maison du gardien',
+}
+GRAVEYARD_STONES = {
+    3584790071721093975: 'Pilier nord du portail', 14138423618786081511: 'Pilier nord du portail',
+    1477508902893678199: 'Première tombe au nord', 14062658801796005543: 'Première tombe au nord',
+    17966403985780819162: 'Tombe au sud-est', 1899631685438434168: 'Tombe au sud-est',
+    10113284509563176489: 'Tombe de la rangée centrale', 13948460953459451532: 'Tombe de la rangée centrale',
 }
 LOST_WOOD_POINT_LABELS = {
     'front_of_sacred_forest_meadow_entrance': 'Vers le Bosquet sacré',
@@ -75,10 +90,15 @@ def projection_points(region, sources):
             elif gyaml == 'MapIconEntranceAnchor':
                 dynamic = actor.get('Dynamic')
                 if isinstance(dynamic, dict) and dynamic.get('IsVisible') is not False:
-                    entrances = KAKARIKO_ENTRANCES if region == 'KakarikoVillage' else HYRULE_ANCHORS
+                    entrances = {'KakarikoVillage': KAKARIKO_ENTRANCES,
+                                 'Graveyard': {'KakarikoVillage': 'Vers Cocorico'}}.get(region, HYRULE_ANCHORS)
                     label = entrances.get(dynamic.get('Location'))
             elif region == 'KakarikoVillage':
                 label = KAKARIKO_BUILDINGS.get(gyaml)
+            elif region == 'Graveyard':
+                label = GRAVEYARD_LANDMARKS.get(gyaml)
+                if gyaml in {'Land_Graveyard_Gate_A_09', 'Obj_Tombstone_A_01'}:
+                    label = GRAVEYARD_STONES.get(actor.get('Hash'))
             elif gyaml == 'Land_HrlField_Bridge_A_01':
                 label = 'Pont de la rivière'
             elif gyaml == 'Enemy_Skulltula_Gold' and actor.get('Hash') == 2177746409373494991:
@@ -145,6 +165,13 @@ def view_name(resource):
                         for layer in ('Static', 'Dynamic')):
             return label
     return resource
+
+
+def location_view(row):
+    view = view_name(row.resource)
+    if row.underground and view in VIEWS:
+        return GRAVEYARD_UNDERGROUND[VIEWS[view][1]]
+    return view
 
 
 def group_scenes(scenes):

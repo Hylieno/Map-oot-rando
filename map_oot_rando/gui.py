@@ -10,7 +10,7 @@ from PIL import Image, ImageTk
 
 from .aerial import AerialImage, read_image
 from .aerial_dialog import align_image
-from .field_atlas import (CALIBRATION, KAKARIKO_CALIBRATION, KAKARIKO_MAPS, align_kakariko_image,
+from .field_atlas import (CALIBRATION, REGION_CALIBRATION, REGION_MAPS, align_region_image,
                            align_kokiri_image, load_atlas_image, load_kokiri_image)
 from .map_projection import georeferenced_background
 from .questfern import PAUSE_MAPS, SOURCE_ID as PAUSE_SOURCE, align_pause_map, load_pause_map
@@ -19,7 +19,8 @@ from .model import REGION_NAMES, load_metadata, resource_region, select
 from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
-from .scene import BURNT_VILLAGE, NEIGHBORS, REGION_VIEWS, VIEWS, field_atlas_scene, group_scenes, read_scenes, view_name
+from .scene import (BURNT_VILLAGE, GRAVEYARD_UNDERGROUND, NEIGHBORS, REGION_VIEWS, VIEWS,
+                    field_atlas_scene, group_scenes, location_view, read_scenes, view_name)
 from .simulation import Simulation, demo_document
 from .view import Viewport
 
@@ -27,7 +28,8 @@ PARCHMENT = '#d1bc80'
 PAPER_COLORS = dict(available='#176346', blocked='#aa2540', unknown='#40359b',
                     completed='#535b6a', partial='#8a450d')
 PAUSE_SOURCES = {config.source for config in PAUSE_MAPS.values()}
-BUILTIN_BACKGROUNDS = PAUSE_SOURCES | {'field-atlas', *(source for source, _ in KAKARIKO_MAPS.values())}
+BUILTIN_BACKGROUNDS = PAUSE_SOURCES | {'field-atlas', *(source for maps in REGION_MAPS.values()
+                                                      for source, _ in maps.values())}
 OVERVIEW_SCALE = 0.6
 
 COLORS = dict(available='#37b76b', blocked='#e45c5c', unknown='#e6c548', completed='#929ba5', partial='#ed9f57')
@@ -151,6 +153,7 @@ class MapApplication:
             for region, name in REGION_NAMES.items()
         }
         self.overview_button = ttk.Button(tools, text='Zones voisines', command=self.toggle_overview)
+        self.floor_button = ttk.Button(tools, command=self.toggle_floor)
         self.canvas = tk.Canvas(panel, background='#18252b', highlightthickness=0)
         self.canvas.pack(fill='both', expand=True)
         self.canvas.bind('<Configure>', self.resized)
@@ -203,11 +206,11 @@ class MapApplication:
         self.store = self.simulation.store if self.simulation else StateStore(document.get('seed_id', ''), [r.id for r in locations])
         self.selected = None
         self.details.set('Sélectionnez un emplacement.')
-        views = {view_name(row.resource) for row in locations if row.position is not None}
+        views = {location_view(row) for row in locations if row.position is not None}
         views.update(self.scenes.keys() & VIEWS.keys())
         prefer = [label for label in VIEWS if label in views]
         self.resources['values'] = prefer + sorted(views - set(prefer))
-        first_positioned = next((view_name(r.resource) for r in locations if r.position is not None), '')
+        first_positioned = next((location_view(r) for r in locations if r.position is not None), '')
         self.resource.set(prefer[0] if prefer else first_positioned or next(iter(sorted(views)), ''))
         self.categories['values'] = ['Toutes'] + sorted({r.category for r in locations})
         self.category.set('Toutes')
@@ -439,7 +442,7 @@ class MapApplication:
             references.append((label, ((low[0] + high[0])/2, (low[1] + high[1])/2)))
         if include_checks:
             references.extend((row.name, row.project()) for row in self.locations
-                              if view_name(row.resource) == resource and row.position is not None)
+                              if location_view(row) == resource and row.position is not None)
         if len({point for _, point in references}) < 3:
             if quiet:
                 return None
@@ -475,7 +478,7 @@ class MapApplication:
         region = self.current_region()
         if region == 'KokiriForest':
             self.preferred_background = source
-        elif (source == 'field-atlas') != (region == 'KakarikoVillage'):
+        elif (source == 'field-atlas') != (region in REGION_MAPS):
             messagebox.showinfo('Fond de carte', 'Cette source de fond n’est pas intégrée pour cette zone.',
                                 parent=self.root)
             return
@@ -485,15 +488,16 @@ class MapApplication:
         resource = self.resource.get()
         region, age = VIEWS.get(resource, (self.current_region(), None))
         config = PAUSE_MAPS.get(region)
-        village_atlas = KAKARIKO_MAPS.get(age) if region == 'KakarikoVillage' else None
-        if self.simulation or resource not in VIEWS or (config is None and village_atlas is None):
+        region_atlas = REGION_MAPS.get(region, {}).get(age)
+        if (self.simulation or resource not in VIEWS or resource in GRAVEYARD_UNDERGROUND.values()
+                or (config is None and region_atlas is None)):
             if manual:
                 messagebox.showinfo('Fond de carte', 'Aucun fond intégré validé pour cette vue.',
                                     parent=self.root)
             return
-        if village_atlas:
-            preferred, digest = village_atlas
-            calibration = KAKARIKO_CALIBRATION
+        if region_atlas:
+            preferred, digest = region_atlas
+            calibration = REGION_CALIBRATION
         elif region == 'KokiriForest' and self.preferred_background == 'field-atlas':
             preferred, calibration = 'field-atlas', CALIBRATION
         else:
@@ -514,7 +518,7 @@ class MapApplication:
         if saved and saved.source == 'field-atlas' and saved.calibration is None:
             cached.setdefault('field-atlas', saved.image)
         details = [(row.name, row.project()) for row in self.locations
-                   if view_name(row.resource) == resource and row.position is not None]
+                   if location_view(row) == resource and row.position is not None]
         result = Queue()
         self.atlas_loading = resource
         self.atlas_button.state(['disabled'])
@@ -525,10 +529,10 @@ class MapApplication:
             for source in candidates:
                 try:
                     image = cached.get(source)
-                    if village_atlas:
+                    if region_atlas:
                         if image is None:
                             image = load_atlas_image(digest, width=650)
-                        background = align_kakariko_image(image, references, age)
+                        background = align_region_image(image, references, region, age)
                     elif source == 'field-atlas':
                         if image is None:
                             image = load_kokiri_image()
@@ -613,9 +617,9 @@ class MapApplication:
         region = self.current_region()
         searching = bool(self.query.get().strip())
         rows = [row for row in self.locations
-                if searching or view_name(row.resource) == view
+                if searching or location_view(row) == view
                 or (row.position is None and row.region == region)]
-        unique = {(row.id, row.region, view_name(row.resource), row.position, row.entrance): row for row in rows}
+        unique = {(row.id, row.region, location_view(row), row.position, row.entrance): row for row in rows}
         self.visible = select(unique.values(), self.store.states, self.query.get(),
                               {k for k, v in self.status_vars.items() if v.get()},
                               None if self.category.get() == 'Toutes' else {self.category.get()})
@@ -655,6 +659,10 @@ class MapApplication:
         if self.resource.get() == BURNT_VILLAGE and self.save_age == 'Adult' and self.kakariko_burned is None:
             return
         view = self.view_for_region(self.current_region(), age=self.save_age)
+        if self.resource.get() in GRAVEYARD_UNDERGROUND.values():
+            view = GRAVEYARD_UNDERGROUND[self.save_age]
+            if view not in self.resources['values']:
+                view = self.view_for_region('Graveyard', age=self.save_age)
         if view and view != self.resource.get():
             self.resource.set(view)
             self.resource_changed(manual=False)
@@ -684,6 +692,21 @@ class MapApplication:
         region = self.current_region()
         return [neighbor for neighbor in NEIGHBORS[region] if self.view_for_region(neighbor)]
 
+    def floor_target(self):
+        view = self.resource.get()
+        region, age = VIEWS.get(view, (None, None))
+        if region != 'Graveyard':
+            return None
+        underground = GRAVEYARD_UNDERGROUND[age]
+        target = REGION_VIEWS[region][age] if view == underground else underground
+        return target if target in self.resources['values'] else None
+
+    def toggle_floor(self):
+        view = self.floor_target()
+        if view:
+            self.resource.set(view)
+            self.resource_changed(manual=False)
+
     def refresh_navigation(self):
         region = self.current_region()
         name = REGION_NAMES[region]
@@ -699,6 +722,13 @@ class MapApplication:
             self.overview_button.pack(side='left', padx=5)
         else:
             self.overview_button.pack_forget()
+        floor = self.floor_target()
+        if floor:
+            text = 'Souterrains' if floor in GRAVEYARD_UNDERGROUND.values() else 'Surface'
+            self.floor_button.configure(text=text)
+            self.floor_button.pack(side='left', padx=5)
+        else:
+            self.floor_button.pack_forget()
 
     def resource_changed(self, *, manual=True):
         self.overview_open = False
@@ -715,7 +745,7 @@ class MapApplication:
         self.ensure_atlas()
 
     def outside(self, row):
-        background = self.aerial.get(view_name(row.resource))
+        background = self.aerial.get(location_view(row))
         return bool(background and row.position is not None and not background.covers(row.project()))
 
     def resized(self, event):
@@ -743,7 +773,7 @@ class MapApplication:
         self.fit_pending = self.canvas.winfo_width() <= 1 or self.canvas.winfo_height() <= 1
         if self.fit_pending:
             return
-        points = [self.display_point(r.project()) for r in self.visible if view_name(r.resource) == self.resource.get() and r.position is not None
+        points = [self.display_point(r.project()) for r in self.visible if location_view(r) == self.resource.get() and r.position is not None
                   and (self.show_outside.get() or not self.outside(r))]
         aerial = self.aerial.get(self.resource.get())
         scene = self.scenes.get(self.resource.get(), {}) if not aerial else {}
@@ -841,7 +871,9 @@ class MapApplication:
                 self.canvas.create_line(x, 0, x, height, fill='#2c414a')
             for y in ys:
                 self.canvas.create_line(0, y, width, y, fill='#2c414a')
-            heading = f'Schéma X/Z | Grille : {step:g} unités'
+            heading = (f'{self.resource.get()} | Schéma X/Z' if region == 'Graveyard'
+                       and self.resource.get() in GRAVEYARD_UNDERGROUND.values()
+                       else f'Schéma X/Z | Grille : {step:g} unités')
         self.canvas.create_text(12, 12, anchor='nw', fill=heading_color, text=heading)
         for neighbor, exit_point in exits.values():
             if aerial and not aerial.covers(exit_point):
@@ -852,7 +884,7 @@ class MapApplication:
                                                 tags=('zone-navigation',))
             self.navigation_markers[marker] = neighbor
             captions.append((REGION_NAMES[neighbor], x, y - 16))
-        rows = [row for row in self.visible if view_name(row.resource) == self.resource.get()
+        rows = [row for row in self.visible if location_view(row) == self.resource.get()
                 and row.position is not None
                 and (self.show_outside.get() or row == self.selected or not self.outside(row))]
         rows.sort(key=lambda row: row == self.selected)
@@ -901,10 +933,10 @@ class MapApplication:
         self.overview_open = False
         self.selected = row
         if row.position is not None:
-            if self.resource.get() != view_name(row.resource):
+            if self.resource.get() != location_view(row):
                 if self.save_age is not None:
                     self.follow_age.set(False)
-                self.resource.set(view_name(row.resource))
+                self.resource.set(location_view(row))
                 self.refresh_navigation()
                 self.ensure_atlas()
             self.viewport.center(self.display_point(row.project()), self.canvas.winfo_width(),
@@ -922,7 +954,7 @@ class MapApplication:
             self.manual_button.pack(fill='x', pady=(5, 0))
         else:
             self.manual_button.pack_forget()
-        self.details.set(f'{row.name}\nID : {row.id}\n{row.category}\n{view_name(row.resource)}\n'
+        self.details.set(f'{row.name}\nID : {row.id}\n{row.category}\n{location_view(row)}\n'
                          f'XYZ : {row.position if row.position is not None else "inconnues"}\n'
                          f'État : {LABELS[self.store.states.get(row.id, "unknown")]}'
                          + (f'\nEntrée affichée (XYZ) : {row.entrance}' if row.entrance else '')
