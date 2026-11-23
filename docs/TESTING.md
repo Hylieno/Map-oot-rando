@@ -116,3 +116,6 @@ reconnaît la signature de logique et les indicateurs des 86 checks suivables
 sur ces 90 IDs. Les indicateurs ont été vérifiés avec des sauvegardes binaires
 synthétiques et les métadonnées réelles. Le ROMFS, le jeu et la sauvegarde réelle
 n’ont pas été utilisés dans ce test.
+
+Les 34 tests et le build portable avec OotrR 0.8.0 réussissent sur
+[Windows CI](https://github.com/Hylieno/Map-oot-rando/actions/runs/45093625991).
