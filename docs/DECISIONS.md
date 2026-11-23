@@ -7,7 +7,9 @@
   et passages observés dans les scènes du jeu. Les raccourcis Goron et Zora
   sont navigables dans les deux sens. Zora sert de carte de transit.
 - Link. Le marqueur et le changement automatique de zone sont deux commandes
-  distinctes. Les coordonnées viennent de l’API mémoire locale d’Ocarina Atlas.
+  distinctes. Les coordonnées sont lues via la connexion mémoire OotrR.
+  Les décalages du module et les champs de pose viennent de la documentation
+  technique publiée par [Ocarina Atlas](https://github.com/antonioalvromero/Ocarina-Atlas).
 - Bosquet sacré. Les entrées de grotte viennent des acteurs physiques
   correspondants. Les coordonnées en sous-sol restent accessibles dans les détails.
 - Cocorico. Les fonds Field Atlas sans icônes sont validés sur six repères

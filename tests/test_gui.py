@@ -520,7 +520,12 @@ class GuiTests(unittest.TestCase):
                          {'rooms': [], 'points': [('Centre', (0, 0))]} for region in regions}
         self.enterContext(patch.object(app, 'ensure_atlas'))
         app.load(doc)
-        sample = LinkPosition('KokiriForest', 'Child', 'principal', 0, 100, 0, 90)
+        app.show_link.set(True)
+        app.configure_link()
+        self.assertTrue(app.live_requested.get())
+        self.assertTrue(app.use_live.is_set())
+        self.assertIn('dossier de sauvegardes', app.link_status.get())
+        sample = LinkPosition('KokiriForest', 'Child', 0, 100, 0, 90)
         app.update_link(sample)
         self.assertTrue(app.canvas.find_withtag('player-pin'))
         app.update_link(replace(sample, scene='LostWoods'))
@@ -531,8 +536,10 @@ class GuiTests(unittest.TestCase):
         self.assertFalse(app.canvas.find_withtag('player-pin'))
         app.open_neighbor('HyruleField')
         self.assertTrue(app.canvas.find_withtag('player-pin'))
-        app.update_link(None)
+        app.live_requested.set(False)
+        app.configure_live()
         self.assertFalse(app.canvas.find_withtag('player-pin'))
+        self.assertIn('dossier de sauvegardes', app.link_status.get())
 
     def test_overlapping_markers_can_both_be_selected(self):
         from unittest.mock import patch

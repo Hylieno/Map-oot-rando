@@ -163,6 +163,30 @@ class SaveTrackingTests(unittest.TestCase):
             self.assertEqual(conn.refresh().states['test'], 'unknown')
             self.assertEqual(conn.path, paths[0])
 
+    def test_link_samples_same_seed_memory_even_without_changes_to_check_flags(self):
+        from unittest.mock import Mock
+        from oot_rando.tracker.live_memory import SEQUENCE_IS_CHILDHOOD
+        from test_link_position import PlayerMemory
+
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            save = folder / 'progress.sav'
+            store = StateStore(write_seed(folder), ['test'])
+            write_save(save, child=True)
+            live_flags = dict(bool={100: True, SEQUENCE_IS_CHILDHOOD: True}, sha256='steady')
+            reader = Mock()
+            reader.memory = PlayerMemory()
+            reader.snapshot.return_value = live_flags
+            connection = SaveConnection(folder, save, store, live_factory=lambda: reader)
+            self.assertIsNone(connection.refresh(show_link=True).link)
+            first = connection.refresh(live=True, show_link=True).link
+            self.assertEqual(first.scene, 'KokiriForest')
+            reader.memory = PlayerMemory(scene='LostWood_Child', x=14)
+            second = connection.refresh(live=True, show_link=True).link
+            self.assertEqual((second.scene, second.x), ('LostWood', 14))
+            reader.snapshot.return_value = dict(bool={100: False}, sha256='other-seed')
+            self.assertIsNone(connection.refresh(live=True, show_link=True).link)
+
     def test_live_updates_before_save_and_falls_back_on_wrong_seed_or_disconnect(self):
         from unittest.mock import Mock
         from oot_rando.tracker.live_memory import LiveUnavailable, SEQUENCE_IS_CHILDHOOD

@@ -11,10 +11,11 @@ La **Carte d’Hyrule** s’ouvre au dézoom et place toutes les zones disponibl
 sur une illustration à l’aide de coordonnées normalisées. Les passages locaux
 utilisent leurs coordonnées de scène. Le sélecteur de zone, les boutons d’âge
 et le sélecteur d’étage manipulent la même vue.
-Le marqueur de Link interroge l’API locale d’Ocarina Atlas en lecture seule.
-La position est validée par date, source mémoire, scène, âge et coordonnées.
-La navigation suivie réagit aux transitions, tandis que les checks viennent
-de la session indépendante OotrR.
+Le marqueur de Link lit les coordonnées et la scène sur la connexion mémoire
+OotrR après validation du marqueur de seed. Le lecteur de position réutilise
+l’adresse de module relocalisée par OotrR et vérifie les structures avant de
+publier la pose. Une lecture de position indisponible masque le marqueur.
+La navigation suivie réagit aux transitions de scène ou d’âge.
 Le champ facultatif `entrance` indique où accéder à un check souterrain
 sur une carte de surface. Le rendu projette cet accès et les détails
 conservent la position XYZ de l’acteur.

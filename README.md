@@ -71,13 +71,11 @@ hors du fond** permet de les afficher ensemble.
 
 ## Suivre la partie
 
-Pour afficher Link, lance Ocarina Atlas avec son suivi mémoire et coche
-**Position de Link (Ocarina Atlas)** dans Map-oot-rando. La connexion locale
-utilise le port par défaut 3000. **Suivre Link entre les zones** ouvre la
-carte de sa nouvelle zone lorsqu’il change de scène ou d’âge. Décoche cette
-option pour continuer à consulter d’autres cartes. Les checks restent suivis
-par OotrR.
-
+Coche **Afficher la position de Link**. Cette option active **Mémoire du jeu**
+et réutilise la connexion OotrR de la seed. **Suivre Link entre les zones**
+ouvre sa nouvelle zone à chaque changement de scène ou d’âge. Tu peux
+décocher le suivi de zone en gardant le marqueur. Si le jeu s’arrête ou
+que la seed active est différente, le marqueur disparaît.
 
 Clique sur **Choisir le dossier de sauvegardes…** et indique le dossier qui
 contient les sauvegardes de ton jeu. L’application cherche dans les sous-dossiers

@@ -1,16 +1,61 @@
+import struct
 import unittest
+from importlib.util import find_spec
 
-from map_oot_rando.link_position import LinkPosition, parse_position
+from map_oot_rando.link_position import read_link_position
 
 
+class PlayerMemory:
+    """Small synthetic guest-memory image laid out at a relocated main base."""
+    def __init__(self, *, scene='KokiriForest_Child', x=23.5):
+        self.main = 0x80634000
+        self.slot = self.main + 0x04C7E180
+        singleton, player, components, pose, scene_record = (
+            0x2010001000, 0x2010002000, 0x2010003000, 0x2010004000, 0x2010005000)
+        header = bytearray(0x60)
+        struct.pack_into('<Q', header, 0, self.main + 0x04BA27C8)
+        struct.pack_into('<I4xQ', header, 0x50, 37, components)
+        table = bytearray(37 * 8)
+        struct.pack_into('<Q', table, 7 * 8, scene_record)
+        struct.pack_into('<Q', table, 36 * 8, pose)
+        self.pose = bytearray(0x34)
+        struct.pack_into('<QQQ', self.pose, 0, self.main + 0x04BA1818, self.main + 0x03EE4F8C, player)
+        struct.pack_into('<6f', self.pose, 0x1C, x, 102.0, -8.0, 1.0, 0.0, 0.0)
+        self.blocks = {
+            self.main: struct.pack('<II', 1, 0x03C4705C),
+            self.main + 0x04E6C7A8: bytes(8),
+            self.main + 0x04E6C938: struct.pack('<Q', singleton),
+            singleton + 0x10: struct.pack('<Q', player),
+            player: header,
+            components: table,
+            pose: self.pose,
+            scene_record + 0x34: f'Work/Banc/Scene/{scene.split('_')[0]}/{scene}.bcett.json'.encode().ljust(0x80, b'\0'),
+        }
+
+    def read(self, address, count):
+        from oot_rando.tracker.live_memory import LiveUnavailable
+
+        block = self.blocks.get(address)
+        if block is None or len(block) != count:
+            raise LiveUnavailable('Fixture address not mapped')
+        return block
+
+
+@unittest.skipUnless(find_spec('oot_rando'), 'Pinned OotrR sources not on PYTHONPATH')
 class LinkPositionTests(unittest.TestCase):
-    def test_live_position_requires_current_memory_sample(self):
-        payload = dict(source='memory', connected=True, updatedAt=12_000,
-                       scene='KokiriForest', age='child', mapId='principal',
-                       position=dict(x=1.5, y=99.0, z=-2, yaw=90))
-        self.assertEqual(parse_position(payload, 12.5),
-                         LinkPosition('KokiriForest', 'Child', 'principal', 1.5, 99, -2, 90))
-        self.assertIsNone(parse_position(payload, 18))
-        self.assertIsNone(parse_position(dict(payload, source='save'), 12.5))
-        self.assertIsNone(parse_position(dict(payload, connected=False), 12.5))
-        self.assertIsNone(parse_position(dict(payload, position=dict(payload['position'], x=float('nan'))), 12.5))
+    def test_reads_relocated_player_and_alternate_singleton(self):
+        sample = read_link_position(PlayerMemory(), 'Adult')
+        self.assertEqual((sample.scene, sample.age), ('KokiriForest', 'Child'))
+        self.assertEqual((sample.x, sample.y, sample.z, sample.yaw), (23.5, 102.0, -8.0, 90.0))
+
+    def test_shared_scene_uses_verified_game_age(self):
+        sample = read_link_position(PlayerMemory(scene='FireTemple'), 'Adult')
+        self.assertEqual((sample.scene, sample.age), ('FireTemple', 'Adult'))
+
+    def test_rejects_wrong_game_layout_and_empty_pose(self):
+        memory = PlayerMemory()
+        memory.blocks[memory.main] = bytes(8)
+        self.assertIsNone(read_link_position(memory, 'Child'))
+        memory = PlayerMemory()
+        struct.pack_into('<3f', memory.pose, 0x1C, 0, 0, 0)
+        self.assertIsNone(read_link_position(memory, 'Child'))

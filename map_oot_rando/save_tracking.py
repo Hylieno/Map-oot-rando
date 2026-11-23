@@ -2,7 +2,9 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+import struct
 
+from .link_position import LinkPosition, read_link_position
 from .save_discovery import SaveDirectory
 from .save_profiles import local_tracker_dir
 from .state import tracker_states
@@ -19,6 +21,7 @@ class SaveUpdate:
     age: str | None = None
     mode: str = 'save'
     kakariko_burned: bool | None = None
+    link: LinkPosition | None = None
 
 
 def kakariko_variant(flags, medallions, story_played, uses_medallions):
@@ -87,7 +90,9 @@ class SaveConnection:
             self.session.live.memory.close()
             self.session.live = None
 
-    def refresh(self, manual_changes=(), *, live=False):
+    def refresh(self, manual_changes=(), *, live=False, show_link=False):
+        from oot_rando.tracker.live_memory import LiveUnavailable
+
         if self.selector is not None:
             path = self.selector.newest()
             if path is None:
@@ -125,12 +130,18 @@ class SaveConnection:
                 self.session.set_completed(ident, checked)
             except (OSError, ValueError) as error:
                 action_error = str(error)
+        position = None
+        if show_link and realtime and self.session.live is not None:
+            try:
+                position = read_link_position(self.session.live.memory, self.session.age)
+            except (LiveUnavailable, OSError, struct.error):
+                pass
         return SaveUpdate(detail,
                           datetime.now(timezone.utc).isoformat(timespec='seconds'),
                           tracker_states(self.session, self.ids),
                           {ident: self.session.check_state(ident) for ident in self.ids},
                           action_error=action_error, age=self.session.age, mode='live' if realtime else 'save',
-                          kakariko_burned=self.session.kakariko_burned)
+                          kakariko_burned=self.session.kakariko_burned, link=position)
 
 
 def apply_save_update(store, update):

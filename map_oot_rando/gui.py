@@ -12,7 +12,6 @@ from PIL import Image, ImageTk
 from .aerial import AerialImage
 from .field_atlas import (CALIBRATION, FIELD_FRAMES, REGION_CALIBRATION, REGION_MAPS, align_region_image,
                            align_kokiri_image, load_atlas_image, load_kokiri_image)
-from .link_position import read_link_position
 from .lost_woods import CALIBRATION as LOST_CALIBRATION, SOURCE as LOST_SOURCE, lost_woods_plan
 from .export import import_seed
 from .model import Location, REGION_NAMES, SURFACE_MIN_Y, load_metadata, resource_region, select
@@ -66,8 +65,7 @@ class MapApplication:
         self.world_photo = None
         self.link = None
         self.link_area = None
-        self.link_stop = Event()
-        self.link_callback = None
+        self.use_link = Event()
         self.fitted_scale = self.viewport.scale
         self.selected = None
         self.drag = None
@@ -145,7 +143,7 @@ class MapApplication:
         self.follow_age_check = ttk.Checkbutton(sidebar, text='Suivre l’âge sauvegardé',
                                                 variable=self.follow_age, command=self.sync_age)
         self.follow_age_check.pack(anchor='w')
-        self.link_check = ttk.Checkbutton(sidebar, text='Position de Link (Ocarina Atlas)',
+        self.link_check = ttk.Checkbutton(sidebar, text='Afficher la position de Link',
                                           variable=self.show_link, command=self.configure_link)
         self.link_check.pack(anchor='w')
         self.follow_link_check = ttk.Checkbutton(sidebar, text='Suivre Link entre les zones',
@@ -358,44 +356,32 @@ class MapApplication:
             self.use_live.set()
         else:
             self.use_live.clear()
+            self.link_area = None
+        if self.use_link.is_set():
+            self.update_link(None)
 
     def configure_link(self):
-        self.link_stop.set()
-        if self.link_callback is not None:
-            self.root.after_cancel(self.link_callback)
-            self.link_callback = None
-        self.link = None
         self.link_area = None
         enabled = self.show_link.get() and not self.simulation
+        if enabled:
+            self.use_link.set()
+            self.live_requested.set(True)
+            self.configure_live()
+        else:
+            self.use_link.clear()
+            self.update_link(None)
         self.follow_link_check.state(['!disabled' if enabled else 'disabled'])
-        self.link_status.set('Connexion à Ocarina Atlas…' if enabled else '')
-        self.draw()
-        if not enabled:
-            return
-        cancel = self.link_stop = Event()
-        samples = Queue(maxsize=1)
 
-        def listen():
-            while not cancel.is_set():
-                position = read_link_position()
-                try:
-                    samples.get_nowait()
-                except Empty:
-                    pass
-                samples.put_nowait(position)
-                cancel.wait(0.3)
-
-        def publish():
-            try:
-                position = samples.get_nowait()
-            except Empty:
-                pass
-            else:
-                self.update_link(position)
-            self.link_callback = self.root.after(100, publish)
-
-        Thread(target=listen, daemon=True).start()
-        self.link_callback = self.root.after(100, publish)
+    def link_message(self):
+        if not self.use_link.is_set():
+            return ''
+        if self.save_commands is None:
+            return 'Choisis le dossier de sauvegardes pour suivre Link.'
+        if not self.use_live.is_set():
+            return 'Active « Mémoire du jeu » pour afficher Link.'
+        if self.store.connection == 'live':
+            return 'Mémoire connectée · En attente de la position de Link'
+        return 'En attente d’une partie en mémoire liée à cette seed.'
 
     def link_region(self):
         scene = self.link.scene
@@ -418,22 +404,19 @@ class MapApplication:
                 level = FIRE_VIEWS[-1]
             if level in self.views:
                 return level
-            if region in DUNGEON_FLOORS and self.link.map_id:
-                return next((label for label in self.views if VIEWS.get(label) == (region, None)
-                             and DUNGEON_ATLAS_KEYS.get(label) == self.link.map_id), view)
         return view
 
     def update_link(self, position):
         changed = self.link != position
         self.link = position
         area = (self.link_region(), position.age) if position else None
-        if area != self.link_area:
+        if area is not None and area != self.link_area:
             self.link_area = area
             if self.follow_link.get() and self.resume_follow_link():
                 return
         view = self.link_view() if position else None
         self.link_status.set('Link en direct' if view else 'Zone de Link hors carte' if position
-                             else 'Ocarina Atlas · En attente de la mémoire du jeu')
+                             else self.link_message())
         if changed:
             self.draw()
 
@@ -460,8 +443,7 @@ class MapApplication:
 
     def close_window(self):
         self.tracking_stop.set()
-        self.link_stop.set()
-        for callback in (self.atlas_callback, self.world_callback, self.link_callback):
+        for callback in (self.atlas_callback, self.world_callback):
             if callback is not None:
                 self.root.after_cancel(callback)
         self.root.destroy()
@@ -478,6 +460,8 @@ class MapApplication:
         self.store.disconnect()
         self.follow_age_check.state(['disabled'])
         self.stop_track_button.state(['disabled'])
+        self.link_area = None
+        self.update_link(None)
         self.render()
 
     def follow_save(self, folder, save_path):
@@ -496,6 +480,8 @@ class MapApplication:
         remembered = False
         self.stop_track_button.state(['!disabled'])
         self.save_detail = 'Recherche d’une sauvegarde liée à la seed…'
+        self.link_area = None
+        self.update_link(None)
         self.render()
 
         def read():
@@ -516,7 +502,7 @@ class MapApplication:
                             except Empty:
                                 break
                         try:
-                            update = active.refresh(changes, live=self.use_live.is_set())
+                            update = active.refresh(changes, live=self.use_live.is_set(), show_link=self.use_link.is_set())
                         except Exception as error:
                             update = SaveUpdate(str(error))
                         results.put((update, True))
@@ -536,6 +522,9 @@ class MapApplication:
             apply_save_update(store, update)
             self.save_age = update.age
             self.kakariko_burned = update.kakariko_burned
+            if not active:
+                self.save_commands = None
+            self.update_link(update.link if self.use_link.is_set() and self.use_live.is_set() else None)
             self.follow_age_check.state(['!disabled' if update.age else 'disabled'])
             self.sync_age()
             if update.rows is not None or update.reset:
