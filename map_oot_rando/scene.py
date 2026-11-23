@@ -9,6 +9,7 @@ REGION_VIEWS = {region: {'Child': f'{name} · Enfant', 'Adult': f'{name} · Adul
 # The four galleries are centered on Y=115, 110, 105 and 100. The lava cave chests lie below them.
 GORON_LEVELS = ('Galerie supérieure', 'Galerie intermédiaire haute', 'Galerie intermédiaire basse',
                 'Rez-de-chaussée', 'Grotte')
+GORON_CRATER_FLOOR = 3
 GORON_VIEWS = {age: tuple(f'{view} · {level}' for level in GORON_LEVELS)
                for age, view in REGION_VIEWS['GoronCity'].items()}
 REGION_VIEWS['GoronCity'] = {age: views[0] for age, views in GORON_VIEWS.items()}
@@ -43,9 +44,10 @@ NEIGHBORS = {
                         'DeathMountainTrail': 'Vers le Mont du Péril'},
     'Graveyard': {'KakarikoVillage': 'Vers Cocorico'},
     'DeathMountainTrail': {'KakarikoVillage': 'Vers Cocorico', 'GoronCity': 'Repère Goron',
-                           'DodongoCavern': 'Vers la Caverne Dodongo'},
-    'GoronCity': {'DeathMountainTrail': 'Vers le mont du Péril'},
+                           'DodongoCavern': 'Vers la Caverne Dodongo', 'DeathMountainCrater': 'Repère du cratère'},
+    'GoronCity': {'DeathMountainTrail': 'Vers le mont du Péril', 'DeathMountainCrater': 'Repère nord Goron'},
     'DodongoCavern': {'DeathMountainTrail': 'Vers le mont du Péril'},
+    'DeathMountainCrater': {'DeathMountainTrail': 'Vers le mont du Péril', 'GoronCity': 'goron_city_entrance'},
 }
 KAKARIKO_ENTRANCES = {
     'HyruleField': 'Vers la plaine d’Hyrule',
@@ -96,6 +98,16 @@ ENTRANCE_LABELS = {
         'LostWood': 'Repère des Bois Perdus',
     },
     'DodongoCavern': {'DeathMountainTrail': 'Vers le mont du Péril'},
+    'DeathMountainCrater': {
+        'DeathMountainTrail': 'Vers le mont du Péril',
+        'GoronCity': 'Repère Goron depuis le cratère',
+        'FireTemple': 'Temple du Feu',
+    },
+}
+CRATER_ANCHORS = {
+    'Land_DeathMtCrater_Temple_A_01': 'Pied du Temple du Feu',
+    'Land_DeathMtCrater_Prop_A_03': 'Pont sud-ouest',
+    'Land_DeathMtCrater_Cliff_A_04': 'Corniche sud',
 }
 DODONGO_ANCHORS = {
     'Land_DodongoCave_01_Floor_A_04': 'Plateforme centrale Dodongo',
@@ -155,7 +167,8 @@ def projection_points(region, sources):
                     label = GROVE_STAIRS.get(actor.get('Hash'))
             elif gyaml == 'MapIconEntranceAnchor':
                 dynamic = actor.get('Dynamic')
-                if isinstance(dynamic, dict) and (region == 'GoronCity' or dynamic.get('IsVisible') is not False):
+                if isinstance(dynamic, dict) and (region in {'GoronCity', 'DeathMountainCrater'}
+                                                  or dynamic.get('IsVisible') is not False):
                     entrances = ENTRANCE_LABELS.get(region, {})
                     label = entrances.get(dynamic.get('Location'))
             elif region == 'KakarikoVillage':
@@ -170,6 +183,8 @@ def projection_points(region, sources):
                 label = GORON_ANCHORS.get(gyaml)
             elif region == 'DodongoCavern':
                 label = DODONGO_ANCHORS.get(gyaml)
+            elif region == 'DeathMountainCrater':
+                label = CRATER_ANCHORS.get(gyaml)
             elif gyaml == 'Land_HrlField_Bridge_A_01':
                 label = 'Pont de la rivière'
             elif gyaml == 'Enemy_Skulltula_Gold' and actor.get('Hash') == 2177746409373494991:

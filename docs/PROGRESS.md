@@ -1,5 +1,10 @@
 # Checkpoint — 22 novembre 2026
 
+Le cratère du Péril est relié au mont et au rez-de-chaussée du Village Goron.
+Le fond Field Atlas est validé aux deux âges, les grottes ont leur vue et
+le check de la Grande Fée est repéré par l’ancre de sa fontaine.
+Le scan conserve les exclusions enfant d’OotrR.
+
 La caverne Dodongo est reliée au mont du Péril. Les deux fonds Field Atlas
 sont alignés indépendamment. L’arène présente deux checks avec leurs
 coordonnées d’acteur et leurs IDs de suivi. Les étages sont communs aux

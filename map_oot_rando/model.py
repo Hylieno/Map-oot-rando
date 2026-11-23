@@ -15,9 +15,10 @@ REGION_NAMES = {
     'DeathMountainTrail': 'Mont du Péril',
     'GoronCity': 'Village Goron',
     'DodongoCavern': 'Caverne Dodongo',
+    'DeathMountainCrater': 'Cratère du Péril',
 }
-# The surface of each of these two Bancs sits above its buried actor placements.
-SURFACE_MIN_Y = {'Graveyard': 92, 'DeathMountainTrail': 80}
+# These scenes have buried actor placements below their surface.
+SURFACE_MIN_Y = {'Graveyard': 92, 'DeathMountainTrail': 80, 'DeathMountainCrater': 90}
 
 
 def resource_region(resource):

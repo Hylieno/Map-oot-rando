@@ -16,6 +16,9 @@
   une vue schématique.
 - Caverne Dodongo. Un fond distinct est calibré pour chaque étage.
   L’arène est sous les deux plans et garde une vue schématique.
+- Cratère du Péril. La corniche sud contrôle le recalage indépendamment.
+  Les checks sous Y = 90 utilisent la vue souterraine. Le lien avec le
+  Village Goron correspond au niveau de l’entrée côté cratère.
 
 - Python sans dépendance pour le socle ; Tkinter prévu, cohérent avec OotrR.
 - Ne pas développer une seconde logique d'accessibilité ni un lecteur mémoire.

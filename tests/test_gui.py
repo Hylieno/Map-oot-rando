@@ -416,6 +416,23 @@ class GuiTests(unittest.TestCase):
         app.open_neighbor('DeathMountainTrail')
         self.assertEqual(app.resource.get(), REGION_VIEWS['DeathMountainTrail']['Child'])
 
+    def test_crater_link_returns_to_goron_ground_floor(self):
+        from map_oot_rando.scene import GORON_CRATER_FLOOR, GORON_VIEWS, REGION_VIEWS
+
+        app = self.app
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=list(REGION_VIEWS))
+        row = doc['locations'][0]
+        crater = 'Banc/DeathMountainCrater/DeathMountainCrater_Adult_Static.bcett.byml.zs'
+        goron = 'Banc/GoronCity/GoronCity_Adult_Static.bcett.byml.zs'
+        doc['locations'] = [dict(row, resource=crater)]
+        doc['scenes'] = {goron: {'rooms': [], 'points': [('Repère nord Goron', (10, 15))]}}
+        app.load(doc)
+        app.resource.set(REGION_VIEWS['DeathMountainCrater']['Adult'])
+        app.resource_changed()
+        app.open_neighbor('GoronCity')
+        self.assertEqual(app.resource.get(), GORON_VIEWS['Adult'][GORON_CRATER_FLOOR])
+        self.assertEqual(set(app.navigation_markers.values()), {'DeathMountainCrater'})
+
     def test_overlapping_markers_can_both_be_selected(self):
         from unittest.mock import patch
 

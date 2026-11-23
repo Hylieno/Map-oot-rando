@@ -1,5 +1,11 @@
 # Validation
 
+Le cratère du Péril a été recoupé avec les 37 IDs du catalogue. Le scan
+local sans packs d’acteurs en a positionné cinq, dont les deux coffres
+souterrains et la Grande Fée. Le fond est vérifié aux deux âges avec un
+écart de 11 pixels sur la corniche sud sur 650 pixels de large. Le test Tk
+vérifie que la liaison avec le Village Goron arrive au rez-de-chaussée.
+
 Le recoupement de la caverne Dodongo avec le catalogue a retrouvé 30 IDs.
 Le scan local sans packs d’acteurs en a positionné 19, dont les deux checks
 de l’arène. L’erreur sur les repères indépendants est d’environ 8 pixels

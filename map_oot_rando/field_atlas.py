@@ -41,6 +41,8 @@ DMT_DIGEST = 'db76ca2b051650690012b8d3eb737e1856cfdbb6eaddd7ef896f7a953c8104d7'
 REGION_MAPS['DeathMountainTrail'] = dict.fromkeys(('Child', 'Adult'), ('field-atlas-death-mountain', DMT_DIGEST))
 GORON_DIGEST = 'bd62600104b51d5d42bb658c34d41bcc7f421b3d8c79e9393ef024a80a774e14'
 REGION_MAPS['GoronCity'] = dict.fromkeys(('Child', 'Adult'), ('field-atlas-goron-city', GORON_DIGEST))
+CRATER_DIGEST = 'c1ab4bbdc19277676b5480a18792f6124e2853a2a05f7567791e8b0ecb3c94c5'
+REGION_MAPS['DeathMountainCrater'] = dict.fromkeys(('Child', 'Adult'), ('field-atlas-death-mountain-crater', CRATER_DIGEST))
 REGION_MAPS['DodongoCavern'] = {
     '1F': ('field-atlas-dodongo-1f', '9df7f3e24787a2e6f4bed707ed26e46687c4bf76779b2fa1d854a11ff0c7b111'),
     '2F': ('field-atlas-dodongo-2f', '4193834d6b36cf47e8f52b8d138a5fcb2124373b693c73b748f9c6b50c271f49'),
@@ -87,6 +89,15 @@ def align_region_image(image, references, region, age):
             'Seuil nord Goron': (351, 93),
         }
         holdout = {'Galerie est Goron': (543, 448)}
+    elif region == 'DeathMountainCrater':
+        controls = {
+            'Vers le mont du Péril': (486, 609),
+            'Repère Goron depuis le cratère': (65, 169),
+            'Temple du Feu': (396, 65),
+            'Pied du Temple du Feu': (398, 138),
+            'Pont sud-ouest': (191, 368),
+        }
+        holdout = {'Corniche sud': (338, 486)}
     elif age == '1F':
         controls = {
             'Vers le mont du Péril': (247, 591),

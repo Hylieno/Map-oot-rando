@@ -12,6 +12,9 @@ EVENT_ACTORS = {
     'LostWood': {actor: ident for ident, actor in LOST_WOOD_EVENT_ACTORS.items()},
     'GoronCity': {('Npc_Goron_Darunia_Child', None): 'npc#GC Darunias Joy'},
     'DodongoCavern': {('Enemy_DungeonBoss_Dodongo', None): 'boss#King Dodongo'},
+    'DeathMountainCrater': {
+        ('MapIconFacilityAnchor', 'HavePlayedEvent.Dm_FairyFountain_Wisdom'): 'fairy#DMC Great Fairy Reward',
+    },
 }
 DEKU_THEATER_CHECKS = ('npc#Deku Theater Skull Mask', 'npc#Deku Theater Mask of Truth')
 GROTTO_ENTRANCE_ACTORS = {
@@ -106,8 +109,10 @@ def event_check_rows(maps, eligible):
         age_frame = path.removesuffix('.bcett.byml.zs').rsplit('_', 1)[0]
         for actor in source['root'].get('Actors', ()):
             dynamic = actor.get('Dynamic')
-            event = dynamic.get('TalkEventName') if isinstance(dynamic, dict) else None
-            ident = ids.get((actor.get('Gyaml'), event))
+            gyaml = actor.get('Gyaml')
+            parameter = 'MapIconFacilityIsOpen' if gyaml == 'MapIconFacilityAnchor' else 'TalkEventName'
+            event = dynamic.get(parameter) if isinstance(dynamic, dict) else None
+            ident = ids.get((gyaml, event))
             position = actor.get('Translate')
             checks = (ident,) if ident else ()
             if (region == 'LostWood' and actor.get('Gyaml') == 'Enemy_Scrub_ForestStage_Elder'
@@ -134,7 +139,7 @@ def bind_catalogue(document, catalogue):
     names.update({'Lost Woods': 'LostWood', 'the Lost Woods': 'LostWood', 'Hyrule Field': 'HyruleField',
                   'Sacred Forest Meadow': 'SacredForestMeadow', 'Kakariko Village': 'KakarikoVillage',
                   'Death Mountain Trail': 'DeathMountainTrail', 'Goron City': 'GoronCity',
-                  "Dodongo's Cavern": 'DodongoCavern'})
+                  "Dodongo's Cavern": 'DodongoCavern', 'Death Mountain Crater': 'DeathMountainCrater'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']

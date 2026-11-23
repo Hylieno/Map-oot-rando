@@ -19,7 +19,8 @@ from .model import REGION_NAMES, load_metadata, resource_region, select
 from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
-from .scene import (BURNT_VILLAGE, DODONGO_VIEWS, FLOOR_OPTIONS, GORON_FLOORS, GORON_LEVELS, GORON_VIEWS,
+from .scene import (BURNT_VILLAGE, DODONGO_VIEWS, FLOOR_OPTIONS, GORON_CRATER_FLOOR, GORON_FLOORS,
+                    GORON_LEVELS, GORON_VIEWS,
                     NEIGHBORS, REGION_VIEWS,
                     UNDERGROUND_LABELS, UNDERGROUND_VIEWS, VIEWS,
                     field_atlas_scene, group_scenes, location_view, read_scenes, view_name)
@@ -212,6 +213,10 @@ class MapApplication:
         self.details.set('Sélectionnez un emplacement.')
         views = {location_view(row) for row in locations if row.position is not None}
         views.update(self.scenes.keys() & VIEWS.keys())
+        for goron_views in GORON_VIEWS.values():
+            points = self.scenes.get(goron_views[0], {}).get('points', ())
+            if any(name == NEIGHBORS['GoronCity']['DeathMountainCrater'] for name, _ in points):
+                views.add(goron_views[GORON_CRATER_FLOOR])
         prefer = [label for label in VIEWS if label in views]
         self.resources['values'] = prefer + sorted(views - set(prefer))
         first_positioned = next((location_view(r) for r in locations if r.position is not None), '')
@@ -697,6 +702,8 @@ class MapApplication:
         # A known age must be preserved across the transition.
         ages = REGION_VIEWS[region]
         candidates = (ages[age],) if age in ages else ages.values()
+        if region == 'GoronCity' and self.current_region() == 'DeathMountainCrater' and age in GORON_VIEWS:
+            candidates = (GORON_VIEWS[age][GORON_CRATER_FLOOR], *candidates)
         if (region == 'KakarikoVillage' and age == 'Adult' and self.follow_age.get()
                 and self.kakariko_burned):
             candidates = (BURNT_VILLAGE, *candidates)
@@ -874,7 +881,13 @@ class MapApplication:
         exits = {}
         if not self.simulation:
             for neighbor, portal in NEIGHBORS[region].items():
-                points = {tuple(p) for label, p in (scene or {}).get('points', ()) if label == portal}
+                portal_scene = scene or {}
+                if region == 'GoronCity' and neighbor == 'DeathMountainCrater':
+                    if GORON_FLOORS.get(self.resource.get()) != GORON_CRATER_FLOOR:
+                        continue
+                    age = VIEWS[self.resource.get()][1]
+                    portal_scene = self.scenes.get(GORON_VIEWS[age][0], {})
+                points = {tuple(p) for label, p in portal_scene.get('points', ()) if label == portal}
                 if len(points) == 1 and self.view_for_region(neighbor):
                     exits[portal] = (neighbor, points.pop())
         heading_color = '#292019' if parchment else '#d2e1da'
