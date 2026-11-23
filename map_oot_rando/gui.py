@@ -51,6 +51,8 @@ class MapApplication:
         self.save_generation = 0
         self.save_profiles = profiles if profiles is not None else SaveProfiles(local_tracker_dir() / 'profiles.json')
         self.save_commands = None
+        self.follow_age = tk.BooleanVar(value=True)
+        self.save_age = None
         self.show_outside = tk.BooleanVar(value=False)
         self.connection = tk.StringVar()
         self.details = tk.StringVar(value='Sélectionnez un emplacement.')
@@ -88,6 +90,9 @@ class MapApplication:
         self.resources = ttk.Combobox(sidebar, textvariable=self.resource, state='readonly', width=38)
         self.resources.pack(fill='x')
         self.resources.bind('<<ComboboxSelected>>', lambda e: self.resource_changed())
+        self.follow_age_check = ttk.Checkbutton(sidebar, text='Suivre l’âge sauvegardé',
+                                                variable=self.follow_age, command=self.sync_age)
+        self.follow_age_check.pack(anchor='w')
         ttk.Label(sidebar, text='Catégorie').pack(anchor='w', pady=(10, 0))
         self.categories = ttk.Combobox(sidebar, textvariable=self.category, state='readonly')
         self.categories.pack(fill='x')
@@ -159,6 +164,9 @@ class MapApplication:
         self.seed_folder = seed_folder
         self.save_generation += 1
         self.save_commands = None
+        self.save_age = None
+        self.follow_age.set(True)
+        self.follow_age_check.state(['disabled'])
         self.manual_button.pack_forget()
         self.stop_track_button.state(['disabled'])
         self.tracked_rows = {}
@@ -267,6 +275,7 @@ class MapApplication:
         except OSError:
             self.save_detail = 'Impossible de mémoriser l’arrêt du suivi.'
         self.store.disconnect()
+        self.follow_age_check.state(['disabled'])
         self.stop_track_button.state(['disabled'])
         self.render()
 
@@ -275,6 +284,8 @@ class MapApplication:
         generation = self.save_generation
         store = self.store
         store.reset(store.seed_id, store.states)
+        self.save_age = None
+        self.follow_age_check.state(['disabled'])
         self.tracked_rows = {}
         commands = self.save_commands = Queue()
         remembered = False
@@ -310,6 +321,9 @@ class MapApplication:
                     self.root.after(100, publish)
                     return
                 apply_save_update(store, update)
+                self.save_age = update.age
+                self.follow_age_check.state(['!disabled' if update.age else 'disabled'])
+                self.sync_age()
                 if update.rows is not None or update.reset:
                     self.tracked_rows = update.rows or {}
                 self.save_detail = update.detail
@@ -559,7 +573,16 @@ class MapApplication:
             self.show_details()
         self.draw()
 
-    def resource_changed(self):
+    def sync_age(self):
+        view = AGE_VIEWS.get(self.save_age)
+        if (view and self.follow_age.get() and view != self.resource.get()
+                and view in self.resources['values']):
+            self.resource.set(view)
+            self.resource_changed(manual=False)
+
+    def resource_changed(self, *, manual=True):
+        if manual and self.save_age is not None:
+            self.follow_age.set(False)
         self.selected = None
         self.manual_button.pack_forget()
         self.details.set('Sélectionnez un emplacement.')
@@ -691,6 +714,8 @@ class MapApplication:
         self.selected = row
         if row.position is not None:
             if self.resource.get() != view_name(row.resource):
+                if self.save_age is not None:
+                    self.follow_age.set(False)
                 self.resource.set(view_name(row.resource))
                 self.ensure_atlas()
             self.viewport.center(self.display_point(row.project()), self.canvas.winfo_width(),

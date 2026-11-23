@@ -44,12 +44,16 @@ def write_seed(root):
     return seed_id
 
 
-def write_save(path, *, linked=True, collected=False, bombs=False):
+def write_save(path, *, linked=True, collected=False, bombs=False, child=None):
     from oot_rando.tracker.save_reader import FORMAT_VERSION, MAGIC, PROGRESS_TYPE_HASH
 
-    end = 32 + 8 * 36
+    from oot_rando.tracker.live_memory import SEQUENCE_IS_CHILDHOOD
+
+    end = 32 + 8 * (36 + (child is not None))
     header = struct.pack('<III', MAGIC, FORMAT_VERSION, end) + bytes(20)
     table = struct.pack('<IIIIII', 0, 0, 100, int(linked), 101, int(bombs))
+    if child is not None:
+        table += struct.pack('<II', SEQUENCE_IS_CHILDHOOD, int(child))
     table += b''.join(struct.pack('<II', 0, section) for section in range(1, 33))
     table += struct.pack('<II', PROGRESS_TYPE_HASH, end)
     sparse = struct.pack('<Q', 42) if collected else b''
@@ -64,12 +68,16 @@ class SaveTrackingTests(unittest.TestCase):
             save = folder / 'progress.sav'
             store = StateStore(write_seed(folder), ['test', 'ap#KF Kokiri Sword Chest'])
             connection = SaveConnection(folder, save, store)
-            write_save(save)
-            apply_save_update(store, connection.refresh())
+            write_save(save, child=True)
+            first = connection.refresh()
+            self.assertEqual(first.age, 'Child')
+            apply_save_update(store, first)
             self.assertEqual(store.states['test'], 'unknown')
             self.assertEqual(store.states['ap#KF Kokiri Sword Chest'], 'blocked')
-            write_save(save, collected=True, bombs=True)
+            write_save(save, collected=True, bombs=True, child=False)
             good = connection.refresh()
+            self.assertEqual(good.age, 'Adult')
+            self.assertEqual(connection.refresh().age, 'Adult')
             apply_save_update(store, good)
             self.assertEqual(store.states['test'], 'completed')
             self.assertEqual(store.states['ap#KF Kokiri Sword Chest'], 'available')

@@ -15,15 +15,27 @@ class SaveUpdate:
     rows: dict | None = None
     reset: bool = False
     action_error: str = ''
+    age: str | None = None
 
 
 class SaveConnection:
     def __init__(self, seed_folder, save_path, store, *, manual_dir=None):
         from oot_rando.tracker.auto_tracker import TrackerSession
         from oot_rando.randomizer.randomizer_services import ManualTracker
+        from oot_rando.tracker.live_memory import SEQUENCE_IS_CHILDHOOD
+
+        class MapSession(TrackerSession):
+            # Reuse the accepted snapshot rather than reading progress.sav
+            # twice. OotrR 0.8 invokes this only for a changed, matched save.
+            age = None
+
+            def _availability(self, snapshot, metadata):
+                flag = snapshot['bool'].get(SEQUENCE_IS_CHILDHOOD)
+                self.age = {True: 'Child', False: 'Adult'}.get(flag)
+                return super()._availability(snapshot, metadata)
 
         path = Path(save_path).resolve()
-        self.session = TrackerSession(seed_folder, str(path), save_path=str(path), live=None)
+        self.session = MapSession(seed_folder, str(path), save_path=str(path), live=None)
         if self.session.seed_id != store.seed_id:
             raise ValueError('Ce dossier de seed ne correspond pas à la carte.')
         if not self.session.metadata:
@@ -53,7 +65,7 @@ class SaveConnection:
                           datetime.now(timezone.utc).isoformat(timespec='seconds'),
                           tracker_states(self.session, self.ids),
                           {ident: self.session.check_state(ident) for ident in self.ids},
-                          action_error=action_error)
+                          action_error=action_error, age=self.session.age)
 
 
 def apply_save_update(store, update):

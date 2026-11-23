@@ -153,3 +153,8 @@ Le marquage est testé sur deux sauvegardes binaires indépendantes avec OotrR,
 avec refus sur un check suivi et sur une sauvegarde étrangère. Les quatre IDs
 sans indicateur de la seed fournie se marquent et se décochent sur une sauvegarde
 synthétique liée à cette seed. Le fichier de sauvegarde est inchangé.
+
+Une sauvegarde binaire synthétique vérifie le passage enfant/adulte et un
+rafraîchissement sans modification. Un test Tk vérifie le basculement et
+le maintien du choix manuel. Le workflow ouvre aussi la fenêtre de
+l’exécutable compilé et sélectionne puis marque un check simulé.

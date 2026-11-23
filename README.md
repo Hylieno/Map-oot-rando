@@ -55,7 +55,9 @@ affiché. L’application lit la sauvegarde sans la modifier.
 Quand une sauvegarde a été validée, l’application mémorise son chemin sur ce PC
 et reprend le suivi à l’ouverture de la même seed. **Arrêter le suivi** désactive
 cette reprise. Les checks sans indicateur peuvent être marqués dans leurs détails
-pendant le suivi. Les marques sont séparées par seed et sauvegarde.
+pendant le suivi. Les marques sont séparées par seed et sauvegarde. La case
+**Suivre l’âge sauvegardé** affiche la vue Enfant ou Adulte lorsque l’âge est
+présent dans la sauvegarde. Choisir une vue manuellement désactive ce changement.
 
 **Diagnostic de la carte…** exporte les IDs et les coordonnées pour vérifier une
 seed. Le rapport exclut l’image, l’identifiant de seed et la sauvegarde.

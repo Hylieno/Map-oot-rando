@@ -262,3 +262,22 @@ class GuiTests(unittest.TestCase):
                 follow.assert_not_called()
                 app.load(dict(doc, seed_id='another-seed'))
                 follow.assert_not_called()
+
+    def test_follow_age_switches_only_until_user_chooses_a_view(self):
+        from map_oot_rando.scene import AGE_VIEWS
+
+        doc = demo_document()
+        for row, age in zip(doc['locations'], ('Child', 'Adult')):
+            row['resource'] = f'Banc/KokiriForest/KokiriForest_{age}_Dynamic.bcett.byml.zs'
+        app = self.app
+        app.load(doc)
+        app.save_age = 'Adult'
+        app.sync_age()
+        self.assertEqual(app.resource.get(), AGE_VIEWS['Adult'])
+        app.resource.set(AGE_VIEWS['Child'])
+        app.resource_changed()
+        app.sync_age()
+        self.assertEqual(app.resource.get(), AGE_VIEWS['Child'])
+        app.follow_age.set(True)
+        app.sync_age()
+        self.assertEqual(app.resource.get(), AGE_VIEWS['Adult'])

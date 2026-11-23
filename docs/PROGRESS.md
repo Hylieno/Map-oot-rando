@@ -144,3 +144,6 @@ projection sélectionne le modèle qui prédit le mieux les repères omis.
 Le suivi se reconnecte à la réouverture de la seed, sauf après arrêt explicite.
 Les checks sans indicateur peuvent être marqués et décochés dans leurs détails.
 La collecte réelle en jeu et la synchronisation mémoire restent à valider.
+
+La vue Enfant ou Adulte suit désormais le drapeau d’âge de la sauvegarde,
+lorsqu’il est présent. Le choix manuel d’une vue suspend ce suivi.
