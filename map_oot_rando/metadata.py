@@ -8,6 +8,30 @@ LOST_WOOD_EVENT_ACTORS = {
     'scrub#LW Deku Scrub Near Bridge': ('Enemy_Scrub_Business', 'Enemy_Scrub_Business_DekuStickPouch_01'),
     'scrub#LW Deku Scrub Grotto Front': ('Enemy_Scrub_Business', 'Enemy_Scrub_Business_DekuNutsPouch_01'),
 }
+GROTTO_COVERS = {
+    'SacredForestMeadow#7995233962349162969': (8456945034417122929, 'Land_Kokiri_HidingHoleCover_A_01'),
+    'SacredForestMeadow#1764383515296652106': (15024208487326008169, 'Land_SacredForest_HidingHoleCover_A_02'),
+}
+
+
+def add_surface_entrances(rows, maps):
+    """Place the surface marker at the known entrance of a buried check."""
+    entrance_ids = set(GROTTO_COVERS.values())
+    candidates = {}
+    for path, source in maps.items():
+        if resource_region(path) != 'SacredForestMeadow':
+            continue
+        age_frame = path.rsplit('_', 1)[0]
+        for actor in source['root'].get('Actors', ()):
+            key = (actor.get('Hash'), actor.get('Gyaml'))
+            if key in entrance_ids and actor.get('Translate'):
+                candidates.setdefault((age_frame, key), set()).add(tuple(actor['Translate']))
+    for row in rows:
+        key = GROTTO_COVERS.get(row['id'])
+        if key and row['position'] is not None:
+            points = candidates.get((row['resource'].rsplit('_', 1)[0], key), ())
+            if len(points) == 1:
+                row['entrance'] = next(iter(points))
 
 
 def export_scan(groups, extra, *, provenance, regions=('KokiriForest',)):
@@ -94,7 +118,8 @@ def bind_catalogue(document, catalogue):
         by_id.setdefault(row['id'], []).append(row)
     regions = document.get('regions', ('KokiriForest',))
     names = {name: region for region, name in REGION_NAMES.items()}
-    names.update({'Lost Woods': 'LostWood', 'the Lost Woods': 'LostWood', 'Hyrule Field': 'HyruleField'})
+    names.update({'Lost Woods': 'LostWood', 'the Lost Woods': 'LostWood', 'Hyrule Field': 'HyruleField',
+                  'Sacred Forest Meadow': 'SacredForestMeadow'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']

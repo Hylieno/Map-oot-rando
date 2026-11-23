@@ -314,7 +314,7 @@ class GuiTests(unittest.TestCase):
         for _ in range(3):
             app.zoom(1 / 1.2, 100, 100)
         self.assertTrue(app.overview_open)
-        self.assertEqual(set(app.navigation_markers.values()), set(REGION_VIEWS))
+        self.assertEqual(set(app.navigation_markers.values()), {'KokiriForest', 'LostWood', 'HyruleField'})
         field = next(item for item, name in app.navigation_markers.items() if name == 'HyruleField')
         left, top, right, bottom = app.canvas.bbox(field)
         app.press(SimpleNamespace(x=(left + right) // 2, y=(top + bottom) // 2))

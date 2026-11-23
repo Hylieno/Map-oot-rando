@@ -1,6 +1,6 @@
 # Map-oot-rando
 
-Compagnon de carte local pour OotrR avec Kokiri Forest, les Bois Perdus et la plaine d’Hyrule.
+Compagnon de carte local pour OotrR avec Kokiri Forest, les Bois Perdus, le Bosquet sacré et la plaine d’Hyrule.
 
 La simulation utilise des positions fictives.
 L’import local lit les coordonnées de la seed et le suivi lit les états d’OotrR
@@ -31,14 +31,17 @@ et exécuter cette commande. La validation locale a été faite sous Linux, pas 
 
 ## Fonds de carte
 
-Les fonds par défaut de [Kokiri](https://questfern.com/oot/guides/interactive-map/?area=kokiri) et de la
-[plaine d’Hyrule](https://questfern.com/oot/guides/interactive-map/?area=field) viennent de Questfern.
+Les fonds par défaut de [Kokiri](https://questfern.com/oot/guides/interactive-map/?area=kokiri), de la
+[plaine d’Hyrule](https://questfern.com/oot/guides/interactive-map/?area=field) et du
+[Bosquet sacré](https://questfern.com/oot/guides/interactive-map/?area=grove) viennent de Questfern.
 L’application les charge à la demande et vérifie la projection avant de
 l’afficher. **Fond de carte** permet de choisir Field Atlas, un fond local ou
 le schéma. **Enregistrer la carte…** permet de rouvrir le fond hors ligne.
 
 Les Bois Perdus s’ouvrent sur un schéma sans icônes d’objet préimprimées.
 Les entrées et les checks positionnés utilisent les coordonnées des ressources locales.
+Au Bosquet sacré, les deux coffres enfouis sont repérés par l’accès à leur
+grotte. Les détails conservent les coordonnées XYZ du coffre.
 
 Pour une image locale, l’application lit automatiquement un fichier de coordonnées
 `.wld`, `.pgw` ou `.jgw` de même nom s’il utilise le repère X/Z du jeu. Une image

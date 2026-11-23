@@ -50,14 +50,14 @@ class MapProjectionTests(unittest.TestCase):
         self.assertAlmostEqual(b, -d)
 
     def test_field_background_requires_an_unambiguous_independent_landmark(self):
-        from map_oot_rando.questfern import FIELD_HOLDOUT, FIELD_LANDMARKS, FIELD_SIZE, align_field_map
+        from map_oot_rando.questfern import FIELD_HOLDOUT, FIELD_LANDMARKS, FIELD_SIZE, align_pause_map
 
         image = Image.new('RGB', FIELD_SIZE)
         references = list(FIELD_LANDMARKS.items())
         with self.assertRaisesRegex(ValueError, 'indépendant'):
-            align_field_map(image, references)
+            align_pause_map(image, references, region='HyruleField')
         name, point = next(iter(FIELD_HOLDOUT.items()))
         references.append((name, point))
-        self.assertEqual(align_field_map(image, references).image_point(point), point)
+        self.assertEqual(align_pause_map(image, references, region='HyruleField').image_point(point), point)
         with self.assertRaisesRegex(ValueError, 'ambigu'):
-            align_field_map(image, references + [(name, (500, 500))])
+            align_pause_map(image, references + [(name, (500, 500))], region='HyruleField')

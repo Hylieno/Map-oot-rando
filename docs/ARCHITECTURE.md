@@ -10,6 +10,9 @@ calcule son cadrage dans ses propres coordonnées.
 La vue **Zones voisines** utilise les relations entre zones. La molette
 l’ouvre au-delà d’un seuil par rapport au cadrage de la carte active.
 Les liens servent à naviguer entre les cartes calibrées indépendamment.
+Le champ facultatif `entrance` indique où accéder à un check souterrain
+sur une carte de surface. Le rendu projette cet accès et les détails
+conservent la position XYZ de l’acteur.
 
 Référence inspectée : Mozencaz/OotrR,
 `283d3ec0f161d32e168afac45e502442c1ffb081`.

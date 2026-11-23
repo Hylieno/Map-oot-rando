@@ -5,6 +5,10 @@ La vue des zones voisines s’ouvre au dézoom. Le fond est vérifié par âge e
 utilise un repère indépendant. Certains checks sont physiquement dans les
 sous-zones du Ranch ou du Lac, qui restent à représenter séparément.
 
+Le Bosquet sacré est accessible depuis les Bois Perdus. Son fond Questfern
+est calibré avec des repères physiques et le marqueur de chaque coffre
+souterrain pointe vers l’entrée de sa grotte.
+
 Le suivi de Kokiri a été confirmé par l’utilisateur sur son build. L’import
 couvre désormais aussi les Bois Perdus. Le coffre partagé conserve un état
 unique et les cinq checks d’événements associés à des acteurs identifiables

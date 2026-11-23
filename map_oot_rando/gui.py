@@ -12,9 +12,7 @@ from .aerial import AerialImage, read_image
 from .aerial_dialog import align_image
 from .field_atlas import CALIBRATION, align_kokiri_image, load_kokiri_image
 from .map_projection import georeferenced_background
-from .questfern import CALIBRATION as PAUSE_CALIBRATION, SOURCE_ID as PAUSE_SOURCE
-from .questfern import (FIELD_CALIBRATION, FIELD_SOURCE_ID, align_field_map, align_pause_map,
-                        load_field_map, load_pause_map)
+from .questfern import PAUSE_MAPS, SOURCE_ID as PAUSE_SOURCE, align_pause_map, load_pause_map
 from .export import import_seed
 from .model import REGION_NAMES, load_metadata, resource_region, select
 from .state import StateStore
@@ -27,7 +25,7 @@ from .view import Viewport
 PARCHMENT = '#d1bc80'
 PAPER_COLORS = dict(available='#176346', blocked='#aa2540', unknown='#40359b',
                     completed='#535b6a', partial='#8a450d')
-PAUSE_SOURCES = {PAUSE_SOURCE, FIELD_SOURCE_ID}
+PAUSE_SOURCES = {config.source for config in PAUSE_MAPS.values()}
 OVERVIEW_SCALE = 0.6
 
 COLORS = dict(available='#37b76b', blocked='#e45c5c', unknown='#e6c548', completed='#929ba5', partial='#ed9f57')
@@ -478,20 +476,19 @@ class MapApplication:
     def ensure_atlas(self, *, manual=False):
         resource = self.resource.get()
         region = self.current_region()
-        if self.simulation or resource not in VIEWS or region not in {'KokiriForest', 'HyruleField'}:
+        config = PAUSE_MAPS.get(region)
+        if self.simulation or resource not in VIEWS or config is None:
             if manual:
                 messagebox.showinfo('Fond de carte', 'Aucun fond intégré validé pour cette vue.',
                                     parent=self.root)
             return
-        sources = {
-            PAUSE_SOURCE: (PAUSE_CALIBRATION, load_pause_map, align_pause_map),
-            'field-atlas': (CALIBRATION, load_kokiri_image, align_kokiri_image),
-            FIELD_SOURCE_ID: (FIELD_CALIBRATION, load_field_map, align_field_map),
-        }
+        calibrations = {config.source: config.calibration}
+        if region == 'KokiriForest':
+            calibrations['field-atlas'] = CALIBRATION
         saved = self.aerial.get(resource)
-        preferred = FIELD_SOURCE_ID if region == 'HyruleField' else self.preferred_background
-        current = saved and (saved.source not in sources
-                             or (saved.source == preferred and saved.calibration == sources[preferred][0]))
+        preferred = self.preferred_background if region == 'KokiriForest' else config.source
+        current = saved and (saved.source not in PAUSE_SOURCES | {'field-atlas'}
+                             or (saved.source == preferred and saved.calibration == calibrations[preferred]))
         if (self.atlas_loading or not manual and
                 (current or resource in self.atlas_disabled | self.atlas_failed)):
             return
@@ -515,10 +512,12 @@ class MapApplication:
             candidates = [PAUSE_SOURCE, 'field-atlas'] if preferred == PAUSE_SOURCE and not manual else [preferred]
             for source in candidates:
                 try:
-                    _, loader, align = sources[source]
                     if source not in cached:
-                        cached[source] = loader()
-                    result.put((cached, align(cached[source], references, details), None))
+                        cached[source] = load_kokiri_image() if source == 'field-atlas' else load_pause_map(region)
+                    image = cached[source]
+                    background = (align_kokiri_image(image, references, details) if source == 'field-atlas'
+                                  else align_pause_map(image, references, details, region=region))
+                    result.put((cached, background, None))
                     return
                 except (OSError, ValueError) as error:
                     problem = str(error)
@@ -595,7 +594,7 @@ class MapApplication:
         rows = [row for row in self.locations
                 if searching or view_name(row.resource) == view
                 or (row.position is None and row.region == region)]
-        unique = {(row.id, row.region, view_name(row.resource), row.position): row for row in rows}
+        unique = {(row.id, row.region, view_name(row.resource), row.position, row.entrance): row for row in rows}
         self.visible = select(unique.values(), self.store.states, self.query.get(),
                               {k for k, v in self.status_vars.items() if v.get()},
                               None if self.category.get() == 'Toutes' else {self.category.get()})
@@ -608,6 +607,8 @@ class MapApplication:
                 label += ' [sans coordonnées]'
             elif self.outside(row):
                 label += ' [hors du fond]'
+            elif row.entrance:
+                label += ' [grotte]'
             elif placements[row.id] > 1:
                 coordinates = ', '.join(f'{value:g}' for value in row.position)
                 label += f' [{coordinates}]'
@@ -840,7 +841,8 @@ class MapApplication:
                                           fill=color, outline=outline, width=2)
             self.markers[item] = row
             right = x <= width * 0.7
-            labels.append((row.name, x + (12 if right else -12), y,
+            title = f'{row.name} · entrée' if row.entrance else row.name
+            labels.append((title, x + (12 if right else -12), y,
                            'w' if right else 'e', '#edf2f4', row))
         # Give the selected check first claim on label space, then the landmarks.
         used = [(0, 0, width, 30)]
@@ -894,6 +896,7 @@ class MapApplication:
         self.details.set(f'{row.name}\nID : {row.id}\n{row.category}\n{view_name(row.resource)}\n'
                          f'XYZ : {row.position if row.position is not None else "inconnues"}\n'
                          f'État : {LABELS[self.store.states.get(row.id, "unknown")]}'
+                         + (f'\nEntrée affichée (XYZ) : {row.entrance}' if row.entrance else '')
                          + ('\nHors du fond de carte' if self.outside(row) else '')
                          + (f'\nObjet obtenu : {tracker["reward"]}' if tracker.get('reward') else '')
                          + ('\nCollecte sans indicateur de sauvegarde' if tracker.get('untracked') else '')

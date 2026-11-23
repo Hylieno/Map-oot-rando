@@ -1,4 +1,5 @@
 """Pause-map backgrounds served from Questfern on demand."""
+from dataclasses import dataclass
 from hashlib import sha256
 from io import BytesIO
 from urllib.request import Request, urlopen
@@ -34,37 +35,56 @@ FIELD_LANDMARKS = {
     'Pont de la rivière': (1132, 136),
 }
 FIELD_HOLDOUT = {'Arbre isolé près de Kokiri': (1018, 673)}
+GROVE_LANDMARKS = {
+    'Plateforme de téléportation': (147, 165),
+    'Seuil du temple': (146, 69),
+    'Escalier haut ouest': (135, 224),
+    'Escalier haut est': (157, 224),
+    'Escalier bas ouest': (128, 505),
+    'Escalier bas est': (163, 505),
+}
+GROVE_HOLDOUT = {'Souche': (172, 133), 'Dernier mur au sud': (144, 866)}
 
 
-def load_pause_map():
-    return load_questfern_asset(SOURCE, DIGEST)
+@dataclass(frozen=True)
+class PauseMap:
+    source: str
+    calibration: int
+    url: str
+    digest: str
+    size: tuple
+    landmarks: dict
+    holdout: dict
+    require_validation: bool = True
 
 
-def load_field_map():
-    return load_questfern_asset(FIELD_URL, FIELD_DIGEST)
+PAUSE_MAPS = {
+    'KokiriForest': PauseMap(SOURCE_ID, CALIBRATION, SOURCE, DIGEST, SIZE, LANDMARKS, HOLDOUT, False),
+    'HyruleField': PauseMap(FIELD_SOURCE_ID, FIELD_CALIBRATION, FIELD_URL, FIELD_DIGEST,
+                            FIELD_SIZE, FIELD_LANDMARKS, FIELD_HOLDOUT),
+    'SacredForestMeadow': PauseMap(
+        'questfern-sacred-forest-meadow', 1, 'https://questfern.com/maps/oot/grove.jpg',
+        'd0295e822b542e81486066711bfc84e09ca2cca701daa28173fec935d67e44b6',
+        (300, 1080), GROVE_LANDMARKS, GROVE_HOLDOUT),
+}
 
 
-def load_questfern_asset(url, digest):
-    request = Request(url, headers={'User-Agent': 'Map-oot-rando/1.0'})
+def load_pause_map(region='KokiriForest'):
+    config = PAUSE_MAPS[region]
+    request = Request(config.url, headers={'User-Agent': 'Map-oot-rando/1.0'})
     with urlopen(request, timeout=8) as response:
-        if response.url != url:
+        if response.url != config.url:
             raise ValueError('Adresse Questfern modifiée.')
         data = response.read(2_000_001)
-    if sha256(data).hexdigest() != digest:
+    if sha256(data).hexdigest() != config.digest:
         raise ValueError('Le fond Questfern a changé. Sa projection doit être vérifiée.')
     return read_image(BytesIO(data))
 
 
-def align_pause_map(image, references, details=()):
-    if image.size != SIZE:
-        raise ValueError('Dimensions inattendues pour le fond de Kokiri.')
-    return registered_background(image, references + list(details), LANDMARKS, HOLDOUT,
-                                 source=SOURCE_ID, calibration=CALIBRATION)
-
-
-def align_field_map(image, references, details=()):
-    if image.size != FIELD_SIZE:
-        raise ValueError('Dimensions inattendues pour le fond de la plaine d’Hyrule.')
-    return registered_background(image, references, FIELD_LANDMARKS, FIELD_HOLDOUT,
-                                 source=FIELD_SOURCE_ID, calibration=FIELD_CALIBRATION,
-                                 require_validation=True)
+def align_pause_map(image, references, details=(), *, region='KokiriForest'):
+    config = PAUSE_MAPS[region]
+    if image.size != config.size:
+        raise ValueError('Dimensions inattendues pour le fond Questfern.')
+    return registered_background(image, [*references, *details] if region == 'KokiriForest' else references,
+                                 config.landmarks, config.holdout, source=config.source,
+                                 calibration=config.calibration, require_validation=config.require_validation)

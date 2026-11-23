@@ -5,6 +5,8 @@
   Questfern masquent le détail nécessaire pour valider une carte de terrain.
 - Plaine d’Hyrule. Le fond Questfern fonctionne avec cinq repères et un arbre
   de contrôle. La validation du fond est indépendante du contenu de la seed.
+- Bosquet sacré. Les entrées de grotte viennent des acteurs physiques
+  correspondants. Les coordonnées en sous-sol restent accessibles dans les détails.
 
 - Python sans dépendance pour le socle ; Tkinter prévu, cohérent avec OotrR.
 - Ne pas développer une seconde logique d'accessibilité ni un lecteur mémoire.

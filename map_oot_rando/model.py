@@ -9,6 +9,7 @@ REGION_NAMES = {
     'KokiriForest': 'Kokiri Forest',
     'LostWood': 'Bois Perdus',
     'HyruleField': 'Plaine d’Hyrule',
+    'SacredForestMeadow': 'Bosquet sacré',
 }
 
 
@@ -28,10 +29,21 @@ class Location:
 
     alias: str = ''
     region: str = 'KokiriForest'
+    entrance: tuple[float, float, float] | None = None
 
     def project(self):
         """Raw X/Z plan, +Z downward; Y retained, orientation unverified in game."""
-        return None if self.position is None else (self.position[0], self.position[2])
+        point = self.entrance or self.position
+        return None if point is None else (point[0], point[2])
+
+
+def read_position(position):
+    if position is None:
+        return None
+    if (not isinstance(position, (list, tuple)) or len(position) != 3
+            or any(type(v) not in (int, float) or not math.isfinite(v) for v in position)):
+        raise ValueError('Expected three finite coordinates')
+    return tuple(position)
 
 
 def load_metadata(document):
@@ -51,12 +63,10 @@ def load_metadata(document):
         for field in ('id', 'name', 'category', 'resource'):
             if not isinstance(row.get(field), str) or not row[field]:
                 raise ValueError('Missing location field: ' + field)
-        position = row.get('position')
-        if position is not None:
-            if (not isinstance(position, (list, tuple)) or len(position) != 3
-                    or any(type(v) not in (int, float) or not math.isfinite(v) for v in position)):
-                raise ValueError('Expected three finite coordinates')
-            position = tuple(position)
+        position = read_position(row.get('position'))
+        entrance = read_position(row.get('entrance'))
+        if entrance is not None and position is None:
+            raise ValueError('Une entrée requiert les coordonnées du check')
         alias = row.get('alias', '')
         if not isinstance(alias, str):
             raise ValueError('Invalid search alias')
@@ -64,7 +74,8 @@ def load_metadata(document):
         region = row.get('region', frame or document['region'])
         if region not in regions or (frame is not None and frame != region):
             raise ValueError('Région de l’emplacement invalide')
-        location = Location(row['id'], row['name'], row['category'], row['resource'], position, alias, region)
+        location = Location(row['id'], row['name'], row['category'], row['resource'],
+                            position, alias, region, entrance)
         # The tracker identifies the check, while the scan may report multiple
         # placements in a single resource. Collapse only identical records.
         if location not in seen:

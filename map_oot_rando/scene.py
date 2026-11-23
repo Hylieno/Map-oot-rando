@@ -12,8 +12,9 @@ VIEWS = {label: (region, age) for region, ages in REGION_VIEWS.items()
 NEIGHBORS = {
     'KokiriForest': {'LostWood': 'front_of_lost_wood_entrance',
                      'HyruleField': 'front_of_hyrule_field_entrance'},
-    'LostWood': {'KokiriForest': 'arrivee_de_kokiri'},
+    'LostWood': {'KokiriForest': 'arrivee_de_kokiri', 'SacredForestMeadow': 'Vers le Bosquet sacré'},
     'HyruleField': {'KokiriForest': 'front_of_lost_wood_bridge_entrance'},
+    'SacredForestMeadow': {'LostWood': 'front_of_lost_wood_entrance'},
 }
 LOST_WOOD_POINT_LABELS = {
     'front_of_sacred_forest_meadow_entrance': 'Vers le Bosquet sacré',
@@ -26,6 +27,18 @@ HYRULE_ANCHORS = {
     'KakarikoVillage': 'Vers Cocorico',
     'GerudoValley': 'Vers la Vallée Gerudo',
     'LakeHylia': 'Vers le Lac Hylia',
+}
+GROVE_ANCHORS = {
+    'Obj_WarpPoint_A_02': 'Plateforme de téléportation',
+    'Land_ForestTemple_StoneFrame_A_01': 'Seuil du temple',
+    'Land_SacredForest_TreeStump_A_01': 'Souche',
+    'Land_SacredForest_MazesWall_A_01': 'Dernier mur au sud',
+}
+GROVE_STAIRS = {
+    2413410251944505368: 'Escalier haut ouest', 17304470267011637740: 'Escalier haut ouest',
+    6139890283971412623: 'Escalier haut est', 16934882182567342749: 'Escalier haut est',
+    12781997514938194022: 'Escalier bas ouest', 7113370927714814423: 'Escalier bas ouest',
+    16405524742880159804: 'Escalier bas est', 8098648085076932584: 'Escalier bas est',
 }
 
 
@@ -41,6 +54,10 @@ def projection_points(region, sources):
             if region == 'LostWood':
                 if gyaml == 'StartPos' and actor.get('Name') == 'LostWood_Entrance':
                     label = 'arrivee_de_kokiri'
+            elif region == 'SacredForestMeadow':
+                label = GROVE_ANCHORS.get(gyaml)
+                if gyaml in {'Land_SacredForest_Prop_A_33', 'Land_SacredForest_Prop_A_41'}:
+                    label = GROVE_STAIRS.get(actor.get('Hash'))
             elif gyaml == 'MapIconEntranceAnchor':
                 dynamic = actor.get('Dynamic')
                 if isinstance(dynamic, dict) and dynamic.get('IsVisible') is not False:
@@ -77,7 +94,7 @@ def extract_scenes(maps, landmarks):
         labels = LOST_WOOD_POINT_LABELS if region == 'LostWood' else {}
         points = {(labels.get(name, name), (position[0], position[2]))
                   for name, position in marks.get('points', ())}
-        if region in {'LostWood', 'HyruleField'}:
+        if region != 'KokiriForest':
             points.update(projection_points(region, sources))
         if rooms or points:
             scenes[path] = {'rooms': rooms, 'points': sorted(points)}

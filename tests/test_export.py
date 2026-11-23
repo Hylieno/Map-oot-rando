@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from map_oot_rando.export import main
-from map_oot_rando.metadata import bind_catalogue, event_check_rows, export_scan
+from map_oot_rando.metadata import add_surface_entrances, bind_catalogue, event_check_rows, export_scan
 from map_oot_rando.model import load_metadata, select
 
 
@@ -86,6 +86,22 @@ class ExportTests(unittest.TestCase):
                 adult: {'root': {'Actors': [npc, dict(npc, Translate=[4, 5, 6])]}}}
         self.assertEqual([(row['id'], row['resource']) for row in event_check_rows(maps, lambda *_: True)],
                          [('npc#LW Skull Kid', child)])
+
+    def test_grotto_keeps_xyz_and_uses_only_matching_age_entrance(self):
+        child = 'Banc/SacredForestMeadow/SacredForestMeadow_Child_Dynamic.bcett.byml.zs'
+        adult = child.replace('_Child_', '_Adult_')
+        ident = 'SacredForestMeadow#7995233962349162969'
+        document = export_scan({ident: [dict(resource=child, position=[2, 3, 4]),
+                                       dict(resource=adult, position=[2, 3, 4])]}, {},
+                               provenance='synthetic', regions=('KokiriForest', 'SacredForestMeadow'))
+        cover = dict(Hash=8456945034417122929, Gyaml='Land_Kokiri_HidingHoleCover_A_01', Translate=[6, 7, 8])
+        maps = {child.replace('Dynamic', 'Static'): {'root': {'Actors': [cover]}},
+                adult.replace('Dynamic', 'Static'): {'root': {'Actors': [dict(cover, Gyaml='Other')]}}}
+        add_surface_entrances(document['locations'], maps)
+        child_row, adult_row = load_metadata(json.loads(json.dumps(document)))
+        self.assertEqual(child_row.position, (2, 3, 4))
+        self.assertEqual(child_row.project(), (6, 8))
+        self.assertEqual(adult_row.project(), (2, 4))
 
     def test_legacy_world_id_requires_hash_field_and_eligible_variant(self):
         from map_oot_rando.metadata import world_check_rows
