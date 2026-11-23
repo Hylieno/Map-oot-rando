@@ -108,3 +108,11 @@ grands sur les maisons et sortaient deux placements supplémentaires du fond
 pour la seed testée. Le scanner recherche aussi les noms de ressources
 MapCapture et MapMenu dans le NUP local pour l’étude des projections natives.
 La découverte de noms ne suffit pas à valider une texture ou sa projection.
+
+### Profils locaux et marquage manuel
+
+Les chemins sont mémorisés localement par identifiant de seed après validation
+par OotrR. Le JSON de carte ne contient aucun chemin de sauvegarde. Les marques
+manuelles utilisent le stockage OotrR, isolé par seed et chemin de sauvegarde.
+Les actions arrivent au même worker que le rafraîchissement et sont validées
+contre la dernière lecture avant toute écriture de marque.

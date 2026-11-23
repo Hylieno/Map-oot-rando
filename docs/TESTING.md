@@ -148,3 +148,8 @@ le centrage d’un marqueur dans le repère de l’image.
 
 Les 43 tests et le build portable passent sur
 [Windows CI](https://github.com/Hylieno/Map-oot-rando/actions/runs/45096561485).
+
+Le marquage est testé sur deux sauvegardes binaires indépendantes avec OotrR,
+avec refus sur un check suivi et sur une sauvegarde étrangère. Les quatre IDs
+sans indicateur de la seed fournie se marquent et se décochent sur une sauvegarde
+synthétique liée à cette seed. Le fichier de sauvegarde est inchangé.

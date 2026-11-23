@@ -140,3 +140,7 @@ calcul. Les backgrounds déjà géoréférencés s’ouvrent par world file.
 Le parchemin reste droit et se fond dans le fond uni au dézoom. Les checks
 inconnus sont violets, avec un contour clair et un libellé contrasté. La
 projection sélectionne le modèle qui prédit le mieux les repères omis.
+
+Le suivi se reconnecte à la réouverture de la seed, sauf après arrêt explicite.
+Les checks sans indicateur peuvent être marqués et décochés dans leurs détails.
+La collecte réelle en jeu et la synchronisation mémoire restent à valider.

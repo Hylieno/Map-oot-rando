@@ -236,3 +236,29 @@ class GuiTests(unittest.TestCase):
         x1, y1, x2, y2 = app.canvas.coords(marker)
         self.assertAlmostEqual((x1 + x2) / 2, app.canvas.winfo_width() / 2)
         self.assertAlmostEqual((y1 + y2) / 2, app.canvas.winfo_height() / 2)
+
+    def test_reopens_saved_tracking_profile_only_for_matching_seed(self):
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from unittest.mock import patch
+        from map_oot_rando.save_profiles import SaveProfiles
+
+        app = self.app
+        doc = demo_document()
+        doc.update(provenance='ootrr-scan', seed_id='seed-resume')
+        with TemporaryDirectory() as directory:
+            tmp = Path(directory)
+            (tmp / 'manifest.json').write_text('{}')
+            save = tmp / 'progress.sav'
+            save.touch()
+            app.save_profiles = SaveProfiles(tmp / 'profiles.json')
+            app.save_profiles.remember(doc['seed_id'], tmp, save)
+            with patch.object(app, 'follow_save') as follow:
+                app.load(doc)
+                follow.assert_called_once_with(tmp, save)
+                follow.reset_mock()
+                app.stop_tracking()
+                app.load(doc)
+                follow.assert_not_called()
+                app.load(dict(doc, seed_id='another-seed'))
+                follow.assert_not_called()

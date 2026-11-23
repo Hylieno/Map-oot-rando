@@ -22,3 +22,7 @@
   source utilisable et un alignement vérifié pour chaque ressource.
 - Utiliser le scanner de la copie OotrR locale et conserver les IDs du catalogue
   de seed. L'export crée uniquement un nouveau fichier JSON.
+
+Le marquage manuel est limité aux checks sans indicateur de collecte et
+l’interface l’identifie séparément. L’application retient les chemins localement
+après une première lecture réussie. Un arrêt explicite désactive la reprise.

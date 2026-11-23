@@ -52,6 +52,11 @@ Le build embarque OotrR 0.8.0. OotrR valide que la sauvegarde appartient à la s
 quand le jeu écrit la sauvegarde. **Arrêter le suivi** conserve le dernier état
 affiché. L’application lit la sauvegarde sans la modifier.
 
+Quand une sauvegarde a été validée, l’application mémorise son chemin sur ce PC
+et reprend le suivi à l’ouverture de la même seed. **Arrêter le suivi** désactive
+cette reprise. Les checks sans indicateur peuvent être marqués dans leurs détails
+pendant le suivi. Les marques sont séparées par seed et sauvegarde.
+
 **Diagnostic de la carte…** exporte les IDs et les coordonnées pour vérifier une
 seed. Le rapport exclut l’image, l’identifiant de seed et la sauvegarde.
 

@@ -92,3 +92,32 @@ class SaveTrackingTests(unittest.TestCase):
             apply_save_update(store, connection.refresh())
             self.assertEqual(store.states['test'], 'unknown')
             self.assertIsNone(store.last_success)
+
+    def test_manual_mark_is_for_untracked_checks_and_isolated_by_save(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            save, second = folder / 'progress.sav', folder / 'second.sav'
+            manual = folder / 'app-data'
+            untracked = 'ap#KF Kokiri Sword Chest'
+            store = StateStore(write_seed(folder), ['test', untracked])
+            write_save(save)
+            write_save(second)
+            before = save.read_bytes()
+            connection = SaveConnection(folder, save, store, manual_dir=manual)
+            result = connection.refresh([(untracked, True), ('test', True)])
+            self.assertEqual(result.states[untracked], 'completed')
+            self.assertEqual(result.states['test'], 'unknown')
+            self.assertEqual(result.rows[untracked]['source'], 'manual')
+            self.assertEqual(result.rows[untracked]['reward'], '')
+            self.assertIn('suivi par la sauvegarde', result.action_error)
+            reopened = SaveConnection(folder, save, store, manual_dir=manual)
+            self.assertEqual(reopened.refresh().states[untracked], 'completed')
+            another = SaveConnection(folder, second, store, manual_dir=manual)
+            self.assertEqual(another.refresh().states[untracked], 'blocked')
+            self.assertEqual(reopened.refresh([(untracked, False)]).states[untracked], 'blocked')
+            self.assertEqual(save.read_bytes(), before)
+            write_save(save, linked=False)
+            denied = reopened.refresh([(untracked, True)])
+            self.assertTrue(denied.action_error)
+            write_save(save)
+            self.assertEqual(reopened.refresh().states[untracked], 'blocked')

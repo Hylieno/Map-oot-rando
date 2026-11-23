@@ -17,6 +17,7 @@ from .questfern import align_pause_map, load_pause_map
 from .export import import_seed
 from .model import load_metadata, select
 from .state import StateStore
+from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
 from .scene import AGE_VIEWS, field_atlas_scene, group_scenes, read_scenes, view_name
 from .simulation import Simulation, demo_document
@@ -31,7 +32,7 @@ LABELS = dict(available='Accessible', blocked='Bloqué', unknown='Inconnu', comp
 
 
 class MapApplication:
-    def __init__(self, root, document=None):
+    def __init__(self, root, document=None, *, profiles=None):
         self.root = root
         root.title('Map-oot-rando - Kokiri Forest')
         root.geometry('1180x760')
@@ -48,6 +49,8 @@ class MapApplication:
         self.atlas_images = {}
         self.atlas_generation = 0
         self.save_generation = 0
+        self.save_profiles = profiles if profiles is not None else SaveProfiles(local_tracker_dir() / 'profiles.json')
+        self.save_commands = None
         self.show_outside = tk.BooleanVar(value=False)
         self.connection = tk.StringVar()
         self.details = tk.StringVar(value='Sélectionnez un emplacement.')
@@ -103,6 +106,7 @@ class MapApplication:
         self.results.pack(side='left', fill='both', expand=True)
         self.results.bind('<<ListboxSelect>>', self.choose_list)
         ttk.Label(sidebar, textvariable=self.details, wraplength=300, justify='left').pack(fill='x')
+        self.manual_button = ttk.Button(sidebar, text='Cocher manuellement', command=self.toggle_manual)
         self.sim_controls = ttk.LabelFrame(sidebar, text='Actions simulées', padding=6)
         for key in COLORS:
             ttk.Button(self.sim_controls, text=LABELS[key],
@@ -154,6 +158,8 @@ class MapApplication:
         self.document = document
         self.seed_folder = seed_folder
         self.save_generation += 1
+        self.save_commands = None
+        self.manual_button.pack_forget()
         self.stop_track_button.state(['disabled'])
         self.tracked_rows = {}
         self.save_detail = ''
@@ -182,6 +188,17 @@ class MapApplication:
         self.render()
         self.fit()
         self.ensure_atlas()
+        if not self.simulation:
+            resume = self.save_profiles.get(self.store.seed_id, automatic=True)
+            if resume:
+                folder, path = resume
+                if seed_folder is not None:
+                    folder = seed_folder
+                if (folder / 'manifest.json').is_file() and path.is_file():
+                    self.follow_save(folder, path)
+                else:
+                    self.save_detail = 'Sauvegarde ou dossier de seed déplacé.'
+                    self.render()
 
     def choose_seed(self):
         nup = filedialog.askopenfilename(parent=self.root, title='Choisir le fichier NUP du jeu',
@@ -226,24 +243,31 @@ class MapApplication:
             self.root.after(100, self.poll_import)
 
     def choose_save(self):
-        folder = self.seed_folder
-        if folder is None:
+        previous = self.save_profiles.get(self.store.seed_id)
+        folder = self.seed_folder or (previous[0] if previous else None)
+        if folder is None or not (folder / 'manifest.json').is_file():
             checks = filedialog.askopenfilename(parent=self.root, title='Choisir le checks.json de cette seed',
                                                 filetypes=[('Catalogue JSON', '*.json')])
             if not checks:
                 return
             folder = Path(checks).resolve().parent
+        initial = {'initialdir': previous[1].parent, 'initialfile': previous[1].name} if previous else {}
         save_path = filedialog.askopenfilename(parent=self.root, title='Choisir progress.sav',
-                                              filetypes=[('Sauvegarde', '*.sav')])
+                                              filetypes=[('Sauvegarde', '*.sav')], **initial)
         if not save_path:
             return
         self.follow_save(folder, save_path)
 
     def stop_tracking(self):
         self.save_generation += 1
+        self.save_commands = None
+        self.save_detail = ''
+        try:
+            self.save_profiles.pause(self.store.seed_id)
+        except OSError:
+            self.save_detail = 'Impossible de mémoriser l’arrêt du suivi.'
         self.store.disconnect()
         self.stop_track_button.state(['disabled'])
-        self.save_detail = ''
         self.render()
 
     def follow_save(self, folder, save_path):
@@ -252,6 +276,8 @@ class MapApplication:
         store = self.store
         store.reset(store.seed_id, store.states)
         self.tracked_rows = {}
+        commands = self.save_commands = Queue()
+        remembered = False
         self.stop_track_button.state(['!disabled'])
         self.save_detail = 'Lecture de la sauvegarde…'
         self.render()
@@ -264,11 +290,18 @@ class MapApplication:
             def read():
                 try:
                     active = connection or SaveConnection(folder, save_path, store)
-                    result.put((active, active.refresh()))
+                    changes = []
+                    while True:
+                        try:
+                            changes.append(commands.get_nowait())
+                        except Empty:
+                            break
+                    result.put((active, active.refresh(changes)))
                 except Exception as error:
                     result.put((connection, SaveUpdate(str(error))))
 
             def publish():
+                nonlocal remembered
                 if generation != self.save_generation:
                     return
                 try:
@@ -280,7 +313,15 @@ class MapApplication:
                 if update.rows is not None or update.reset:
                     self.tracked_rows = update.rows or {}
                 self.save_detail = update.detail
+                if update.states is not None and not remembered:
+                    remembered = True
+                    try:
+                        self.save_profiles.remember(store.seed_id, folder, save_path)
+                    except OSError:
+                        self.save_detail += ' | Le chemin n’a pas pu être mémorisé.'
                 self.render()
+                if update.action_error:
+                    messagebox.showerror('Marquage manuel', update.action_error, parent=self.root)
                 if active:
                     self.root.after(2000, refresh, active)
                 else:
@@ -290,6 +331,15 @@ class MapApplication:
             self.root.after(100, publish)
 
         refresh()
+
+    def toggle_manual(self):
+        row = self.selected
+        if self.save_commands is None or row is None or self.store.connection != 'save':
+            return
+        info = self.tracked_rows.get(row.id, {})
+        if info.get('untracked'):
+            self.save_commands.put((row.id, info.get('source') != 'manual'))
+            self.manual_button.state(['disabled'])
 
     def save_diagnostic(self):
         path = filedialog.asksaveasfilename(parent=self.root, initialfile='kokiri-diagnostic.json',
@@ -511,6 +561,7 @@ class MapApplication:
 
     def resource_changed(self):
         self.selected = None
+        self.manual_button.pack_forget()
         self.details.set('Sélectionnez un emplacement.')
         self.render()
         self.fit()
@@ -650,12 +701,20 @@ class MapApplication:
     def show_details(self):
         row = self.selected
         tracker = self.tracked_rows.get(row.id, {})
+        if tracker.get('untracked') and self.store.connection == 'save':
+            self.manual_button.configure(text=('Annuler le marquage manuel' if tracker.get('source') == 'manual'
+                                               else 'Marquer comme récupéré'))
+            self.manual_button.state(['!disabled'])
+            self.manual_button.pack(fill='x', pady=(5, 0))
+        else:
+            self.manual_button.pack_forget()
         self.details.set(f'{row.name}\nID : {row.id}\n{row.category}\n{view_name(row.resource)}\n'
                          f'XYZ : {row.position if row.position is not None else "inconnues"}\n'
                          f'État : {LABELS[self.store.states.get(row.id, "unknown")]}'
                          + ('\nHors du fond de carte' if self.outside(row) else '')
                          + (f'\nObjet obtenu : {tracker["reward"]}' if tracker.get('reward') else '')
                          + ('\nCollecte sans indicateur de sauvegarde' if tracker.get('untracked') else '')
+                         + ('\nMarqué manuellement' if tracker.get('source') == 'manual' else '')
                          + ('\nÂmes manquantes : ' + ', '.join(tracker['missing_souls'])
                             if tracker.get('missing_souls') else ''))
 
