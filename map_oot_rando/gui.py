@@ -3,7 +3,7 @@ from collections import Counter
 import json
 from pathlib import Path
 from queue import Empty, Queue
-from threading import Thread
+from threading import Event, Lock, Thread
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from PIL import Image, ImageTk
@@ -49,6 +49,11 @@ class MapApplication:
         self.atlas_images = {}
         self.atlas_generation = 0
         self.save_generation = 0
+        self.tracking_owner = Lock()
+        self.tracking_stop = Event()
+        self.use_live = Event()
+        self.live_requested = tk.BooleanVar(value=False)
+        root.protocol('WM_DELETE_WINDOW', self.close_window)
         self.save_profiles = profiles if profiles is not None else SaveProfiles(local_tracker_dir() / 'profiles.json')
         self.save_commands = None
         self.follow_age = tk.BooleanVar(value=True)
@@ -72,10 +77,13 @@ class MapApplication:
         self.save_button = ttk.Button(import_bar, text='Enregistrer la carte…',
                                       command=self.save_map)
         self.save_button.pack(side='left', padx=8)
-        self.track_button = ttk.Button(import_bar, text='Suivre ma sauvegarde…', command=self.choose_save)
+        self.track_button = ttk.Button(import_bar, text='Choisir le dossier de sauvegardes…', command=self.choose_save)
         self.track_button.pack(side='left')
         self.stop_track_button = ttk.Button(import_bar, text='Arrêter le suivi', command=self.stop_tracking)
         self.stop_track_button.pack(side='left', padx=(6, 0))
+        self.live_check = ttk.Checkbutton(import_bar, text='Mémoire du jeu',
+                                           variable=self.live_requested, command=self.configure_live)
+        self.live_check.pack(side='left', padx=(6, 0))
         ttk.Label(import_bar, textvariable=self.import_status).pack(side='left', padx=8)
         ttk.Label(root, textvariable=self.connection, padding=8).pack(fill='x')
         body = ttk.Panedwindow(root, orient='horizontal')
@@ -162,6 +170,7 @@ class MapApplication:
                                      else PAUSE_SOURCE)
         self.document = document
         self.seed_folder = seed_folder
+        self.tracking_stop.set()
         self.save_generation += 1
         self.save_commands = None
         self.save_age = None
@@ -174,7 +183,9 @@ class MapApplication:
         self.locations = locations
         self.simulation = Simulation(locations) if document['provenance'] == 'synthetic' else None
         self.save_button.state(['disabled' if self.simulation else '!disabled'])
-        self.track_button.state(['disabled' if self.simulation or not document.get('seed_id') else '!disabled'])
+        track_state = 'disabled' if self.simulation or not document.get('seed_id') else '!disabled'
+        self.track_button.state([track_state])
+        self.live_check.state([track_state])
         self.report_button.state(['disabled' if self.simulation else '!disabled'])
         self.store = self.simulation.store if self.simulation else StateStore(document.get('seed_id', ''), [r.id for r in locations])
         self.selected = None
@@ -202,7 +213,8 @@ class MapApplication:
                 folder, path = resume
                 if seed_folder is not None:
                     folder = seed_folder
-                if (folder / 'manifest.json').is_file() and path.is_file():
+                path = self.save_root(path)
+                if (folder / 'manifest.json').is_file() and path.is_dir():
                     self.follow_save(folder, path)
                 else:
                     self.save_detail = 'Sauvegarde ou dossier de seed déplacé.'
@@ -259,14 +271,29 @@ class MapApplication:
             if not checks:
                 return
             folder = Path(checks).resolve().parent
-        initial = {'initialdir': previous[1].parent, 'initialfile': previous[1].name} if previous else {}
-        save_path = filedialog.askopenfilename(parent=self.root, title='Choisir progress.sav',
-                                              filetypes=[('Sauvegarde', '*.sav')], **initial)
-        if not save_path:
-            return
-        self.follow_save(folder, save_path)
+        initial = {'initialdir': self.save_root(previous[1])} if previous else {}
+        save_dir = filedialog.askdirectory(parent=self.root, title='Choisir le dossier des sauvegardes',
+                                          mustexist=True, **initial)
+        if save_dir:
+            self.follow_save(folder, Path(save_dir).resolve())
+
+    @staticmethod
+    def save_root(path):
+        # Migrate profiles that remember one file rather than a directory.
+        return path.parent if path.suffix.casefold() == '.sav' else path
+
+    def configure_live(self):
+        if self.live_requested.get():
+            self.use_live.set()
+        else:
+            self.use_live.clear()
+
+    def close_window(self):
+        self.tracking_stop.set()
+        self.root.destroy()
 
     def stop_tracking(self):
+        self.tracking_stop.set()
         self.save_generation += 1
         self.save_commands = None
         self.save_detail = ''
@@ -280,6 +307,8 @@ class MapApplication:
         self.render()
 
     def follow_save(self, folder, save_path):
+        self.tracking_stop.set()
+        cancel = self.tracking_stop = Event()
         self.save_generation += 1
         generation = self.save_generation
         store = self.store
@@ -288,67 +317,74 @@ class MapApplication:
         self.follow_age_check.state(['disabled'])
         self.tracked_rows = {}
         commands = self.save_commands = Queue()
+        results = Queue()
         remembered = False
         self.stop_track_button.state(['!disabled'])
-        self.save_detail = 'Lecture de la sauvegarde…'
+        self.save_detail = 'Recherche d’une sauvegarde liée à la seed…'
         self.render()
 
-        def refresh(connection=None):
+        def read():
+            with self.tracking_owner:
+                if cancel.is_set():
+                    return
+                try:
+                    active = SaveConnection(folder, save_path, store)
+                except Exception as error:
+                    results.put((SaveUpdate(str(error)), False))
+                    return
+                try:
+                    while not cancel.is_set():
+                        changes = []
+                        while True:
+                            try:
+                                changes.append(commands.get_nowait())
+                            except Empty:
+                                break
+                        try:
+                            update = active.refresh(changes, live=self.use_live.is_set())
+                        except Exception as error:
+                            update = SaveUpdate(str(error))
+                        results.put((update, True))
+                        cancel.wait(1 if self.use_live.is_set() else 2)
+                finally:
+                    active.close()
+
+        def publish():
+            nonlocal remembered
             if generation != self.save_generation:
                 return
-            result = Queue()
-
-            def read():
+            try:
+                update, active = results.get_nowait()
+            except Empty:
+                self.root.after(100, publish)
+                return
+            apply_save_update(store, update)
+            self.save_age = update.age
+            self.follow_age_check.state(['!disabled' if update.age else 'disabled'])
+            self.sync_age()
+            if update.rows is not None or update.reset:
+                self.tracked_rows = update.rows or {}
+            self.save_detail = update.detail
+            if update.states is not None and not remembered:
+                remembered = True
                 try:
-                    active = connection or SaveConnection(folder, save_path, store)
-                    changes = []
-                    while True:
-                        try:
-                            changes.append(commands.get_nowait())
-                        except Empty:
-                            break
-                    result.put((active, active.refresh(changes)))
-                except Exception as error:
-                    result.put((connection, SaveUpdate(str(error))))
+                    self.save_profiles.remember(store.seed_id, folder, save_path)
+                except OSError:
+                    self.save_detail += ' | Le chemin n’a pas pu être mémorisé.'
+            self.render()
+            if update.action_error:
+                messagebox.showerror('Marquage manuel', update.action_error, parent=self.root)
+            if active:
+                self.root.after(100, publish)
+            else:
+                self.stop_track_button.state(['disabled'])
 
-            def publish():
-                nonlocal remembered
-                if generation != self.save_generation:
-                    return
-                try:
-                    active, update = result.get_nowait()
-                except Empty:
-                    self.root.after(100, publish)
-                    return
-                apply_save_update(store, update)
-                self.save_age = update.age
-                self.follow_age_check.state(['!disabled' if update.age else 'disabled'])
-                self.sync_age()
-                if update.rows is not None or update.reset:
-                    self.tracked_rows = update.rows or {}
-                self.save_detail = update.detail
-                if update.states is not None and not remembered:
-                    remembered = True
-                    try:
-                        self.save_profiles.remember(store.seed_id, folder, save_path)
-                    except OSError:
-                        self.save_detail += ' | Le chemin n’a pas pu être mémorisé.'
-                self.render()
-                if update.action_error:
-                    messagebox.showerror('Marquage manuel', update.action_error, parent=self.root)
-                if active:
-                    self.root.after(2000, refresh, active)
-                else:
-                    self.stop_track_button.state(['disabled'])
-
-            Thread(target=read, daemon=True).start()
-            self.root.after(100, publish)
-
-        refresh()
+        Thread(target=read, daemon=True).start()
+        self.root.after(100, publish)
 
     def toggle_manual(self):
         row = self.selected
-        if self.save_commands is None or row is None or self.store.connection != 'save':
+        if self.save_commands is None or row is None or self.store.connection not in {'save', 'live'}:
             return
         info = self.tracked_rows.get(row.id, {})
         if info.get('untracked'):
@@ -726,7 +762,7 @@ class MapApplication:
     def show_details(self):
         row = self.selected
         tracker = self.tracked_rows.get(row.id, {})
-        if tracker.get('untracked') and self.store.connection == 'save':
+        if tracker.get('untracked') and self.store.connection in {'save', 'live'}:
             self.manual_button.configure(text=('Annuler le marquage manuel' if tracker.get('source') == 'manual'
                                                else 'Marquer comme récupéré'))
             self.manual_button.state(['!disabled'])

@@ -26,3 +26,8 @@
 Le marquage manuel est limité aux checks sans indicateur de collecte et
 l’interface l’identifie séparément. L’application retient les chemins localement
 après une première lecture réussie. Un arrêt explicite désactive la reprise.
+
+Le profil mémorise le répertoire choisi et suit le fichier lisible le plus
+récent de la seed. Le lecteur mémoire OotrR est proposé en option et reste
+en lecture seule. La carte utilise une sauvegarde correspondante comme
+base et revient au fichier quand la mémoire ne convient pas.

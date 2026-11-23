@@ -43,21 +43,28 @@ Les checks hors du fond restent consultables dans la liste. Sélectionner
 leur entrée affiche leur position réelle, et la case **Afficher les checks
 hors du fond** permet de les afficher ensemble.
 
-## Suivre une sauvegarde
+## Suivre la partie
 
-Dans la version Windows, clique sur **Suivre ma sauvegarde…** et sélectionne le
-fichier `progress.sav` associé à ta seed. Si tu as rouvert un JSON enregistré,
-l’application demande aussi le `checks.json` du dossier complet de cette seed.
-Le build embarque OotrR 0.8.0. OotrR valide que la sauvegarde appartient à la seed. Les états sont actualisés
-quand le jeu écrit la sauvegarde. **Arrêter le suivi** conserve le dernier état
-affiché. L’application lit la sauvegarde sans la modifier.
+Clique sur **Choisir le dossier de sauvegardes…** et indique le dossier qui
+contient les sauvegardes de ton jeu. L’application cherche dans les sous-dossiers
+et suit le `progress.sav` le plus récent que le moteur OotrR 0.8.0 reconnaît
+comme appartenant à la seed. Si tu as rouvert un JSON sans profil local,
+choisis aussi le `checks.json` du dossier complet de cette seed.
 
-Quand une sauvegarde a été validée, l’application mémorise son chemin sur ce PC
-et reprend le suivi à l’ouverture de la même seed. **Arrêter le suivi** désactive
-cette reprise. Les checks sans indicateur peuvent être marqués dans leurs détails
-pendant le suivi. Les marques sont séparées par seed et sauvegarde. La case
-**Suivre l’âge sauvegardé** affiche la vue Enfant ou Adulte lorsque l’âge est
-présent dans la sauvegarde. Choisir une vue manuellement désactive ce changement.
+Coche **Mémoire du jeu** pour activer le lecteur OotrR dans la carte. Si tu
+utilises déjà le suivi mémoire dans le tracker OotrR séparé, arrête-le d’abord.
+La carte a besoin d’une première sauvegarde de la seed pour rattacher la
+partie. Le bandeau indique quand la mémoire est utilisée et si les coffres
+dépendent encore du fichier. Si le jeu s’arrête ou que la partie active ne
+correspond pas, la carte revient à la sauvegarde reconnue. Le lecteur reste
+en lecture seule.
+
+Le dossier est mémorisé localement après validation. **Arrêter le suivi**
+désactive la reprise. Les checks sans indicateur se marquent dans leurs
+détails. Les marques restent séparées par fichier et par seed.
+**Suivre l’âge sauvegardé** sélectionne la vue Enfant ou Adulte lorsque
+l’information est disponible dans la mémoire ou le fichier. Le choix
+manuel d’une vue suspend le changement.
 
 **Diagnostic de la carte…** exporte les IDs et les coordonnées pour vérifier une
 seed. Le rapport exclut l’image, l’identifiant de seed et la sauvegarde.

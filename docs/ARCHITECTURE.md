@@ -116,3 +116,11 @@ par OotrR. Le JSON de carte ne contient aucun chemin de sauvegarde. Les marques
 manuelles utilisent le stockage OotrR, isolé par seed et chemin de sauvegarde.
 Les actions arrivent au même worker que le rafraîchissement et sont validées
 contre la dernière lecture avant toute écriture de marque.
+
+### Mémoire et répertoire de sauvegardes
+
+Un worker sérialisé possède une seule session OotrR et ferme son lecteur à
+l’arrêt ou au changement de carte. Le lecteur mémoire est activé explicitement.
+Le sélecteur classe les progress.sav par date et vérifie le marqueur de seed.
+Il conserve les résultats de validation tant que les fichiers sont inchangés.
+La session OotrR valide de nouveau le fichier et la mémoire avant de publier.

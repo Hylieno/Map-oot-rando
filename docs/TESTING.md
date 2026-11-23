@@ -162,3 +162,9 @@ l’exécutable compilé et sélectionne puis marque un check simulé.
 Les 48 tests Windows passent. Le job vérifie aussi le chargement du moteur
 OotrR et ouvre la fenêtre de l’exécutable avant d’y sélectionner et marquer
 un check simulé. [Windows CI](https://github.com/Hylieno/Map-oot-rando/actions/runs/45097335491).
+
+Le choix de dossier, l’exclusion d’un fichier étranger ou incomplet et le
+changement de fichier le plus récent sont testés. Des snapshots mémoire
+synthétiques traversent le vrai moteur OotrR et vérifient l’actualisation
+avant sauvegarde, le repli partiel des coffres, la mauvaise seed et
+la déconnexion. Aucun processus de jeu n’a été attaché pendant ces tests.

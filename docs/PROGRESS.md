@@ -147,3 +147,7 @@ La collecte réelle en jeu et la synchronisation mémoire restent à valider.
 
 La vue Enfant ou Adulte suit désormais le drapeau d’âge de la sauvegarde,
 lorsqu’il est présent. Le choix manuel d’une vue suspend ce suivi.
+
+Le suivi choisit le dernier progress.sav valide dans le dossier sélectionné.
+Le mode mémoire utilise maintenant LiveGameData et TrackerSession d’OotrR,
+avec repli sur la sauvegarde. Le test avec un jeu réellement lancé reste à faire.

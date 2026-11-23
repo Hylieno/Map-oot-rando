@@ -255,7 +255,7 @@ class GuiTests(unittest.TestCase):
             app.save_profiles.remember(doc['seed_id'], tmp, save)
             with patch.object(app, 'follow_save') as follow:
                 app.load(doc)
-                follow.assert_called_once_with(tmp, save)
+                follow.assert_called_once_with(tmp, tmp)
                 follow.reset_mock()
                 app.stop_tracking()
                 app.load(doc)
@@ -281,3 +281,23 @@ class GuiTests(unittest.TestCase):
         app.follow_age.set(True)
         app.sync_age()
         self.assertEqual(app.resource.get(), AGE_VIEWS['Adult'])
+
+    def test_choose_save_uses_a_directory_picker(self):
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from unittest.mock import patch
+
+        app = self.app
+        with TemporaryDirectory() as directory:
+            seed_dir = Path(directory).resolve()
+            (seed_dir / 'manifest.json').write_text('{}')
+            saves = seed_dir / 'saves'
+            saves.mkdir()
+            app.seed_folder = seed_dir
+            with (patch('map_oot_rando.gui.filedialog.askdirectory', return_value=str(saves)) as picker,
+                  patch('map_oot_rando.gui.filedialog.askopenfilename') as file_picker,
+                  patch.object(app, 'follow_save') as follow):
+                app.choose_save()
+                picker.assert_called_once()
+                file_picker.assert_not_called()
+                follow.assert_called_once_with(seed_dir, saves)
