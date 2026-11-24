@@ -445,17 +445,12 @@ class MapApplication:
     def update_link(self, position):
         changed = self.link != position
         self.link = position
-        area = (self.link_region(), position.age) if position else None
-        if area and area[0] == 'HyruleCastle':
-            area = (*area, castle_view(position.z))
-        if area and area[0] in {'GanonCastle', 'InsideGanonCastle', 'GerudoTrainingGround', 'SpiritTemple',
-                                'WaterTemple', 'DreamWorld'}:
-            area = (*area, self.link_view())
+        view = self.link_view() if position else None
+        area = (position.scene, position.age, view) if position else None
         if area is not None and area != self.link_area:
             self.link_area = area
-            if self.follow_link.get() and self.resume_follow_link():
+            if view and self.resume_follow_link():
                 return
-        view = self.link_view() if position else None
         self.link_status.set('Link en direct' if view else 'Zone de Link hors carte' if position
                              else self.link_message())
         if changed:

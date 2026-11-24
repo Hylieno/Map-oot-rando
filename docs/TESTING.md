@@ -1,5 +1,10 @@
 # Validation
 
+Le test de suivi du Temple du Feu simule deux changements d’étage
+dans une même scène. Il vérifie aussi qu’une lecture manquante entre
+deux poses au même étage ne force pas le retour depuis une vue
+ouverte manuellement.
+
 Les scènes publiques et les repères de quête placent 1 084 checks
 sur 1 103. L’audit des fonds couvre tous les placements qui utilisent
 un plan chargé. Les 19 entrées sans coordonnées sont 18 entrées

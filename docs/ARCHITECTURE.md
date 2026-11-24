@@ -19,7 +19,9 @@ Le marqueur de Link lit les coordonnées et la scène sur la connexion mémoire
 OotrR après validation du marqueur de seed. Le lecteur de position réutilise
 l’adresse de module relocalisée par OotrR et vérifie les structures avant de
 publier la pose. Une lecture de position indisponible masque le marqueur.
-La navigation suivie réagit aux transitions de scène ou d’âge.
+La navigation suivie réagit aux transitions de scène, d’âge et de
+vue calculée. Une brève interruption de la position garde la vue
+choisie et reprend le suivi à la prochaine transition.
 Le Temple du Temps utilise les limites de la zone `TimeTemple` propres
 à chaque âge dans la scène de la Citadelle. La Chambre des Sages utilise
 sa ressource distincte et un seul plan aux deux âges.

@@ -1089,6 +1089,31 @@ class GuiTests(unittest.TestCase):
         app.update_link(LinkPosition('GanonCastle', 'Adult', 30, 100, 20, 0, 'FinalBattleField'))
         self.assertIsNone(app.link_view())
 
+    def test_fire_temple_follow_tracks_floors_within_one_game_scene(self):
+        from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
+        from map_oot_rando.scene import FIRE_VIEWS
+
+        app = self.app
+        region = 'FireTemple'
+        path = f'Banc/{region}/{region}_Static.bcett.byml.zs'
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=['KokiriForest', region],
+                   locations=[], scenes={path: {'rooms': [], 'points': [('Entrée', (0, 30))]}})
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        app.update_link(LinkPosition(region, 'Adult', 10, 105, 0, 0))
+        self.assertEqual(app.resource.get(), FIRE_VIEWS[0])
+        app.update_link(LinkPosition(region, 'Adult', 10, 145, 0, 0))
+        self.assertEqual(app.resource.get(), FIRE_VIEWS[2])
+        app.resource.set(FIRE_VIEWS[1])
+        app.resource_changed()
+        app.update_link(None)
+        app.update_link(LinkPosition(region, 'Adult', 12, 145, 0, 0))
+        self.assertEqual(app.resource.get(), FIRE_VIEWS[1])
+        app.update_link(LinkPosition(region, 'Adult', 12, 166, 0, 0))
+        self.assertEqual(app.resource.get(), FIRE_VIEWS[3])
+        self.assertTrue(app.canvas.find_withtag('player-pin'))
+
     def test_ganon_tower_follow_tracks_floors_and_respects_manual_browsing(self):
         from unittest.mock import patch
         from map_oot_rando.link_position import LinkPosition
