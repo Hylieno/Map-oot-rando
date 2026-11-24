@@ -48,6 +48,10 @@
 - Liaisons du centre d’entraînement. Une liaison utilise exactement
   deux centres de salle et leur porte. Le dessin indique la connexion
   des salles et la position des portes dans le repère du jeu.
+- Identifiants hérités. La carte conserve l’identifiant du catalogue
+  et utilise l’acteur vérifié dans la scène. Les deux Skulltulas du
+  cratère apparaissent dans la vue enfant. Les clés de la forteresse
+  utilisent les placements des cellules dans la scène adulte.
 
 - Pont de Kokiri. Les appuis du pont et les accès de la scène guident
   le schéma. La branche ouest des Bois Perdus utilise son propre repère.

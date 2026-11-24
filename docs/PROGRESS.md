@@ -1,5 +1,11 @@
 # Checkpoint — 24 novembre 2026
 
+L’audit des scènes publiques place 1 099 des 1 103 checks du catalogue
+de référence. Les nouveaux emplacements couvrent le cratère du Péril,
+la Forteresse Gerudo et le centre d’entraînement. Le don des Sages, deux
+coffres et une clé du centre d’entraînement restent sans coordonnées
+confirmées.
+
 En vue adulte, le moulin de Cocorico mène aux souterrains du cimetière.
 Chaque sens indique le point d’arrivée du jeu.
 Les deux trajets de la course de Dampé sont visibles dans la vue

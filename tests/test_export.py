@@ -65,6 +65,17 @@ class ExportTests(unittest.TestCase):
                          {'npc#Market Bombchu Bowling First Prize', 'npc#Market Bombchu Bowling Second Prize'})
         self.assertEqual({row['position'] for row in rows}, {(-25, 116, 8)})
 
+    def test_gerudo_jail_key_uses_the_placed_actor_instead_of_the_cutscene_copy(self):
+        path = 'Banc/GerudoFortress/GerudoFortress_Adult_Static.bcett.byml.zs'
+        key = dict(Gyaml='Obj_Dungeon_SmallKey_GerudoFortress_03', Hash=1406667554698159711,
+                   Translate=(38.56, 119, -26.1))
+        cutscene = dict(key, Hash=7337789119684854050, Name='SmallKeyForEvent_03', Translate=(34, 117.5, -29))
+        maps = {path: {'root': {'Actors': [key, cutscene]}},
+                path.replace('_Adult_', '_Child_'): {'root': {'Actors': [key]}}}
+        row, = event_check_rows(maps, lambda *_: True)
+        self.assertEqual((row['id'], row['resource'], row['position']),
+                         ('ap#Hideout 3 Torches Jail Gerudo Key', path, key['Translate']))
+
     def test_rolling_goron_uses_the_quest_actor_among_the_adult_models(self):
         from map_oot_rando.model import Location
         from map_oot_rando.scene import GORON_VIEWS, location_view
@@ -80,7 +91,7 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(row['position'], rolling['Translate'])
         self.assertEqual(location_view(Location(**row)), GORON_VIEWS['Adult'][1])
 
-    def test_crater_scrub_uses_the_child_event_actor(self):
+    def test_crater_vanilla_checks_use_child_actors_excluded_from_the_shuffle(self):
         from map_oot_rando.scene import REGION_VIEWS, location_view
 
         region = 'DeathMountainCrater'
@@ -90,17 +101,21 @@ class ExportTests(unittest.TestCase):
                      Dynamic={'TalkEventName': 'Enemy_Scrub_Business_Heart_02'})
         fairy = dict(Gyaml='MapIconFacilityAnchor', Translate=(5, 128, 24),
                      Dynamic={'MapIconFacilityIsOpen': 'HavePlayedEvent.Dm_FairyFountain_Wisdom'})
-        maps = {path: {'root': {'Actors': [scrub, fairy]}} for path in (child, adult)}
+        bean = dict(Gyaml='Enemy_Skulltula_Gold', Hash=6397182598322965076, Translate=(3.75, 111.22, -0.75))
+        crate = dict(Gyaml='Enemy_Skulltula_Gold', Hash=18219295034534354574, Translate=(-2.87, 128.19, 48.67))
+        maps = {path: {'root': {'Actors': [scrub, fairy, bean, crate]}} for path in (child, adult)}
         document = export_scan({}, {}, provenance='ootrr-scan', regions=('KokiriForest', region))
         document['locations'].extend(event_check_rows(maps, lambda path, _: path == adult))
         self.assertEqual([(row['id'], row['resource']) for row in document['locations']],
-                         [('scrub#DMC Deku Scrub', child), ('fairy#DMC Great Fairy Reward', adult)])
+                         [('scrub#DMC Deku Scrub', child), ('ap#DMC GS Bean Patch', child),
+                          ('ap#DMC GS Crate', child), ('fairy#DMC Great Fairy Reward', adult)])
         catalogue = dict(self.catalogue, checks=[
             dict(id='scrub#DMC Deku Scrub', name='Marchand Mojo', category='full_scrub', zone=region),
+            dict(id='ap#DMC Deku Scrub', name='Marchand Mojo', category='vanilla_scrub', zone=region),
         ])
-        row, = load_metadata(bind_catalogue(document, catalogue))
-        self.assertEqual(row.position, scrub['Translate'])
-        self.assertEqual(location_view(row), REGION_VIEWS[region]['Child'])
+        rows = load_metadata(bind_catalogue(document, catalogue))
+        self.assertEqual([row.position for row in rows], [scrub['Translate']] * 2)
+        self.assertEqual({location_view(row) for row in rows}, {REGION_VIEWS[region]['Child']})
 
     def setUp(self):
         self.groups = {'KokiriForest#123': [dict(

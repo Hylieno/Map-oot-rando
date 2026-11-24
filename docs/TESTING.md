@@ -1,5 +1,11 @@
 # Validation
 
+Onze checks hérités ont été sélectionnés dans Tk après import du
+catalogue de référence et des scènes publiques. Les marqueurs s’affichent
+sur les vues attendues, à l’intérieur du fond Field Atlas quand il est
+disponible. Les tests d’export vérifient les acteurs enfant exclus du
+tirage et distinguent une clé de cellule de sa copie de cinématique.
+
 Le test Tk traverse le raccourci du moulin dans les deux sens, vérifie
 sa disponibilité à l’âge adulte et affiche Link dans les souterrains
 du cimetière à partir de sa hauteur.

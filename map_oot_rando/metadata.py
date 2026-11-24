@@ -5,6 +5,16 @@ from math import dist
 from .model import REGION_NAMES, UPSTREAM_REVISION, load_metadata, resource_region
 
 CRATER_SCRUB = 'scrub#DMC Deku Scrub'
+CRATER_CHILD_SKULLTULAS = {
+    ('Enemy_Skulltula_Gold', 6397182598322965076): 'ap#DMC GS Bean Patch',
+    ('Enemy_Skulltula_Gold', 18219295034534354574): 'ap#DMC GS Crate',
+}
+GERUDO_JAIL_KEY_ACTORS = {
+    ('Obj_Dungeon_SmallKey_GerudoFortress_01', 14727159573379044362): 'ap#Hideout 1 Torch Jail Gerudo Key',
+    ('Obj_Dungeon_SmallKey_GerudoFortress_02', 5303541637929200213): 'ap#Hideout 2 Torches Jail Gerudo Key',
+    ('Obj_Dungeon_SmallKey_GerudoFortress_03', 1406667554698159711): 'ap#Hideout 3 Torches Jail Gerudo Key',
+    ('Obj_Dungeon_SmallKey_GerudoFortress_04', 10731814783987785199): 'ap#Hideout 4 Torches Jail Gerudo Key',
+}
 LOST_WOOD_EVENT_ACTORS = {
     'npc#LW Skull Kid': ('Npc_SkullKid_Child', None),
     'npc#LW Ocarina Memory Game': ('Npc_SkullKid_Child_02', None),
@@ -144,9 +154,14 @@ EVENT_ACTOR_FIELDS = {
 # The original catalogue labels also exist as actor checks in the remake.
 # Match only encounters with an explicit chest trigger or a unique room reward.
 CATALOGUE_PLACEMENT_ALIASES = {
+    'ap#DMC Deku Scrub': CRATER_SCRUB,
+    'ap#DMC Volcano Freestanding PoH': 'DeathMountainCrater#free#744856631664786545',
     'ap#Gerudo Training Ground Stalfos Chest': 'GerudoTrainingGround#13501407288943710656',
     'ap#Gerudo Training Ground Beamos Chest': 'GerudoTrainingGround#4709724720801091788',
     'ap#Gerudo Training Ground Underwater Silver Rupee Chest': 'GerudoTrainingGround#3717705376223508790',
+    'ap#Gerudo Training Ground Eye Statue Chest': 'GerudoTrainingGround#11563468890171962383',
+    'ap#Gerudo Training Ground Hammer Room Switch Chest': 'GerudoTrainingGround#4372363658229299619',
+    'ap#Gerudo Training Ground Heavy Block Third Chest': 'GerudoTrainingGround#5329807728555596183',
 }
 DUNGEON_ROOM_REGIONS = frozenset({'InsideJabuJabuBelly', 'InsideTheDekuTree', 'ForestTemple',
                                   'BottomOfTheWell', 'ShadowTemple', 'InsideGanonCastle', 'GerudoTrainingGround',
@@ -307,7 +322,7 @@ def placed_check_rows(maps, checks, existing, eligible):
 
 
 def event_check_rows(maps, eligible):
-    """Locate event rewards using their unique actor or cutscene position."""
+    """Locate checks tied to a specific actor or cutscene position."""
     candidates = {}
     for path, source in maps.items():
         region = resource_region(path)
@@ -324,11 +339,17 @@ def event_check_rows(maps, eligible):
             ident = ids.get((gyaml, event))
             if ident is None and actor.get('Name'):
                 ident = ids.get((gyaml, actor['Name']))
-            # OotrR handles this sale through its event flow. The child scene
-            # supplies its position even though its actors stay out of the shuffle.
-            crater_scrub = ident == CRATER_SCRUB
-            if crater_scrub and not age_frame.endswith('_Child'):
+            actor_key = (gyaml, actor.get('Hash'))
+            if region == 'GerudoFortress' and age_frame.endswith('_Adult'):
+                ident = GERUDO_JAIL_KEY_ACTORS.get(actor_key, ident)
+            child_crater = region == 'DeathMountainCrater' and (
+                ident == CRATER_SCRUB or actor_key in CRATER_CHILD_SKULLTULAS)
+            # These vanilla checks are present even when the child scene is
+            # excluded from the world shuffle.
+            if child_crater and not age_frame.endswith('_Child'):
                 continue
+            if child_crater:
+                ident = CRATER_CHILD_SKULLTULAS.get(actor_key, ident)
             position = actor.get('Translate')
             if ident == 'boss#Volvagia':
                 # The model waits below the floor before the cutscene. The linked
@@ -362,7 +383,7 @@ def event_check_rows(maps, eligible):
                 variant = actor['Hash']
                 position = GERUDO_CARD_WARPS[variant]
                 checks = ('gerudo_card#Hideout Gerudo Membership Card',)
-            if position and checks and (crater_scrub or eligible(path, actor)):
+            if position and checks and (child_crater or eligible(path, actor)):
                 for check in checks:
                     candidates.setdefault((check, age_frame, variant), []).append(
                         dict(id=check, name=check.partition('#')[2], category='event',
