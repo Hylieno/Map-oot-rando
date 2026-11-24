@@ -94,11 +94,11 @@ class SaveConnection:
         from oot_rando.tracker.live_memory import LiveUnavailable
 
         if self.selector is not None:
-            path = self.selector.newest()
+            path = self.selector.newest(current=self.path)
             if path is None:
                 self.close()
-                return SaveUpdate('Aucun progress.sav lisible lié à cette seed dans le dossier.',
-                                  reset=self.path is None,
+                return SaveUpdate('En attente d’un progress.sav lisible lié à cette seed.',
+                                  reset=self.path is None or self.selector.is_unlinked(self.path),
                                   action_error='Aucune sauvegarde liée à cette seed.' if manual_changes else '')
             if path != self.path:
                 self._select(path)

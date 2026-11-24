@@ -1,5 +1,10 @@
 # Architecture et audit initial
 
+La découverte des sauvegardes accorde une lecture de plus au fichier
+suivi s’il devient temporairement illisible. Le dernier état vérifié
+reste visible pendant cette attente. Sans nouvelle lecture valide,
+le suivi peut reprendre avec une sauvegarde compatible plus ancienne.
+
 Un réimport de même seed reprend les états des identifiants présents
 dans les deux cartes pendant la reconnexion. Le suivi affiche le mode
 déconnecté avec la dernière date vérifiée. Une nouvelle lecture par

@@ -9,12 +9,17 @@ class SaveDirectory:
         self.seed_marker = seed_marker
         self.load_snapshot = load_snapshot
         self._checked = {}
+        self._deferred = None
 
     @staticmethod
     def _ordinary_dir(path):
         return not path.is_symlink() and not getattr(path, 'is_junction', lambda: False)()
 
-    def newest(self):
+    def is_unlinked(self, path):
+        entry = self._checked.get(path)
+        return entry is not None and not entry[1]
+
+    def newest(self, *, current=None):
         candidates = []
         for folder, subdirs, files in os.walk(self.directory):
             # Stay in the selected directory. Do not traverse Windows junctions.
@@ -37,12 +42,20 @@ class SaveDirectory:
         for mtime, size, inode, path in sorted(candidates, reverse=True):
             stamp = (mtime, size, inode)
             if self._checked.get(path, (None,))[0] != stamp:
+                self._checked.pop(path, None)
                 try:
                     matches = self.load_snapshot(path)['bool'].get(self.seed_marker) is True
                 except (OSError, ValueError):
                     # A write in progress may become valid without a new timestamp.
+                    # Give the watched slot one retry before falling back to an older one.
+                    if path == current and self._deferred != path:
+                        self._deferred = path
+                        return None
                     continue
                 self._checked[path] = (stamp, matches)
             if self._checked[path][1]:
+                self._deferred = None
                 return path
+        if self._deferred not in present:
+            self._deferred = None
         return None

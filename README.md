@@ -161,7 +161,9 @@ que la seed active est différente, le marqueur disparaît.
 Clique sur **Choisir le dossier de sauvegardes…** et indique le dossier qui
 contient les sauvegardes de ton jeu. L’application cherche dans les sous-dossiers
 et suit le `progress.sav` le plus récent que le moteur OotrR 0.8.0 reconnaît
-comme appartenant à la seed. Si tu as rouvert un JSON sans profil local,
+comme appartenant à la seed. Si ce fichier devient temporairement illisible,
+la carte garde le dernier état vérifié et attend le prochain cycle de lecture.
+Si tu as rouvert un JSON sans profil local,
 choisis aussi le `checks.json` du dossier complet de cette seed.
 
 Coche **Mémoire du jeu** pour activer le lecteur OotrR dans la carte. Si tu

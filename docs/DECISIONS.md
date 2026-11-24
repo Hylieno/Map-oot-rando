@@ -1,5 +1,9 @@
 # Décisions
 
+- Sauvegarde en cours d’écriture. Une lecture supplémentaire évite
+  un changement de fichier lors d’une écriture courte. Un fichier
+  lisible affilié à une autre seed invalide immédiatement son état.
+
 - Réimport. Le dernier instantané OotrR reste visible pour les checks
   communs à la même seed. La position de Link attend une nouvelle
   lecture en direct.

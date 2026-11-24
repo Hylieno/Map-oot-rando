@@ -163,6 +163,59 @@ class SaveTrackingTests(unittest.TestCase):
             self.assertEqual(conn.refresh().states['test'], 'unknown')
             self.assertEqual(conn.path, paths[0])
 
+    def test_temporary_rewrite_of_selected_slot_keeps_the_last_snapshot(self):
+        import os
+
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory).resolve()
+            store = StateStore(write_seed(folder), ['test'])
+            root = folder / 'saves'
+            older = root / 'older' / 'progress.sav'
+            current = root / 'current' / 'progress.sav'
+            for path in (older, current):
+                path.parent.mkdir(parents=True)
+            write_save(older)
+            os.utime(older, (1_700_000_000,) * 2)
+            write_save(current, collected=True)
+            conn = SaveConnection(folder, root, store)
+            apply_save_update(store, conn.refresh())
+            self.assertEqual(store.states['test'], 'completed')
+
+            current.write_bytes(b'truncated')
+            paused = conn.refresh()
+            apply_save_update(store, paused)
+            self.assertEqual(conn.path, current)
+            self.assertIsNone(paused.states)
+            self.assertEqual(store.states['test'], 'completed')
+            self.assertEqual(store.connection, 'disconnected')
+
+            write_save(current)
+            self.assertEqual(conn.refresh().states['test'], 'unknown')
+            self.assertEqual(conn.path, current)
+            current.write_bytes(b'truncated')
+            self.assertIsNone(conn.refresh().states)
+            self.assertEqual(conn.refresh().states['test'], 'unknown')
+            self.assertEqual(conn.path, older)
+
+    def test_replaced_slot_for_another_seed_discards_the_previous_snapshot(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory).resolve()
+            store = StateStore(write_seed(folder), ['test'])
+            saves = folder / 'saves'
+            saves.mkdir()
+            path = saves / 'progress.sav'
+            write_save(path, collected=True)
+            conn = SaveConnection(folder, saves, store)
+            apply_save_update(store, conn.refresh())
+            self.assertEqual(store.states['test'], 'completed')
+
+            write_save(path, linked=False)
+            update = conn.refresh()
+            self.assertTrue(update.reset)
+            apply_save_update(store, update)
+            self.assertEqual(store.states['test'], 'unknown')
+            self.assertIsNone(store.last_success)
+
     def test_link_samples_same_seed_memory_even_without_changes_to_check_flags(self):
         from unittest.mock import Mock
         from oot_rando.tracker.live_memory import SEQUENCE_IS_CHILDHOOD
