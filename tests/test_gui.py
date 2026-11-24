@@ -106,7 +106,9 @@ class GuiTests(unittest.TestCase):
               patch('map_oot_rando.gui.import_seed', side_effect=fake_import) as importer):
             app.choose_seed()
             self.assertTrue(finished.wait(3))
+            self.assertIsNotNone(app.import_callback)
             app.poll_import()
+        self.assertIsNone(app.import_callback)
         importer.assert_called_once()
         self.assertEqual(app.store.seed_id, 'test-seed')
         self.assertIsNone(app.simulation)
@@ -620,6 +622,40 @@ class GuiTests(unittest.TestCase):
         self.assertEqual([row.id for row in app.visible], ['letter'])
         app.open_neighbor('Market')
         self.assertEqual(app.resource.get(), REGION_VIEWS['Market']['Child'])
+
+    def test_shared_gerudo_check_search_keeps_the_current_age_and_return_route(self):
+        from unittest.mock import patch
+        from map_oot_rando.scene import REGION_VIEWS
+
+        app = self.app
+        template = demo_document()
+        doc = dict(template, provenance='ootrr-scan', regions=['KokiriForest', 'HyruleField', 'GerudoValley'])
+        valley = 'Banc/GerudoValley/GerudoValley_{}_Dynamic.bcett.byml.zs'
+        field = 'Banc/HyruleField/HyruleField_{}_Static.bcett.byml.zs'
+        doc['locations'] = [
+            dict(template['locations'][0], id='shared-grotto', name='Grotto Chest',
+                 resource=valley.format(age), position=(31, -22, 37), entrance=(11, 90, 36))
+            for age in ('Adult', 'Child')
+        ]
+        doc['scenes'] = {
+            **{field.format(age): {'rooms': [], 'points': [('Vers la Vallée Gerudo', (-312, 163))]}
+               for age in ('Adult', 'Child')},
+            **{valley.format(age): {'rooms': [], 'points': [('Vers la plaine d’Hyrule', (79, 30))]}
+               for age in ('Adult', 'Child')},
+        }
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        app.resource.set(REGION_VIEWS['HyruleField']['Child'])
+        app.resource_changed()
+        self.assertIn('GerudoValley', app.navigation_markers.values())
+        app.open_neighbor('GerudoValley')
+        app.query.set('shared-grotto')
+        self.assertEqual(len(app.visible), 2)
+        app.choose_first()
+        self.assertEqual(app.selected.resource, valley.format('Child'))
+        self.assertEqual(app.resource.get(), REGION_VIEWS['GerudoValley']['Child'])
+        app.open_neighbor('HyruleField')
+        self.assertEqual(app.resource.get(), REGION_VIEWS['HyruleField']['Child'])
 
     def test_ganon_castle_switches_scene_without_mixing_coordinates(self):
         from unittest.mock import patch

@@ -88,6 +88,8 @@ SHARED_FIELD_FRAMES = {
     'SacredForestMeadow': ((190, -8, 492, 1821), (6.15, 487.31, 6.15, 1062.72)),
     'ZoraRiver': ((-48, -40, 951, 444), (3.2759, 352.05, 3.2953, 225.64)),
     'ZoraDomain': ((-47, -47, 950, 612), (6.4055, 218.87, 6.3045, 315.57)),
+    # Both ages share the bridge, log, and field passage. The tent is an adult control.
+    'GerudoValley': ((-46, -44, 942, 951), (5.5214, 404.3226, 4.3607, 476.2467, -0.3290, 0.1337)),
 }
 FIELD_FRAMES = {region: dict.fromkeys(('Child', 'Adult'), frame)
                 for region, frame in SHARED_FIELD_FRAMES.items()}
@@ -121,6 +123,7 @@ for region, source, digest in (
     ('SacredForestMeadow', 'sacred-meadow', '30559071ebb5f020ae7dd00ddc13b4a17c11f202d91df6d1501193eda34a859a'),
     ('ZoraRiver', 'zora-river', '9da62a4f11abba11eed170548a34c90e129420350bdedbb74b4a0f0d74e0aaf4'),
     ('ZoraDomain', 'zora-domain', 'b95e0d63a7da7501193467fe251b484daa93ac88928c246a4c133a73c26d9711'),
+    ('GerudoValley', 'gerudo-valley', '254d68e697b8bf52c564d79a5ca178129e9ac5df65376171e29a0243e432b9d2'),
 ):
     REGION_MAPS[region] = dict.fromkeys(('Child', 'Adult'), (f'field-atlas-{source}', digest))
 REGION_MAPS['FireTemple'] = {
@@ -185,8 +188,10 @@ def align_capture(image, viewbox, frame, source):
     scale = image.width / width
     if abs(height * scale - image.height) > 1:
         raise ValueError('Les dimensions du plan sont incompatibles.')
-    sx, ox, sz, oz = frame
-    matrix = (sx * scale, 0, (ox - left) * scale, 0, sz * scale, (oz - top) * scale)
+    sx, ox, sz, oz, *cross = frame
+    x_from_z, z_from_x = cross or (0, 0)
+    matrix = (sx * scale, x_from_z * scale, (ox - left) * scale,
+              z_from_x * scale, sz * scale, (oz - top) * scale)
     basis = [(0, 0), (50, 0), (0, 50)]
     return AerialImage(image, [apply(matrix, point) for point in basis], basis,
                        source=source, calibration=REGION_CALIBRATION)

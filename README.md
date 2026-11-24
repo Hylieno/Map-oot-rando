@@ -98,6 +98,10 @@ passer des six épreuves à la tour et à la salle de Ganondorf. Ces vues
 utilisent les repères du jeu sur des schémas. Réimporte le jeu et la seed
 pour ajouter ces vues à une carte enregistrée auparavant.
 
+La plaine donne aussi accès à la Vallée Gerudo dans les deux âges. Le
+fond Field Atlas se charge automatiquement et les checks en grotte
+apparaissent à leur entrée, avec les coordonnées de l’objet dans les détails.
+
 ## Suivre la partie
 
 Coche **Afficher la position de Link**. Cette option active **Mémoire du jeu**

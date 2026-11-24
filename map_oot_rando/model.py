@@ -30,6 +30,7 @@ REGION_NAMES = {
     'HyruleCastle': 'Château d’Hyrule',
     'GanonCastle': 'Château de Ganon',
     'InsideGanonCastle': 'Intérieur du Château de Ganon',
+    'GerudoValley': 'Vallée Gerudo',
 }
 # These scenes have buried actor placements below their surface.
 SURFACE_MIN_Y = {'Graveyard': 92, 'DeathMountainTrail': 80, 'DeathMountainCrater': 90}

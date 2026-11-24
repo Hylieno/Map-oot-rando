@@ -78,6 +78,7 @@ class MapApplication:
         self.banner = tk.StringVar()
         self.import_status = tk.StringVar()
         self.import_events = Queue()
+        self.import_callback = None
         self.atlas_images = {}
         self.atlas_generation = 0
         self.atlas_callback = None
@@ -312,9 +313,12 @@ class MapApplication:
                 self.import_events.put(('error', str(error)))
 
         Thread(target=scan, daemon=True).start()
-        self.root.after(100, self.poll_import)
+        self.import_callback = self.root.after(100, self.poll_import)
 
     def poll_import(self):
+        if self.import_callback is not None:
+            self.root.after_cancel(self.import_callback)
+            self.import_callback = None
         try:
             while True:
                 event, value = self.import_events.get_nowait()
@@ -332,7 +336,7 @@ class MapApplication:
                     messagebox.showerror('Import impossible', value, parent=self.root)
                 return
         except Empty:
-            self.root.after(100, self.poll_import)
+            self.import_callback = self.root.after(100, self.poll_import)
 
     def choose_save(self):
         previous = self.save_profiles.get(self.store.seed_id)
@@ -461,7 +465,7 @@ class MapApplication:
 
     def close_window(self):
         self.tracking_stop.set()
-        for callback in (self.atlas_callback, self.world_callback):
+        for callback in (self.atlas_callback, self.world_callback, self.import_callback):
             if callback is not None:
                 self.root.after_cancel(callback)
         self.root.destroy()
@@ -1183,7 +1187,10 @@ class MapApplication:
 
     def choose_first(self):
         if self.visible:
-            self.choose(self.visible[0])
+            first = self.visible[0]
+            view = self.resource.get()
+            self.choose(next((row for row in self.visible if row.id == first.id and location_view(row) == view),
+                             first))
 
     def choose_list(self, event=None):
         indexes = self.results.curselection()

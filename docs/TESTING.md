@@ -1,5 +1,14 @@
 # Validation
 
+Les quatre scènes publiques de la Vallée Gerudo placent les 32 checks
+du catalogue, avec sept checks en vue enfant et 27 en vue adulte.
+Deux rochers propres à chaque âge occupent le même emplacement, à
+cinq pixels du contour sur le fond de 650 pixels de large. Les deux
+entrées de grotte ont été recoupées avec les acteurs du jeu. Un test Tk
+avec les scènes publiques a vérifié les deux sens du passage, le fond
+des deux âges et le retour vers la plaine après la recherche d’un coffre
+partagé. Le scan du NUP complet reste à vérifier.
+
 L’audit des quatre scènes publiques du Château de Ganon retrouve les
 six placements du catalogue. Deux utilisent le fond Field Atlas des abords.
 Le dessin s’arrête avant la position de la Grande Fée, qui reste affichée

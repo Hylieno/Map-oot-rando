@@ -79,6 +79,23 @@ class ExportTests(unittest.TestCase):
         rows = list(placed_check_rows(maps, checks, existing, lambda *_: True))
         self.assertEqual(rows, [dict(checks[0], resource=path, position=[3, 145, 2])])
 
+    def test_gerudo_grottos_keep_two_distinct_access_points(self):
+        maps, rows = {}, []
+        for age, anchor in [('Child', 2898121583347267819), ('Adult', 15684957330767796996)]:
+            path = f'Banc/GerudoValley/GerudoValley_{age}'
+            maps[f'{path}_Static.bcett.byml.zs'] = {'root': {'Actors': [
+                dict(Hash=anchor, Gyaml='DestinationAnchor', Translate=(11, 90, 36)),
+                dict(Hash=12817575131469044248, Gyaml='Land_Gerudo_HidingHoleCover_A_02',
+                     Translate=(-45, 101, -29)),
+            ]}}
+            rows.append(dict(id='GerudoValley#6463521162691873710',
+                             resource=f'{path}_Dynamic.bcett.byml.zs', position=(31, -22, 37)))
+        rows.append(dict(id='GerudoValley#pots#6896071498853277403', resource=rows[-1]['resource'],
+                         position=(-48, 84, -46)))
+        add_surface_entrances(rows, maps)
+        self.assertEqual([r['entrance'] for r in rows], [(11, 90, 36), (11, 90, 36), (-45, 101, -29)])
+        self.assertEqual([r['position'] for r in rows], [(31, -22, 37), (31, -22, 37), (-48, 84, -46)])
+
     def test_zora_grotto_keeps_exact_coordinates_with_age_specific_access(self):
         def path(age, layer):
             return f'Banc/ZoraRiver/ZoraRiver_{age}_{layer}.bcett.byml.zs'

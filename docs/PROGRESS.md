@@ -1,4 +1,8 @@
-# Checkpoint — 23 novembre 2026
+# Checkpoint — 24 novembre 2026
+
+La Vallée Gerudo est reliée à la plaine dans les deux âges et affiche
+les 32 checks du catalogue. Le fond Field Atlas est commun. Les deux
+grottes utilisent leurs entrées. La Forteresse Gerudo reste à intégrer.
 
 La Citadelle adulte mène aux abords du Château de Ganon, qui chargent
 un plan Field Atlas. Les six checks du catalogue ont été placés. Le

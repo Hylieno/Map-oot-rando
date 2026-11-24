@@ -119,7 +119,8 @@ NEIGHBORS = {
                  'GoronCity': 'Vers le Village Goron', 'ZoraRiver': 'Vers la Rivière Zora'},
     'HyruleField': {'KokiriForest': 'front_of_lost_wood_bridge_entrance',
                     'KakarikoVillage': 'Vers Cocorico', 'ZoraRiver': 'Vers la Rivière Zora',
-                    'Market': 'Porte de la Citadelle'},
+                    'Market': 'Porte de la Citadelle', 'GerudoValley': 'Vers la Vallée Gerudo'},
+    'GerudoValley': {'HyruleField': 'Vers la plaine d’Hyrule'},
     'Market': {'HyruleField': 'Vers la plaine d’Hyrule', 'HyruleCastle': 'Vers le Château d’Hyrule',
                'GanonCastle': 'Vers le Château de Ganon'},
     'HyruleCastle': {'Market': 'Vers la Citadelle d’Hyrule'},
@@ -181,7 +182,7 @@ LOST_WOOD_POINT_LABELS = {
 HYRULE_ANCHORS = {
     'Market': 'Porte de la Citadelle',
     'KakarikoVillage': 'Vers Cocorico',
-    'GerudoValley': 'Vers la Vallée Gerudo',
+    'GerudoValley': NEIGHBORS['HyruleField']['GerudoValley'],
     'LakeHylia': 'Vers le Lac Hylia',
     'ZoraRiver': 'Vers la Rivière Zora',
 }
@@ -194,6 +195,7 @@ ENTRANCE_LABELS = {
     'Graveyard': NEIGHBORS['Graveyard'],
     'ShadowTemple': NEIGHBORS['ShadowTemple'],
     'HyruleField': HYRULE_ANCHORS,
+    'GerudoValley': NEIGHBORS['GerudoValley'],
     'Market': NEIGHBORS['Market'],
     'HyruleCastle': NEIGHBORS['HyruleCastle'],
     'GanonCastle': NEIGHBORS['GanonCastle'],

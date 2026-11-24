@@ -29,6 +29,16 @@ class FieldAtlasTests(unittest.TestCase):
         self.assertEqual(tuple(round(p) for p in adult.image_point(point)), (77, 237))
         self.assertNotEqual(child.source, adult.source)
 
+    def test_valley_aligns_the_shared_plan_in_both_ages(self):
+        from PIL import Image
+        from map_oot_rando.field_atlas import align_region_image
+
+        image = Image.new('RGB', (500, 505))
+        for age in ('Child', 'Adult'):
+            atlas = align_region_image(image, (), 'GerudoValley', age)
+            self.assertEqual(tuple(round(p) for p in atlas.image_point((0, 0))), (239, 276))
+            self.assertEqual(tuple(round(p) for p in atlas.image_point((78.8, 30.11))), (465, 351))
+
     def test_rasterizes_expected_svg(self):
         data = (b'<svg xmlns="http://www.w3.org/2000/svg" width="900" height="498">'
                 b'<rect width="900" height="498" fill="#00ff00"/></svg>')

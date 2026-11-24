@@ -29,6 +29,9 @@ de Link utilise la hauteur dans l’emprise de la tour.
 Le champ facultatif `entrance` indique où accéder à un check souterrain
 sur une carte de surface. Le rendu projette cet accès et les détails
 conservent la position XYZ de l’acteur.
+En Vallée Gerudo, les scènes des deux âges utilisent le même fond et le
+même repère. Chaque entrée de grotte est résolue dans la scène de l’âge
+du check.
 Dans les zones Zora, à la Caverne de glace et au Temple du Feu, les identifiants typés du catalogue
 peuvent compléter le scan par correspondance du hash et du type d’acteur
 dans chaque scène, sans écraser un placement déjà produit pour cette vue.

@@ -14,6 +14,9 @@
   des événements de levée de barrière. La tour utilise les acteurs de
   terrain et la hauteur. Le pont d’entrée mène aux épreuves même si sa
   hauteur recoupe celle de l’accès à la tour.
+- Vallée Gerudo. Un repère affine commun utilise le pont principal, le
+  rondin, la tente adulte et les deux extrémités du passage. Les deux
+  grottes utilisent leurs entrées issues de la scène.
 
 - La carte générale réutilise l’illustration Nintendúo et les positions
   géographiques publiées par Ocarina Atlas. Tous les fonds locaux publiés

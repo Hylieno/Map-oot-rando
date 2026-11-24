@@ -33,6 +33,7 @@ WORLD_PINS = {
     'HyruleCastle': (.4259, .3128),
     'GanonCastle': (.4259, .3128),
     'InsideGanonCastle': (.4092, .2333),
+    'GerudoValley': (.2228, .5620),
     'ShadowTemple': (.8012, .3182),
 }
 
