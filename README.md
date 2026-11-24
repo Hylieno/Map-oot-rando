@@ -127,6 +127,10 @@ de Morpha, au nord du rez-de-chaussée.
 
 Le Temple du Temps se rejoint depuis la Citadelle aux deux âges.
 La Chambre des Sages s’ouvre depuis le temple via un bouton de navigation.
+Dans la forêt Kokiri, le lit de Link mène à la carte du Monde des rêves.
+Au musée, le repère de l’organisateur ouvre la salle intermédiaire.
+Les dix coffres du défi partagent un point. Un clic sur le marqueur
+permet de choisir le coffre voulu.
 
 Le ranch Lon Lon se rejoint depuis la plaine aux deux âges. Le jeu
 des poules de Talon apparaît dans la vue enfant. Le suivi de Link

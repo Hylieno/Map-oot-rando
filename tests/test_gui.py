@@ -873,6 +873,55 @@ class GuiTests(unittest.TestCase):
         app.update_link(LinkPosition(market, 'Child', 64, 103, -34, 0))
         self.assertEqual(app.resource.get(), REGION_VIEWS[temple]['Child'])
 
+    def test_dream_world_tracks_the_museum_and_keeps_coincident_chests_distinct(self):
+        from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
+        from map_oot_rando.scene import DREAM_SCENE_VIEWS, REGION_VIEWS, extract_scenes
+
+        app = self.app
+        region = 'DreamWorld'
+        museum, interval = 'EnemyMuseum', 'BossRushIntervalRoom'
+        forest_path = 'Banc/KokiriForest/KokiriForest_Child_Static.bcett.byml.zs'
+        museum_path = f'Banc/{region}/{museum}_Static.bcett.byml.zs'
+        interval_path = f'Banc/{region}/{interval}_Static.bcett.byml.zs'
+        maps = {
+            forest_path: {'root': {'Actors': [
+                {'Gyaml': 'Obj_Kokiri_Bed_A_01', 'Translate': [-48, 118, 15]},
+            ]}},
+            museum_path: {'root': {'Actors': [
+                {'Gyaml': 'Npc_Dream', 'Translate': [3.5, 1.5, -2]},
+            ]}},
+            interval_path: {'root': {'Actors': [
+                {'Gyaml': 'DungeonRoomArea', 'Translate': [-1, -1, -12], 'Scale': [20, 12, 32]},
+            ]}},
+        }
+        template = demo_document()
+        doc = dict(template, provenance='ootrr-scan', regions=['KokiriForest', region], locations=[
+            dict(template['locations'][0], id=f'chest{i}', name=f'Coffre {i}',
+                 resource=interval_path, region=region, position=(0, .2, -6.45))
+            for i in range(1, 11)
+        ], scenes=extract_scenes(maps, lambda _: {}))
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        app.update_link(LinkPosition('KokiriForest', 'Child', -48, 118, 15, 0))
+        self.assertEqual(app.resource.get(), REGION_VIEWS['KokiriForest']['Child'])
+        marker = next(item for item, target in app.navigation_markers.items() if target == region)
+        x1, y1, x2, y2 = app.canvas.bbox(marker)
+        app.press(SimpleNamespace(x=(x1+x2)//2, y=(y1+y2)//2))
+        self.assertEqual(app.resource.get(), DREAM_SCENE_VIEWS[museum])
+        self.assertFalse(app.visible)
+        self.assertIn(DREAM_SCENE_VIEWS[interval], app.portal_views.values())
+        app.update_link(LinkPosition(region, 'Child', 3.5, 1.5, -2, 0, museum))
+        app.update_link(LinkPosition(region, 'Child', 0, .2, 4.27, 0, interval))
+        self.assertEqual(app.resource.get(), DREAM_SCENE_VIEWS[interval])
+        self.assertEqual(len(app.visible), 10)
+        x, y = app.viewport.screen((0, -6.45))
+        with patch.object(app, 'choose_overlapping') as choose:
+            app.press(SimpleNamespace(x=round(x), y=round(y), x_root=50, y_root=50))
+        self.assertEqual({row.id for row in choose.call_args.args[0]}, {row.id for row in app.visible})
+        app.update_link(LinkPosition(region, 'Child', 4, 1, 5, 0, 'GohmaStage'))
+        self.assertIsNone(app.link_view())
+
     def test_water_temple_opens_from_the_adult_lake_at_the_top(self):
         from unittest.mock import patch
         from map_oot_rando.link_position import LinkPosition

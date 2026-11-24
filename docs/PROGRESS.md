@@ -1,5 +1,9 @@
 # Checkpoint — 24 novembre 2026
 
+Le Monde des rêves est relié à la forêt Kokiri. Le musée et la salle
+intermédiaire ont chacun une vue. Les dix coffres de la salle sont
+positionnés selon la scène et gardent chacun leur état dans le tracker.
+
 Le Temple du Temps s’ouvre depuis la Citadelle aux deux âges. L’épée
 de légende, Sheik, les Flèches de lumière et la récompense de départ
 ont des positions vérifiées sur les vues du temple et de la Chambre

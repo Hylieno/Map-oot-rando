@@ -29,6 +29,7 @@ REGION_NAMES = {
     'Market': 'Citadelle d’Hyrule',
     'TempleOfTime': 'Temple du Temps',
     'SageRoom': 'Chambre des Sages',
+    'DreamWorld': 'Monde des rêves',
     'HyruleCastle': 'Château d’Hyrule',
     'GanonCastle': 'Château de Ganon',
     'InsideGanonCastle': 'Intérieur du Château de Ganon',

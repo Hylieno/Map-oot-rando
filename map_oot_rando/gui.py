@@ -18,7 +18,8 @@ from .model import Location, REGION_NAMES, SURFACE_MIN_Y, load_metadata, resourc
 from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
-from .scene import (BURNT_VILLAGE, CASTLE_COURT, DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS, FIRE_VIEWS, FLOOR_OPTIONS,
+from .scene import (BURNT_VILLAGE, CASTLE_COURT, DREAM_SCENE_VIEWS, DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS,
+                    FIRE_VIEWS, FLOOR_OPTIONS,
                     FOUNTAIN_DUNGEON_AGES, GANON_DUNGEON_VIEWS, GANON_ESCAPE, MARKET_CASTLE_AGES,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS,
@@ -419,6 +420,9 @@ class MapApplication:
                 return GANON_ESCAPE if GANON_ESCAPE in self.views else None
             if self.link.scene_resource == 'FinalBattleField':
                 return None
+        if region == 'DreamWorld':
+            scene_view = DREAM_SCENE_VIEWS.get(self.link.scene_resource)
+            return scene_view if scene_view in self.views else None
         if region in DUNGEON_FLOORS or region == 'GoronCity' or region in SURFACE_MIN_Y:
             suffix = 'Static' if region in DUNGEON_FLOORS else f'{age}_Static'
             path = f'Banc/{region}/{region}_{suffix}.bcett.byml.zs'
@@ -439,7 +443,7 @@ class MapApplication:
         if area and area[0] == 'HyruleCastle':
             area = (*area, castle_view(position.z))
         if area and area[0] in {'GanonCastle', 'InsideGanonCastle', 'GerudoTrainingGround', 'SpiritTemple',
-                                'WaterTemple'}:
+                                'WaterTemple', 'DreamWorld'}:
             area = (*area, self.link_view())
         if area is not None and area != self.link_area:
             self.link_area = area
@@ -1029,12 +1033,11 @@ class MapApplication:
                                                       master=self.canvas)
                 self.world_photo_size = size
             self.canvas.create_image(left, top, anchor='nw', image=self.world_photo, tags='world-map')
+        nearby_pins = {'TempleOfTime': 'Market', 'SageRoom': 'Market', 'DreamWorld': 'KokiriForest'}
         region = self.current_region()
+        region = nearby_pins.get(region, region)
         link_region = self.link_region() if self.link else None
-        if region in {'TempleOfTime', 'SageRoom'}:
-            region = 'Market'
-        if link_region in {'TempleOfTime', 'SageRoom'}:
-            link_region = 'Market'
+        link_region = nearby_pins.get(link_region, link_region)
         for target in self.world_targets():
             u, v = WORLD_PINS[target]
             x, y = left + u * size[0], top + v * size[1]

@@ -7,6 +7,10 @@
   du temple et les piliers de lumière des scènes du jeu. Links Pocket
   utilise la position de sa cinématique. Gift from Sages reste dans
   la liste du temple, sans coordonnées confirmées.
+- Monde des rêves. Le lit ouvre la carte du musée et le repère de
+  l’organisateur ouvre la salle intermédiaire. Le contour de la salle
+  reprend la zone de jeu. Les dix récompenses successives du défi
+  partagent le même point sur la carte.
 - Château d’Hyrule. La cour a sa propre vue schématique pour garder
   les coordonnées de la lettre et des caisses. L’accès depuis la
   Citadelle utilise le repère de la vue enfant.

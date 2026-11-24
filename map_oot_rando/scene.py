@@ -107,6 +107,11 @@ for region, floors in DUNGEON_FLOORS.items():
     REGION_VIEWS[region] = {None: floors[0][1]}
 REGION_VIEWS['IceCavern'] = {None: REGION_NAMES['IceCavern']}
 REGION_VIEWS['SageRoom'] = {None: REGION_NAMES['SageRoom']}
+DREAM_SCENE_VIEWS = {
+    'EnemyMuseum': 'Monde des rêves · Musée',
+    'BossRushIntervalRoom': 'Monde des rêves · Salle intermédiaire',
+}
+REGION_VIEWS['DreamWorld'] = {None: DREAM_SCENE_VIEWS['EnemyMuseum']}
 CASTLE_VIEWS = tuple(f'{REGION_NAMES["HyruleCastle"]} · {area}' for area in ('Abords', 'Cour'))
 CASTLE_OUTSKIRTS, CASTLE_COURT = CASTLE_VIEWS
 REGION_VIEWS['HyruleCastle'] = {'Child': CASTLE_OUTSKIRTS}
@@ -122,6 +127,8 @@ FLOOR_OPTIONS = {
     **dict.fromkeys(CASTLE_VIEWS, tuple(zip(('Abords', 'Cour'), CASTLE_VIEWS))),
     **dict.fromkeys((GANON_OUTSKIRTS, GANON_ESCAPE),
                     tuple(zip(GANON_AREAS, (GANON_OUTSKIRTS, GANON_ESCAPE)))),
+    **dict.fromkeys(DREAM_SCENE_VIEWS.values(),
+                    tuple(zip(('Musée', 'Salle intermédiaire'), DREAM_SCENE_VIEWS.values()))),
 }
 AGE_VIEWS = REGION_VIEWS['KokiriForest']
 VIEWS = {label: (region, age) for region, ages in REGION_VIEWS.items()
@@ -130,6 +137,7 @@ BURNT_VILLAGE = 'Cocorico · Après l’incendie'
 VIEWS[BURNT_VILLAGE] = ('KakarikoVillage', 'Adult')
 VIEWS[CASTLE_COURT] = ('HyruleCastle', 'Child')
 VIEWS[GANON_ESCAPE] = ('GanonCastle', 'Adult')
+VIEWS.update({view: ('DreamWorld', None) for view in DREAM_SCENE_VIEWS.values()})
 UNDERGROUND_VIEWS = {region: {age: f'{view} · Souterrains' for age, view in REGION_VIEWS[region].items()}
                      for region in SURFACE_MIN_Y}
 UNDERGROUND_LABELS = {view for ages in UNDERGROUND_VIEWS.values() for view in ages.values()}
@@ -140,7 +148,8 @@ VIEWS.update({view: (region, None) for region, floors in DUNGEON_FLOORS.items() 
 NEIGHBORS = {
     'KokiriForest': {'LostWood': 'front_of_lost_wood_entrance',
                      'HyruleField': 'front_of_hyrule_field_entrance',
-                     'InsideTheDekuTree': 'front_deku_tree_entrance'},
+                     'InsideTheDekuTree': 'front_deku_tree_entrance', 'DreamWorld': 'Lit de Link'},
+    'DreamWorld': {'KokiriForest': 'Retour à la forêt Kokiri'},
     'LostWood': {'KokiriForest': 'arrivee_de_kokiri', 'SacredForestMeadow': 'Vers le Bosquet sacré',
                  'GoronCity': 'Vers le Village Goron', 'ZoraRiver': 'Vers la Rivière Zora'},
     'HyruleField': {'KokiriForest': 'front_of_lost_wood_bridge_entrance',
@@ -197,6 +206,9 @@ NEIGHBORS = {
     'InsideTheDekuTree': {'KokiriForest': 'Vers la forêt Kokiri'},
 }
 SIDE_PORTALS = {
+    'DreamWorld': {
+        'Organisateur du défi': ('DreamWorld', DREAM_SCENE_VIEWS['BossRushIntervalRoom'], 'Défi des boss'),
+    },
     'DesertColossus': {
         'spirit_temple_left_hand_entrance': ('SpiritTemple', SPIRIT_VIEWS[2], 'Temple · main gauche'),
         'spirit_temple_right_hand_entrance': ('SpiritTemple', SPIRIT_VIEWS[2], 'Temple · main droite'),
@@ -502,7 +514,10 @@ def projection_points(region, sources):
                 continue
             gyaml = actor.get('Gyaml')
             label = None
-            if region == 'LostWood':
+            if region == 'KokiriForest':
+                if gyaml == 'Obj_Kokiri_Bed_A_01':
+                    label = NEIGHBORS[region]['DreamWorld']
+            elif region == 'LostWood':
                 if gyaml == 'StartPos' and actor.get('Name') == 'LostWood_Entrance':
                     label = 'arrivee_de_kokiri'
             elif region == 'ZoraRiver' and gyaml == 'FieldAndDungeonEntranceEventRequestActor':
@@ -569,6 +584,16 @@ def projection_points(region, sources):
                 label = TEMPLE_LANDMARKS[gyaml]
             elif region == 'SageRoom' and gyaml == 'EftLoc_SageRoom_LightPillar_00':
                 label = 'Pilier de lumière'
+            elif region == 'DreamWorld':
+                if gyaml == 'StartPos' and actor.get('Name') == 'BossRush':
+                    label = 'Arrivée du défi'
+                elif gyaml == 'Land_Dream_BossPedestal_A_Interval_02':
+                    label = 'Piédestal du boss'
+                elif gyaml == 'Npc_Dream':
+                    label = 'Organisateur du défi'
+                elif gyaml in {'Land_Dream_EnemyMuseum_B_01', 'Land_Dream_EnemyMuseum_B_02',
+                               'Land_Dream_EnemyMuseum_B_03', 'Land_Dream_EnemyMuseum_B_04'}:
+                    label = 'Galerie'
             elif gyaml == 'MapIconEntranceAnchor':
                 dynamic = actor.get('Dynamic')
                 if isinstance(dynamic, dict):
@@ -614,11 +639,15 @@ def projection_points(region, sources):
 
 def extract_scenes(maps, landmarks):
     scenes = {}
+    has_dream_museum = any(path in maps for path in (
+        f'Banc/DreamWorld/EnemyMuseum_{layer}{MAP_SUFFIX}' for layer in ('Static', 'Dynamic')
+    ))
     for path in sorted(maps):
         region = resource_region(path)
         if region is None or not path.endswith(MAP_SUFFIX):
             continue
-        if region != 'KokiriForest' and view_name(path) not in VIEWS:
+        frame = view_name(path)
+        if region != 'KokiriForest' and frame not in VIEWS:
             continue
         # Static and dynamic resources with the same scene and age use one frame.
         # Keep generic resource names and the other age independent.
@@ -636,8 +665,16 @@ def extract_scenes(maps, landmarks):
         points = {(labels.get(name, name), (position[0], position[2]))
                   for name, position in marks.get('points', ())
                   if region != 'SpiritTemple' or name not in SIDE_PORTALS['SpiritTemple']}
-        if region != 'KokiriForest':
+        if region != 'KokiriForest' or has_dream_museum:
             points.update(projection_points(region, sources))
+        if frame == DREAM_SCENE_VIEWS['BossRushIntervalRoom']:
+            room_areas = [actor for source in sources.values() for actor in source['root'].get('Actors', ())
+                          if actor.get('Gyaml') == 'DungeonRoomArea'
+                          and actor.get('Translate') and actor.get('Scale')]
+            if len(room_areas) == 1:
+                x, _, z = room_areas[0]['Translate']
+                dx, _, dz = room_areas[0]['Scale']
+                rooms.append(('Salle intermédiaire', (x - dx, z - dz), (x + dx, z + dz)))
         extract_levels = LEVEL_POINT_EXTRACTORS.get(region)
         levels = extract_levels(sources) if extract_levels else ()
         routes = guide_routes(sources) if region == 'HountedWasteland' else ()
@@ -681,6 +718,10 @@ def read_scenes(document):
 def view_name(resource):
     """Group scene layers within a region and age."""
     region = resource_region(resource)
+    if region == 'DreamWorld':
+        for scene, view in DREAM_SCENE_VIEWS.items():
+            if resource in (f'Banc/{region}/{scene}_{layer}{MAP_SUFFIX}' for layer in ('Static', 'Dynamic')):
+                return view
     if region == 'HyruleCastle' and resource in (
             f'Banc/{region}/{region}_{layer}{MAP_SUFFIX}' for layer in ('Static', 'Dynamic')):
         return CASTLE_OUTSKIRTS

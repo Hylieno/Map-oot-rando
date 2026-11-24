@@ -19,6 +19,9 @@ La navigation suivie réagit aux transitions de scène ou d’âge.
 Le Temple du Temps utilise les limites de la zone `TimeTemple` propres
 à chaque âge dans la scène de la Citadelle. La Chambre des Sages utilise
 sa ressource distincte et un seul plan aux deux âges.
+Le Monde des rêves distingue le musée et la salle intermédiaire par
+le nom de la ressource active. Les coffres du défi conservent leurs
+identifiants individuels quand ils partagent les mêmes coordonnées.
 Le Château d’Hyrule utilise la scène enfant. Les abords et la cour
 partagent les coordonnées natives, avec une vue distincte pour la cour
 située au-delà du plan publié. Le marqueur peut suivre ce passage.

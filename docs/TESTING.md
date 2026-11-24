@@ -1,5 +1,12 @@
 # Validation
 
+Les dix identifiants du Monde des rêves correspondent aux dix acteurs
+de la salle intermédiaire. Les acteurs partagent la même position.
+Le test d’interface couvre la navigation depuis le lit, le passage
+en direct du musée à la salle, le menu des coffres superposés et
+la disparition du marqueur en arène. Le suivi utilise ici des poses
+simulées.
+
 Les scènes publiques de la Citadelle et de la Chambre des Sages
 confirment quatre des cinq placements du catalogue du Temple du Temps.
 Les cinématiques donnent la position de Link pour les Flèches de
