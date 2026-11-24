@@ -212,19 +212,19 @@ NEIGHBORS = {
 }
 SIDE_PORTALS = {
     'GerudoTrainingGround': {
-        TRAINING_TO_WALKWAY: ('GerudoTrainingGround', TRAINING_VIEWS[1], 'Passerelle'),
-        TRAINING_TO_STATUE: ('GerudoTrainingGround', TRAINING_VIEWS[0], 'Salle de la statue'),
+        TRAINING_TO_WALKWAY: ('GerudoTrainingGround', TRAINING_VIEWS[1], 'Passerelle', TRAINING_TO_STATUE),
+        TRAINING_TO_STATUE: ('GerudoTrainingGround', TRAINING_VIEWS[0], 'Salle de la statue', TRAINING_TO_WALKWAY),
     },
     'DreamWorld': {
-        'Organisateur du défi': ('DreamWorld', DREAM_SCENE_VIEWS['BossRushIntervalRoom'], 'Défi des boss'),
+        'Organisateur du défi': ('DreamWorld', DREAM_SCENE_VIEWS['BossRushIntervalRoom'], 'Défi des boss', None),
     },
     'DesertColossus': {
-        'spirit_temple_left_hand_entrance': ('SpiritTemple', SPIRIT_VIEWS[2], 'Temple · main gauche'),
-        'spirit_temple_right_hand_entrance': ('SpiritTemple', SPIRIT_VIEWS[2], 'Temple · main droite'),
+        'spirit_temple_left_hand_entrance': ('SpiritTemple', SPIRIT_VIEWS[2], 'Temple · main gauche', 'left_hand_entrance'),
+        'spirit_temple_right_hand_entrance': ('SpiritTemple', SPIRIT_VIEWS[2], 'Temple · main droite', 'right_hand_entrance'),
     },
     'SpiritTemple': {
-        'left_hand_entrance': ('DesertColossus', None, 'Colosse · main gauche'),
-        'right_hand_entrance': ('DesertColossus', None, 'Colosse · main droite'),
+        'left_hand_entrance': ('DesertColossus', None, 'Colosse · main gauche', 'spirit_temple_left_hand_entrance'),
+        'right_hand_entrance': ('DesertColossus', None, 'Colosse · main droite', 'spirit_temple_right_hand_entrance'),
     },
 }
 KAKARIKO_ENTRANCES = {

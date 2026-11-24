@@ -75,6 +75,7 @@ class MapApplication:
         self.use_link = Event()
         self.fitted_scale = self.viewport.scale
         self.selected = None
+        self.arrival = None
         self.drag = None
         self.query = tk.StringVar()
         self.resource = tk.StringVar()
@@ -622,7 +623,7 @@ class MapApplication:
             self.manual_button.state(['disabled'])
 
     def save_diagnostic(self):
-        path = filedialog.asksaveasfilename(parent=self.root, initialfile='kokiri-diagnostic.json',
+        path = filedialog.asksaveasfilename(parent=self.root, initialfile='diagnostic-carte.json',
                                             defaultextension='.json', filetypes=[('Diagnostic JSON', '*.json')])
         if not path:
             return
@@ -630,6 +631,24 @@ class MapApplication:
         diagnostic = {key: self.document[key] for key in (
             'schema_version', 'region', 'regions', 'upstream_revision', 'provenance',
             'locations', 'scenes', 'diagnostics', 'map_capture_candidates') if key in self.document}
+        coverage = {view: {'source': background.source, 'image_size': background.image.size,
+                           'checked': 0, 'outside': []}
+                    for view, background in self.aerial.items()
+                    if (background.source or '').startswith('field-atlas')}
+        for row in self.locations:
+            view = location_view(row)
+            if row.position is None or view not in coverage:
+                continue
+            report = coverage[view]
+            background = self.aerial[view]
+            pixel = background.image_point(row.project())
+            outcome = background.atlas_coverage(pixel)
+            report['checked'] += 1
+            if outcome != 'drawn':
+                report['outside'].append(dict(id=row.id, position=row.position, entrance=row.entrance,
+                                              pixel=tuple(round(value, 2) for value in pixel),
+                                              reason=outcome))
+        diagnostic['atlas_coverage'] = coverage
         try:
             Path(path).write_text(json.dumps(diagnostic, ensure_ascii=False, indent=2), encoding='utf-8')
         except OSError as error:
@@ -899,12 +918,12 @@ class MapApplication:
             candidates = (BURNT_VILLAGE, *candidates)
         return next((view for view in candidates if view in self.views), None)
 
-    def open_neighbor(self, region, *, view=None):
+    def open_neighbor(self, region, *, view=None, arrival=None):
         if view is None:
             view = self.browse_view(region) if self.overview_open else self.view_for_region(region)
         if view:
             self.resource.set(view)
-            self.resource_changed(manual=False)
+            self.resource_changed(manual=False, arrival=arrival)
 
     def browse_view(self, region):
         age = self.navigation_age if self.overview_open else None
@@ -991,8 +1010,9 @@ class MapApplication:
         else:
             self.floor_picker.pack_forget()
 
-    def resource_changed(self, *, manual=True):
+    def resource_changed(self, *, manual=True, arrival=None):
         self.overview_open = False
+        self.arrival = arrival
         if manual and self.save_age is not None:
             self.follow_age.set(False)
         self.selected = None
@@ -1177,7 +1197,7 @@ class MapApplication:
         self.markers = {}
         self.navigation_markers = {}
         self.portal_views = {}
-        self.portal_titles = {}
+        self.local_portals = {}
         self.world_menus = {}
         width, height = self.canvas.winfo_width(), self.canvas.winfo_height()
         if self.overview_open:
@@ -1204,11 +1224,11 @@ class MapApplication:
                     portal_scene = self.scenes.get(GORON_VIEWS[age][0], {})
                 points = {tuple(p) for label, p in portal_scene.get('points', ()) if label == portal}
                 if len(points) == 1 and self.view_for_region(neighbor):
-                    exits[portal] = (neighbor, points.pop(), REGION_NAMES[neighbor], None)
-            for portal, (neighbor, floor, title) in SIDE_PORTALS.get(region, {}).items():
+                    exits[portal] = (neighbor, points.pop(), REGION_NAMES[neighbor], None, None)
+            for portal, (neighbor, floor, title, arrival) in SIDE_PORTALS.get(region, {}).items():
                 points = {tuple(p) for label, p in (scene or {}).get('points', ()) if label == portal}
                 if len(points) == 1 and self.view_for_region(neighbor) and (floor is None or floor in self.views):
-                    exits[portal] = (neighbor, points.pop(), title, floor)
+                    exits[portal] = (neighbor, points.pop(), title, floor, arrival)
         heading_color = '#d2e1da'
         if aerial:
             self.canvas.configure(background=ATLAS_BACKGROUND)
@@ -1256,18 +1276,21 @@ class MapApplication:
                        else f'Schéma X/Z | Grille : {step:g} unités')
         self.canvas.create_text(12, 12, anchor='nw', fill=heading_color, text=heading)
         exit_names = {}
-        for neighbor, exit_point, exit_name, floor in exits.values():
+        for portal, (neighbor, exit_point, exit_name, floor, arrival) in exits.items():
             if aerial and not aerial.covers(exit_point):
                 continue
             x, y = self.viewport.screen(exit_point)
+            if portal == self.arrival:
+                self.canvas.create_oval(x-14, y-14, x+14, y+14, outline='#ffe19b', width=2,
+                                        tags='portal-arrival')
             marker = self.canvas.create_polygon(x, y-9, x+9, y, x, y+9, x-9, y,
                                                 fill='#147c82', outline='#ebfbef', width=2,
                                                 tags=('zone-navigation',))
             self.navigation_markers[marker] = neighbor
-            self.portal_titles[marker] = exit_name
+            self.local_portals[marker] = (exit_name, neighbor, floor, arrival)
             if floor:
                 self.portal_views[marker] = floor
-            exit_names[exit_name] = (neighbor, floor)
+            exit_names[exit_name] = (exit_name, neighbor, floor, arrival)
             captions.append((exit_name, x, y - 16))
         rows = [row for row in self.visible if location_view(row) == self.resource.get()
                 and row.position is not None
@@ -1303,9 +1326,9 @@ class MapApplication:
             if row is not None:
                 self.markers[label] = row
             elif name in exit_names:
-                neighbor, floor = exit_names[name]
+                _, neighbor, floor, _ = exit_names[name]
                 self.navigation_markers[label] = neighbor
-                self.portal_titles[label] = name
+                self.local_portals[label] = exit_names[name]
                 if floor:
                     self.portal_views[label] = floor
         if self.link and self.resource.get() == self.link_view():
@@ -1317,6 +1340,7 @@ class MapApplication:
     def choose(self, row):
         self.selected = row
         if row.position is not None:
+            self.arrival = None
             from_overview = self.overview_open
             self.overview_open = False
             target = location_view(row)
@@ -1373,9 +1397,8 @@ class MapApplication:
         hits = self.canvas.find_overlapping(event.x-3, event.y-3, event.x+3, event.y+3)
         checks = dict.fromkeys(self.markers[item] for item in reversed(hits)
                                if item in self.markers and 'check-pin' in self.canvas.gettags(item))
-        portals = dict.fromkeys((self.portal_titles[item], self.navigation_markers[item],
-                                self.portal_views.get(item))
-                                for item in reversed(hits) if item in self.portal_titles)
+        portals = dict.fromkeys(self.local_portals[item] for item in reversed(hits)
+                                if item in self.local_portals)
         if portals and len(checks) + len(portals) > 1:
             self.choose_overlapping(checks, event.x_root, event.y_root, portals=portals)
             return
@@ -1384,7 +1407,8 @@ class MapApplication:
                 self.choose_world_destination(self.world_menus[item], event.x_root, event.y_root)
                 return
             if item in self.navigation_markers:
-                self.open_neighbor(self.navigation_markers[item], view=self.portal_views.get(item))
+                arrival = self.local_portals[item][3] if item in self.local_portals else None
+                self.open_neighbor(self.navigation_markers[item], view=self.portal_views.get(item), arrival=arrival)
                 return
             if item in self.markers:
                 if len(checks) > 1 and 'check-pin' in self.canvas.gettags(item):
@@ -1401,9 +1425,10 @@ class MapApplication:
         for row in rows:
             label = row.name if names[row.name] == 1 else f'{row.name} · {row.id}'
             self.marker_menu.add_command(label=label, command=lambda result=row: self.choose(result))
-        for title, region, view in portals:
+        for title, region, view, arrival in portals:
             self.marker_menu.add_command(label=title,
-                                         command=lambda target=region, floor=view: self.open_neighbor(target, view=floor))
+                                         command=lambda target=region, floor=view, anchor=arrival:
+                                         self.open_neighbor(target, view=floor, arrival=anchor))
         self.post_marker_menu(x, y)
 
     def choose_world_destination(self, destinations, x, y):

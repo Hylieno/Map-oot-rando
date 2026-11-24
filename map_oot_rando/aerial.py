@@ -50,6 +50,19 @@ class AerialImage:
     def image_point(self, world_point):
         return apply(self.world_to_image, world_point)
 
+    def atlas_coverage(self, pixel):
+        """Compare a projected point to Field Atlas linework and fills."""
+        x, y = pixel
+        width, height = self.image.size
+        if not (0 <= x < width and 0 <= y < height):
+            return 'outside_image'
+        x, y = int(x), int(y)
+        margin = 4
+        patch = self.image.crop((max(0, x-margin), max(0, y-margin),
+                                 min(width, x+margin+1), min(height, y+margin+1)))
+        # The plans share a dark navy grid and brighter outlines and fills.
+        return 'drawn' if any(high > 83 for _, high in patch.getextrema()) else 'outside_drawing'
+
     def render_image_view(self, viewport, size, *, fillcolor, blend_paper=False):
         """Show the raster upright with screen navigation in image pixels."""
         s = viewport.scale

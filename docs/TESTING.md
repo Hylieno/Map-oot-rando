@@ -1,5 +1,10 @@
 # Validation
 
+Le test Tk vérifie les deux passages des mains du Colosse dans les deux
+sens et la position de l’anneau à chaque arrivée. Le test de diagnostic
+vérifie l’écart au dessin, le bord de l’image et la projection d’une
+grotte à partir de son entrée.
+
 Le test d’export retrouve le vendeur Mojo du cratère dans la scène
 enfant et vérifie son association à l’identifiant de vente OotrR.
 Le scan des scènes publiques et le fond Field Atlas ont confirmé

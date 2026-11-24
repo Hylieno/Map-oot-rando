@@ -1,5 +1,10 @@
 # Architecture et audit initial
 
+Le diagnostic projette les coordonnées des marqueurs sur les fonds
+Field Atlas déjà chargés. Pour les marqueurs proches d’un bord, il examine
+le dessin dans un voisinage de quatre pixels. Les coordonnées d’un acteur
+et celles de l’entrée affichée figurent séparément.
+
 Les récompenses de dialogue utilisent les acteurs de leur scène pour
 placer les marqueurs. Le vendeur Mojo du cratère est repéré dans la
 scène enfant par son événement de vente. La collecte suit le même

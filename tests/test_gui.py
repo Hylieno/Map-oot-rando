@@ -181,6 +181,43 @@ class GuiTests(unittest.TestCase):
         app.resource_changed()
         self.assertFalse(app.canvas.find_withtag('aerial'))
 
+    def test_diagnostic_distinguishes_plan_edges_from_undrawn_checks(self):
+        import json
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from unittest.mock import patch
+
+        from PIL import Image, ImageDraw
+        from map_oot_rando.aerial import AerialImage
+
+        app = self.app
+        doc = demo_document()
+        resource = doc['locations'][0]['resource']
+        doc['locations'][0]['position'] = (20, 0, 20)
+        doc['locations'][1]['position'] = (45, 0, 45)
+        doc['locations'][2]['position'] = (105, 0, 50)
+        doc['locations'][3].update(position=(150, -6, 92), entrance=(22, 0, 22))
+        app.load(doc)
+        plan = Image.new('RGB', (100, 100), '#0d1f2e')
+        ImageDraw.Draw(plan).rectangle((10, 10, 30, 30), fill='#1f5577')
+        points = [(0, 0), (100, 0), (0, 100)]
+        app.aerial[resource] = AerialImage(plan, points, points, source='field-atlas-fixture')
+
+        with TemporaryDirectory() as folder:
+            path = Path(folder) / 'diagnostic.json'
+            with patch('map_oot_rando.gui.filedialog.asksaveasfilename', return_value=path):
+                app.save_diagnostic()
+            diagnostic = json.loads(path.read_text(encoding='utf-8'))
+
+        self.assertNotIn('aerial', diagnostic)
+        self.assertEqual(set(diagnostic['atlas_coverage']), {resource})
+        coverage = diagnostic['atlas_coverage'][resource]
+        self.assertEqual(coverage['image_size'], [100, 100])
+        self.assertEqual(coverage['checked'], 4)
+        self.assertEqual([(row['id'], row['pixel'], row['reason']) for row in coverage['outside']],
+                         [('SIMULATED#1', [45, 45], 'outside_drawing'),
+                          ('SIMULATED#2', [105, 50], 'outside_image')])
+
     def test_kokiri_age_merges_layers_and_lists_uncovered_checks(self):
         from PIL import Image
         from map_oot_rando.aerial import AerialImage
@@ -1125,26 +1162,46 @@ class GuiTests(unittest.TestCase):
         outside, temple = 'DesertColossus', 'SpiritTemple'
         colossus = 'Banc/DesertColossus/DesertColossus_Adult_Dynamic.bcett.byml.zs'
         interior = 'Banc/SpiritTemple/SpiritTemple_Dynamic.bcett.byml.zs'
+        hands = {'left': ((-165, -16), (56, 44)), 'right': ((-164, 37), (-56, 44))}
         doc = dict(demo_document(), provenance='ootrr-scan', regions=['KokiriForest', outside, temple],
                    locations=[], scenes={
-                       colossus: {'rooms': [], 'points': [('Vers le Temple de l’Esprit', (-161, 10)),
-                                                         ('spirit_temple_right_hand_entrance', (-165, 36))]},
+                       colossus: {'rooms': [], 'points': [
+                           ('Vers le Temple de l’Esprit', (-161, 10)),
+                           *((f'spirit_temple_{hand}_hand_entrance', entry)
+                             for hand, (entry, _) in hands.items()),
+                       ]},
                        interior: {'rooms': [], 'points': [('Vers le Colosse du désert', (0, 13))],
-                                  'level_points': [(2, 'right_hand_entrance', (-56, 44)),
-                                                   (4, 'Arène de Twinrova', (0, -158))]},
+                                  'level_points': [
+                                      (4, 'Arène de Twinrova', (0, -158)),
+                                      *((2, f'{hand}_hand_entrance', entry)
+                                        for hand, (_, entry) in hands.items()),
+                                  ]},
                    })
         self.enterContext(patch.object(app, 'ensure_atlas'))
         app.load(doc)
         app.resource.set(REGION_VIEWS[outside]['Adult'])
         app.resource_changed()
-        x, y = app.viewport.screen((-165, 36))
-        app.press(SimpleNamespace(x=round(x), y=round(y)))
-        self.assertEqual(app.resource.get(), SPIRIT_VIEWS[2])
-        self.assertIn(outside, app.navigation_markers.values())
-        app.open_neighbor(outside)
-        self.assertEqual(app.resource.get(), REGION_VIEWS[outside]['Adult'])
+        def click(point):
+            x, y = app.viewport.screen(point)
+            app.press(SimpleNamespace(x=round(x), y=round(y)))
+
+        def check_arrival(point):
+            marker, = app.canvas.find_withtag('portal-arrival')
+            x0, y0, x1, y1 = app.canvas.coords(marker)
+            x, y = app.viewport.screen(point)
+            self.assertAlmostEqual((x0 + x1) / 2, x)
+            self.assertAlmostEqual((y0 + y1) / 2, y)
+
+        for exterior, entrance in hands.values():
+            click(exterior)
+            self.assertEqual(app.resource.get(), SPIRIT_VIEWS[2])
+            check_arrival(entrance)
+            click(entrance)
+            self.assertEqual(app.resource.get(), REGION_VIEWS[outside]['Adult'])
+            check_arrival(exterior)
         app.open_neighbor(temple)
         self.assertEqual(app.resource.get(), SPIRIT_VIEWS[0])
+        self.assertFalse(app.canvas.find_withtag('portal-arrival'))
         app.update_link(LinkPosition(temple, 'Adult', 0, 100, 0, 0))
         app.update_link(LinkPosition(temple, 'Adult', 0, 145, -157, 0))
         self.assertEqual(app.resource.get(), SPIRIT_VIEWS[4])

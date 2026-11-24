@@ -132,8 +132,9 @@ Le passage ouest du Désert hanté mène au Colosse du désert aux deux
 âges. Le fond Field Atlas se charge automatiquement. Le coffre
 souterrain apparaît à l’entrée de sa grotte.
 Le Colosse donne accès au Temple de l’Esprit par l’entrée principale
-et les deux passages des mains. Le temple affiche quatre fonds Field
-Atlas et un schéma de l’arène de Twinrova.
+et les deux passages des mains. Un anneau doré indique la porte d’arrivée
+de chaque main, dans les deux sens. Le temple affiche quatre fonds
+Field Atlas et un schéma de l’arène de Twinrova.
 
 Le lac Hylia possède son fond Field Atlas. On y accède depuis la
 plaine et la Vallée Gerudo aux deux âges, ou depuis le Domaine Zora
@@ -189,7 +190,9 @@ la sauvegarde ou la mémoire. Le menu de zone permet de choisir la variante
 après l’incendie quand le suivi ne fournit pas cet état.
 
 **Diagnostic de la carte…** exporte les IDs et les coordonnées pour vérifier une
-seed. Le rapport exclut l’image, l’identifiant de seed et la sauvegarde.
+seed. Pour les fonds Field Atlas déjà chargés, il indique quels marqueurs se
+projettent en dehors de l’image ou loin du trait. Le rapport exclut l’image,
+l’identifiant de seed et la sauvegarde.
 
 ## Métadonnées locales
 
