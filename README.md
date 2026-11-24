@@ -140,7 +140,9 @@ Le passage ouest du Désert hanté mène au Colosse du désert aux deux
 souterrain apparaît à l’entrée de sa grotte.
 Le Colosse donne accès au Temple de l’Esprit par l’entrée principale
 et les deux passages des mains. Un anneau doré indique où Link apparaît
-après chaque passage, dans les deux sens. Le temple affiche quatre fonds
+après chaque passage, dans les deux sens. Il indique aussi les arrivées
+pour les passages du Bosquet sacré et du lac Hylia vers leurs temples.
+Le Temple de l’Esprit affiche quatre fonds
 Field Atlas et un schéma de l’arène de Twinrova.
 
 Le lac Hylia possède son fond Field Atlas. On y accède depuis la

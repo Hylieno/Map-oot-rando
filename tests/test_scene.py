@@ -42,6 +42,25 @@ class SceneTests(unittest.TestCase):
                 row = Location('test', 'Check', 'test', path, point, region=region, dungeon_room=room)
                 self.assertEqual(location_view(row), WATER_VIEWS[floor])
 
+    def test_water_temple_arrival_at_lake_uses_the_shared_field_scene(self):
+        from map_oot_rando.scene import REGION_VIEWS, WATER_VIEWS, group_scenes
+
+        field = 'Banc/HyruleField/HyruleField_Adult_Dynamic.bcett.byml.zs'
+        water = 'Banc/WaterTemple/WaterTemple_Dynamic.bcett.byml.zs'
+        maps = {
+            field: {'root': {'Actors': [
+                dict(Gyaml='StartPos', Name='OutsideOfWaterTemple', Translate=(-183.1, 103.5, 496.2)),
+            ]}},
+            water: {'root': {'Actors': [
+                dict(Gyaml='StartPos', Name='WaterTemple_FromLakeHylia', Translate=(-4.5, 118.6, 43.61)),
+            ]}},
+        }
+        scenes = group_scenes(extract_scenes(maps, lambda _: {}))
+        self.assertEqual(scenes[REGION_VIEWS['LakeHylia']['Adult']]['points'],
+                         [('OutsideOfWaterTemple', (-183.1, 496.2))])
+        self.assertEqual(scenes[REGION_VIEWS['HyruleField']['Adult']]['points'], [])
+        self.assertEqual(scenes[WATER_VIEWS[0]]['points'], [('WaterTemple_FromLakeHylia', (-4.5, 43.61))])
+
     def test_spirit_temple_separates_the_statue_balcony_from_the_lower_room(self):
         from map_oot_rando.model import Location
         from map_oot_rando.scene import SPIRIT_VIEWS, location_view

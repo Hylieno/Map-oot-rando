@@ -1,5 +1,8 @@
 # Checkpoint — 24 novembre 2026
 
+Les entrées principales des temples de la Forêt, de l’Esprit et de
+l’Eau indiquent le point d’apparition de Link dans les deux sens.
+
 Les zones voisines restent accessibles dans une fenêtre étroite.
 La barre affiche un menu quand les destinations ne tiennent plus.
 Les commandes de suivi et de mémoire peuvent aussi passer à la ligne.

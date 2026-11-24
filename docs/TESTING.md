@@ -1,5 +1,10 @@
 # Validation
 
+Les dix traversées des entrées principales des temples de la Forêt,
+de l’Esprit et de l’Eau ont été vérifiées dans la fenêtre avec les
+scènes publiques et les fonds correspondants. Le test d’import
+place le retour du Temple de l’Eau dans la vue du lac Hylia.
+
 Le test Tk réduit puis agrandit la fenêtre, contrôle le retour des
 boutons et ouvre un donjon depuis le menu compact. Il vérifie aussi
 la visibilité du menu et du sélecteur d’étage dans le donjon.

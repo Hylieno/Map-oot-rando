@@ -243,6 +243,12 @@ PORTAL_ARRIVAL_STARTS = {
     ('SacredForestMeadow', NEIGHBORS['SacredForestMeadow']['LostWood']): ('SacredForestMeadow_FrontOfLostWood',),
     ('KokiriForest', NEIGHBORS['KokiriForest']['InsideTheDekuTree']): ('FrontDekuTree',),
     ('InsideTheDekuTree', NEIGHBORS['InsideTheDekuTree']['KokiriForest']): ('Entrance',),
+    ('SacredForestMeadow', NEIGHBORS['SacredForestMeadow']['ForestTemple']): ('OutsideOfForestTemple',),
+    ('ForestTemple', NEIGHBORS['ForestTemple']['SacredForestMeadow']): ('ForestTemple',),
+    ('DesertColossus', NEIGHBORS['DesertColossus']['SpiritTemple']): ('DesertColossus_FromSpiritTempleEntrance',),
+    ('SpiritTemple', NEIGHBORS['SpiritTemple']['DesertColossus']): ('SpiritTemple_Entrance',),
+    ('LakeHylia', NEIGHBORS['LakeHylia']['WaterTemple']): ('OutsideOfWaterTemple',),
+    ('WaterTemple', NEIGHBORS['WaterTemple']['LakeHylia']): ('WaterTemple_FromLakeHylia',),
 }
 PORTAL_START_NAMES = {}
 for (zone, _), names in PORTAL_ARRIVAL_STARTS.items():
@@ -500,7 +506,8 @@ def spirit_level_points(sources):
         ('DungeonRoomCenterAnchor', 8163808957952677095): (4, 'Arène de Twinrova'),
     }
     anchors.update({('StartPos', name): (2, name)
-                    for (region, _), names in PORTAL_ARRIVAL_STARTS.items() if region == 'SpiritTemple'
+                    for (region, portal), names in PORTAL_ARRIVAL_STARTS.items()
+                    if region == 'SpiritTemple' and portal in SIDE_PORTALS[region]
                     for name in names})
     return {(*anchors[key], (position[0], position[2]))
             for source in sources.values() for actor in source['root'].get('Actors', ())
@@ -581,7 +588,11 @@ def guide_routes(sources):
 
 def projection_points(region, sources):
     points = set()
-    arrivals = PORTAL_START_NAMES.get(region, ()) if region != 'SpiritTemple' else ()
+    arrivals = PORTAL_START_NAMES.get(region, set())
+    if region == 'SpiritTemple':
+        arrivals = set(PORTAL_ARRIVAL_STARTS[region, NEIGHBORS[region]['DesertColossus']])
+    elif region == 'HyruleField':
+        arrivals = arrivals | PORTAL_START_NAMES['LakeHylia']
     for path, source in sources.items():
         for actor in source['root'].get('Actors', ()):
             position = actor.get('Translate')
