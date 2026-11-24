@@ -828,29 +828,54 @@ class GuiTests(unittest.TestCase):
 
     def test_ice_cavern_has_one_view_and_uses_adult_fountain_portal(self):
         from unittest.mock import patch
-        from map_oot_rando.scene import REGION_VIEWS
+        from map_oot_rando.scene import (FOUNTAIN_ICE_BACKDOOR, ICE_CAVERN_BACKDOOR,
+                                        NEIGHBORS, REGION_VIEWS, extract_scenes)
 
         app = self.app
-        doc = dict(demo_document(), provenance='ootrr-scan', locations=[],
-                   regions=['KokiriForest', 'ZoraFountain', 'IceCavern'])
-        native = 'Banc/ZoraFountain/ZoraFountain_{}_Static.bcett.byml.zs'
-        doc['scenes'] = {
-            native.format('Child'): {'rooms': [], 'points': [('Rive', (0, 0))]},
-            native.format('Adult'): {'rooms': [], 'points': [('Vers la Caverne de glace', (47, -66))]},
-            'Banc/IceCavern/IceCavern_Static.bcett.byml.zs':
-                {'rooms': [], 'points': [('Vers la Fontaine Zora', (0, 105))]},
+        fountain, cavern = 'ZoraFountain', 'IceCavern'
+        doc = dict(demo_document(), provenance='ootrr-scan', locations=[], regions=['KokiriForest', fountain, cavern])
+        native = f'Banc/{fountain}/{fountain}_{{}}_Static.bcett.byml.zs'
+        maps = {
+            native.format('Adult'): {'root': {'Actors': [
+                dict(Gyaml='FieldAndDungeonEntranceEventRequestActor', Name='ZoraFountain_FromIceCavern',
+                     Translate=(47, 120, -70)),
+                dict(Gyaml='FieldAndDungeonEntranceEventRequestActor', Name='ZoraFountain_FromIceCavern_Backdoor',
+                     Translate=(53, 99, -56)),
+                dict(Gyaml='StartPos', Name='ZoraFountain_FromIceCavern', Translate=(47, 108, -63)),
+                dict(Gyaml='StartPos', Name='ZoraFountain_FromIceCavern_Backdoor', Translate=(42, 88, -54)),
+            ]}},
+            f'Banc/{cavern}/{cavern}_Dynamic.bcett.byml.zs': {'root': {'Actors': [
+                dict(Gyaml='MapIconEntranceAnchor', Dynamic={'Location': fountain}, Translate=(17, 102, 105)),
+                dict(Gyaml='MapIconEntranceAnchor', Hash=17335166050006259965, Translate=(-48, 97, 78)),
+                dict(Gyaml='StartPos', Name='IceCavern_FromZoraFountain', Translate=(17, 102, 99)),
+                dict(Gyaml='StartPos', Name='IceCavern_FromZoraFountain_Backdoor', Translate=(-47, 98, 69)),
+            ]}},
         }
+        doc['scenes'] = extract_scenes(maps, lambda _: {})
+        doc['scenes'][native.format('Child')] = {'rooms': [], 'points': [('Rive', (0, 0))]}
         self.enterContext(patch.object(app, 'ensure_atlas'))
         app.load(doc)
-        self.assertNotIn('IceCavern', app.available_neighbors())
-        self.assertIn('IceCavern', app.world_targets())
+        self.assertNotIn(cavern, app.available_neighbors())
+        self.assertNotIn(cavern, app.navigation_markers.values())
+        self.assertIn(cavern, app.world_targets())
         app.age_buttons['Adult'].invoke()
-        self.assertIn('IceCavern', app.navigation_markers.values())
-        app.open_neighbor('IceCavern')
-        self.assertEqual(app.resource.get(), REGION_VIEWS['IceCavern'][None])
-        self.assertFalse(app.floor_picker.winfo_ismapped())
-        app.open_neighbor('ZoraFountain')
-        self.assertEqual(app.resource.get(), REGION_VIEWS['ZoraFountain']['Adult'])
+
+        def click_portal(target, arrival, spawn):
+            marker, = (item for item in app.canvas.find_withtag('zone-navigation')
+                       if any(action[1] == target and action[3] == arrival for action in app.local_portals[item]))
+            left, top, right, bottom = app.canvas.bbox(marker)
+            app.press(SimpleNamespace(x=(left+right)//2, y=(top+bottom)//2))
+            line, = app.canvas.find_withtag('portal-approach')
+            self.assertEqual(tuple(app.canvas.coords(line)[-2:]), app.viewport.screen(spawn))
+
+        for to_cavern, to_fountain, cavern_spawn, fountain_spawn in (
+                (NEIGHBORS[cavern][fountain], NEIGHBORS[fountain][cavern], (17, 99), (47, -63)),
+                (ICE_CAVERN_BACKDOOR, FOUNTAIN_ICE_BACKDOOR, (-47, 69), (42, -54))):
+            click_portal(cavern, to_cavern, cavern_spawn)
+            self.assertEqual(app.resource.get(), REGION_VIEWS[cavern][None])
+            self.assertFalse(app.floor_picker.winfo_ismapped())
+            click_portal(fountain, to_fountain, fountain_spawn)
+            self.assertEqual(app.resource.get(), REGION_VIEWS[fountain]['Adult'])
 
     def test_castle_child_passage_and_courtyard_survive_following_age(self):
         from unittest.mock import patch

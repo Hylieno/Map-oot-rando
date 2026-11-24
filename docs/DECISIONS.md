@@ -1,5 +1,8 @@
 # Décisions
 
+- Caverne de glace. L’entrée principale et le passage secondaire
+  ont chacun leur marqueur et leur point d’arrivée dans la vue adulte.
+
 - Navigation en fenêtre étroite. Les destinations passent dans un
   menu. Les commandes de suivi passent au besoin sur une ligne dédiée.
 

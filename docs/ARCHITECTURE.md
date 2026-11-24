@@ -9,6 +9,8 @@ lorsque leurs commandes dépassent la largeur disponible.
 Les entrées des temples de la Forêt, de l’Esprit et de l’Eau utilisent
 les points d’apparition des scènes. Le retour du Temple de l’Eau
 appartient au lac Hylia dans la scène partagée de la plaine.
+La Caverne de glace possède deux passages distincts vers la Fontaine
+Zora. Chaque passage sélectionne son propre repère de retour.
 
 L’import lit la table facultative `MapParam` de la version effective du
 NUP. Les coffres et les Skulltulas sont associés à un étage par leur

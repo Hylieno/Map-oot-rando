@@ -1,5 +1,10 @@
 # Checkpoint — 24 novembre 2026
 
+Les deux passages entre la Fontaine Zora et la Caverne de glace
+sont cliquables et indiquent leur arrivée. La Caverne Dodongo,
+le Temple du Feu, le Temple de l’Ombre, le Puits et Jabu-Jabu
+indiquent aussi leurs points d’arrivée dans les deux sens.
+
 Les entrées principales des temples de la Forêt, de l’Esprit et de
 l’Eau indiquent le point d’apparition de Link dans les deux sens.
 

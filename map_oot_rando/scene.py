@@ -211,6 +211,8 @@ NEIGHBORS = {
     'InsideJabuJabuBelly': {'ZoraFountain': 'Vers la Fontaine Zora'},
     'InsideTheDekuTree': {'KokiriForest': 'Vers la forêt Kokiri'},
 }
+FOUNTAIN_ICE_BACKDOOR = 'Accès secondaire à la caverne'
+ICE_CAVERN_BACKDOOR = 'Sortie secondaire de la caverne'
 SIDE_PORTALS = {
     'GerudoTrainingGround': {
         TRAINING_TO_WALKWAY: ('GerudoTrainingGround', TRAINING_VIEWS[1], 'Passerelle', TRAINING_TO_STATUE),
@@ -226,6 +228,12 @@ SIDE_PORTALS = {
     'SpiritTemple': {
         'left_hand_entrance': ('DesertColossus', None, 'Colosse · main gauche', 'spirit_temple_left_hand_entrance'),
         'right_hand_entrance': ('DesertColossus', None, 'Colosse · main droite', 'spirit_temple_right_hand_entrance'),
+    },
+    'ZoraFountain': {
+        FOUNTAIN_ICE_BACKDOOR: ('IceCavern', None, 'Caverne de glace · passage secondaire', ICE_CAVERN_BACKDOOR),
+    },
+    'IceCavern': {
+        ICE_CAVERN_BACKDOOR: ('ZoraFountain', None, 'Fontaine Zora · passage secondaire', FOUNTAIN_ICE_BACKDOOR),
     },
 }
 PORTAL_ARRIVAL_STARTS = {
@@ -249,6 +257,20 @@ PORTAL_ARRIVAL_STARTS = {
     ('SpiritTemple', NEIGHBORS['SpiritTemple']['DesertColossus']): ('SpiritTemple_Entrance',),
     ('LakeHylia', NEIGHBORS['LakeHylia']['WaterTemple']): ('OutsideOfWaterTemple',),
     ('WaterTemple', NEIGHBORS['WaterTemple']['LakeHylia']): ('WaterTemple_FromLakeHylia',),
+    ('DeathMountainTrail', NEIGHBORS['DeathMountainTrail']['DodongoCavern']): ('MountainTrail_DodongoCavernSide',),
+    ('DodongoCavern', NEIGHBORS['DodongoCavern']['DeathMountainTrail']): ('DodongoCavern_MountainTrailSide',),
+    ('DeathMountainCrater', NEIGHBORS['DeathMountainCrater']['FireTemple']): ('OutsideOfFireTemple',),
+    ('FireTemple', NEIGHBORS['FireTemple']['DeathMountainCrater']): ('FireTemple',),
+    ('Graveyard', NEIGHBORS['Graveyard']['ShadowTemple']): ('GraveYard_ShadowTempleSide',),
+    ('ShadowTemple', NEIGHBORS['ShadowTemple']['Graveyard']): ('Entrance',),
+    ('KakarikoVillage', NEIGHBORS['KakarikoVillage']['BottomOfTheWell']): ('Kakariko_WellSide',),
+    ('BottomOfTheWell', NEIGHBORS['BottomOfTheWell']['KakarikoVillage']): ('Well_KakarikoSide',),
+    ('ZoraFountain', NEIGHBORS['ZoraFountain']['InsideJabuJabuBelly']): ('ZoraFountain_FromInsideJabuJabuBelly',),
+    ('InsideJabuJabuBelly', NEIGHBORS['InsideJabuJabuBelly']['ZoraFountain']): ('InsideJabuJabuBelly_FromZoraFountain',),
+    ('ZoraFountain', NEIGHBORS['ZoraFountain']['IceCavern']): ('ZoraFountain_FromIceCavern',),
+    ('IceCavern', NEIGHBORS['IceCavern']['ZoraFountain']): ('IceCavern_FromZoraFountain',),
+    ('ZoraFountain', FOUNTAIN_ICE_BACKDOOR): ('ZoraFountain_FromIceCavern_Backdoor',),
+    ('IceCavern', ICE_CAVERN_BACKDOOR): ('IceCavern_FromZoraFountain_Backdoor',),
 }
 PORTAL_START_NAMES = {}
 for (zone, _), names in PORTAL_ARRIVAL_STARTS.items():
@@ -614,6 +636,11 @@ def projection_points(region, sources):
                 target = {'ZoraFountain_FromIceCavern': 'IceCavern',
                           'ZoraFountain_FromInsideJabuJabuBelly': 'InsideJabuJabuBelly'}.get(actor.get('Name'))
                 label = NEIGHBORS[region].get(target)
+                if actor.get('Name') == 'ZoraFountain_FromIceCavern_Backdoor':
+                    label = FOUNTAIN_ICE_BACKDOOR
+            elif (region == 'IceCavern' and gyaml == 'MapIconEntranceAnchor'
+                  and actor.get('Hash') == 17335166050006259965):
+                label = ICE_CAVERN_BACKDOOR
             elif region == 'SacredForestMeadow':
                 label = GROVE_ANCHORS.get(gyaml)
                 if gyaml in {'Land_SacredForest_Prop_A_33', 'Land_SacredForest_Prop_A_41'}:

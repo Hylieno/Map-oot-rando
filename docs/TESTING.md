@@ -1,5 +1,11 @@
 # Validation
 
+Le test Tk extrait les deux entrées de la Caverne de glace, vérifie
+leurs points d’arrivée à l’aller et au retour, et contrôle leur
+disponibilité dans la vue adulte de la Fontaine Zora.
+Les passages de Dodongo, du Feu, de l’Ombre, du Puits et de Jabu-Jabu
+ont aussi été vérifiés avec leurs scènes publiques et leurs fonds.
+
 Les dix traversées des entrées principales des temples de la Forêt,
 de l’Esprit et de l’Eau ont été vérifiées dans la fenêtre avec les
 scènes publiques et les fonds correspondants. Le test d’import

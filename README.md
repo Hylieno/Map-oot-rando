@@ -70,6 +70,8 @@ de plongeon. Les variantes adultes partagent la même vue. Le Domaine donne
 accès à la Fontaine Zora, avec un plan Field Atlas par âge et un repère de
 passage pour les checks derrière la paroi. La Caverne de glace est
 reliée à la vue adulte de la Fontaine et possède son propre plan.
+Ses deux passages se choisissent depuis la carte, avec un point
+d’arrivée distinct pour chacun.
 Enfant, la Fontaine mène au ventre de Jabu-Jabu. Les trois niveaux ont
 leurs plans Field Atlas. Barinade, son cœur et les pots de sa salle ont une
 vue schématique dédiée. Depuis la forêt Kokiri, l’Arbre Mojo propose cinq
