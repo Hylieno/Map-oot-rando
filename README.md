@@ -145,8 +145,8 @@ Le passage immergé du lac ouvre le Temple de l’Eau au deuxième étage
 avec Link adulte. Les quatre plans Field Atlas couvrent aussi la salle
 de Morpha, au nord du rez-de-chaussée. Le suivi de Link affiche ce plan
 dès le couloir d’accès à Morpha.
-Lors de l’import, les coffres indexés dans la table des étages du jeu
-s’affichent sur leur plan Field Atlas correspondant.
+Lors de l’import, les coffres et les Skulltulas indexés dans la table
+des étages du jeu s’affichent sur leur plan Field Atlas correspondant.
 
 Le Temple du Temps se rejoint depuis la Citadelle aux deux âges.
 Sur la carte du temple, le piédestal de l’épée ouvre la Chambre des

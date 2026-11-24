@@ -173,8 +173,8 @@ def add_dungeon_rooms(rows, maps):
                 row['dungeon_room'] = next(iter(indices))
 
 
-def add_native_chest_floors(rows, map_parameters):
-    """Use the game's minimap chest index to resolve an explicit floor by actor ID."""
+def add_native_dungeon_floors(rows, map_parameters):
+    """Use the game's minimap chest and Skulltula indices to resolve floors by actor ID."""
     if not isinstance(map_parameters, dict):
         return
     indexed = {}
@@ -186,17 +186,22 @@ def add_native_chest_floors(rows, map_parameters):
         if type(first) is not int or not isinstance(floors, list):
             continue
         for number, floor in enumerate(floors, start=first):
-            boxes = floor.get('TBox') if isinstance(floor, dict) else None
-            if not isinstance(boxes, list):
+            if not isinstance(floor, dict):
                 continue
-            for box in boxes:
-                ident = box.get('InstanceID') if isinstance(box, dict) else None
-                if type(ident) is int and ident >= 0:
-                    indexed.setdefault((region, str(ident)), set()).add(number)
+            for kind in ('TBox', 'CollectSign'):
+                entries = floor.get(kind)
+                if not isinstance(entries, list):
+                    continue
+                for entry in entries:
+                    ident = entry.get('InstanceID') if isinstance(entry, dict) else None
+                    if type(ident) is int and ident >= 0:
+                        indexed.setdefault((region, str(ident)), set()).add(number)
     for row in rows:
         region, sep, suffix = row['id'].partition('#')
         if sep and row['position'] is not None and region == resource_region(row['resource']):
-            floors = indexed.get((region, suffix.partition('#')[0]), ())
+            first, _, rest = suffix.partition('#')
+            actor = rest if first == 'gs' else first
+            floors = indexed.get((region, actor), ())
             if len(floors) == 1:
                 row['dungeon_floor'] = next(iter(floors))
 

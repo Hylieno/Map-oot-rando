@@ -6,32 +6,32 @@ import unittest
 from unittest.mock import patch
 
 from map_oot_rando.export import main
-from map_oot_rando.metadata import (add_dungeon_rooms, add_native_chest_floors, add_surface_entrances, bind_catalogue,
+from map_oot_rando.metadata import (add_dungeon_rooms, add_native_dungeon_floors, add_surface_entrances, bind_catalogue,
                                    event_check_rows, export_scan, placed_check_rows)
 from map_oot_rando.model import load_metadata, select
 
 
 class ExportTests(unittest.TestCase):
-    def test_native_chest_floor_overrides_the_room_only_for_unique_actor_matches(self):
+    def test_native_floor_overrides_the_room_only_for_unique_actor_matches(self):
         from map_oot_rando.scene import WATER_VIEWS, location_view
 
         region = 'WaterTemple'
         path = f'Banc/{region}/{region}_Static.bcett.byml.zs'
         document = export_scan({
             f'{region}#{suffix}': [dict(resource=path, position=(35, 120, -5))]
-            for suffix in ('1#Drop__DropActor', '2', '3')
+            for suffix in ('1#Drop__DropActor', '2', '3', 'gs#4')
         }, {}, provenance='ootrr-scan', regions=('KokiriForest', region))
         for row in document['locations']:
             row['dungeon_room'] = 17
-        add_native_chest_floors(document['locations'], {region: {
+        add_native_dungeon_floors(document['locations'], {region: {
             'MinFloor': -1,
             'Floor': [{'TBox': [{'InstanceID': 1}, {'InstanceID': 2}]},
-                      {'TBox': []}, {'TBox': [{'InstanceID': 2}]}],
+                      {'CollectSign': [{'InstanceID': 4}]}, {'TBox': [{'InstanceID': 2}]}],
         }})
         rows = load_metadata(document)
-        self.assertEqual([row.dungeon_floor for row in rows], [-1, None, None])
+        self.assertEqual([row.dungeon_floor for row in rows], [-1, None, None, 0])
         self.assertEqual([location_view(row) for row in rows],
-                         [WATER_VIEWS[3], WATER_VIEWS[0], WATER_VIEWS[0]])
+                         [WATER_VIEWS[3], WATER_VIEWS[0], WATER_VIEWS[0], WATER_VIEWS[2]])
         self.assertEqual({row.position for row in rows}, {(35, 120, -5)})
 
     def test_gerudo_card_retains_multiple_award_sites_and_archery_retains_both_rewards(self):

@@ -18,15 +18,18 @@ def write_fixture(directory):
     updated_chest = dict(chest, Translate=[18.0, 107.0, -7.5])
     adult_pot = dict(pot, Hash=322, Translate=[16.0, 108.0, -8.0])
     water_chest = dict(chest, Hash=987, Translate=[55.5, 119.0, -9.5])
+    water_skulltula = {'Gyaml': 'Enemy_Skulltula_Gold', 'Hash': 988, 'Translate': [50.0, 120.0, -13.5]}
 
     def resource(data):
         return compressor.compress(dump({'endian': '<', 'version': 7, 'root': data}))
 
-    def scene(actor):
-        return resource({'Actors': [actor]})
+    def scene(*actors):
+        return resource({'Actors': list(actors)})
 
     def map_parameters(floor):
-        floors = [{'TBox': [{'InstanceID': 987}] if number == floor else []} for number in range(-1, 3)]
+        floors = [{'TBox': [{'InstanceID': 987}] if number == floor else [],
+                   'CollectSign': [{'InstanceID': 988}] if number == -1 else []}
+                  for number in range(-1, 3)]
         return resource({'WaterTemple': {'MinFloor': -1, 'Floor': floors}})
 
     # Both package trees start at their own root in the directory table.
@@ -39,7 +42,7 @@ def write_fixture(directory):
              (4, b'KokiriForest_Child_Dynamic.bcett.byml.zs', scene(pot)),
              (8, child_static, scene(updated_chest)),
              (8, b'KokiriForest_Adult_Dynamic.bcett.byml.zs', scene(adult_pot)),
-             (9, b'WaterTemple_Static.bcett.byml.zs', scene(water_chest)),
+             (9, b'WaterTemple_Static.bcett.byml.zs', scene(water_chest, water_skulltula)),
              (10, b'MapParam.byml.zs', map_parameters(0)),
              (11, b'MapParam.byml.zs', map_parameters(1))]
     children_by_directory = [[] for _ in directories]
@@ -75,7 +78,8 @@ def write_fixture(directory):
     checks = [{'id': 'KokiriForest#123', 'name': 'Fixture chest', 'category': 'full_chests'},
               {'id': 'KokiriForest#pots#321', 'name': 'Fixture pot', 'category': 'full_pots'},
               {'id': 'KokiriForest#pots#322', 'name': 'Fixture adult pot', 'category': 'full_pots'},
-              {'id': 'WaterTemple#987', 'name': 'Fixture Water Temple chest', 'category': 'full_chests'}]
+              {'id': 'WaterTemple#987', 'name': 'Fixture Water Temple chest', 'category': 'full_chests'},
+              {'id': 'WaterTemple#gs#988', 'name': 'Fixture Skulltula', 'category': 'full_skulltula'}]
     catalogue = {'schema_version': 1, 'seed_id': 'portable-test', 'checks': checks}
     (directory / 'checks.json').write_text(json.dumps(catalogue), encoding='utf-8')
 

@@ -7,7 +7,7 @@ import struct
 import subprocess
 import sys
 
-from .metadata import (add_dungeon_rooms, add_native_chest_floors, add_surface_entrances, bind_catalogue,
+from .metadata import (add_dungeon_rooms, add_native_dungeon_floors, add_surface_entrances, bind_catalogue,
                        event_check_rows, export_scan, placed_check_rows, world_check_rows)
 from .model import REGION_NAMES, SURFACE_MIN_Y, UPSTREAM_REVISION, resource_region
 from .scene import extract_scenes
@@ -74,7 +74,7 @@ def scan_game(path, progress=None, world_checks=(), placement_checks=()):
         document['locations'].extend(placed_check_rows(maps, placement_checks, document['locations'], eligible))
     add_surface_entrances(document['locations'], maps)
     add_dungeon_rooms(document['locations'], maps)
-    add_native_chest_floors(document['locations'], map_parameters)
+    add_native_dungeon_floors(document['locations'], map_parameters)
     for row in document['locations']:
         level = SURFACE_MIN_Y.get(resource_region(row['resource']))
         if level is not None and row['position'] is not None and row['position'][1] < level:

@@ -20,7 +20,8 @@ if __name__ == '__main__':
         expected = [('KokiriForest#123', (18, 107, -7.5), AGE_VIEWS['Child']),
                     ('KokiriForest#pots#321', (14, 106, -3), AGE_VIEWS['Child']),
                     ('KokiriForest#pots#322', (16, 108, -8), AGE_VIEWS['Adult']),
-                    ('WaterTemple#987', (55.5, 119, -9.5), WATER_VIEWS[1])]
+                    ('WaterTemple#987', (55.5, 119, -9.5), WATER_VIEWS[1]),
+                    ('WaterTemple#gs#988', (50, 120, -13.5), WATER_VIEWS[3])]
         sys.exit(0 if checks == expected and not document['diagnostics'] else 1)
     if len(sys.argv) == 4 and sys.argv[1] == '--check-bundled-gui':
         from tkinter import Tk
@@ -50,12 +51,13 @@ if __name__ == '__main__':
             adult_markers = {app.markers[item].id for item in app.canvas.find_withtag('check-pin')}
             if app.resource.get() != AGE_VIEWS['Adult'] or adult_markers != {'KokiriForest#pots#322'} or callback_errors:
                 sys.exit(1)
-            app.query.set('WaterTemple#987')
-            app.choose_first()
-            root.update()
-            dungeon_markers = {app.markers[item].id for item in app.canvas.find_withtag('check-pin')}
-            if app.resource.get() != WATER_VIEWS[1] or dungeon_markers != {'WaterTemple#987'} or callback_errors:
-                sys.exit(1)
+            for ident, view in (('WaterTemple#987', WATER_VIEWS[1]), ('WaterTemple#gs#988', WATER_VIEWS[3])):
+                app.query.set(ident)
+                app.choose_first()
+                root.update()
+                dungeon_markers = {app.markers[item].id for item in app.canvas.find_withtag('check-pin')}
+                if app.resource.get() != view or dungeon_markers != {ident} or callback_errors:
+                    sys.exit(1)
         finally:
             root.destroy()
         sys.exit(0)

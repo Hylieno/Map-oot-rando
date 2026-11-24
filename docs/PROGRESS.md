@@ -1,8 +1,8 @@
 # Checkpoint — 24 novembre 2026
 
-Les coffres indexés dans la table d’étages du jeu utilisent leur étage
-natif sur les plans Field Atlas. L’import privilégie les données de
-la mise à jour du NUP.
+Les coffres et les Skulltulas indexés dans la table d’étages du jeu
+utilisent leur étage natif sur les plans Field Atlas. L’import
+privilégie les données de la mise à jour du NUP.
 
 Le repère de l’organisateur du Monde des rêves ouvre le défi des boss
 ou le retour au lit de Link à Kokiri.
