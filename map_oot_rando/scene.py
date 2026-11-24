@@ -220,6 +220,7 @@ WINDMILL_TO_GRAVE = 'Passage vers la tombe de Dampé'
 GRAVE_TO_WINDMILL = 'Passage vers le moulin'
 GRAVE_TO_TOMB = 'Entrée de la tombe de Dampé'
 TOMB_TO_GRAVE = 'Remontée vers le cimetière'
+DREAM_CHALLENGE_ARRIVAL = 'Arrivée du défi'
 SIDE_PORTALS = {
     'GerudoTrainingGround': {
         TRAINING_TO_WALKWAY: ('GerudoTrainingGround', TRAINING_VIEWS[1], 'Passerelle', TRAINING_TO_STATUE),
@@ -228,7 +229,8 @@ SIDE_PORTALS = {
         TRAINING_TO_MAZE: ('GerudoTrainingGround', TRAINING_VIEWS[0], 'Labyrinthe inférieur', TRAINING_TO_CEILING),
     },
     'DreamWorld': {
-        'Organisateur du défi': ('DreamWorld', DREAM_SCENE_VIEWS['BossRushIntervalRoom'], 'Défi des boss', None),
+        'Organisateur du défi': ('DreamWorld', DREAM_SCENE_VIEWS['BossRushIntervalRoom'],
+                                 'Défi des boss', DREAM_CHALLENGE_ARRIVAL),
     },
     'DesertColossus': {
         'spirit_temple_left_hand_entrance': ('SpiritTemple', SPIRIT_VIEWS[2], 'Temple · main gauche', 'left_hand_entrance'),
@@ -268,6 +270,9 @@ PORTAL_ARRIVAL_STARTS = {
     ('SacredForestMeadow', NEIGHBORS['SacredForestMeadow']['LostWood']): ('SacredForestMeadow_FrontOfLostWood',),
     ('KokiriForest', NEIGHBORS['KokiriForest']['InsideTheDekuTree']): ('FrontDekuTree',),
     ('InsideTheDekuTree', NEIGHBORS['InsideTheDekuTree']['KokiriForest']): ('Entrance',),
+    ('KokiriForest', NEIGHBORS['KokiriForest']['DreamWorld']): ('ReturnFromDreamWorld',),
+    ('DreamWorld', NEIGHBORS['DreamWorld']['KokiriForest']): ('EnemyMusuem',),
+    ('DreamWorld', DREAM_CHALLENGE_ARRIVAL): ('BossRush',),
     ('SacredForestMeadow', NEIGHBORS['SacredForestMeadow']['ForestTemple']): ('OutsideOfForestTemple',),
     ('ForestTemple', NEIGHBORS['ForestTemple']['SacredForestMeadow']): ('ForestTemple',),
     ('DesertColossus', NEIGHBORS['DesertColossus']['SpiritTemple']): ('DesertColossus_FromSpiritTempleEntrance',),
@@ -708,9 +713,13 @@ def projection_points(region, sources):
     for path, source in sources.items():
         for actor in source['root'].get('Actors', ()):
             position = actor.get('Translate')
+            gyaml = actor.get('Gyaml')
+            if (position is None and region == 'DreamWorld' and gyaml == 'StartPos'
+                    and actor.get('Name') == 'EnemyMusuem' and view_name(path) == DREAM_SCENE_VIEWS['EnemyMuseum']):
+                # The museum's native StartPos omits Translate at the scene origin.
+                position = (0, 0, 0)
             if not position:
                 continue
-            gyaml = actor.get('Gyaml')
             label = None
             if gyaml == 'StartPos' and actor.get('Name') in arrivals:
                 points.add((actor['Name'], (position[0], position[2])))
@@ -808,7 +817,7 @@ def projection_points(region, sources):
                     label = NEIGHBORS[region]['TempleOfTime']
             elif region == 'DreamWorld':
                 if gyaml == 'StartPos' and actor.get('Name') == 'BossRush':
-                    label = 'Arrivée du défi'
+                    label = DREAM_CHALLENGE_ARRIVAL
                 elif gyaml == 'Land_Dream_BossPedestal_A_Interval_02':
                     label = 'Piédestal du boss'
                 elif gyaml == 'Npc_Dream':

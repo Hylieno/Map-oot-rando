@@ -1372,18 +1372,20 @@ class MapApplication:
             if aerial and not aerial.covers(exit_point):
                 continue
             exits_by_point.setdefault(exit_point, []).append((portal, (exit_name, neighbor, floor, arrival)))
+        arrival_exit = next((point for point, group in exits_by_point.items()
+                             if any(portal == self.arrival for portal, _ in group)), None)
+        if not spawns and arrival_exit is not None:
+            spawns = [arrival_exit]
+        for spawn in spawns:
+            ax, ay = self.viewport.screen(spawn)
+            if arrival_exit is not None and spawn != arrival_exit:
+                x, y = self.viewport.screen(arrival_exit)
+                self.canvas.create_line(x, y, ax, ay, fill='#ffe19b', width=2, dash=(3, 3), tags='portal-approach')
+            self.canvas.create_oval(ax-14, ay-14, ax+14, ay+14, outline='#ffe19b', width=2, tags='portal-arrival')
         for exit_point, group in exits_by_point.items():
             actions = tuple(action for _, action in group)
             exit_name, neighbor, floor, _ = actions[0]
             x, y = self.viewport.screen(exit_point)
-            if any(portal == self.arrival for portal, _ in group):
-                for spawn in spawns or (exit_point,):
-                    ax, ay = self.viewport.screen(spawn)
-                    if spawn != exit_point:
-                        self.canvas.create_line(x, y, ax, ay, fill='#ffe19b', width=2, dash=(3, 3),
-                                                tags='portal-approach')
-                    self.canvas.create_oval(ax-14, ay-14, ax+14, ay+14, outline='#ffe19b', width=2,
-                                            tags='portal-arrival')
             marker = self.canvas.create_polygon(x, y-9, x+9, y, x, y+9, x-9, y,
                                                 fill='#147c82', outline='#ebfbef', width=2,
                                                 tags=('zone-navigation',))

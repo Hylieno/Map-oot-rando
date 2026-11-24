@@ -184,6 +184,8 @@ Sages. Le repère au centre de la plateforme permet de revenir au temple.
 Dans la forêt Kokiri, le lit de Link mène à la carte du Monde des rêves.
 Au musée, le repère de l’organisateur propose le retour à Kokiri
 ou la salle intermédiaire du défi des boss.
+Ces passages indiquent les points d’arrivée du jeu, y compris à
+l’entrée de la salle intermédiaire.
 Les dix coffres du défi partagent un point. Un clic sur le marqueur
 permet de choisir le coffre voulu.
 

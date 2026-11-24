@@ -1354,12 +1354,15 @@ class GuiTests(unittest.TestCase):
         maps = {
             forest_path: {'root': {'Actors': [
                 {'Gyaml': 'Obj_Kokiri_Bed_A_01', 'Translate': [-48, 118, 15]},
+                {'Gyaml': 'StartPos', 'Name': 'ReturnFromDreamWorld', 'Translate': [-46.5, 118.5, 15.4]},
             ]}},
             museum_path: {'root': {'Actors': [
                 {'Gyaml': 'Npc_Dream', 'Translate': [3.5, 1.5, -2]},
+                {'Gyaml': 'StartPos', 'Name': 'EnemyMusuem'},
             ]}},
             interval_path: {'root': {'Actors': [
                 {'Gyaml': 'DungeonRoomArea', 'Translate': [-1, -1, -12], 'Scale': [20, 12, 32]},
+                {'Gyaml': 'StartPos', 'Name': 'BossRush', 'Translate': [0, .2, 4.27]},
             ]}},
         }
         template = demo_document()
@@ -1393,14 +1396,23 @@ class GuiTests(unittest.TestCase):
             self.assertEqual(set(labels), {'Kokiri Forest', 'Défi des boss'})
             app.marker_menu.invoke(labels.index(destination))
 
-        self.assertTrue(app.canvas.find_withtag('portal-arrival'))
+        def arrived_at(point):
+            ring, = app.canvas.find_withtag('portal-arrival')
+            left, top, right, bottom = app.canvas.coords(ring)
+            x, y = app.viewport.screen(point)
+            self.assertAlmostEqual((left + right) / 2, x)
+            self.assertAlmostEqual((top + bottom) / 2, y)
+
+        arrived_at((0, 0))
         choose_organizer('Kokiri Forest')
         self.assertEqual(app.resource.get(), REGION_VIEWS['KokiriForest']['Child'])
-        self.assertTrue(app.canvas.find_withtag('portal-arrival'))
+        arrived_at((-46.5, 15.4))
         app.update_link(LinkPosition(region, 'Child', 3.5, 1.5, -2, 0, museum))
         self.assertEqual(app.resource.get(), DREAM_SCENE_VIEWS[museum])
         choose_organizer('Défi des boss', caption=True)
         self.assertEqual(app.resource.get(), DREAM_SCENE_VIEWS[interval])
+        arrived_at((0, 4.27))
+        self.assertFalse(app.canvas.find_withtag('zone-navigation'))
         app.update_link(LinkPosition(region, 'Child', 0, .2, 4.27, 0, interval))
         self.assertEqual(app.resource.get(), DREAM_SCENE_VIEWS[interval])
         self.assertEqual(len(app.visible), 10)

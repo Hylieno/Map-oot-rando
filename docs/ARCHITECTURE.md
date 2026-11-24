@@ -100,6 +100,9 @@ sa ressource distincte et un seul plan aux deux âges.
 Le Monde des rêves distingue le musée et la salle intermédiaire par
 le nom de la ressource active. Les coffres du défi conservent leurs
 identifiants individuels quand ils partagent les mêmes coordonnées.
+Ses arrivées utilisent les points de départ nommés dans la scène.
+L’anneau d’arrivée s’affiche aussi dans la salle intermédiaire, où
+la transition n’a pas de portail de retour au même endroit.
 Le Château d’Hyrule utilise la scène enfant. Les abords et la cour
 partagent les coordonnées natives, avec une vue distincte pour la cour
 située au-delà du plan publié. Le marqueur peut suivre ce passage.

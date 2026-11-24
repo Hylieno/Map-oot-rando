@@ -1,5 +1,9 @@
 # Validation
 
+Les trois trajets du Monde des rêves ont été vérifiés dans Tk avec les
+scènes publiques. Le réveil a été vérifié aux deux âges. Le test
+vérifie aussi l’anneau d’arrivée dans la salle intermédiaire.
+
 Le coffre du plafond caché a été sélectionné dans le catalogue de
 référence. Son marqueur et celui de Link s’affichent sur la passerelle.
 Un test Tk vérifie que sélectionner un check sans coordonnées ouvre sa
