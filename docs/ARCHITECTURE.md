@@ -1,5 +1,10 @@
 # Architecture et audit initial
 
+Une recherche utilise les mêmes vues que les marqueurs. La sélection
+d’un résultat ajuste le zoom à la vue de destination et centre le
+marqueur. Le chargement différé du fond recalcule l’échelle à partir
+de son emprise et conserve le marqueur sélectionné au centre.
+
 La découverte des sauvegardes accorde une lecture de plus au fichier
 suivi s’il devient temporairement illisible. Le dernier état vérifié
 reste visible pendant cette attente. Sans nouvelle lecture valide,

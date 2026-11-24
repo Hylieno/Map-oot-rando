@@ -1,5 +1,9 @@
 # Checkpoint — 24 novembre 2026
 
+La recherche indique la vue des résultats situés ailleurs. Quand un
+résultat ouvre une zone dont le fond se charge, le marqueur reste
+centré après l’arrivée du fond.
+
 Le suivi attend un nouveau cycle lorsque le fichier suivi devient
 temporairement illisible. Si la lecture échoue encore, il peut choisir
 une autre sauvegarde lisible de la même seed. Un fichier remplacé

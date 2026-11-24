@@ -216,11 +216,15 @@ class GuiTests(unittest.TestCase):
         from unittest.mock import patch
         from PIL import Image
         from map_oot_rando.field_atlas import HOUSE_PIXELS
+        from map_oot_rando.scene import AGE_VIEWS
 
         resource = 'Banc/KokiriForest/KokiriForest_Adult_Dynamic.bcett.byml.zs'
         doc = demo_document()
         doc['provenance'] = 'ootrr-scan'
-        doc['locations'] = [dict(doc['locations'][0], resource=resource)]
+        doc['locations'] = [
+            dict(doc['locations'][0], id='adult-check', resource=resource, position=[900, 0, 400]),
+            dict(doc['locations'][1], resource=resource.replace('Adult', 'Child')),
+        ]
         doc['preferred_background'] = 'questfern-kokiri'
         doc['aerial'] = {resource: {'source': 'questfern-kokiri', 'calibration': 1}}
         doc['scenes'] = {resource: dict(
@@ -239,12 +243,21 @@ class GuiTests(unittest.TestCase):
         with patch('map_oot_rando.gui.load_kokiri_image',
                    return_value=Image.new('RGB', (1800, 996), '#1f5577')) as download:
             app.load(doc)
+            self.assertEqual(app.resource.get(), AGE_VIEWS['Child'])
+            app.query.set('adult-check')
+            self.assertIn(AGE_VIEWS['Adult'], app.results.get(0))
+            app.choose_first()
+            self.assertEqual(app.resource.get(), AGE_VIEWS['Adult'])
             self.root.after(20, wait_for_background)
             deadline = self.root.after(2000, self.root.quit)
             self.root.mainloop()
             self.root.after_cancel(deadline)
             self.assertTrue(app.canvas.find_withtag('aerial'))
             self.assertEqual(app.aerial[app.resource.get()].source, 'field-atlas')
+            x, z = app.viewport.screen(app.selected.project())
+            self.assertAlmostEqual(x, app.canvas.winfo_width() / 2)
+            self.assertAlmostEqual(z, app.canvas.winfo_height() / 2)
+            self.assertEqual(app.results.curselection(), (0,))
             download.assert_called_once()
 
     def test_atlas_uses_world_coordinates_and_a_uniform_canvas(self):
@@ -792,6 +805,8 @@ class GuiTests(unittest.TestCase):
         app.open_neighbor('GerudoValley')
         app.query.set('shared-grotto')
         self.assertEqual(len(app.visible), 2)
+        self.assertIn(REGION_VIEWS['GerudoValley']['Adult'], app.results.get(0))
+        self.assertIn('grotte', app.results.get(0))
         app.choose_first()
         self.assertEqual(app.selected.resource, valley.format('Child'))
         self.assertEqual(app.resource.get(), REGION_VIEWS['GerudoValley']['Child'])

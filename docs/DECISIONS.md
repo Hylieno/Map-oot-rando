@@ -1,5 +1,9 @@
 # Décisions
 
+- Recherche. Un résultat hors de la vue courante indique sa zone,
+  son âge ou son étage selon le nom de la destination. Les coordonnées
+  distinguent les placements d’un même check dans une même vue.
+
 - Sauvegarde en cours d’écriture. Une lecture supplémentaire évite
   un changement de fichier lors d’une écriture courte. Un fichier
   lisible affilié à une autre seed invalide immédiatement son état.

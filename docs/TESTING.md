@@ -1,5 +1,10 @@
 # Validation
 
+Le test Tk ouvre un résultat de Kokiri adulte depuis la vue enfant,
+attend le chargement asynchrone du fond et vérifie le centrage du
+marqueur. Le test de la Vallée Gerudo couvre l’indication de l’autre
+vue pour un check qui existe aux deux âges.
+
 Les tests de suivi couvrent la réécriture temporaire de la
 sauvegarde active, le réimport pendant cette écriture et son
 remplacement par une sauvegarde d’une autre seed. Ils utilisent

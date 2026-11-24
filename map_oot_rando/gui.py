@@ -713,7 +713,10 @@ class MapApplication:
                 if self.resource.get() == view:
                     self.import_status.set('')
                     self.render()
-                    self.fit()
+                    selected = self.selected
+                    focus = (selected.project() if selected and selected.position is not None
+                             and location_view(selected) == view else None)
+                    self.fit(focus=focus)
             else:
                 self.atlas_failed.add(view)
                 if self.resource.get() == view:
@@ -750,16 +753,21 @@ class MapApplication:
                               None if self.category.get() == 'Toutes' else {self.category.get()})
         list_position = self.results.yview()[0]
         self.results.delete(0, 'end')
-        placements = Counter(row.id for row in self.visible)
-        for row in self.visible:
+        result_views = [location_view(row) for row in self.visible]
+        placements = Counter((row.id, target) for row, target in zip(self.visible, result_views))
+        for row, target in zip(self.visible, result_views):
             label = row.name
+            if searching and target != view:
+                destination = target if row.position is not None else REGION_NAMES.get(row.region)
+                if destination:
+                    label += f' · {destination}'
             if row.position is None:
                 label += ' [sans coordonnées]'
             elif self.outside(row):
                 label += ' [hors du fond]'
             elif row.entrance:
                 label += ' [grotte]'
-            elif placements[row.id] > 1:
+            elif placements[row.id, target] > 1:
                 coordinates = ', '.join(f'{value:g}' for value in row.position)
                 label += f' [{coordinates}]'
             self.results.insert('end', label)
@@ -1047,7 +1055,7 @@ class MapApplication:
         Thread(target=prepare, daemon=True).start()
         self.world_callback = self.root.after(100, finish)
 
-    def fit(self):
+    def fit(self, *, focus=None):
         self.fit_pending = self.canvas.winfo_width() <= 1 or self.canvas.winfo_height() <= 1
         if self.fit_pending:
             return
@@ -1062,8 +1070,11 @@ class MapApplication:
             points.extend(route)
         for _, low, high in scene.get('rooms', ()):
             points.extend((low, high))
-        self.viewport.fit(points, self.canvas.winfo_width(), self.canvas.winfo_height())
+        width, height = self.canvas.winfo_width(), self.canvas.winfo_height()
+        self.viewport.fit(points, width, height)
         self.fitted_scale = self.viewport.scale
+        if focus is not None:
+            self.viewport.center(focus, width, height)
         self.draw()
 
     def draw_overview(self, width, height):
@@ -1301,17 +1312,21 @@ class MapApplication:
             self.canvas.create_text(25, 35, anchor='nw', text='Aucun marqueur positionné pour cette vue.', fill=heading_color)
 
     def choose(self, row):
-        self.overview_open = False
         self.selected = row
         if row.position is not None:
+            from_overview = self.overview_open
+            self.overview_open = False
             target = location_view(row)
-            if self.resource.get() != target:
+            if self.resource.get() != target or from_overview:
                 _, age = VIEWS.get(target, (None, None))
-                if self.save_age is not None and age is not None:
+                if self.save_age is not None and age is not None and age != self.save_age:
                     self.follow_age.set(False)
                 self.resource.set(target)
                 self.refresh_navigation()
                 self.ensure_atlas()
+                self.render()
+                self.fit(focus=row.project())
+                return
             self.viewport.center(row.project(), self.canvas.winfo_width(),
                                  self.canvas.winfo_height())
         self.show_details()

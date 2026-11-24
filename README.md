@@ -79,7 +79,8 @@ Cocorico utilise les [fonds sans icônes de Field Atlas](https://oot.gousse.cool
 Les vues adulte et après l’incendie utilisent la même image avec leurs propres checks.
 Le [cimetière](https://oot.gousse.cool/graveyard) a aussi un fond Field Atlas.
 **Souterrains** ouvre les checks enfouis dans une vue schématique. La recherche
-ouvre directement la bonne vue quand un check a des coordonnées.
+indique la destination des checks situés dans une autre vue. Sélectionne
+un résultat pour centrer son marqueur, même si le fond se charge ensuite.
 Le mont du Péril est accessible depuis Cocorico. Le fond
 [Field Atlas du sentier](https://oot.gousse.cool/death-mountain-trail) est
 aligné pour les deux âges. **Souterrains** ouvre les checks en grotte.
