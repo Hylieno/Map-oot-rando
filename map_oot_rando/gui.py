@@ -220,6 +220,7 @@ class MapApplication:
         old_store = getattr(self, 'store', None)
         same_seed = (not synthetic and bool(seed_id) and old_store is not None
                      and not old_store.simulated and old_store.seed_id == seed_id)
+        resume_snapshot = same_seed and old_store.last_success is not None
         previous_view = self.resource.get() if same_seed else ''
         previous_age = self.navigation_age if same_seed else None
         aerial = {}
@@ -261,6 +262,10 @@ class MapApplication:
         self.live_check.state([track_state])
         self.report_button.state(['disabled' if self.simulation else '!disabled'])
         self.store = self.simulation.store if self.simulation else StateStore(seed_id, [r.id for r in locations])
+        if resume_snapshot:
+            self.store.states.update((ident, old_store.states[ident])
+                                     for ident in self.store.states.keys() & old_store.states.keys())
+            self.store.last_success = old_store.last_success
         self.selected = None
         self.details.set('Sélectionnez un emplacement.')
         views = {location_view(row) for row in locations if row.position is not None}
@@ -303,7 +308,7 @@ class MapApplication:
                     folder = seed_folder
                 path = self.save_root(path)
                 if (folder / 'manifest.json').is_file() and path.is_dir():
-                    self.follow_save(folder, path)
+                    self.follow_save(folder, path, preserve_snapshot=resume_snapshot)
                 else:
                     self.save_detail = 'Sauvegarde ou dossier de seed déplacé.'
                     self.render()
@@ -510,13 +515,16 @@ class MapApplication:
         self.update_link(None)
         self.render()
 
-    def follow_save(self, folder, save_path):
+    def follow_save(self, folder, save_path, *, preserve_snapshot=False):
         self.tracking_stop.set()
         cancel = self.tracking_stop = Event()
         self.save_generation += 1
         generation = self.save_generation
         store = self.store
-        store.reset(store.seed_id, store.states)
+        if preserve_snapshot:
+            store.disconnect()
+        else:
+            store.reset(store.seed_id, store.states)
         self.save_age = None
         self.kakariko_burned = None
         self.follow_age_check.state(['disabled'])
@@ -537,7 +545,7 @@ class MapApplication:
                 try:
                     active = SaveConnection(folder, save_path, store)
                 except Exception as error:
-                    results.put((SaveUpdate(str(error)), False))
+                    results.put((SaveUpdate(str(error), reset=isinstance(error, ValueError)), False))
                     return
                 try:
                     while not cancel.is_set():

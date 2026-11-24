@@ -1,5 +1,9 @@
 # Décisions
 
+- Réimport. Le dernier instantané OotrR reste visible pour les checks
+  communs à la même seed. La position de Link attend une nouvelle
+  lecture en direct.
+
 - Carte d’Hyrule. Les sous-zones de Kokiri et de la Citadelle partagent
   les coordonnées du repère principal et ouvrent un menu de destinations.
 

@@ -1,7 +1,8 @@
 # Checkpoint — 24 novembre 2026
 
 Un réimport de la même seed garde la vue en cours quand elle existe
-dans la nouvelle carte. Le réglage de suivi de l’âge est conservé.
+dans la nouvelle carte. Le réglage de suivi de l’âge est conservé,
+ainsi que le dernier état vérifié jusqu’à la reconnexion.
 
 Le build Windows vérifie la priorité de la mise à jour sur le jeu
 de base lors de l’import, les ressources conservées du jeu de base

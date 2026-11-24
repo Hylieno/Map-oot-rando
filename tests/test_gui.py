@@ -115,7 +115,7 @@ class GuiTests(unittest.TestCase):
         self.assertIn('Carte chargée', app.import_status.get())
         self.assertFalse(app.import_button.instate(['disabled']))
 
-    def test_reimport_keeps_the_same_seed_view_and_manual_age(self):
+    def test_reimport_keeps_same_seed_view_manual_age_and_last_snapshot(self):
         from unittest.mock import patch
         from map_oot_rando.scene import REGION_VIEWS
 
@@ -132,14 +132,23 @@ class GuiTests(unittest.TestCase):
         app.resource.set(REGION_VIEWS['LostWood']['Adult'])
         app.resource_changed()
         app.follow_age.set(False)
-        updated = dict(doc, locations=[doc['locations'][0], dict(doc['locations'][1], position=(2, 100, 4))])
+        stamp = '2026-11-24T11:00:00+00:00'
+        app.store.publish(doc['seed_id'], {'forest': 'available', 'woods': 'completed'},
+                          mode='save', timestamp=stamp)
+        moved = dict(doc['locations'][1], position=(2, 100, 4))
+        updated = dict(doc, locations=[dict(doc['locations'][0], id='new'), moved])
         app.load(updated)
         self.assertEqual(app.resource.get(), REGION_VIEWS['LostWood']['Adult'])
         self.assertEqual([row.position for row in app.visible], [(2, 100, 4)])
         self.assertFalse(app.follow_age.get())
+        self.assertEqual(app.store.states, {'new': 'unknown', 'woods': 'completed'})
+        self.assertEqual(app.store.last_success, stamp)
+        self.assertEqual(app.store.connection, 'disconnected')
         app.load(dict(updated, seed_id='another-seed'))
         self.assertEqual(app.resource.get(), REGION_VIEWS['KokiriForest']['Child'])
         self.assertTrue(app.follow_age.get())
+        self.assertEqual(app.store.states, {'new': 'unknown', 'woods': 'unknown'})
+        self.assertIsNone(app.store.last_success)
 
     def test_scene_follows_resource_and_stays_behind_checks(self):
         app = self.app
@@ -281,13 +290,34 @@ class GuiTests(unittest.TestCase):
             app.save_profiles.remember(doc['seed_id'], tmp, save)
             with patch.object(app, 'follow_save') as follow:
                 app.load(doc)
-                follow.assert_called_once_with(tmp, tmp)
+                follow.assert_called_once_with(tmp, tmp, preserve_snapshot=False)
+                follow.reset_mock()
+                app.store.publish(doc['seed_id'], dict.fromkeys(app.store.states, 'completed'),
+                                  mode='save', timestamp='2026-11-24T11:00:00+00:00')
+                app.load(doc)
+                follow.assert_called_once_with(tmp, tmp, preserve_snapshot=True)
                 follow.reset_mock()
                 app.stop_tracking()
                 app.load(doc)
                 follow.assert_not_called()
                 app.load(dict(doc, seed_id='another-seed'))
                 follow.assert_not_called()
+
+    def test_automatic_reconnect_keeps_snapshot_and_manual_choice_resets_it(self):
+        from pathlib import Path
+        from unittest.mock import patch
+
+        app = self.app
+        app.load(dict(demo_document(), provenance='ootrr-scan', seed_id='choose-another-slot'))
+        app.store.publish(app.store.seed_id, dict.fromkeys(app.store.states, 'completed'),
+                          mode='save', timestamp='2026-11-24T11:00:00+00:00')
+        with patch('map_oot_rando.gui.Thread'), patch.object(app.root, 'after'):
+            app.follow_save(Path('.'), Path('.'), preserve_snapshot=True)
+            self.assertEqual(set(app.store.states.values()), {'completed'})
+            self.assertEqual(app.store.connection, 'disconnected')
+            app.follow_save(Path('.'), Path('.'))
+        self.assertEqual(set(app.store.states.values()), {'unknown'})
+        self.assertIsNone(app.store.last_success)
 
     def test_follow_age_switches_only_until_user_chooses_a_view(self):
         from map_oot_rando.scene import AGE_VIEWS

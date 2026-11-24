@@ -2,7 +2,9 @@
 
 Le test de réimport actualise les coordonnées d’un check et conserve
 la vue et l’âge choisis pour la même seed. Il vérifie aussi le retour
-à la vue initiale et au suivi de l’âge pour une autre seed.
+à la vue initiale et au suivi de l’âge pour une autre seed. Les
+états OotrR persistent pour les checks communs jusqu’à la reconnexion.
+Le test distingue la reprise automatique de la sélection manuelle.
 
 Le test Tk ouvre le menu de la Citadelle depuis la carte d’Hyrule,
 choisit l’âge adulte et vérifie que le Temple du Temps s’ouvre dans
