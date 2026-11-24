@@ -1127,7 +1127,8 @@ class GuiTests(unittest.TestCase):
     def test_gerudo_training_ground_returns_to_the_adult_fortress(self):
         from unittest.mock import patch
         from map_oot_rando.link_position import LinkPosition
-        from map_oot_rando.scene import REGION_VIEWS, TRAINING_TO_STATUE, TRAINING_TO_WALKWAY, TRAINING_VIEWS
+        from map_oot_rando.scene import (REGION_VIEWS, TRAINING_TO_CEILING, TRAINING_TO_MAZE,
+                                        TRAINING_TO_STATUE, TRAINING_TO_WALKWAY, TRAINING_VIEWS)
 
         app = self.app
         fortress, ground = 'GerudoFortress', 'GerudoTrainingGround'
@@ -1137,9 +1138,11 @@ class GuiTests(unittest.TestCase):
                            {'rooms': [], 'points': [('Vers le centre d’entraînement', (5, 3))]},
                        'Banc/GerudoTrainingGround/GerudoTrainingGround_Static.bcett.byml.zs':
                            {'rooms': [], 'points': [('Vers la Forteresse Gerudo', (-1.75, 6.91)),
-                                                    (TRAINING_TO_WALKWAY, (-2.34, -58.92))],
+                                                    (TRAINING_TO_WALKWAY, (-2.34, -58.92)),
+                                                    (TRAINING_TO_CEILING, (-7.76, -35.45))],
                             'level_points': [(1, 'Passerelle nord', (-2.36, -55.67)),
-                                             (1, TRAINING_TO_STATUE, (-2.34, -58.92))]},
+                                             (1, TRAINING_TO_STATUE, (-2.34, -58.92)),
+                                             (1, TRAINING_TO_MAZE, (-7.76, -35.45))]},
                    })
         self.enterContext(patch.object(app, 'ensure_atlas'))
         app.load(doc)
@@ -1148,11 +1151,14 @@ class GuiTests(unittest.TestCase):
         self.assertIn(ground, app.navigation_markers.values())
         app.open_neighbor(ground)
         self.assertEqual(app.resource.get(), TRAINING_VIEWS[0])
-        for target in (TRAINING_VIEWS[1], TRAINING_VIEWS[0]):
-            item = next(item for item, view in app.portal_views.items() if view == target)
+        for target, arrival in ((TRAINING_VIEWS[1], TRAINING_TO_STATUE), (TRAINING_VIEWS[0], TRAINING_TO_WALKWAY),
+                                (TRAINING_VIEWS[1], TRAINING_TO_MAZE), (TRAINING_VIEWS[0], TRAINING_TO_CEILING)):
+            item, = [item for item in app.canvas.find_withtag('zone-navigation')
+                     if any(action[2:] == (target, arrival) for action in app.local_portals[item])]
             x1, y1, x2, y2 = app.canvas.bbox(item)
             app.press(SimpleNamespace(x=(x1+x2)//2, y=(y1+y2)//2))
             self.assertEqual(app.resource.get(), target)
+            self.assertTrue(app.canvas.find_withtag('portal-arrival'))
         app.update_link(LinkPosition(ground, 'Adult', -1.5, 98, -48, 0))
         app.update_link(LinkPosition(ground, 'Adult', -1.5, 105, -48, 0))
         self.assertEqual(app.resource.get(), TRAINING_VIEWS[1])

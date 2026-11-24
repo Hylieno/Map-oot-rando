@@ -6,6 +6,8 @@ la Forteresse Gerudo et le centre d’entraînement. Le coffre du plafond
 caché est sur la passerelle du labyrinthe. Le don des Sages, le coffre
 près de l’épouvantail et la clé libre du labyrinthe restent sans
 coordonnées confirmées. Leur sélection ouvre la zone disponible.
+Le repère de l’alcôve permet de passer entre le labyrinthe et la
+passerelle au même point sur les deux vues.
 
 En vue adulte, le moulin de Cocorico mène aux souterrains du cimetière.
 Chaque sens indique le point d’arrivée du jeu.

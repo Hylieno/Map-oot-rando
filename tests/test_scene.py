@@ -90,18 +90,23 @@ class SceneTests(unittest.TestCase):
 
     def test_gerudo_training_ground_preserves_the_walkway_above_the_maze(self):
         from map_oot_rando.model import Location
-        from map_oot_rando.scene import TRAINING_VIEWS, group_scenes, location_view
+        from map_oot_rando.scene import TRAINING_TO_CEILING, TRAINING_TO_MAZE, TRAINING_VIEWS, group_scenes, location_view
 
         region = 'GerudoTrainingGround'
         path = f'Banc/{region}/{region}_Static.bcett.byml.zs'
         actors = [
             dict(Gyaml='DungeonRoomCenterAnchor', Hash=13588342684847587321, Translate=(-1.42, 98.01, -47.96)),
             dict(Gyaml='DungeonRoomIdAnchor', Hash=11618577540114259236, Translate=(-2.36, 106.24, -55.67)),
+            dict(Gyaml='DungeonRoomArea', Hash=18344474415563430437, Translate=(-7.76, 102.77, -35.45)),
         ]
         raw = extract_scenes({path: {'root': {'Actors': actors}}}, lambda _: {})
         grouped = group_scenes(read_scenes(json.loads(json.dumps({'scenes': raw}))))
-        self.assertEqual(grouped[TRAINING_VIEWS[0]]['points'], [('Labyrinthe', (-1.42, -47.96))])
-        self.assertEqual(grouped[TRAINING_VIEWS[1]]['points'], [('Passerelle nord', (-2.36, -55.67))])
+        self.assertEqual(dict(grouped[TRAINING_VIEWS[0]]['points']), {
+            'Labyrinthe': (-1.42, -47.96), TRAINING_TO_CEILING: (-7.76, -35.45),
+        })
+        self.assertEqual(dict(grouped[TRAINING_VIEWS[1]]['points']), {
+            'Passerelle nord': (-2.36, -55.67), TRAINING_TO_MAZE: (-7.76, -35.45),
+        })
         for height, floor in ((98.03, 0), (105, 1)):
             with self.subTest(height=height):
                 row = Location('test', 'Chest', 'test', path, (-1.5, height, -48), region=region, dungeon_room=8)

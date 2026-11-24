@@ -149,6 +149,7 @@ la carte Gerudo peut apparaître près de chaque cellule.
 Le Centre d’entraînement est accessible depuis la forteresse. Un schéma
 reprend les salles du jeu et le sélecteur permet d’afficher la passerelle
 au-dessus du labyrinthe, où se trouve le coffre du plafond caché.
+Le repère de l’alcôve relie les deux vues à la hauteur de son accès.
 La porte au nord-ouest de la forteresse mène au Désert hanté. Sa vue
 schématique montre les ruines, les checks et le trajet tracé par le guide
 dans la scène du jeu.
