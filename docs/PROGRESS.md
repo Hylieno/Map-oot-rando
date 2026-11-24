@@ -1,5 +1,8 @@
 # Checkpoint — 24 novembre 2026
 
+La route Gerudo entre la vallée et le Colosse indique les arrivées
+de la forteresse, du désert et du centre d’entraînement.
+
 Les passages entre la plaine et le pont de Kokiri, la Citadelle, Cocorico,
 la rivière Zora et la vallée Gerudo indiquent les arrivées des deux côtés.
 Il en va de même entre la vallée Gerudo et le lac Hylia.

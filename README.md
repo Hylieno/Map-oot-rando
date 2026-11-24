@@ -139,6 +139,8 @@ au-dessus du labyrinthe.
 La porte au nord-ouest de la forteresse mène au Désert hanté. Sa vue
 schématique montre les ruines, les checks et le trajet tracé par le guide
 dans la scène du jeu.
+Les passages entre la vallée, la forteresse, le centre d’entraînement,
+le Désert hanté et le Colosse indiquent leurs points d’arrivée.
 Le passage ouest du Désert hanté mène au Colosse du désert aux deux
 âges. Le fond Field Atlas se charge automatiquement. Le coffre
 souterrain apparaît à l’entrée de sa grotte.

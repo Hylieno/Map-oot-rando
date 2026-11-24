@@ -283,6 +283,14 @@ PORTAL_ARRIVAL_STARTS = {
     ('HyruleField', NEIGHBORS['HyruleField']['GerudoValley']): ('HyruleField_FrontOfGerudoValley',),
     ('GerudoValley', NEIGHBORS['GerudoValley']['LakeHylia']): ('GerudoValley_FromLakeHylia',),
     ('LakeHylia', NEIGHBORS['LakeHylia']['GerudoValley']): ('LakeHylia_FromGerudoValley',),
+    ('DesertColossus', NEIGHBORS['DesertColossus']['HountedWasteland']): ('DesertColossus_FromHountedWasteland',),
+    ('HountedWasteland', NEIGHBORS['HountedWasteland']['DesertColossus']): ('HountedWasteland_FromDesertColossus',),
+    ('HountedWasteland', NEIGHBORS['HountedWasteland']['GerudoFortress']): ('HountedWasteland_FromGerudoFortress',),
+    ('GerudoFortress', NEIGHBORS['GerudoFortress']['HountedWasteland']): ('GerudoFortress_FromHountedWasteland',),
+    ('GerudoFortress', NEIGHBORS['GerudoFortress']['GerudoValley']): ('GerudoFortress_FromGerudoValley',),
+    ('GerudoValley', NEIGHBORS['GerudoValley']['GerudoFortress']): ('GerudoValley_FromGerudoFortress',),
+    ('GerudoFortress', NEIGHBORS['GerudoFortress']['GerudoTrainingGround']): ('GerudoFortress_FromGerudoTrainingGround',),
+    ('GerudoTrainingGround', NEIGHBORS['GerudoTrainingGround']['GerudoFortress']): ('GerudoTrainingGround_FromGerudoFortress',),
 }
 PORTAL_START_NAMES = {}
 for (zone, _), names in PORTAL_ARRIVAL_STARTS.items():

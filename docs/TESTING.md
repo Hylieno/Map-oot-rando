@@ -1,5 +1,9 @@
 # Validation
 
+Les dix traversées entre la vallée Gerudo, la forteresse, le centre
+d’entraînement, le Désert hanté et le Colosse ont été vérifiées
+avec les scènes publiques et leurs fonds.
+
 Le test Tk vérifie les points d’arrivée entre le pont de Kokiri et
 la plaine, puis montre le marqueur de Link sur la vue du pont.
 Un autre test vérifie qu’un libellé de check laisse son passage voisin cliquable.
