@@ -1,5 +1,8 @@
 # Validation
 
+Les passages Kokiri–Bois Perdus–Bosquet sacré ont été vérifiés dans les
+deux sens et aux deux âges avec les fonds et les scènes publiques.
+
 L’audit a comparé les marqueurs à la table native `MapParam` par
 identifiant d’acteur. Les 95 coffres et les 41 Skulltulas repérés dans
 cette table et affichés sur un plan Field Atlas se trouvent à l’étage attendu.

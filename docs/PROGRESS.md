@@ -2,6 +2,7 @@
 
 Le raccourci Goron indique les deux apparitions possibles dans la galerie.
 Le retour dans les Bois Perdus indique leur point commun.
+Les entrées de Kokiri et du Bosquet sacré indiquent aussi l’arrivée de Link.
 
 Les mains du Colosse placent l’anneau d’arrivée au point d’apparition
 de Link dans la scène, dans les deux sens. Le raccourci entre les Bois

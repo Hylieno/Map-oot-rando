@@ -237,6 +237,10 @@ PORTAL_ARRIVAL_STARTS = {
     ('ZoraRiver', NEIGHBORS['ZoraRiver']['LostWood']): ('ZoraRiver_LostWoodSide',),
     ('LostWood', NEIGHBORS['LostWood']['GoronCity']): ('LostWood_GoronCitySide_before', 'LostWood_GoronCitySide_after'),
     ('GoronCity', NEIGHBORS['GoronCity']['LostWood']): ('GoronCity_LostWoodSide_before', 'GoronCity_LostWoodSide_after'),
+    ('KokiriForest', NEIGHBORS['KokiriForest']['LostWood']): ('KokiriForest_FrontOfLostWood',),
+    ('LostWood', NEIGHBORS['LostWood']['KokiriForest']): ('LostWood_Entrance',),
+    ('LostWood', NEIGHBORS['LostWood']['SacredForestMeadow']): ('LostWood_FrontOfSacredForestMeadow',),
+    ('SacredForestMeadow', NEIGHBORS['SacredForestMeadow']['LostWood']): ('SacredForestMeadow_FrontOfLostWood',),
 }
 PORTAL_START_NAMES = frozenset(name for names in PORTAL_ARRIVAL_STARTS.values() for name in names)
 KAKARIKO_ENTRANCES = {
@@ -743,8 +747,10 @@ def extract_scenes(maps, landmarks):
         points = {(labels.get(name, name), (position[0], position[2]))
                   for name, position in marks.get('points', ())
                   if region != 'SpiritTemple' or name not in SIDE_PORTALS['SpiritTemple']}
-        if region != 'KokiriForest' or has_dream_museum:
-            points.update(projection_points(region, sources))
+        projected = projection_points(region, sources)
+        if region == 'KokiriForest' and not has_dream_museum:
+            projected = {point for point in projected if point[0] != NEIGHBORS[region]['DreamWorld']}
+        points.update(projected)
         if frame == DREAM_SCENE_VIEWS['BossRushIntervalRoom']:
             room_areas = [actor for source in sources.values() for actor in source['root'].get('Actors', ())
                           if actor.get('Gyaml') == 'DungeonRoomArea'

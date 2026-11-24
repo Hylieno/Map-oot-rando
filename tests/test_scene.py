@@ -169,17 +169,24 @@ class SceneTests(unittest.TestCase):
         static = adult.replace('_Dynamic', '_Static')
         child = adult.replace('_Adult', '_Child')
         other = adult.replace('/KokiriForest/', '/LostWood/')
-        maps = {adult: 'adult', static: 'static', child: 'child', other: 'other'}
+        labels = {adult: 'adult', static: 'static', child: 'child', other: 'other'}
+        maps = {path: {'label': label, 'root': {'Actors': []}} for path, label in labels.items()}
+        maps[static]['root']['Actors'] = [
+            {'Gyaml': 'StartPos', 'Name': 'KokiriForest_FrontOfLostWood', 'Translate': [-32, 121, -66]},
+            {'Gyaml': 'Obj_Kokiri_Bed_A_01', 'Translate': [-48, 118, 15]},
+        ]
         room = ('house', [1, 80, 2], [8, 90, 12])
 
         def landmarks(resources):
             return {'KokiriForest': {'rooms': [room] if static in resources else [],
-                                     'points': [(value, [10, 99, 20])
+                                     'points': [(value['label'], [10, 99, 20])
                                                 for value in resources.values()]}}
 
         scenes = read_scenes(json.loads(json.dumps({'scenes': extract_scenes(maps, landmarks)})))
         self.assertEqual(scenes[adult]['rooms'], [['house', [1, 2], [8, 12]]])
-        self.assertEqual(scenes[adult]['points'], [['adult', [10, 20]], ['static', [10, 20]]])
+        self.assertEqual(scenes[adult]['points'], [
+            ['KokiriForest_FrontOfLostWood', [-32, -66]], ['adult', [10, 20]], ['static', [10, 20]],
+        ])
         self.assertEqual(scenes[child]['points'], [['child', [10, 20]]])
         self.assertNotIn(other, scenes)
         self.assertEqual(read_scenes({}), {})

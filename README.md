@@ -50,7 +50,8 @@ même si la sauvegarde suivie est brièvement en cours d’écriture.
 La barre de suivi indique la date de la dernière synchronisation.
 
 Dans les Bois Perdus, le tracé doré indique le chemin normal de Kokiri au Bosquet
-sacré. Le plan inclut aussi la branche ouest et ses checks près du pont.
+sacré. Les passages de cette route indiquent où Link apparaît à chaque entrée.
+Le plan inclut aussi la branche ouest et ses checks près du pont.
 Depuis la plaine d’Hyrule, l’entrée de la forêt ouvre la vue du pont de
 Kokiri. Le coffre souterrain des pestes Mojo est indiqué à sa bouche de
 grotte dans le village. Les marqueurs de passage ouvrent le Village Goron
