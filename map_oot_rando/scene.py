@@ -647,6 +647,8 @@ def projection_points(region, sources):
                     label = 'Piédestal du boss'
                 elif gyaml == 'Npc_Dream':
                     label = 'Organisateur du défi'
+                    # The same character starts the challenge and offers to wake Link.
+                    points.add((NEIGHBORS[region]['KokiriForest'], (position[0], position[2])))
                 elif gyaml in {'Land_Dream_EnemyMuseum_B_01', 'Land_Dream_EnemyMuseum_B_02',
                                'Land_Dream_EnemyMuseum_B_03', 'Land_Dream_EnemyMuseum_B_04'}:
                     label = 'Galerie'

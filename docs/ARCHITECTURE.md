@@ -1,5 +1,9 @@
 # Architecture et audit initial
 
+Au musée du Monde des rêves, le même acteur fournit les repères
+pour le défi et le retour vers le lit de Link. Les passages qui
+partagent un point ouvrent le même menu depuis le symbole et le libellé.
+
 Entre le Temple du Temps et la Chambre des Sages, la navigation reprend
 le piédestal de l’épée et le point de départ sur la plateforme.
 

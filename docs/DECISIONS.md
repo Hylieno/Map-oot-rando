@@ -1,5 +1,8 @@
 # Décisions
 
+- Monde des rêves. Le dialogue de l’organisateur déclenche le réveil
+  de Link. Le menu du repère affiche le retour à Kokiri et l’accès au défi.
+
 - Chambre des Sages. Le piédestal et le point de départ servent de
   repères de navigation. Le retour ouvre la vue adulte du Temple du Temps.
 

@@ -1281,22 +1281,28 @@ class MapApplication:
                        else f'Schéma X/Z | Grille : {step:g} unités')
         self.canvas.create_text(12, 12, anchor='nw', fill=heading_color, text=heading)
         exit_names = {}
+        exits_by_point = {}
         for portal, (neighbor, exit_point, exit_name, floor, arrival) in exits.items():
             if aerial and not aerial.covers(exit_point):
                 continue
+            exits_by_point.setdefault(exit_point, []).append((portal, (exit_name, neighbor, floor, arrival)))
+        for exit_point, group in exits_by_point.items():
+            actions = tuple(action for _, action in group)
+            exit_name, neighbor, floor, _ = actions[0]
             x, y = self.viewport.screen(exit_point)
-            if portal == self.arrival:
+            if any(portal == self.arrival for portal, _ in group):
                 self.canvas.create_oval(x-14, y-14, x+14, y+14, outline='#ffe19b', width=2,
                                         tags='portal-arrival')
             marker = self.canvas.create_polygon(x, y-9, x+9, y, x, y+9, x-9, y,
                                                 fill='#147c82', outline='#ebfbef', width=2,
                                                 tags=('zone-navigation',))
             self.navigation_markers[marker] = neighbor
-            self.local_portals[marker] = (exit_name, neighbor, floor, arrival)
+            self.local_portals[marker] = actions
             if floor:
                 self.portal_views[marker] = floor
-            exit_names[exit_name] = (exit_name, neighbor, floor, arrival)
-            captions.append((exit_name, x, y - 16))
+            title = ' · '.join(action[0] for action in actions) + ' ▾' if len(actions) > 1 else exit_name
+            exit_names[title] = actions
+            captions.append((title, x, y - 16))
         rows = [row for row in self.visible if location_view(row) == self.resource.get()
                 and row.position is not None
                 and (self.show_outside.get() or row == self.selected or not self.outside(row))]
@@ -1331,7 +1337,7 @@ class MapApplication:
             if row is not None:
                 self.markers[label] = row
             elif name in exit_names:
-                _, neighbor, floor, _ = exit_names[name]
+                _, neighbor, floor, _ = exit_names[name][0]
                 self.navigation_markers[label] = neighbor
                 self.local_portals[label] = exit_names[name]
                 if floor:
@@ -1402,8 +1408,7 @@ class MapApplication:
         hits = self.canvas.find_overlapping(event.x-3, event.y-3, event.x+3, event.y+3)
         checks = dict.fromkeys(self.markers[item] for item in reversed(hits)
                                if item in self.markers and 'check-pin' in self.canvas.gettags(item))
-        portals = dict.fromkeys(self.local_portals[item] for item in reversed(hits)
-                                if item in self.local_portals)
+        portals = dict.fromkeys(action for item in reversed(hits) for action in self.local_portals.get(item, ()))
         if portals and len(checks) + len(portals) > 1:
             self.choose_overlapping(checks, event.x_root, event.y_root, portals=portals)
             return
@@ -1412,7 +1417,7 @@ class MapApplication:
                 self.choose_world_destination(self.world_menus[item], event.x_root, event.y_root)
                 return
             if item in self.navigation_markers:
-                arrival = self.local_portals[item][3] if item in self.local_portals else None
+                arrival = self.local_portals[item][0][3] if item in self.local_portals else None
                 self.open_neighbor(self.navigation_markers[item], view=self.portal_views.get(item), arrival=arrival)
                 return
             if item in self.markers:

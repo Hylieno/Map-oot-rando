@@ -1,5 +1,8 @@
 # Checkpoint — 24 novembre 2026
 
+Le repère de l’organisateur du Monde des rêves ouvre le défi des boss
+ou le retour au lit de Link à Kokiri.
+
 Le piédestal du Temple du Temps et la plateforme de la Chambre des
 Sages donnent accès à leur carte réciproque. Les checks sur ces
 repères restent sélectionnables dans le menu.

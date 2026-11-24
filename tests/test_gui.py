@@ -1136,8 +1136,30 @@ class GuiTests(unittest.TestCase):
         app.press(SimpleNamespace(x=(x1+x2)//2, y=(y1+y2)//2))
         self.assertEqual(app.resource.get(), DREAM_SCENE_VIEWS[museum])
         self.assertFalse(app.visible)
-        self.assertIn(DREAM_SCENE_VIEWS[interval], app.portal_views.values())
+        self.assertEqual(len(app.canvas.find_withtag('zone-navigation')), 1)
+
+        def choose_organizer(destination, *, caption=False):
+            if caption:
+                label, = (item for item in app.canvas.find_all() if app.canvas.type(item) == 'text'
+                          and app.canvas.itemcget(item, 'text') == 'Kokiri Forest · Défi des boss ▾')
+                x, y = app.canvas.coords(label)
+            else:
+                x, y = app.viewport.screen((3.5, -2))
+            with patch.object(app, 'post_marker_menu') as popup:
+                app.press(SimpleNamespace(x=round(x), y=round(y), x_root=50, y_root=50))
+            popup.assert_called_once_with(50, 50)
+            labels = [app.marker_menu.entrycget(i, 'label') for i in range(2)]
+            self.assertEqual(set(labels), {'Kokiri Forest', 'Défi des boss'})
+            app.marker_menu.invoke(labels.index(destination))
+
+        self.assertTrue(app.canvas.find_withtag('portal-arrival'))
+        choose_organizer('Kokiri Forest')
+        self.assertEqual(app.resource.get(), REGION_VIEWS['KokiriForest']['Child'])
+        self.assertTrue(app.canvas.find_withtag('portal-arrival'))
         app.update_link(LinkPosition(region, 'Child', 3.5, 1.5, -2, 0, museum))
+        self.assertEqual(app.resource.get(), DREAM_SCENE_VIEWS[museum])
+        choose_organizer('Défi des boss', caption=True)
+        self.assertEqual(app.resource.get(), DREAM_SCENE_VIEWS[interval])
         app.update_link(LinkPosition(region, 'Child', 0, .2, 4.27, 0, interval))
         self.assertEqual(app.resource.get(), DREAM_SCENE_VIEWS[interval])
         self.assertEqual(len(app.visible), 10)

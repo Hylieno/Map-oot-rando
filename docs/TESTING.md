@@ -1,5 +1,10 @@
 # Validation
 
+Le test du Monde des rêves choisit les deux destinations de
+l’organisateur depuis le symbole et son libellé. L’aller-retour
+et l’accès aux dix coffres ont aussi été vérifiés aux deux âges
+en chargeant les scènes publiques.
+
 Le test Tk extrait le repère du piédestal et celui de la plateforme.
 Il exerce l’aller-retour depuis le menu des marqueurs superposés et
 vérifie les anneaux d’arrivée et le retour au temple en vue adulte.

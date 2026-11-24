@@ -150,7 +150,8 @@ Le Temple du Temps se rejoint depuis la Citadelle aux deux âges.
 Sur la carte du temple, le piédestal de l’épée ouvre la Chambre des
 Sages. Le repère au centre de la plateforme permet de revenir au temple.
 Dans la forêt Kokiri, le lit de Link mène à la carte du Monde des rêves.
-Au musée, le repère de l’organisateur ouvre la salle intermédiaire.
+Au musée, le repère de l’organisateur propose le retour à Kokiri
+ou la salle intermédiaire du défi des boss.
 Les dix coffres du défi partagent un point. Un clic sur le marqueur
 permet de choisir le coffre voulu.
 
