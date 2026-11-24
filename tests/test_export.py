@@ -58,6 +58,28 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(row['position'], rolling['Translate'])
         self.assertEqual(location_view(Location(**row)), GORON_VIEWS['Adult'][1])
 
+    def test_crater_scrub_uses_the_child_event_actor(self):
+        from map_oot_rando.scene import REGION_VIEWS, location_view
+
+        region = 'DeathMountainCrater'
+        child = f'Banc/{region}/{region}_Child_Static.bcett.byml.zs'
+        adult = child.replace('_Child_', '_Adult_')
+        scrub = dict(Gyaml='Enemy_Scrub_Business', Translate=(-23, 119.1, 33),
+                     Dynamic={'TalkEventName': 'Enemy_Scrub_Business_Heart_02'})
+        fairy = dict(Gyaml='MapIconFacilityAnchor', Translate=(5, 128, 24),
+                     Dynamic={'MapIconFacilityIsOpen': 'HavePlayedEvent.Dm_FairyFountain_Wisdom'})
+        maps = {path: {'root': {'Actors': [scrub, fairy]}} for path in (child, adult)}
+        document = export_scan({}, {}, provenance='ootrr-scan', regions=('KokiriForest', region))
+        document['locations'].extend(event_check_rows(maps, lambda path, _: path == adult))
+        self.assertEqual([(row['id'], row['resource']) for row in document['locations']],
+                         [('scrub#DMC Deku Scrub', child), ('fairy#DMC Great Fairy Reward', adult)])
+        catalogue = dict(self.catalogue, checks=[
+            dict(id='scrub#DMC Deku Scrub', name='Marchand Mojo', category='full_scrub', zone=region),
+        ])
+        row, = load_metadata(bind_catalogue(document, catalogue))
+        self.assertEqual(row.position, scrub['Translate'])
+        self.assertEqual(location_view(row), REGION_VIEWS[region]['Child'])
+
     def setUp(self):
         self.groups = {'KokiriForest#123': [dict(
             resource='Banc/KokiriForest/Test', position=[1, 2, 3], label='KF_example')]}

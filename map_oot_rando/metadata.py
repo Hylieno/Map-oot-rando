@@ -4,6 +4,7 @@ from math import dist
 
 from .model import REGION_NAMES, UPSTREAM_REVISION, load_metadata, resource_region
 
+CRATER_SCRUB = 'scrub#DMC Deku Scrub'
 LOST_WOOD_EVENT_ACTORS = {
     'npc#LW Skull Kid': ('Npc_SkullKid_Child', None),
     'npc#LW Ocarina Memory Game': ('Npc_SkullKid_Child_02', None),
@@ -83,6 +84,7 @@ EVENT_ACTORS = {
     },
     'DeathMountainCrater': {
         ('MapIconFacilityAnchor', 'HavePlayedEvent.Dm_FairyFountain_Wisdom'): 'fairy#DMC Great Fairy Reward',
+        ('Enemy_Scrub_Business', 'Enemy_Scrub_Business_Heart_02'): CRATER_SCRUB,
     },
 }
 DEKU_THEATER_CHECKS = ('npc#Deku Theater Skull Mask', 'npc#Deku Theater Mask of Truth')
@@ -289,6 +291,11 @@ def event_check_rows(maps, eligible):
             ident = ids.get((gyaml, event))
             if ident is None and actor.get('Name'):
                 ident = ids.get((gyaml, actor['Name']))
+            # OotrR handles this sale through its event flow. The child scene
+            # supplies its position even though its actors stay out of the shuffle.
+            crater_scrub = ident == CRATER_SCRUB
+            if crater_scrub and not age_frame.endswith('_Child'):
+                continue
             position = actor.get('Translate')
             if ident == 'boss#Volvagia':
                 # The model waits below the floor before the cutscene. The linked
@@ -322,7 +329,7 @@ def event_check_rows(maps, eligible):
                 variant = actor['Hash']
                 position = GERUDO_CARD_WARPS[variant]
                 checks = ('gerudo_card#Hideout Gerudo Membership Card',)
-            if position and checks and eligible(path, actor):
+            if position and checks and (crater_scrub or eligible(path, actor)):
                 for check in checks:
                     candidates.setdefault((check, age_frame, variant), []).append(
                         dict(id=check, name=check.partition('#')[2], category='event',

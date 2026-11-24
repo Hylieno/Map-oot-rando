@@ -1,5 +1,8 @@
 # Checkpoint — 24 novembre 2026
 
+Le vendeur Mojo du cratère a un marqueur vérifié sur la vue enfant.
+L’audit du catalogue compte 1 088 checks positionnés sur 1 103.
+
 Un passage reste accessible depuis le menu des marqueurs quand un
 check le recouvre. L’audit des scènes publiques place les 134 passages
 qui disposent d’un fond dans les limites de leur plan.
@@ -158,7 +161,7 @@ publiques. L’arène de Volvagia utilise une vue schématique.
 Le cratère du Péril est relié au mont et au rez-de-chaussée du Village Goron.
 Le fond Field Atlas est validé aux deux âges, les grottes ont leur vue et
 le check de la Grande Fée est repéré par l’ancre de sa fontaine.
-Le scan conserve les exclusions enfant d’OotrR.
+La position du vendeur enfant provient de son acteur de dialogue.
 
 La caverne Dodongo est reliée au mont du Péril. Les deux fonds Field Atlas
 sont alignés indépendamment. L’arène présente deux checks avec leurs

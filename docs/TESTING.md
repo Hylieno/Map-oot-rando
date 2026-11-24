@@ -1,5 +1,10 @@
 # Validation
 
+Le test d’export retrouve le vendeur Mojo du cratère dans la scène
+enfant et vérifie son association à l’identifiant de vente OotrR.
+Le scan des scènes publiques et le fond Field Atlas ont confirmé
+la position du marqueur dans la vue enfant.
+
 Le test Tk superpose un check au passage de Kokiri vers les Bois Perdus.
 Il vérifie les deux actions du menu et la destination à l’âge enfant.
 L’audit des scènes publiques a examiné 144 passages cliquables,
@@ -46,11 +51,9 @@ dans une même scène. Il vérifie aussi qu’une lecture manquante entre
 deux poses au même étage ne force pas le retour depuis une vue
 ouverte manuellement.
 
-Les scènes publiques et les repères de quête placent 1 084 checks
-sur 1 103. L’audit des fonds couvre tous les placements qui utilisent
-un plan chargé. Les 19 entrées sans coordonnées sont 18 entrées
-vanilla sans source de collecte OotrR dans cette seed et le vendeur
-enfant du cratère, dont la scène est exclue par OotrR pour cet âge.
+Les scènes publiques et les repères de quête placent 1 088 checks
+sur 1 103. Les 15 entrées sans coordonnées sont des entrées vanilla
+sans source de collecte OotrR dans ce catalogue.
 
 L’audit des fonds couvre les quatre checks précédemment détectés
 hors des plans de Kokiri et des Bois Perdus, soit sept placements

@@ -92,8 +92,9 @@ La [caverne Dodongo](https://oot.gousse.cool/dodongos-cavern) est accessible
 depuis le mont du Péril. Le rez-de-chaussée et l’étage ont leurs propres
 fonds. L’arène du boss utilise un schéma et affiche séparément le boss et son cœur.
 Le [cratère du Péril](https://oot.gousse.cool/death-mountain-crater) relie
-le mont du Péril au rez-de-chaussée du Village Goron. Les checks sous la
-surface sont accessibles via **Souterrains**.
+le mont du Péril au rez-de-chaussée du Village Goron. Le vendeur Mojo
+figure sur la carte enfant. Les checks sous la surface sont accessibles
+via **Souterrains**.
 Le cratère mène au Temple du Feu. Les cinq niveaux utilisent les plans
 Field Atlas et le sélecteur d’étage. Volvagia et son cœur ont une vue
 schématique séparée. [Plans du Temple du Feu](https://oot.gousse.cool/fire-temple)

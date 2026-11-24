@@ -1,5 +1,10 @@
 # Architecture et audit initial
 
+Les récompenses de dialogue utilisent les acteurs de leur scène pour
+placer les marqueurs. Le vendeur Mojo du cratère est repéré dans la
+scène enfant par son événement de vente. La collecte suit le même
+identifiant OotrR que le catalogue de la seed.
+
 La zone de clic regroupe les marqueurs de checks et de passages
 qu’elle touche. Un menu expose chaque action quand le clic est ambigu.
 Le symbole et le libellé d’un même passage partagent une action.

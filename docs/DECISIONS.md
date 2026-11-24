@@ -1,5 +1,8 @@
 # Décisions
 
+- Vendeur Mojo du cratère. Le marqueur utilise les coordonnées de
+  l’acteur enfant associé à la vente suivie par OotrR.
+
 - Passages. Le menu des marqueurs superposés indique les destinations
   cliquables avec leur libellé de carte.
 
