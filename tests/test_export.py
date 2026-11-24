@@ -100,6 +100,20 @@ class ExportTests(unittest.TestCase):
         rows = list(placed_check_rows(maps, checks, existing, lambda *_: True))
         self.assertEqual(rows, [dict(checks[0], resource=path, position=[3, 145, 2])])
 
+    def test_colossus_chest_uses_its_surface_anchor_in_both_ages(self):
+        region = 'DesertColossus'
+        position, entrance = (-129, 76, -36), (-115, 94, -27)
+        maps, rows = {}, []
+        for age, actor_hash in (('Child', 1089669422726566991), ('Adult', 6814744896634068027)):
+            base = f'Banc/{region}/{region}_{age}'
+            maps[f'{base}_Static.bcett.byml.zs'] = {'root': {'Actors': [
+                dict(Hash=actor_hash, Gyaml='DestinationAnchor', Translate=entrance),
+            ]}}
+            rows.append(dict(id=f'{region}#1186167733408299582',
+                             resource=f'{base}_Dynamic.bcett.byml.zs', position=position))
+        add_surface_entrances(rows, maps)
+        self.assertEqual([(r['position'], r['entrance']) for r in rows], [(position, entrance)] * 2)
+
     def test_gerudo_grottos_keep_two_distinct_access_points(self):
         maps, rows = {}, []
         for age, anchor in [('Child', 2898121583347267819), ('Adult', 15684957330767796996)]:

@@ -45,6 +45,9 @@ EVENT_ACTORS = {
     'GerudoFortress': {
         ('Npc_Gerudo_008', None): ('npc#GF HBA 1000 Points', 'npc#GF HBA 1500 Points'),
     },
+    'DesertColossus': {
+        ('MapIconFacilityAnchor', 'HavePlayedEvent.Dm_FairyFountain_Nayru'): 'fairy#Colossus Great Fairy Reward',
+    },
     'DeathMountainCrater': {
         ('MapIconFacilityAnchor', 'HavePlayedEvent.Dm_FairyFountain_Wisdom'): 'fairy#DMC Great Fairy Reward',
     },
@@ -82,6 +85,8 @@ GROTTO_ENTRANCE_ACTORS = {
                                        (15684957330767796996, 'DestinationAnchor')),
     'GerudoFortress#16619432200060282313': FORTRESS_STORMS_ENTRANCE,
     'GerudoFortress#pots#12401477347800941236': FORTRESS_STORMS_ENTRANCE,
+    'DesertColossus#1186167733408299582': ((6814744896634068027, 'DestinationAnchor'),
+                                          (1089669422726566991, 'DestinationAnchor')),
 }
 CHECK_ACTOR_PATTERNS = {
     ('full_chests', ''): ('Obj_TBox_*',),
@@ -97,7 +102,8 @@ CHECK_ACTOR_PATTERNS = {
 PLACEMENT_REGIONS = frozenset({'FireTemple', 'ZoraRiver', 'ZoraDomain', 'ZoraFountain', 'IceCavern',
                                'InsideJabuJabuBelly', 'InsideTheDekuTree', 'ForestTemple', 'BottomOfTheWell',
                                'ShadowTemple', 'Market', 'HyruleCastle', 'GanonCastle', 'InsideGanonCastle',
-                               'GerudoValley', 'GerudoFortress', 'GerudoTrainingGround', 'HountedWasteland'})
+                               'GerudoValley', 'GerudoFortress', 'GerudoTrainingGround', 'HountedWasteland',
+                               'DesertColossus'})
 EVENT_ACTOR_FIELDS = {
     'MapIconFacilityAnchor': 'MapIconFacilityIsOpen',
     'HeartPieceAnchor': 'HeartPieceAnchor_GameDataPath',
@@ -132,7 +138,7 @@ def add_surface_entrances(rows, maps):
     candidates = {}
     for path, source in maps.items():
         if resource_region(path) not in {'SacredForestMeadow', 'LostWood', 'ZoraRiver', 'ZoraFountain',
-                                         'GerudoValley', 'GerudoFortress'}:
+                                         'GerudoValley', 'GerudoFortress', 'DesertColossus'}:
             continue
         age_frame = path.rsplit('_', 1)[0]
         for actor in source['root'].get('Actors', ()):
@@ -304,7 +310,8 @@ def bind_catalogue(document, catalogue):
                   'Shadow Temple': 'ShadowTemple', 'the Market': 'Market', 'Hyrule Castle': 'HyruleCastle',
                   "Outside Ganon's Castle": 'GanonCastle', "Ganon's Castle": 'InsideGanonCastle',
                   'Gerudo Valley': 'GerudoValley', 'Gerudo Fortress': 'GerudoFortress',
-                  'Gerudo Training Ground': 'GerudoTrainingGround', 'Haunted Wasteland': 'HountedWasteland'})
+                  'Gerudo Training Ground': 'GerudoTrainingGround', 'Haunted Wasteland': 'HountedWasteland',
+                  'Desert Colossus': 'DesertColossus'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']

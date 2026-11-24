@@ -28,6 +28,9 @@
 - Désert hanté. Le schéma trace le rail natif du guide avec ses points
   de contrôle. Le repère est commun aux deux âges. Le passage de la
   forteresse utilise le portail de la scène adulte.
+- Colosse du désert. L’entrée est, la porte du temple et le centre
+  de l’oasis servent de repères pour le fond. La Grande Fée utilise le
+  repère de la scène et le coffre souterrain celui de l’accès à sa grotte.
 
 - La carte générale réutilise l’illustration Nintendúo et les positions
   géographiques publiées par Ocarina Atlas. Tous les fonds locaux publiés

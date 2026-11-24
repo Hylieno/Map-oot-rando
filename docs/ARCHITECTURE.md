@@ -42,6 +42,8 @@ hauteur dans le périmètre du labyrinthe.
 Le champ facultatif `routes` conserve les chemins X/Z associés à la
 scène. Le Désert hanté projette la trajectoire du guide depuis les
 segments de Bézier de la scène. Le cadrage inclut toute la courbe.
+Au Colosse du désert, le fond et le repère X/Z sont communs aux deux
+âges. Le passage conserve l’âge lors de la navigation.
 Dans les zones Zora, à la Caverne de glace et au Temple du Feu, les identifiants typés du catalogue
 peuvent compléter le scan par correspondance du hash et du type d’acteur
 dans chaque scène, sans écraser un placement déjà produit pour cette vue.

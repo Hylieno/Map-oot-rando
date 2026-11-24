@@ -2,7 +2,10 @@
 
 Le Désert hanté est relié à la forteresse adulte et affiche les quatre
 checks du catalogue. Les deux âges utilisent le tracé du guide lu dans
-la scène. Le raccord vers le Colosse du désert reste à intégrer.
+la scène. Le passage du Colosse du désert fonctionne dans les deux sens
+et la zone affiche les 27 checks du catalogue sur un fond Field Atlas.
+Le build de ce jalon inclut le désert et le Colosse. Le Temple de l’Esprit
+reste hors de ce jalon.
 
 Le Centre d’entraînement est accessible depuis la forteresse adulte.
 Un schéma représente les salles et un deuxième affiche la passerelle

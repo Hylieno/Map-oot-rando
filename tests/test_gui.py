@@ -726,17 +726,21 @@ class GuiTests(unittest.TestCase):
         from map_oot_rando.scene import GUIDE_ROUTE, REGION_VIEWS
 
         app = self.app
-        fortress, desert = 'GerudoFortress', 'HountedWasteland'
+        fortress, desert, colossus = 'GerudoFortress', 'HountedWasteland', 'DesertColossus'
         scenes = {
             'Banc/GerudoFortress/GerudoFortress_Adult_Dynamic.bcett.byml.zs':
                 {'rooms': [], 'points': [('Vers le Désert hanté', (-45, -117))]},
         }
         for age in ('Child', 'Adult'):
             scenes[f'Banc/HountedWasteland/HountedWasteland_{age}_Static.bcett.byml.zs'] = {
-                'rooms': [], 'points': [('Vers la Forteresse Gerudo', (123, 58))],
+                'rooms': [], 'points': [('Vers la Forteresse Gerudo', (123, 58)),
+                                         ('Vers le Colosse du désert', (-107, -56))],
                 'routes': [(GUIDE_ROUTE, [(14, -93), (-33, -100), (-92, -56)])],
             }
-        doc = dict(demo_document(), provenance='ootrr-scan', regions=['KokiriForest', fortress, desert],
+            scenes[f'Banc/DesertColossus/DesertColossus_{age}_Dynamic.bcett.byml.zs'] = {
+                'rooms': [], 'points': [('Vers le Désert hanté', (4, 0))],
+            }
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=['KokiriForest', fortress, desert, colossus],
                    locations=[], scenes=scenes)
         self.enterContext(patch.object(app, 'ensure_atlas'))
         app.load(doc)
@@ -750,6 +754,14 @@ class GuiTests(unittest.TestCase):
         app.choose_age('Child')
         self.assertEqual(len(app.canvas.find_withtag('scene-route')), 2)
         self.assertNotIn(fortress, app.navigation_markers.values())
+        for age in ('Child', 'Adult'):
+            app.choose_age(age)
+            self.assertIn(colossus, app.navigation_markers.values())
+            app.open_neighbor(colossus)
+            self.assertEqual(app.resource.get(), REGION_VIEWS[colossus][age])
+            self.assertIn(desert, app.navigation_markers.values())
+            app.open_neighbor(desert)
+            self.assertEqual(app.resource.get(), REGION_VIEWS[desert][age])
 
     def test_ganon_castle_switches_scene_without_mixing_coordinates(self):
         from unittest.mock import patch

@@ -1,5 +1,13 @@
 # Validation
 
+Les quatre scènes publiques du Colosse du désert placent les 27 checks
+du catalogue, avec 13 en vue enfant et 19 en vue adulte. Le coffre
+souterrain utilise son accès en surface et conserve ses coordonnées
+XYZ. La Grande Fée et une Skulltula se projettent à environ 7 et 5 pixels
+du trait du fond de 650 pixels de large. Leurs coordonnées natives
+restent affichées. Les deux sens du passage ont été vérifiés aux deux
+âges. Le scan du NUP complet reste à vérifier.
+
 Les quatre scènes publiques du Désert hanté placent les quatre checks
 du catalogue. Le coffre et la Skulltula sont communs aux deux âges et
 chaque âge a son ID de caisse. Les deux rails du guide contiennent les

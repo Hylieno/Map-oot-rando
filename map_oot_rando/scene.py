@@ -129,7 +129,9 @@ NEIGHBORS = {
                        'GerudoTrainingGround': 'Vers le centre d’entraînement',
                        'HountedWasteland': 'Vers le Désert hanté'},
     'GerudoTrainingGround': {'GerudoFortress': 'Vers la Forteresse Gerudo'},
-    'HountedWasteland': {'GerudoFortress': 'Vers la Forteresse Gerudo'},
+    'HountedWasteland': {'GerudoFortress': 'Vers la Forteresse Gerudo',
+                        'DesertColossus': 'Vers le Colosse du désert'},
+    'DesertColossus': {'HountedWasteland': 'Vers le Désert hanté'},
     'Market': {'HyruleField': 'Vers la plaine d’Hyrule', 'HyruleCastle': 'Vers le Château d’Hyrule',
                'GanonCastle': 'Vers le Château de Ganon'},
     'HyruleCastle': {'Market': 'Vers la Citadelle d’Hyrule'},
@@ -206,6 +208,7 @@ ENTRANCE_LABELS = {
     'HyruleField': HYRULE_ANCHORS,
     'GerudoValley': NEIGHBORS['GerudoValley'],
     'GerudoFortress': NEIGHBORS['GerudoFortress'],
+    'DesertColossus': NEIGHBORS['DesertColossus'],
     'Market': NEIGHBORS['Market'],
     'HyruleCastle': NEIGHBORS['HyruleCastle'],
     'GanonCastle': NEIGHBORS['GanonCastle'],
@@ -352,6 +355,11 @@ LEVEL_POINT_EXTRACTORS = {
 }
 
 GUIDE_ROUTE = 'Trajet du guide'
+WASTELAND_PORTALS = {
+    13756540388226076963: 'GerudoFortress',
+    10151104999260881916: 'DesertColossus',
+    1770868348614838942: 'DesertColossus',
+}
 
 
 def guide_routes(sources):
@@ -428,8 +436,8 @@ def projection_points(region, sources):
                 if isinstance(dynamic, dict) and dynamic.get('NextStartPosName') == 'GerudoFortress_FromGerudoTrainingGround':
                     label = NEIGHBORS[region]['GerudoFortress']
             elif region == 'HountedWasteland':
-                if gyaml == 'MapIconEntranceAnchor' and actor.get('Hash') == 13756540388226076963:
-                    label = NEIGHBORS[region]['GerudoFortress']
+                if gyaml == 'MapIconEntranceAnchor':
+                    label = NEIGHBORS[region].get(WASTELAND_PORTALS.get(actor.get('Hash')))
                 elif gyaml == 'Land_Desert_Ruin_A_01':
                     label = 'Ruines du guide'
                 elif gyaml == 'DestinationAnchor':
