@@ -38,6 +38,12 @@ les prochaines ouvertures hors ligne. Un ancien fond Questfern ou personnalisé 
 L’illustration générale est celle de Nintendúo, publiée par Field Atlas et également
 utilisée par Ocarina Atlas. [Field Atlas](https://oot.gousse.cool/) · [Ocarina Atlas](https://github.com/antonioalvromero/Ocarina-Atlas)
 
+Sur la carte d’Hyrule, les repères avec une flèche ouvrent un menu.
+Kokiri donne accès au village, au pont et au Monde des rêves. La
+Citadelle donne accès au Temple du Temps et à la Chambre des Sages.
+Les boutons Enfant et Adulte permettent de choisir l’âge avant
+d’ouvrir une zone. Survole un repère pour lire son nom en haut de la carte.
+
 Dans les Bois Perdus, le tracé doré indique le chemin normal de Kokiri au Bosquet
 sacré. Le plan inclut aussi la branche ouest et ses checks près du pont.
 Depuis la plaine d’Hyrule, l’entrée de la forêt ouvre la vue du pont de

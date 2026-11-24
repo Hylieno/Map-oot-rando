@@ -1,5 +1,9 @@
 # Checkpoint — 24 novembre 2026
 
+La carte d’Hyrule ouvre les sous-zones de Kokiri et de la Citadelle
+depuis leurs repères. Les boutons d’âge restent utilisables sur la
+carte générale. Les libellés se placent autour des repères.
+
 Le plan du centre d’entraînement Gerudo trace les liaisons entre
 salles et passe par les portes du jeu. La porte de la salle de la
 statue permet d’ouvrir la vue de la passerelle et de revenir.

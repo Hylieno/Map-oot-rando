@@ -1,5 +1,11 @@
 # Architecture et audit initial
 
+La carte d’Hyrule regroupe les destinations qui partagent le même
+repère géographique. Elle calcule la vue de chaque destination à
+l’âge sélectionné. Les libellés utilisent les espaces disponibles
+autour des repères et les repères restent cliquables quelle que
+soit la place disponible pour leur libellé.
+
 Une carte importée peut conserver plusieurs régions dans le champ facultatif
 `regions` du format v1. La ressource Banc détermine le repère d’une position.
 Un check sans position garde la zone de son catalogue. Un même ID peut avoir une

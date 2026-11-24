@@ -1,5 +1,8 @@
 # Décisions
 
+- Carte d’Hyrule. Les sous-zones de Kokiri et de la Citadelle partagent
+  les coordonnées du repère principal et ouvrent un menu de destinations.
+
 - Liaisons du centre d’entraînement. Une liaison utilise exactement
   deux centres de salle et leur porte. Le dessin indique la connexion
   des salles et la position des portes dans le repère du jeu.

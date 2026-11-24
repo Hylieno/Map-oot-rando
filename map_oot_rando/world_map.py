@@ -44,6 +44,13 @@ WORLD_PINS = {
     'LonLonRanch': (.3816, .5730),
     'ShadowTemple': (.8012, .3182),
 }
+# These views share a geographic marker with their surrounding area.
+WORLD_PIN_PARENTS = {
+    'KokiriBridge': 'KokiriForest',
+    'DreamWorld': 'KokiriForest',
+    'TempleOfTime': 'Market',
+    'SageRoom': 'Market',
+}
 
 
 def load_world_map():

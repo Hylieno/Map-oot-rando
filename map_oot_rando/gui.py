@@ -30,7 +30,7 @@ from .scene import (BURNT_VILLAGE, CASTLE_COURT, DREAM_SCENE_VIEWS, DUNGEON_ATLA
                     location_view, read_scenes, temple_position, view_name)
 from .simulation import Simulation, demo_document
 from .view import Viewport
-from .world_map import WORLD_PINS, WORLD_SIZE, load_world_map
+from .world_map import WORLD_PIN_PARENTS, WORLD_PINS, WORLD_SIZE, load_world_map
 
 ATLAS_BACKGROUND = '#0d1f2e'
 WORLD_BACKGROUND = '#47351c'
@@ -201,6 +201,8 @@ class MapApplication:
         self.canvas.bind('<Configure>', self.resized)
         self.canvas.bind('<ButtonPress-1>', self.press)
         self.canvas.bind('<B1-Motion>', self.pan)
+        self.canvas.bind('<Motion>', self.world_hover)
+        self.canvas.bind('<Leave>', lambda _: self.world_hover(None))
         self.canvas.bind('<MouseWheel>', lambda e: self.zoom(1.2 if e.delta > 0 else 1 / 1.2, e.x, e.y))
         self.canvas.bind('<Button-4>', lambda e: self.zoom(1.2, e.x, e.y))
         self.canvas.bind('<Button-5>', lambda e: self.zoom(1 / 1.2, e.x, e.y))
@@ -752,10 +754,13 @@ class MapApplication:
     def sync_age(self):
         if not self.save_age or not self.follow_age.get():
             return
-        if self.follow_link.get() and self.link and self.link_region() == self.current_region():
-            return
         if self.overview_open:
-            self.navigation_age = self.save_age
+            if self.navigation_age != self.save_age:
+                self.navigation_age = self.save_age
+                self.refresh_age_buttons()
+                self.draw()
+            return
+        if self.follow_link.get() and self.link and self.link_region() == self.current_region():
             return
         if self.current_region() in SHARED_DUNGEONS:
             self.navigation_age = self.save_age
@@ -786,7 +791,7 @@ class MapApplication:
         return view
 
     def choose_age(self, age):
-        if self.current_region() in SHARED_DUNGEONS:
+        if self.overview_open or self.current_region() in SHARED_DUNGEONS:
             self.navigation_age = age
             self.follow_age.set(False)
             self.refresh_navigation()
@@ -867,11 +872,13 @@ class MapApplication:
             self.resource_changed(manual=False)
 
     def browse_view(self, region):
-        view = self.view_for_region(region, from_portal=False)
+        age = self.navigation_age if self.overview_open else None
+        view = self.view_for_region(region, age=age, from_portal=False)
         return view or next((label for label in self.views if VIEWS.get(label, (None, None))[0] == region), None)
 
     def world_targets(self):
-        targets = {region: view for region in WORLD_PINS if (view := self.browse_view(region))}
+        targets = {region: view for region in (*WORLD_PINS, *WORLD_PIN_PARENTS)
+                   if (view := self.browse_view(region))}
         if MARKET_CASTLE_AGES.keys() <= targets.keys():
             _, view_age = VIEWS.get(self.resource.get(), (None, None))
             age = (self.navigation_age if self.overview_open else view_age) or self.navigation_age or 'Child'
@@ -904,19 +911,23 @@ class MapApplication:
         self.resource.set(options[self.floor_picker.get()])
         self.resource_changed(manual=False)
 
-    def refresh_navigation(self):
+    def refresh_age_buttons(self):
         region = self.current_region()
         _, age = VIEWS.get(self.resource.get(), (None, None))
-        if age is not None:
+        if age is not None and not self.overview_open:
             self.navigation_age = age
+        for choice, button in self.age_buttons.items():
+            supported = self.overview_open or region in SHARED_DUNGEONS or self.view_for_age(choice)
+            active = choice == self.navigation_age
+            button.configure(text=AGE_LABELS[choice] + (' ✓' if active else ''))
+            button.state(['disabled' if self.simulation or active or not supported else '!disabled'])
+
+    def refresh_navigation(self):
+        region = self.current_region()
         name = REGION_NAMES[region]
         view = self.resource.get()
         self.zones.set(view if view == BURNT_VILLAGE or view not in VIEWS else name)
-        for choice, button in self.age_buttons.items():
-            supported = region in SHARED_DUNGEONS or self.view_for_age(choice)
-            active = choice == (age or self.navigation_age)
-            button.configure(text=AGE_LABELS[choice] + (' ✓' if active else ''))
-            button.state(['disabled' if self.simulation or active or not supported else '!disabled'])
+        self.refresh_age_buttons()
         self.banner.set('SIMULATION - noms et positions fictifs' if self.simulation else
                         f'{name} - seed importée')
         neighbors = self.available_neighbors() if not self.simulation else []
@@ -971,6 +982,7 @@ class MapApplication:
 
     def fit_detail(self):
         self.overview_open = False
+        self.refresh_age_buttons()
         self.fit()
 
     def toggle_overview(self):
@@ -981,6 +993,7 @@ class MapApplication:
 
     def show_world(self):
         self.overview_open = True
+        self.refresh_age_buttons()
         self.draw()
         if self.world_image is not None or self.world_loading is True:
             return
@@ -1038,33 +1051,85 @@ class MapApplication:
                                                       master=self.canvas)
                 self.world_photo_size = size
             self.canvas.create_image(left, top, anchor='nw', image=self.world_photo, tags='world-map')
-        nearby_pins = {'TempleOfTime': 'Market', 'SageRoom': 'Market',
-                       'DreamWorld': 'KokiriForest', 'KokiriBridge': 'KokiriForest'}
         region = self.current_region()
-        region = nearby_pins.get(region, region)
+        region = WORLD_PIN_PARENTS.get(region, region)
         link_region = self.link_region() if self.link else None
-        link_region = nearby_pins.get(link_region, link_region)
-        for target in self.world_targets():
-            u, v = WORLD_PINS[target]
-            x, y = left + u * size[0], top + v * size[1]
-            color = '#8ae8c1' if target == region else '#ffca91' if target in SHARED_DUNGEONS else '#fff3ca'
-            if target in SHARED_DUNGEONS:
+        link_region = WORLD_PIN_PARENTS.get(link_region, link_region)
+        pins = {}
+        for target, view in self.world_targets().items():
+            pins.setdefault(WORLD_PIN_PARENTS.get(target, target), []).append((target, view))
+        positions = {anchor: (left + WORLD_PINS[anchor][0] * size[0], top + WORLD_PINS[anchor][1] * size[1])
+                     for anchor in pins}
+        heading = self.canvas.create_text(12, 12, anchor='nw', text=self.world_heading(), fill='#fff7de',
+                                          tags='world-heading')
+        occupied = [self.canvas.bbox(heading)]
+        occupied.extend((x-9, y-9, x+9, y+9) for x, y in positions.values())
+        if link_region in positions:
+            x, y = positions[link_region]
+            occupied.append((x+4, y-21, x+20, y-3))
+        for anchor, destinations in pins.items():
+            x, y = positions[anchor]
+            color = '#8ae8c1' if anchor == region else '#ffca91' if anchor in SHARED_DUNGEONS else '#fff3ca'
+            if anchor in SHARED_DUNGEONS:
                 pin = self.canvas.create_polygon(x, y-7, x+7, y, x, y+7, x-7, y,
                                                  fill=color, outline='#2e2718', width=2)
             else:
                 pin = self.canvas.create_oval(x-6, y-6, x+6, y+6, fill=color, outline='#2e2718', width=2)
-            label = self.canvas.create_text(x, y+10, anchor='n', text=REGION_NAMES[target], fill='#fff7de')
-            l, t, r, b = self.canvas.bbox(label)
-            box = self.canvas.create_rectangle(l-3, t-1, r+3, b+1, outline='#9a7947', fill='#342615')
-            self.canvas.tag_lower(box, label)
-            for item in (pin, label, box):
-                self.navigation_markers[item] = target
-            if link_region == target:
+            target, view = destinations[0]
+            title = f'{REGION_NAMES[anchor]} ▾' if len(destinations) > 1 else REGION_NAMES[target]
+            labels = self.draw_world_label(title, x, y, width, height, occupied)
+            for item in (pin, *labels):
+                if len(destinations) > 1:
+                    self.world_menus[item] = destinations
+                else:
+                    self.navigation_markers[item] = target
+                    self.portal_views[item] = view
+            if link_region == anchor:
                 self.draw_link_pin(x + 12, y - 12, self.link.yaw)
-        text = 'Hyrule · Choisis une zone'
-        if self.world_loading == 'unavailable':
-            text = 'Hyrule · Illustration indisponible'
-        self.canvas.create_text(12, 12, anchor='nw', text=text, fill='#fff7de')
+
+    def draw_world_label(self, title, x, y, width, height, occupied):
+        label = self.canvas.create_text(x, y, text=title, fill='#fff7de')
+        candidates = (('n', x, y+11), ('s', x, y-11), ('w', x+12, y), ('e', x-12, y),
+                      ('nw', x+12, y+11), ('ne', x-12, y+11), ('sw', x+12, y-11), ('se', x-12, y-11))
+        for anchor, lx, ly in candidates:
+            self.canvas.coords(label, lx, ly)
+            self.canvas.itemconfigure(label, anchor=anchor)
+            l, t, r, b = self.canvas.bbox(label)
+            bounds = l-3, t-1, r+3, b+1
+            left, top, right, bottom = bounds
+            if not (0 <= left < right <= width and 0 <= top < bottom <= height):
+                continue
+            if any(left < br and bl < right and top < bb and bt < bottom for bl, bt, br, bb in occupied):
+                continue
+            occupied.append(bounds)
+            box = self.canvas.create_rectangle(*bounds, outline='#9a7947', fill='#342615', tags='world-label')
+            self.canvas.tag_lower(box, label)
+            if len(anchor) == 2:
+                line = self.canvas.create_line(x, y, lx, ly, fill='#6d5330')
+                self.canvas.tag_lower(line, box)
+            return label, box
+        self.canvas.delete(label)
+        return ()
+
+    def world_heading(self):
+        return ('Hyrule · Illustration indisponible' if self.world_loading == 'unavailable'
+                else 'Hyrule · Choisis une zone')
+
+    def world_hover(self, event):
+        if not self.overview_open:
+            return
+        text = self.world_heading()
+        if event is not None:
+            for item in reversed(self.canvas.find_overlapping(event.x-2, event.y-2, event.x+2, event.y+2)):
+                if item in self.world_menus:
+                    region = self.world_menus[item][0][0]
+                    text = REGION_NAMES[WORLD_PIN_PARENTS.get(region, region)]
+                    text += ' · Choisis une destination'
+                    break
+                if item in self.navigation_markers:
+                    text = REGION_NAMES[self.navigation_markers[item]]
+                    break
+        self.canvas.itemconfigure('world-heading', text=text)
 
     def draw(self):
         if not hasattr(self, 'visible'):
@@ -1074,6 +1139,7 @@ class MapApplication:
         self.markers = {}
         self.navigation_markers = {}
         self.portal_views = {}
+        self.world_menus = {}
         width, height = self.canvas.winfo_width(), self.canvas.winfo_height()
         if self.overview_open:
             self.draw_overview(width, height)
@@ -1261,6 +1327,9 @@ class MapApplication:
         self.drag = None
         hits = self.canvas.find_overlapping(event.x-3, event.y-3, event.x+3, event.y+3)
         for item in reversed(hits):
+            if item in self.world_menus:
+                self.choose_world_destination(self.world_menus[item], event.x_root, event.y_root)
+                return
             if item in self.navigation_markers:
                 self.open_neighbor(self.navigation_markers[item], view=self.portal_views.get(item))
                 return
@@ -1282,6 +1351,16 @@ class MapApplication:
         for row in rows:
             label = row.name if names[row.name] == 1 else f'{row.name} · {row.id}'
             self.marker_menu.add_command(label=label, command=lambda result=row: self.choose(result))
+        self.post_marker_menu(x, y)
+
+    def choose_world_destination(self, destinations, x, y):
+        self.marker_menu.delete(0, 'end')
+        for region, view in destinations:
+            self.marker_menu.add_command(label=REGION_NAMES[region],
+                                         command=lambda target=region, label=view: self.open_neighbor(target, view=label))
+        self.post_marker_menu(x, y)
+
+    def post_marker_menu(self, x, y):
         try:
             self.marker_menu.tk_popup(x, y)
         finally:

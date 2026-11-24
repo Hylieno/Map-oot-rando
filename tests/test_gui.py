@@ -325,6 +325,39 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(app.resource.get(), REGION_VIEWS['HyruleField']['Adult'])
         self.assertFalse(app.overview_open)
 
+    def test_world_pin_opens_subzone_menu_for_the_selected_age(self):
+        from PIL import Image
+        from unittest.mock import patch
+        from map_oot_rando.scene import REGION_VIEWS
+
+        app = self.app
+        all_regions = ('KokiriForest', 'KokiriBridge', 'Market', 'TempleOfTime', 'SageRoom')
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=all_regions)
+        template = doc['locations'][0]
+        doc['locations'] = [
+            dict(template, id=f'{region}{age}', resource=f'Banc/{region}/{region}_{age}_Static.bcett.byml.zs',
+                 position=(1, 100, 2))
+            for region in all_regions[:-1] for age in ('Child', 'Adult')
+        ] + [dict(template, id='Sages', resource='Banc/SageRoom/SageRoom_Static.bcett.byml.zs',
+                  position=(1, 100, 2))]
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        original = app.resource.get()
+        app.world_image = Image.new('RGB', (60, 44), '#d8c9a3')
+        app.show_world()
+        app.age_buttons['Adult'].invoke()
+        self.assertTrue(app.overview_open)
+        self.assertEqual(app.resource.get(), original)
+        item = next(item for item, targets in app.world_menus.items()
+                    if [region for region, _ in targets] == ['Market', 'TempleOfTime', 'SageRoom'])
+        left, top, right, bottom = app.canvas.bbox(item)
+        with patch.object(app, 'post_marker_menu'):
+            app.press(SimpleNamespace(x=(left+right)//2, y=(top+bottom)//2, x_root=100, y_root=100))
+        self.assertEqual(app.marker_menu.entrycget(1, 'label'), 'Temple du Temps')
+        app.marker_menu.invoke(1)
+        self.assertFalse(app.overview_open)
+        self.assertEqual(app.resource.get(), REGION_VIEWS['TempleOfTime']['Adult'])
+
     def test_kakariko_story_variant_stays_separate_and_follows_snapshot(self):
         from map_oot_rando.scene import BURNT_VILLAGE, REGION_VIEWS
 

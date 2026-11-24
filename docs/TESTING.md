@@ -1,5 +1,10 @@
 # Validation
 
+Le test Tk ouvre le menu de la Citadelle depuis la carte d’Hyrule,
+choisit l’âge adulte et vérifie que le Temple du Temps s’ouvre dans
+la bonne vue. Le rendu du catalogue complet a été inspecté à la
+taille de fenêtre par défaut.
+
 Le test de l’exécutable Windows importe un NUP synthétique contenant
 un coffre et un pot, répartis entre deux couches. Il vérifie leurs
 identifiants, leurs coordonnées et leur regroupement sur la vue enfant.
