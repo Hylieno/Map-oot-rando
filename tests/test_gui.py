@@ -662,6 +662,43 @@ class GuiTests(unittest.TestCase):
         cross(village)
         self.assertEqual(app.resource.get(), REGION_VIEWS[village]['Adult'])
 
+    def test_dampe_grave_links_the_surface_to_its_underground_entrance(self):
+        from unittest.mock import patch
+        from map_oot_rando.scene import REGION_VIEWS, UNDERGROUND_VIEWS, extract_scenes
+
+        app = self.app
+        region = 'Graveyard'
+        surface = REGION_VIEWS[region]['Adult']
+        underground = UNDERGROUND_VIEWS[region]['Adult']
+        path = f'Banc/{region}/{region}_Adult_Static.bcett.byml.zs'
+        anchors = [
+            ('HidingHole_FieldEntranceGo', 14429999406297140688, (-4, 103, -11)),
+            ('HidingHole_FieldExitGo', 13508899304624178854, (-4, 84, -11)),
+            ('HidingHole_HoleExit', 16657254736794208888, (-4, 103, -11)),
+            ('HidingHole_HoleEntrance', 6836600866498450360, (-4, 87, -11)),
+            ('HidingHole_FieldEntranceGo', 100, (-40, 103, -50)),
+        ]
+        root = {'Actors': [dict(Gyaml='DestinationAnchor', Name=name, Hash=ident, Translate=point)
+                           for name, ident, point in anchors]}
+        scenes = extract_scenes({p: {'root': root} for p in (path, path.replace('_Adult_', '_Child_'))}, lambda _: {})
+        scenes.setdefault(path.replace('_Adult_', '_Child_'), {'rooms': [], 'points': []})
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=['KokiriForest', region],
+                   locations=[], scenes=scenes)
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        self.assertEqual(app.resource.get(), REGION_VIEWS[region]['Child'])
+        self.assertFalse(app.canvas.find_withtag('zone-navigation'))
+        app.age_buttons['Adult'].invoke()
+        self.assertEqual(app.resource.get(), surface)
+        for target in (underground, surface):
+            marker, = app.canvas.find_withtag('zone-navigation')
+            left, top, right, bottom = app.canvas.bbox(marker)
+            app.press(SimpleNamespace(x=(left+right)//2, y=(top+bottom)//2))
+            self.assertEqual(app.resource.get(), target)
+            ring, = app.canvas.find_withtag('portal-arrival')
+            left, top, right, bottom = app.canvas.coords(ring)
+            self.assertEqual(((left+right)/2, (top+bottom)/2), app.viewport.screen((-4, -11)))
+
     def test_crater_link_returns_to_goron_ground_floor(self):
         from map_oot_rando.scene import GORON_CRATER_FLOOR, GORON_VIEWS, REGION_VIEWS
 

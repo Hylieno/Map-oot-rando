@@ -215,6 +215,8 @@ FOUNTAIN_ICE_BACKDOOR = 'Accès secondaire à la caverne'
 ICE_CAVERN_BACKDOOR = 'Sortie secondaire de la caverne'
 WINDMILL_TO_GRAVE = 'Passage vers la tombe de Dampé'
 GRAVE_TO_WINDMILL = 'Passage vers le moulin'
+GRAVE_TO_TOMB = 'Entrée de la tombe de Dampé'
+TOMB_TO_GRAVE = 'Remontée vers le cimetière'
 SIDE_PORTALS = {
     'GerudoTrainingGround': {
         TRAINING_TO_WALKWAY: ('GerudoTrainingGround', TRAINING_VIEWS[1], 'Passerelle', TRAINING_TO_STATUE),
@@ -242,6 +244,8 @@ SIDE_PORTALS = {
     },
     'Graveyard': {
         GRAVE_TO_WINDMILL: ('KakarikoVillage', None, 'Moulin de Cocorico', WINDMILL_TO_GRAVE),
+        GRAVE_TO_TOMB: ('Graveyard', UNDERGROUND_VIEWS['Graveyard']['Adult'], 'Tombe de Dampé', TOMB_TO_GRAVE),
+        TOMB_TO_GRAVE: ('Graveyard', REGION_VIEWS['Graveyard']['Adult'], 'Remonter à la surface', GRAVE_TO_TOMB),
     },
 }
 PORTAL_ARRIVAL_STARTS = {
@@ -323,6 +327,19 @@ PORTAL_ARRIVAL_STARTS = {
     ('InsideGanonCastle', NEIGHBORS['InsideGanonCastle']['GanonCastle']): ('Entrance',),
     ('KakarikoVillage', WINDMILL_TO_GRAVE): ('KakarikoWindmill_GraveYardSide',),
     ('Graveyard', GRAVE_TO_WINDMILL): ('GraveYard_KakarikoWindmillSide',),
+    ('Graveyard', GRAVE_TO_TOMB): ('HidingHole_HoleExit',),
+    ('Graveyard', TOMB_TO_GRAVE): ('HidingHole_HoleEntrance',),
+}
+GRAVE_TOMB_ANCHORS = {
+    ('HidingHole_FieldEntranceGo', 14429999406297140688): GRAVE_TO_TOMB,
+    ('HidingHole_FieldExitGo', 13508899304624178854): TOMB_TO_GRAVE,
+    ('HidingHole_HoleExit', 16657254736794208888): 'HidingHole_HoleExit',
+    ('HidingHole_HoleEntrance', 6836600866498450360): 'HidingHole_HoleEntrance',
+}
+GRAVE_UNDERGROUND_PORTAL_POINTS = {
+    GRAVE_TO_WINDMILL, TOMB_TO_GRAVE,
+    *PORTAL_ARRIVAL_STARTS['Graveyard', GRAVE_TO_WINDMILL],
+    *PORTAL_ARRIVAL_STARTS['Graveyard', TOMB_TO_GRAVE],
 }
 PORTAL_START_NAMES = {}
 for (zone, _), names in PORTAL_ARRIVAL_STARTS.items():
@@ -705,6 +722,8 @@ def projection_points(region, sources):
             elif (region == 'Graveyard' and gyaml == 'FieldAndDungeonEntranceEventRequestActor'
                   and actor.get('Name') == 'GraveYard_KakarikoWindmillSide'):
                 label = GRAVE_TO_WINDMILL
+            elif region == 'Graveyard' and gyaml == 'DestinationAnchor' and view_name(path) == REGION_VIEWS[region]['Adult']:
+                label = GRAVE_TOMB_ANCHORS.get((actor.get('Name'), actor.get('Hash')))
             elif region == 'ZoraFountain' and gyaml == 'FieldAndDungeonEntranceEventRequestActor':
                 target = {'ZoraFountain_FromIceCavern': 'IceCavern',
                           'ZoraFountain_FromInsideJabuJabuBelly': 'InsideJabuJabuBelly'}.get(actor.get('Name'))
@@ -1105,7 +1124,7 @@ def group_scenes(scenes):
                 local_view = REGION_VIEWS[area][FIELD_VIEW_AGES[name]]
                 target = grouped.setdefault(local_view, {'rooms': set(), 'points': set()})
             elif (name == REGION_VIEWS['Graveyard']['Adult']
-                  and label in (GRAVE_TO_WINDMILL, *PORTAL_ARRIVAL_STARTS['Graveyard', GRAVE_TO_WINDMILL])):
+                  and label in GRAVE_UNDERGROUND_PORTAL_POINTS):
                 underground = UNDERGROUND_VIEWS['Graveyard']['Adult']
                 target = grouped.setdefault(underground, {'rooms': set(), 'points': set()})
             elif (name in MARKET_VIEW_AGES and temple_position(point, MARKET_VIEW_AGES[name])

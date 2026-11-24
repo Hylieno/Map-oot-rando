@@ -9,7 +9,8 @@ confirmées.
 En vue adulte, le moulin de Cocorico mène aux souterrains du cimetière.
 Chaque sens indique le point d’arrivée du jeu.
 Les deux trajets de la course de Dampé sont visibles dans la vue
-souterraine adulte.
+souterraine adulte. La tombe et le passage de remontée relient cette
+vue à la surface du cimetière.
 
 La Citadelle, le Château d’Hyrule et le Château de Ganon indiquent
 leurs points d’arrivée respectifs. Le passage vers l’intérieur du

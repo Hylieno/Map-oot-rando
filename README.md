@@ -98,7 +98,9 @@ En vue adulte, le passage du moulin de Cocorico ouvre la tombe de Dampé
 dans les souterrains du cimetière. Le raccourci indique l’arrivée dans les
 deux sens.
 La vue souterraine adulte affiche les deux trajets de Dampé avec une
-légende. Pour les ajouter à une carte enregistrée avec une version
+légende. Le repère de la tombe relie directement la surface au départ
+de la course, et le repère de remontée ramène au cimetière. Pour ajouter
+ces repères et trajets à une carte enregistrée avec une version
 antérieure, réimporte le jeu et la seed.
 Le mont du Péril est accessible depuis Cocorico. Le fond
 [Field Atlas du sentier](https://oot.gousse.cool/death-mountain-trail) est

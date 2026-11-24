@@ -11,6 +11,8 @@ sa disponibilité à l’âge adulte et affiche Link dans les souterrains
 du cimetière à partir de sa hauteur.
 Il vérifie que seuls les rails référencés par Dampé s’affichent, avec
 une couleur distincte et une légende pour chaque trajet.
+Un second test traverse la tombe et le passage de remontée. Il vérifie
+les deux anneaux d’arrivée et l’absence de raccourci à l’âge enfant.
 
 Les six traversées reliant la Citadelle aux deux châteaux et les
 abords du Château de Ganon à son intérieur ont été vérifiées avec
