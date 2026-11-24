@@ -55,7 +55,8 @@ Depuis la plaine d’Hyrule, l’entrée de la forêt ouvre la vue du pont de
 Kokiri. Le coffre souterrain des pestes Mojo est indiqué à sa bouche de
 grotte dans le village. Les marqueurs de passage ouvrent le Village Goron
 et la rivière Zora. Leurs passages permettent aussi de revenir aux Bois
-Perdus. L’anneau doré indique où Link apparaît pour le raccourci Zora.
+Perdus. L’anneau doré indique où Link apparaît pour ces raccourcis.
+Au Village Goron, la carte indique les deux arrivées prévues par le jeu.
 Si un check et un passage se superposent, clique sur leurs marqueurs
 pour choisir le check ou la destination. La rivière Zora est reliée
 à la plaine d’Hyrule et affiche ses checks enfant et adulte. Le coffre et les pots

@@ -23,7 +23,8 @@ Le test Tk vérifie les deux passages des mains du Colosse dans les deux
 sens et place l’anneau au point d’apparition de Link. Le test des raccourcis
 des Bois Perdus vérifie l’arrivée au Village Goron et à la rivière Zora
 ainsi que leur retour. Il contrôle les points d’apparition aux deux
-bouts du raccourci Zora. Le test de diagnostic
+bouts des raccourcis, dont les deux arrivées possibles dans la galerie Goron.
+Le test de diagnostic
 vérifie l’écart au dessin, le bord de l’image et la projection d’une
 grotte à partir de son entrée.
 

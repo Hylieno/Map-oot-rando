@@ -29,8 +29,9 @@ qu’elle touche. Un menu expose chaque action quand le clic est ambigu.
 Le symbole et le libellé d’un même passage partagent une action.
 Sur la carte de destination, l’anneau d’arrivée reprend l’ancre du
 passage de retour dans la vue sélectionnée. Les mains du Colosse et
-le raccourci Zora des Bois Perdus utilisent le point d’apparition du
-jeu quand il figure dans les métadonnées.
+les raccourcis des Bois Perdus utilisent les points d’apparition du
+jeu quand ils figurent dans les métadonnées. Au Village Goron, l’arrivée
+se dessine sur la galerie desservie par le raccourci.
 
 Une recherche utilise les mêmes vues que les marqueurs. La sélection
 d’un résultat ajuste le zoom à la vue de destination et centre le

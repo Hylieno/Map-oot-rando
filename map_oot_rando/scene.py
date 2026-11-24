@@ -229,13 +229,16 @@ SIDE_PORTALS = {
     },
 }
 PORTAL_ARRIVAL_STARTS = {
-    ('SpiritTemple', 'left_hand_entrance'): 'SpiritTemple_FromLeftHand',
-    ('SpiritTemple', 'right_hand_entrance'): 'SpiritTemple_FromRightHand',
-    ('DesertColossus', 'spirit_temple_left_hand_entrance'): 'DesertColossus_FromSpiritTempleLeftHand',
-    ('DesertColossus', 'spirit_temple_right_hand_entrance'): 'DesertColossus_FromSpiritTempleRightHand',
-    ('LostWood', NEIGHBORS['LostWood']['ZoraRiver']): 'LostWood_ZoraRiverSide',
-    ('ZoraRiver', NEIGHBORS['ZoraRiver']['LostWood']): 'ZoraRiver_LostWoodSide',
+    ('SpiritTemple', 'left_hand_entrance'): ('SpiritTemple_FromLeftHand',),
+    ('SpiritTemple', 'right_hand_entrance'): ('SpiritTemple_FromRightHand',),
+    ('DesertColossus', 'spirit_temple_left_hand_entrance'): ('DesertColossus_FromSpiritTempleLeftHand',),
+    ('DesertColossus', 'spirit_temple_right_hand_entrance'): ('DesertColossus_FromSpiritTempleRightHand',),
+    ('LostWood', NEIGHBORS['LostWood']['ZoraRiver']): ('LostWood_ZoraRiverSide',),
+    ('ZoraRiver', NEIGHBORS['ZoraRiver']['LostWood']): ('ZoraRiver_LostWoodSide',),
+    ('LostWood', NEIGHBORS['LostWood']['GoronCity']): ('LostWood_GoronCitySide_before', 'LostWood_GoronCitySide_after'),
+    ('GoronCity', NEIGHBORS['GoronCity']['LostWood']): ('GoronCity_LostWoodSide_before', 'GoronCity_LostWoodSide_after'),
 }
+PORTAL_START_NAMES = frozenset(name for names in PORTAL_ARRIVAL_STARTS.values() for name in names)
 KAKARIKO_ENTRANCES = {
     'HyruleField': 'Vers la plaine d’Hyrule',
     'DeathMountainTrail': 'Vers le Mont du Péril',
@@ -489,7 +492,8 @@ def spirit_level_points(sources):
         ('DungeonRoomCenterAnchor', 8163808957952677095): (4, 'Arène de Twinrova'),
     }
     anchors.update({('StartPos', name): (2, name)
-                    for (region, _), name in PORTAL_ARRIVAL_STARTS.items() if region == 'SpiritTemple'})
+                    for (region, _), names in PORTAL_ARRIVAL_STARTS.items() if region == 'SpiritTemple'
+                    for name in names})
     return {(*anchors[key], (position[0], position[2]))
             for source in sources.values() for actor in source['root'].get('Actors', ())
             if (kind := actor.get('Gyaml'))
@@ -569,8 +573,8 @@ def guide_routes(sources):
 
 def projection_points(region, sources):
     points = set()
-    arrivals = {start for (zone, _), start in PORTAL_ARRIVAL_STARTS.items()
-                if zone == region and zone != 'SpiritTemple'}
+    arrivals = {start for (zone, _), starts in PORTAL_ARRIVAL_STARTS.items()
+                if zone == region and zone != 'SpiritTemple' for start in starts}
     for path, source in sources.items():
         for actor in source['root'].get('Actors', ()):
             position = actor.get('Translate')

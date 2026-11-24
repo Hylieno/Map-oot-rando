@@ -24,7 +24,8 @@ from .scene import (BURNT_VILLAGE, CASTLE_COURT, DREAM_SCENE_VIEWS, DUNGEON_ATLA
                     FOUNTAIN_DUNGEON_AGES, GANON_DUNGEON_VIEWS, GANON_ESCAPE, MARKET_CASTLE_AGES,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS, GUIDE_ROUTE,
-                    NEIGHBORS, PORTAL_ARRIVAL_STARTS, REGION_VIEWS, SHARED_DUNGEONS, SIDE_PORTALS, TRAINING_VIEWS,
+                    NEIGHBORS, PORTAL_ARRIVAL_STARTS, PORTAL_START_NAMES, REGION_VIEWS, SHARED_DUNGEONS,
+                    SIDE_PORTALS, TRAINING_VIEWS,
                     UNDERGROUND_LABELS, UNDERGROUND_VIEWS, VIEWS,
                     castle_view, field_area, field_atlas_scene, group_scenes, kokiri_bridge_position,
                     location_view, read_scenes, temple_position, view_name)
@@ -1213,6 +1214,7 @@ class MapApplication:
         elif self.resource.get() in FLOOR_OPTIONS:
             name = self.resource.get()
         exits = {}
+        arrival_scene = scene or {}
         if not self.simulation:
             for neighbor, portal in NEIGHBORS[region].items():
                 portal_scene = scene or {}
@@ -1230,6 +1232,8 @@ class MapApplication:
                     destination_region = VIEWS[destination][0]
                     arrival = NEIGHBORS[destination_region].get(region)
                     exits[portal] = (neighbor, points.pop(), REGION_NAMES[neighbor], None, arrival)
+                    if portal == self.arrival:
+                        arrival_scene = portal_scene
             for portal, (neighbor, floor, title, arrival) in SIDE_PORTALS.get(region, {}).items():
                 points = {tuple(p) for label, p in (scene or {}).get('points', ()) if label == portal}
                 if len(points) == 1 and self.view_for_region(neighbor) and (floor is None or floor in self.views):
@@ -1261,7 +1265,7 @@ class MapApplication:
                                         width=3 if guide else 6, arrow='last' if guide else 'none',
                                         capstyle='round', joinstyle='round', tags='scene-route')
             for label, point in scene['points']:
-                if label in exits or label in PORTAL_ARRIVAL_STARTS.values():
+                if label in exits or label in PORTAL_START_NAMES:
                     continue
                 x, y = self.viewport.screen(point)
                 self.canvas.create_polygon(x, y-5, x+5, y, x, y+5, x-5, y,
@@ -1279,10 +1283,14 @@ class MapApplication:
             heading = (f'{self.resource.get()} | Schéma X/Z'
                        if self.resource.get() in UNDERGROUND_LABELS or self.resource.get() in FLOOR_OPTIONS
                        else f'Schéma X/Z | Grille : {step:g} unités')
+        spawn_labels = PORTAL_ARRIVAL_STARTS.get((region, self.arrival), ())
+        named_spawns = {(name, point) for name, point in arrival_scene.get('points', ()) if name in spawn_labels}
+        complete_spawns = (len(named_spawns) == len(spawn_labels)
+                           and {name for name, _ in named_spawns} == set(spawn_labels))
+        spawns = sorted({point for _, point in named_spawns}) if complete_spawns else []
+        if len(spawns) > 1:
+            heading += ' · Deux arrivées possibles'
         self.canvas.create_text(12, 12, anchor='nw', fill=heading_color, text=heading)
-        spawn_label = PORTAL_ARRIVAL_STARTS.get((region, self.arrival))
-        spawn_points = {point for name, point in (scene or {}).get('points', ()) if name == spawn_label}
-        spawn = next(iter(spawn_points)) if len(spawn_points) == 1 else None
         exit_names = {}
         exits_by_point = {}
         for portal, (neighbor, exit_point, exit_name, floor, arrival) in exits.items():
@@ -1294,12 +1302,13 @@ class MapApplication:
             exit_name, neighbor, floor, _ = actions[0]
             x, y = self.viewport.screen(exit_point)
             if any(portal == self.arrival for portal, _ in group):
-                ax, ay = self.viewport.screen(spawn) if spawn else (x, y)
-                if spawn is not None:
-                    self.canvas.create_line(x, y, ax, ay, fill='#ffe19b', width=2, dash=(3, 3),
-                                            tags='portal-approach')
-                self.canvas.create_oval(ax-14, ay-14, ax+14, ay+14, outline='#ffe19b', width=2,
-                                        tags='portal-arrival')
+                for spawn in spawns or (exit_point,):
+                    ax, ay = self.viewport.screen(spawn)
+                    if spawn != exit_point:
+                        self.canvas.create_line(x, y, ax, ay, fill='#ffe19b', width=2, dash=(3, 3),
+                                                tags='portal-approach')
+                    self.canvas.create_oval(ax-14, ay-14, ax+14, ay+14, outline='#ffe19b', width=2,
+                                            tags='portal-arrival')
             marker = self.canvas.create_polygon(x, y-9, x+9, y, x, y+9, x-9, y,
                                                 fill='#147c82', outline='#ebfbef', width=2,
                                                 tags=('zone-navigation',))

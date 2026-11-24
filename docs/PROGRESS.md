@@ -1,5 +1,8 @@
 # Checkpoint — 24 novembre 2026
 
+Le raccourci Goron indique les deux apparitions possibles dans la galerie.
+Le retour dans les Bois Perdus indique leur point commun.
+
 Les mains du Colosse placent l’anneau d’arrivée au point d’apparition
 de Link dans la scène, dans les deux sens. Le raccourci entre les Bois
 Perdus et la rivière Zora utilise aussi ses deux points d’apparition.

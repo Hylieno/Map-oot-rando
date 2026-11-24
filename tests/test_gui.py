@@ -625,8 +625,12 @@ class GuiTests(unittest.TestCase):
         doc = dict(demo_document(), provenance='ootrr-scan', regions=list(regions), locations=[])
         points = {
             'LostWood': [('Vers le Village Goron', (24, -35.66)), ('Vers la Rivière Zora', (68.5, -25.6)),
-                         ('LostWood_ZoraRiverSide', (64.5, -25.6))],
-            'GoronCity': [('Repère des Bois Perdus', (26.7, -3.18))],
+                         ('LostWood_ZoraRiverSide', (64.5, -25.6)),
+                         ('LostWood_GoronCitySide_before', (24, -29.15)),
+                         ('LostWood_GoronCitySide_after', (24, -29.15))],
+            'GoronCity': [('Repère des Bois Perdus', (26.7, -3.18)),
+                          ('GoronCity_LostWoodSide_before', (21.7, -2.54)),
+                          ('GoronCity_LostWoodSide_after', (15.2, -1.39))],
             'ZoraRiver': [('Vers les Bois Perdus', (122.57, -11.8)), ('Vers la plaine d’Hyrule', (-98, 28)),
                           ('Vers le Domaine Zora', (150, -40)), ('ZoraRiver_LostWoodSide', (122.57, -14.09))],
             'HyruleField': [('Vers la Rivière Zora', (211, 148))],
@@ -649,9 +653,11 @@ class GuiTests(unittest.TestCase):
             l, t, r, b = app.canvas.bbox(pin)
             app.press(SimpleNamespace(x=(l+r)//2, y=(t+b)//2))
 
-        def check_spawn(point):
-            line, = app.canvas.find_withtag('portal-approach')
-            self.assertEqual(tuple(app.canvas.coords(line)[-2:]), app.viewport.screen(point))
+        def check_spawns(*points):
+            lines = app.canvas.find_withtag('portal-approach')
+            self.assertEqual({tuple(app.canvas.coords(line)[-2:]) for line in lines},
+                             {app.viewport.screen(point) for point in points})
+            self.assertEqual(len(app.canvas.find_withtag('portal-arrival')), len(points))
 
         for target, view in [('GoronCity', GORON_VIEWS['Adult'][GORON_LOST_WOODS_FLOOR]),
                              ('ZoraRiver', REGION_VIEWS['ZoraRiver']['Adult'])]:
@@ -661,7 +667,7 @@ class GuiTests(unittest.TestCase):
             self.assertEqual(app.arrival, NEIGHBORS[target]['LostWood'])
             self.assertTrue(app.canvas.find_withtag('portal-arrival'))
             if target == 'ZoraRiver':
-                check_spawn((122.57, -14.09))
+                check_spawns((122.57, -14.09))
                 self.assertIn('HyruleField', app.navigation_markers.values())
                 app.open_neighbor('HyruleField')
                 self.assertEqual(app.resource.get(), REGION_VIEWS['HyruleField']['Adult'])
@@ -677,12 +683,16 @@ class GuiTests(unittest.TestCase):
                 self.assertIn('ZoraDomain', app.navigation_markers.values())
                 app.open_neighbor('ZoraDomain')
                 app.open_neighbor('ZoraRiver')
+            else:
+                check_spawns((21.7, -2.54), (15.2, -1.39))
             click_portal('LostWood')
             self.assertEqual(app.resource.get(), REGION_VIEWS['LostWood']['Adult'])
             self.assertEqual(app.arrival, NEIGHBORS['LostWood'][target])
             self.assertTrue(app.canvas.find_withtag('portal-arrival'))
             if target == 'ZoraRiver':
-                check_spawn((64.5, -25.6))
+                check_spawns((64.5, -25.6))
+            else:
+                check_spawns((24, -29.15))
 
     def test_kokiri_bridge_routes_field_and_link_to_the_right_scene_view(self):
         from unittest.mock import patch
@@ -1237,7 +1247,7 @@ class GuiTests(unittest.TestCase):
                            ('Vers le Temple de l’Esprit', (-161, 10)),
                            *((f'spirit_temple_{hand}_hand_entrance', entry)
                              for hand, (entry, _) in hands.items()),
-                           *((PORTAL_ARRIVAL_STARTS[outside, f'spirit_temple_{hand}_hand_entrance'], spawn)
+                           *((PORTAL_ARRIVAL_STARTS[outside, f'spirit_temple_{hand}_hand_entrance'][0], spawn)
                              for hand, (spawn, _) in spawns.items()),
                        ]},
                        interior: {'rooms': [], 'points': [('Vers le Colosse du désert', (0, 13))],
@@ -1245,7 +1255,7 @@ class GuiTests(unittest.TestCase):
                                       (4, 'Arène de Twinrova', (0, -158)),
                                       *((2, f'{hand}_hand_entrance', entry)
                                         for hand, (_, entry) in hands.items()),
-                                      *((2, PORTAL_ARRIVAL_STARTS[temple, f'{hand}_hand_entrance'], spawn)
+                                      *((2, PORTAL_ARRIVAL_STARTS[temple, f'{hand}_hand_entrance'][0], spawn)
                                         for hand, (_, spawn) in spawns.items()),
                                   ]},
                    })

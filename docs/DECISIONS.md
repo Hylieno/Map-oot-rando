@@ -14,9 +14,8 @@
   La position et l’étage du check continuent de suivre les données du jeu.
 
 - Passages réciproques. Chaque passage indique l’arrivée quand le repère
-  de retour est présent dans la vue de destination. Les passages des
-  mains du Colosse et le raccourci Zora disposent de points
-  d’apparition distincts.
+  de retour est présent dans la vue de destination. Quand le jeu prévoit
+  deux arrivées au Village Goron, la carte les affiche toutes les deux.
 
 - Vendeur Mojo du cratère. Le marqueur utilise les coordonnées de
   l’acteur enfant associé à la vente suivie par OotrR.
