@@ -42,7 +42,11 @@ EVENT_ACTORS = {
         ('MapIconFacilityAnchor', 'Market_MiniGame_HitTarget_FirstTalk'): 'npc#Market Shooting Gallery Reward',
         ('MapIconFacilityAnchor', 'HaveTalked_Special.Npc_Hylia_048_BottleShop_Talk_Event5'): 'npc#Market 10 Big Poes',
         ('HeartPieceAnchor', 'SubEvent_FindRichard_GetHeartPiece'): 'npc#Market Lost Dog',
+        ('Obj_TimeTemple_MasterSword_A_01', None): 'master_sword#ToT Master Sword',
+        ('Npc_Hylia_Sheik_Adult', None): 'ap#Sheik at Temple',
+        ('Land_TempleOfTime_A_01', None): 'quest#ToT Light Arrows Cutscene',
     },
+    'SageRoom': {('StartPos', None): 'boss#Links Pocket'},
     'HyruleCastle': {
         ('MapIconFacilityAnchor', 'HavePlayedEvent.Dm_FairyFountain_Power'): 'fairy#HC Great Fairy Reward',
         ('Npc_Hylia_Zelda_Child', None): 'quest#HC Zeldas Letter',
@@ -243,7 +247,7 @@ def placed_check_rows(maps, checks, existing, eligible):
 
 
 def event_check_rows(maps, eligible):
-    """Locate event rewards at their unique NPC in each age."""
+    """Locate event rewards using their unique actor or cutscene position."""
     candidates = {}
     for path, source in maps.items():
         region = resource_region(path)
@@ -269,6 +273,14 @@ def event_check_rows(maps, eligible):
                           and anchor.get('Translate')]
                 if len(points) == 1:
                     position = points[0]
+            if ident == 'quest#ToT Light Arrows Cutscene':
+                if not age_frame.endswith('_Adult'):
+                    continue
+                # Dm_TimeTemple_0130 places Link in the entrance hall.
+                position = (81.55999755859375, 103.93000030517578, -34.0)
+            if ident == 'boss#Links Pocket':
+                # Dm_SageRoom_0005 moves Link to the center of the platform.
+                position = (0, 100.12000274658203, 0)
             checks = (ident,) if isinstance(ident, str) else ident or ()
             if (region == 'LostWood' and actor.get('Gyaml') == 'Enemy_Scrub_ForestStage_Elder'
                     and actor.get('Name') == 'ScrubForestStageElder' and age_frame.endswith('_Child')):
@@ -321,7 +333,8 @@ def bind_catalogue(document, catalogue):
                   'Gerudo Valley': 'GerudoValley', 'Gerudo Fortress': 'GerudoFortress',
                   'Gerudo Training Ground': 'GerudoTrainingGround', 'Haunted Wasteland': 'HountedWasteland',
                   'Desert Colossus': 'DesertColossus', 'Spirit Temple': 'SpiritTemple',
-                  'Lake Hylia': 'LakeHylia', 'Water Temple': 'WaterTemple', 'Lon Lon Ranch': 'LonLonRanch'})
+                  'Lake Hylia': 'LakeHylia', 'Water Temple': 'WaterTemple', 'Lon Lon Ranch': 'LonLonRanch',
+                  'Temple of Time': 'TempleOfTime'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']

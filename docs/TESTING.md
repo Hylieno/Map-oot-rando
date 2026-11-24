@@ -1,5 +1,13 @@
 # Validation
 
+Les scènes publiques de la Citadelle et de la Chambre des Sages
+confirment quatre des cinq placements du catalogue du Temple du Temps.
+Les cinématiques donnent la position de Link pour les Flèches de
+lumière et pour Links Pocket. Le test de l’interface couvre le passage
+Citadelle–Temple à partir des coordonnées de Link, le suivi désactivé
+et l’arrivée dans la Chambre des Sages. Le scan du NUP complet et
+les transitions en partie restent à vérifier.
+
 Les scènes publiques de la plaine placent la récompense de Talon
 et quatre autres checks dans le périmètre du ranch. La vue enfant
 affiche les cinq checks, la vue adulte les deux checks communs.

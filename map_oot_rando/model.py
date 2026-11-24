@@ -27,6 +27,8 @@ REGION_NAMES = {
     'BottomOfTheWell': 'Puits de Cocorico',
     'ShadowTemple': 'Temple de l’Ombre',
     'Market': 'Citadelle d’Hyrule',
+    'TempleOfTime': 'Temple du Temps',
+    'SageRoom': 'Chambre des Sages',
     'HyruleCastle': 'Château d’Hyrule',
     'GanonCastle': 'Château de Ganon',
     'InsideGanonCastle': 'Intérieur du Château de Ganon',

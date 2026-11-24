@@ -827,6 +827,52 @@ class GuiTests(unittest.TestCase):
         app.open_neighbor(field)
         self.assertEqual(app.resource.get(), REGION_VIEWS[field]['Child'])
 
+    def test_temple_of_time_follows_market_coordinates_and_sage_scene(self):
+        from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
+        from map_oot_rando.scene import NEIGHBORS, REGION_VIEWS, TEMPLE_BOUNDS
+
+        app = self.app
+        market, temple, sages = 'Market', 'TempleOfTime', 'SageRoom'
+        gate = TEMPLE_BOUNDS['Adult'][0][0], -34
+        market_path = 'Banc/Market/Market_Adult_Static.bcett.byml.zs'
+        sage_path = 'Banc/SageRoom/SageRoom_Static.bcett.byml.zs'
+        child_path = 'Banc/Market/Market_Child_Static.bcett.byml.zs'
+        child_gate = TEMPLE_BOUNDS['Child'][0][0], -34
+        template = demo_document()
+        doc = dict(template, provenance='ootrr-scan', regions=['KokiriForest', market, temple, sages],
+                   locations=[
+                       dict(template['locations'][0], id='sword', resource=market_path,
+                            region=market, position=(137.6, 106, -34)),
+                       dict(template['locations'][0], id='pocket', resource=sage_path,
+                            region=sages, position=(0, 100, 0)),
+                   ], scenes={
+                       market_path: {'rooms': [], 'points': [(NEIGHBORS[market][temple], gate),
+                                                             (NEIGHBORS[temple][market], gate)]},
+                       child_path: {'rooms': [], 'points': [(NEIGHBORS[market][temple], child_gate),
+                                                            (NEIGHBORS[temple][market], child_gate)]},
+                   })
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        app.update_link(LinkPosition(market, 'Adult', 64, 103, -34, 0))
+        self.assertEqual(app.resource.get(), REGION_VIEWS[market]['Adult'])
+        self.assertIn(temple, app.navigation_markers.values())
+        app.follow_link.set(False)
+        app.update_link(LinkPosition(market, 'Adult', 81, 103, -34, 0))
+        self.assertEqual(app.resource.get(), REGION_VIEWS[market]['Adult'])
+        app.follow_link.set(True)
+        app.resume_follow_link()
+        self.assertEqual(app.resource.get(), REGION_VIEWS[temple]['Adult'])
+        self.assertEqual([row.id for row in app.visible], ['sword'])
+        self.assertIn(market, app.navigation_markers.values())
+        app.update_link(LinkPosition(sages, 'Adult', 0, 100, 0, 0))
+        self.assertEqual(app.resource.get(), REGION_VIEWS[sages][None])
+        self.assertEqual([row.id for row in app.visible], ['pocket'])
+        app.open_neighbor(temple)
+        self.assertEqual(app.resource.get(), REGION_VIEWS[temple]['Adult'])
+        app.update_link(LinkPosition(market, 'Child', 64, 103, -34, 0))
+        self.assertEqual(app.resource.get(), REGION_VIEWS[temple]['Child'])
+
     def test_water_temple_opens_from_the_adult_lake_at_the_top(self):
         from unittest.mock import patch
         from map_oot_rando.link_position import LinkPosition

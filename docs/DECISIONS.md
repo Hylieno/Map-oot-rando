@@ -3,6 +3,10 @@
 - Citadelle. Les plans sont distincts par âge. Les étagères utilisent le
   placement renvoyé par OotrR. Les deux récompenses du bowling gardent
   leurs identifiants et partagent le repère du jeu.
+- Temple du Temps et Chambre des Sages. Leurs schémas reprennent la zone
+  du temple et les piliers de lumière des scènes du jeu. Links Pocket
+  utilise la position de sa cinématique. Gift from Sages reste dans
+  la liste du temple, sans coordonnées confirmées.
 - Château d’Hyrule. La cour a sa propre vue schématique pour garder
   les coordonnées de la lettre et des caisses. L’accès depuis la
   Citadelle utilise le repère de la vue enfant.

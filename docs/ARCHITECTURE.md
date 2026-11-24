@@ -16,6 +16,9 @@ OotrR après validation du marqueur de seed. Le lecteur de position réutilise
 l’adresse de module relocalisée par OotrR et vérifie les structures avant de
 publier la pose. Une lecture de position indisponible masque le marqueur.
 La navigation suivie réagit aux transitions de scène ou d’âge.
+Le Temple du Temps utilise les limites de la zone `TimeTemple` propres
+à chaque âge dans la scène de la Citadelle. La Chambre des Sages utilise
+sa ressource distincte et un seul plan aux deux âges.
 Le Château d’Hyrule utilise la scène enfant. Les abords et la cour
 partagent les coordonnées natives, avec une vue distincte pour la cour
 située au-delà du plan publié. Le marqueur peut suivre ce passage.

@@ -24,7 +24,8 @@ from .scene import (BURNT_VILLAGE, CASTLE_COURT, DUNGEON_ATLAS_KEYS, DUNGEON_FLO
                     GORON_LEVELS, GORON_VIEWS,
                     NEIGHBORS, REGION_VIEWS, SHARED_DUNGEONS, SIDE_PORTALS, TRAINING_VIEWS,
                     UNDERGROUND_LABELS, UNDERGROUND_VIEWS, VIEWS,
-                    castle_view, field_area, field_atlas_scene, group_scenes, location_view, read_scenes, view_name)
+                    castle_view, field_area, field_atlas_scene, group_scenes, location_view, read_scenes,
+                    temple_position, view_name)
 from .simulation import Simulation, demo_document
 from .view import Viewport
 from .world_map import WORLD_PINS, WORLD_SIZE, load_world_map
@@ -396,6 +397,9 @@ class MapApplication:
             area = field_area((self.link.x, self.link.z))
             if REGION_VIEWS[area].get(self.link.age) in self.views:
                 return area
+        if scene == 'Market' and temple_position((self.link.x, self.link.z), self.link.age):
+            if REGION_VIEWS['TempleOfTime'].get(self.link.age) in self.views:
+                return 'TempleOfTime'
         return {'LostWoods': 'LostWood', 'DekuTree': 'InsideTheDekuTree',
                 'CastleGrounds': 'HyruleCastle',
                 'ZorasRiver': 'ZoraRiver', 'ZorasDomain': 'ZoraDomain',
@@ -809,6 +813,8 @@ class MapApplication:
             age = self.navigation_age
         if from_portal:
             origin = self.current_region()
+            if origin == 'SageRoom' and region == 'TempleOfTime':
+                age = 'Adult'
             if {origin, region} == {'LakeHylia', 'ZoraDomain'} and age != 'Child':
                 return None
             if region == 'WaterTemple' and origin == 'LakeHylia' and age != 'Adult':
@@ -1024,6 +1030,11 @@ class MapApplication:
                 self.world_photo_size = size
             self.canvas.create_image(left, top, anchor='nw', image=self.world_photo, tags='world-map')
         region = self.current_region()
+        link_region = self.link_region() if self.link else None
+        if region in {'TempleOfTime', 'SageRoom'}:
+            region = 'Market'
+        if link_region in {'TempleOfTime', 'SageRoom'}:
+            link_region = 'Market'
         for target in self.world_targets():
             u, v = WORLD_PINS[target]
             x, y = left + u * size[0], top + v * size[1]
@@ -1039,7 +1050,7 @@ class MapApplication:
             self.canvas.tag_lower(box, label)
             for item in (pin, label, box):
                 self.navigation_markers[item] = target
-            if self.link and self.link_region() == target:
+            if link_region == target:
                 self.draw_link_pin(x + 12, y - 12, self.link.yaw)
         text = 'Hyrule · Choisis une zone'
         if self.world_loading == 'unavailable':

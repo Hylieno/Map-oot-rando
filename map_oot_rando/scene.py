@@ -106,6 +106,7 @@ WATER_ROOM_FLOORS = {
 for region, floors in DUNGEON_FLOORS.items():
     REGION_VIEWS[region] = {None: floors[0][1]}
 REGION_VIEWS['IceCavern'] = {None: REGION_NAMES['IceCavern']}
+REGION_VIEWS['SageRoom'] = {None: REGION_NAMES['SageRoom']}
 CASTLE_VIEWS = tuple(f'{REGION_NAMES["HyruleCastle"]} · {area}' for area in ('Abords', 'Cour'))
 CASTLE_OUTSKIRTS, CASTLE_COURT = CASTLE_VIEWS
 REGION_VIEWS['HyruleCastle'] = {'Child': CASTLE_OUTSKIRTS}
@@ -162,7 +163,9 @@ NEIGHBORS = {
                       'SpiritTemple': 'Vers le Temple de l’Esprit'},
     'SpiritTemple': {'DesertColossus': 'Vers le Colosse du désert'},
     'Market': {'HyruleField': 'Vers la plaine d’Hyrule', 'HyruleCastle': 'Vers le Château d’Hyrule',
-               'GanonCastle': 'Vers le Château de Ganon'},
+               'GanonCastle': 'Vers le Château de Ganon', 'TempleOfTime': 'Vers le Temple du Temps'},
+    'TempleOfTime': {'Market': 'Sortie du temple', 'SageRoom': 'Chambre des Sages'},
+    'SageRoom': {'TempleOfTime': 'Temple du Temps'},
     'HyruleCastle': {'Market': 'Vers la Citadelle d’Hyrule'},
     'GanonCastle': {'Market': 'Vers la Citadelle d’Hyrule',
                     'InsideGanonCastle': 'Entrée du château'},
@@ -239,6 +242,17 @@ HYRULE_ANCHORS = {
 }
 LAKE_FIELD_RETURN_ANCHORS = {14388254154737389511, 12222278877302081165}
 FIELD_VIEW_AGES = {view: age for age, view in REGION_VIEWS['HyruleField'].items()}
+MARKET_VIEW_AGES = {view: age for age, view in REGION_VIEWS['Market'].items()}
+# The TimeTemple LocationArea uses different horizontal bounds at each age.
+TEMPLE_BOUNDS = {
+    'Child': ((60.45223236083984, -44.86612129211426), (156.45223236083984, -8.866121292114258)),
+    'Adult': ((66.6098403930664, -52.0), (156.6098403930664, -16.0)),
+}
+TEMPLE_LANDMARKS = {
+    'Obj_TimeTemple_SpiritStoneBase_A_01': 'Autel des pierres',
+    'Obj_TimeTemple_Door_A_01': 'Porte du Temps',
+    'Obj_TimeTemple_MasterSwordBase_A_01': 'Piédestal de l’épée',
+}
 FIELD_PORTAL_AREAS = {
     NEIGHBORS['HyruleField']['LakeHylia']: 'HyruleField',
     NEIGHBORS['HyruleField']['LonLonRanch']: 'HyruleField',
@@ -447,6 +461,12 @@ def field_area(point):
     return 'LonLonRanch' if inside else 'HyruleField'
 
 
+def temple_position(point, age):
+    (west, north), (east, south) = TEMPLE_BOUNDS[age]
+    x, z = point
+    return west <= x <= east and north <= z <= south
+
+
 def guide_routes(sources):
     """Project the native Guide rail, including its Bézier handles, onto X/Z."""
     routes = set()
@@ -475,7 +495,7 @@ def guide_routes(sources):
 
 def projection_points(region, sources):
     points = set()
-    for source in sources.values():
+    for path, source in sources.items():
         for actor in source['root'].get('Actors', ()):
             position = actor.get('Translate')
             if not position:
@@ -536,6 +556,19 @@ def projection_points(region, sources):
                 point = position[0], position[2]
                 points.add((NEIGHBORS[region]['LonLonRanch'], point))
                 label = NEIGHBORS['LonLonRanch'][region]
+            elif (region == 'Market' and gyaml == 'LocationArea'
+                  and isinstance(actor.get('Dynamic'), dict)
+                  and actor['Dynamic'].get('Location') == 'TimeTemple'):
+                age = MARKET_VIEW_AGES.get(view_name(path))
+                if age is not None:
+                    # The entrance shares the axis of the Door of Time at Z=-34.
+                    point = TEMPLE_BOUNDS[age][0][0], -34.0
+                    points.add((NEIGHBORS[region]['TempleOfTime'], point))
+                    points.add((NEIGHBORS['TempleOfTime'][region], point))
+            elif region == 'Market' and gyaml in TEMPLE_LANDMARKS:
+                label = TEMPLE_LANDMARKS[gyaml]
+            elif region == 'SageRoom' and gyaml == 'EftLoc_SageRoom_LightPillar_00':
+                label = 'Pilier de lumière'
             elif gyaml == 'MapIconEntranceAnchor':
                 dynamic = actor.get('Dynamic')
                 if isinstance(dynamic, dict):
@@ -677,6 +710,9 @@ def location_view(row):
     view = view_name(row.resource)
     if view in FIELD_VIEW_AGES and row.position is not None:
         return REGION_VIEWS[field_area(row.project())][FIELD_VIEW_AGES[view]]
+    if (view in MARKET_VIEW_AGES and row.position is not None
+            and temple_position(row.project(), MARKET_VIEW_AGES[view])):
+        return REGION_VIEWS['TempleOfTime'][MARKET_VIEW_AGES[view]]
     if view == CASTLE_OUTSKIRTS and row.position is not None:
         return castle_view(row.position[2])
     if row.underground and view in VIEWS:
@@ -803,6 +839,13 @@ def group_scenes(scenes):
                 area = FIELD_PORTAL_AREAS.get(label) or field_area(point)
                 local_view = REGION_VIEWS[area][FIELD_VIEW_AGES[name]]
                 target = grouped.setdefault(local_view, {'rooms': set(), 'points': set()})
+            elif (name in MARKET_VIEW_AGES and temple_position(point, MARKET_VIEW_AGES[name])
+                  and label != NEIGHBORS['Market']['TempleOfTime']):
+                age = MARKET_VIEW_AGES[name]
+                temple = REGION_VIEWS['TempleOfTime'][age]
+                target = grouped.setdefault(temple, {'rooms': set(), 'points': set()})
+                if label == NEIGHBORS['TempleOfTime']['Market']:
+                    target['rooms'].add((REGION_NAMES['TempleOfTime'], *TEMPLE_BOUNDS[age]))
             target['points'].add((label, tuple(point)))
         if scene.get('routes'):
             view.setdefault('routes', set()).update((name, tuple(map(tuple, points))) for name, points in scene['routes'])

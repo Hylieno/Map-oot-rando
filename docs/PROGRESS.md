@@ -1,5 +1,10 @@
 # Checkpoint — 24 novembre 2026
 
+Le Temple du Temps s’ouvre depuis la Citadelle aux deux âges. L’épée
+de légende, Sheik, les Flèches de lumière et la récompense de départ
+ont des positions vérifiées sur les vues du temple et de la Chambre
+des Sages. Le suivi de Link reconnaît ces vues.
+
 Le ranch Lon Lon est raccordé à la plaine. Le fond Field Atlas s’ouvre
 aux deux âges et affiche cinq checks distincts. Les coordonnées
 de Link permettent de suivre le passage entre les deux vues.
