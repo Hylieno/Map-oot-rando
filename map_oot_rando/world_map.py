@@ -29,6 +29,7 @@ WORLD_PINS = {
     'InsideTheDekuTree': (.6835, .7656),
     'ForestTemple': (.8656, .6039),
     'BottomOfTheWell': (.6610, .3741),
+    'ShadowTemple': (.8012, .3182),
 }
 
 

@@ -1,8 +1,11 @@
-# Checkpoint — 24 novembre 2026
+# Checkpoint — 23 novembre 2026
 
 Le Puits de Cocorico est relié au village. Ses 42 checks se répartissent
 entre deux plans Field Atlas. Le niveau profond contient la Loupe et le
 coffre de la carte.
+Le Temple de l’Ombre est relié au cimetière et affiche 48 checks sur
+quatre plans et une vue d’arène. Le build de ce jalon inclut les deux
+donjons.
 
 L’Arbre Mojo est accessible depuis Kokiri. Les cinq plans et la vue de
 l’arène affichent les 25 checks du catalogue. L’étage garde son plan même

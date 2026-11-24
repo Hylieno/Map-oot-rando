@@ -5,6 +5,22 @@ from map_oot_rando.scene import extract_scenes, read_scenes
 
 
 class SceneTests(unittest.TestCase):
+    def test_shadow_temple_keeps_raised_targets_on_their_room_floor(self):
+        from map_oot_rando.model import Location
+        from map_oot_rando.scene import SHADOW_VIEWS, location_view
+
+        region = 'ShadowTemple'
+        path = f'Banc/{region}/{region}_Static.bcett.byml.zs'
+        for room, point, floor in (
+            (7, (84.1, 87.3, 22.9), 1),
+            (11, (33.4, 73.8, 86.2), 2),
+            (17, (104.6, 52, -39.8), 3),
+            (24, (-138.3, -11.5, 26), 4),
+        ):
+            with self.subTest(room=room):
+                row = Location('test', 'Check', 'test', path, point, region=region, dungeon_room=room)
+                self.assertEqual(location_view(row), SHADOW_VIEWS[floor])
+
     def test_well_uses_the_native_room_before_the_height_cutoff(self):
         from map_oot_rando.model import Location
         from map_oot_rando.scene import WELL_VIEWS, location_view

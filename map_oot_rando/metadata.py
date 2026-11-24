@@ -27,6 +27,7 @@ EVENT_ACTORS = {
     'InsideJabuJabuBelly': {('Enemy_DungeonBoss_Barinade', None): 'boss#Barinade'},
     'InsideTheDekuTree': {('Enemy_DungeonBoss_Gohma', None): 'boss#Queen Gohma'},
     'ForestTemple': {('Enemy_DungeonBoss_PhantomGanon', None): 'boss#Phantom Ganon'},
+    'ShadowTemple': {('Enemy_DungeonBoss_BongoBongo', None): 'boss#Bongo Bongo'},
     'DeathMountainCrater': {
         ('MapIconFacilityAnchor', 'HavePlayedEvent.Dm_FairyFountain_Wisdom'): 'fairy#DMC Great Fairy Reward',
     },
@@ -59,9 +60,10 @@ CHECK_ACTOR_PATTERNS = {
     ('full_bossheart', 'heart'): ('Obj_Heart_Container',),
 }
 PLACEMENT_REGIONS = frozenset({'FireTemple', 'ZoraRiver', 'ZoraDomain', 'ZoraFountain', 'IceCavern',
-                               'InsideJabuJabuBelly', 'InsideTheDekuTree', 'ForestTemple', 'BottomOfTheWell'})
+                               'InsideJabuJabuBelly', 'InsideTheDekuTree', 'ForestTemple', 'BottomOfTheWell',
+                               'ShadowTemple'})
 DUNGEON_ROOM_REGIONS = frozenset({'InsideJabuJabuBelly', 'InsideTheDekuTree', 'ForestTemple',
-                                  'BottomOfTheWell'})
+                                  'BottomOfTheWell', 'ShadowTemple'})
 
 
 def add_dungeon_rooms(rows, maps):
@@ -250,7 +252,8 @@ def bind_catalogue(document, catalogue):
                   'Fire Temple': 'FireTemple', "Zora's River": 'ZoraRiver', "Zora's Domain": 'ZoraDomain',
                   "Zora's Fountain": 'ZoraFountain', 'Ice Cavern': 'IceCavern',
                   "Inside Jabu-Jabu's Belly": 'InsideJabuJabuBelly', 'Inside the Deku Tree': 'InsideTheDekuTree',
-                  'Forest Temple': 'ForestTemple', 'Bottom of the Well': 'BottomOfTheWell'})
+                  'Forest Temple': 'ForestTemple', 'Bottom of the Well': 'BottomOfTheWell',
+                  'Shadow Temple': 'ShadowTemple'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']

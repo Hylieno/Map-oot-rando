@@ -1,5 +1,12 @@
 # Validation
 
+Les deux scènes publiques du Temple de l’Ombre contiennent les 48 checks
+du catalogue. Le chargement des quatre plans et l’entrée depuis le
+cimetière ont été vérifiés dans l’application. Trois marqueurs sont à
+1, 6 et 25 pixels du dessin à 700 pixels de large et conservent leurs
+coordonnées de jeu. Bongo Bongo et son cœur apparaissent dans l’arène.
+Le scan du NUP complet reste à contrôler pour ce donjon.
+
 Les deux scènes publiques du Puits de Cocorico ont permis de positionner
 les 42 checks du catalogue, dont 31 au premier niveau et 11 au niveau
 profond. Deux placements sont entre 14 et 17 pixels à l’extérieur du

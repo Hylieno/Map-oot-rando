@@ -25,6 +25,7 @@ REGION_NAMES = {
     'InsideTheDekuTree': 'Intérieur de l’Arbre Mojo',
     'ForestTemple': 'Temple de la Forêt',
     'BottomOfTheWell': 'Puits de Cocorico',
+    'ShadowTemple': 'Temple de l’Ombre',
 }
 # These scenes have buried actor placements below their surface.
 SURFACE_MIN_Y = {'Graveyard': 92, 'DeathMountainTrail': 80, 'DeathMountainCrater': 90}

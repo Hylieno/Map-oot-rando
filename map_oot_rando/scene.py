@@ -27,6 +27,8 @@ FOREST_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', 'Sous-sol', 'Sou
 FOREST_VIEWS = tuple(f'{REGION_NAMES["ForestTemple"]} · {level}' for level in FOREST_LEVELS)
 WELL_LEVELS = ('Sous-sol', 'Sous-sol profond')
 WELL_VIEWS = tuple(f'{REGION_NAMES["BottomOfTheWell"]} · {level}' for level in WELL_LEVELS)
+SHADOW_LEVELS = ('Sous-sol 1', 'Sous-sol 2', 'Sous-sol 3', 'Sous-sol 4', 'Arène de Bongo Bongo')
+SHADOW_VIEWS = tuple(f'{REGION_NAMES["ShadowTemple"]} · {level}' for level in SHADOW_LEVELS)
 DUNGEON_FLOORS = {
     'DodongoCavern': tuple(zip(DODONGO_LEVELS, DODONGO_VIEWS)),
     'FireTemple': tuple(zip(FIRE_LEVELS, FIRE_VIEWS)),
@@ -34,6 +36,7 @@ DUNGEON_FLOORS = {
     'InsideTheDekuTree': tuple(zip(DEKU_LEVELS, DEKU_VIEWS)),
     'ForestTemple': tuple(zip(FOREST_LEVELS, FOREST_VIEWS)),
     'BottomOfTheWell': tuple(zip(WELL_LEVELS, WELL_VIEWS)),
+    'ShadowTemple': tuple(zip(SHADOW_LEVELS, SHADOW_VIEWS)),
 }
 DUNGEON_ATLAS_KEYS = {
     **dict(zip(DODONGO_VIEWS, ('1F', '2F'))),
@@ -42,6 +45,7 @@ DUNGEON_ATLAS_KEYS = {
     **dict(zip(DEKU_VIEWS, ('1F', '2F', '3F', 'S1', 'S2'))),
     **dict(zip(FOREST_VIEWS, ('1F', '2F', '3F', 'S1', 'S2'))),
     **dict(zip(WELL_VIEWS, ('S1', 'S2'))),
+    **dict(zip(SHADOW_VIEWS, ('S1', 'S2', 'S3', 'S4'))),
 }
 FOUNTAIN_DUNGEON_AGES = {'IceCavern': 'Adult', 'InsideJabuJabuBelly': 'Child'}
 JABU_ROOM_VIEWS = {
@@ -63,6 +67,13 @@ FOREST_ROOM_VIEWS = {
     15: FOREST_VIEWS[3],
     27: FOREST_VIEWS[4],
     29: FOREST_VIEWS[5],
+}
+SHADOW_ROOM_VIEWS = {
+    **dict.fromkeys((0, 2, 3, 4, 30), SHADOW_VIEWS[0]),
+    **dict.fromkeys((6, 7), SHADOW_VIEWS[1]),
+    **dict.fromkeys((9, 10, 11, 14, 15, 16, 31), SHADOW_VIEWS[2]),
+    **dict.fromkeys((17, 19, 20, 21), SHADOW_VIEWS[3]),
+    24: SHADOW_VIEWS[4],
 }
 for region, floors in DUNGEON_FLOORS.items():
     REGION_VIEWS[region] = {None: floors[0][1]}
@@ -98,7 +109,8 @@ NEIGHBORS = {
     'KakarikoVillage': {'HyruleField': 'Vers la plaine d’Hyrule', 'Graveyard': 'Vers le cimetière',
                         'DeathMountainTrail': 'Vers le Mont du Péril', 'BottomOfTheWell': 'Puits'},
     'BottomOfTheWell': {'KakarikoVillage': 'Vers Cocorico'},
-    'Graveyard': {'KakarikoVillage': 'Vers Cocorico'},
+    'Graveyard': {'KakarikoVillage': 'Vers Cocorico', 'ShadowTemple': 'Vers le Temple de l’Ombre'},
+    'ShadowTemple': {'Graveyard': 'Vers le cimetière'},
     'DeathMountainTrail': {'KakarikoVillage': 'Vers Cocorico', 'GoronCity': 'Repère Goron',
                            'DodongoCavern': 'Vers la Caverne Dodongo', 'DeathMountainCrater': 'Repère du cratère'},
     'GoronCity': {'DeathMountainTrail': 'Vers le mont du Péril', 'DeathMountainCrater': 'Repère nord Goron',
@@ -156,7 +168,8 @@ ZORA_RIVER_EXITS = {
 }
 ENTRANCE_LABELS = {
     'KakarikoVillage': KAKARIKO_ENTRANCES,
-    'Graveyard': {'KakarikoVillage': 'Vers Cocorico'},
+    'Graveyard': NEIGHBORS['Graveyard'],
+    'ShadowTemple': NEIGHBORS['ShadowTemple'],
     'HyruleField': HYRULE_ANCHORS,
     'ZoraRiver': {'ZoraDomain': NEIGHBORS['ZoraRiver']['ZoraDomain']},
     'ZoraDomain': NEIGHBORS['ZoraDomain'],
@@ -411,6 +424,19 @@ def location_view(row):
     if view == WELL_VIEWS[0] and row.position is not None:
         if row.dungeon_room in {8, 9} or (row.dungeon_room is None and row.position[1] < 94):
             return WELL_VIEWS[1]
+    if view == SHADOW_VIEWS[0] and row.position is not None:
+        if row.dungeon_room in SHADOW_ROOM_VIEWS:
+            return SHADOW_ROOM_VIEWS[row.dungeon_room]
+        x, y, z = row.position
+        if row.id == 'boss#Bongo Bongo' or row.category == 'full_bossheart' or (
+                row.dungeon_room is None and -173 <= x <= -104 and 0 <= z <= 75 and y < 5):
+            return SHADOW_VIEWS[4]
+        if y < 45 or (45 <= y <= 53 and (x < 0 or (x >= 100 and z < -33))):
+            return SHADOW_VIEWS[3]
+        if y < 70:
+            return SHADOW_VIEWS[2]
+        if y < 87 or (y < 89 and x > 55):
+            return SHADOW_VIEWS[1]
     if view == DODONGO_VIEWS[0] and row.position is not None:
         y = row.position[1]
         if y < 82:
