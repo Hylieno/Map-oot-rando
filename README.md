@@ -41,6 +41,7 @@ utilisée par Ocarina Atlas. [Field Atlas](https://oot.gousse.cool/) · [Ocarina
 Sur la carte d’Hyrule, les repères avec une flèche ouvrent un menu.
 Quand la fenêtre est étroite, le menu **Zones voisines** regroupe les
 destinations qui figurent habituellement dans la barre de la carte.
+Les commandes de suivi passent au besoin sur leur propre ligne.
 Kokiri donne accès au village, au pont et au Monde des rêves. La
 Citadelle donne accès au Temple du Temps et à la Chambre des Sages.
 Les boutons Enfant et Adulte permettent de choisir l’âge avant

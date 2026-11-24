@@ -61,7 +61,7 @@ class GuiTests(unittest.TestCase):
         self.assertIn('inconnues', app.details.get())
         self.assertFalse(app.markers)
 
-    def test_neighbor_menu_preserves_destinations_when_the_map_panel_narrows(self):
+    def test_navigation_and_tracking_remain_available_in_a_narrow_window(self):
         from unittest.mock import patch
         from map_oot_rando.scene import NEIGHBORS, REGION_NAMES, REGION_VIEWS
 
@@ -82,6 +82,9 @@ class GuiTests(unittest.TestCase):
         self.root.update()
         self.assertTrue(app.overview_button.winfo_ismapped())
         self.assertTrue(app.neighbor_menu_button.winfo_ismapped())
+        for widget in (app.import_button, app.track_button, app.stop_track_button, app.live_check):
+            self.assertTrue(widget.winfo_ismapped())
+            self.assertGreaterEqual(widget.winfo_width(), widget.winfo_reqwidth())
         available = [region for region in NEIGHBORS[forest] if region in destinations]
         labels = [app.neighbor_menu.entrycget(i, 'label') for i in range(len(available))]
         self.assertEqual(labels, [REGION_NAMES[region] for region in available])
@@ -90,6 +93,7 @@ class GuiTests(unittest.TestCase):
         self.root.update()
         self.assertFalse(app.neighbor_menu_button.winfo_ismapped())
         self.assertTrue(all(app.neighbor_buttons[target].winfo_ismapped() for target in destinations))
+        self.assertGreater(app.track_button.winfo_rootx(), app.import_button.winfo_rootx())
 
         self.root.geometry('690x700')
         self.root.update()
@@ -97,9 +101,11 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(app.resource.get(), REGION_VIEWS['InsideTheDekuTree'][None])
         self.root.geometry('760x700')
         self.root.update()
-        for widget in (app.overview_button, app.floor_picker, app.neighbor_menu_button):
-            self.assertTrue(widget.winfo_ismapped())
-            self.assertGreaterEqual(widget.winfo_width(), widget.winfo_reqwidth())
+        destination = app.neighbor_menu_button if app.neighbor_menu_button.winfo_ismapped() else (
+            app.neighbor_buttons[forest])
+        for widget in (app.overview_button, app.floor_picker, destination):
+            self.assertTrue(widget.winfo_ismapped(), str(widget))
+            self.assertGreaterEqual(widget.winfo_width(), widget.winfo_reqwidth(), str(widget))
 
     def test_pan_zoom_and_import_isolation(self):
         app = self.app

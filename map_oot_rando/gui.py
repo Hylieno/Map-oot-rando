@@ -115,22 +115,29 @@ class MapApplication:
         ttk.Button(top, text='Simulation', command=lambda: self.load(demo_document())).pack(side='right')
         self.report_button = ttk.Button(top, text='Diagnostic de la carte…', command=self.save_diagnostic)
         self.report_button.pack(side='right', padx=(0, 8))
-        import_bar = ttk.Frame(root, padding=(10, 0, 10, 0))
+        self.import_bar = import_bar = ttk.Frame(root, padding=(10, 0, 10, 0))
         import_bar.pack(fill='x')
-        self.import_button = ttk.Button(import_bar, text='Importer mon jeu et ma seed…',
+        self.import_actions = ttk.Frame(import_bar)
+        self.tracking_actions = ttk.Frame(import_bar)
+        self.import_button = ttk.Button(self.import_actions, text='Importer mon jeu et ma seed…',
                                         command=self.choose_seed)
         self.import_button.pack(side='left')
-        self.save_button = ttk.Button(import_bar, text='Enregistrer la carte…',
+        self.save_button = ttk.Button(self.import_actions, text='Enregistrer la carte…',
                                       command=self.save_map)
         self.save_button.pack(side='left', padx=8)
-        self.track_button = ttk.Button(import_bar, text='Choisir le dossier de sauvegardes…', command=self.choose_save)
+        self.track_button = ttk.Button(self.tracking_actions, text='Choisir le dossier de sauvegardes…',
+                                       command=self.choose_save)
         self.track_button.pack(side='left')
-        self.stop_track_button = ttk.Button(import_bar, text='Arrêter le suivi', command=self.stop_tracking)
+        self.stop_track_button = ttk.Button(self.tracking_actions, text='Arrêter le suivi', command=self.stop_tracking)
         self.stop_track_button.pack(side='left', padx=(6, 0))
-        self.live_check = ttk.Checkbutton(import_bar, text='Mémoire du jeu',
+        self.live_check = ttk.Checkbutton(self.tracking_actions, text='Mémoire du jeu',
                                            variable=self.live_requested, command=self.configure_live)
         self.live_check.pack(side='left', padx=(6, 0))
-        ttk.Label(import_bar, textvariable=self.import_status).pack(side='left', padx=8)
+        ttk.Label(self.tracking_actions, textvariable=self.import_status).pack(side='left', padx=8)
+        self.import_actions.pack(side='left')
+        self.tracking_actions.pack(side='left')
+        self.import_layout_stacked = False
+        import_bar.bind('<Configure>', self.layout_import_actions)
         ttk.Label(root, textvariable=self.connection, padding=8).pack(fill='x')
         body = ttk.Panedwindow(root, orient='horizontal')
         body.pack(fill='both', expand=True)
@@ -1047,6 +1054,22 @@ class MapApplication:
             self.neighbor_bar.pack(side='top', anchor='w')
         else:
             self.neighbor_bar.pack(in_=self.map_tools, side='left')
+
+    def layout_import_actions(self, event):
+        tracking_controls = (self.track_button, self.stop_track_button, self.live_check)
+        tracking_width = sum(widget.winfo_reqwidth() for widget in tracking_controls) + 12
+        stacked = self.import_actions.winfo_reqwidth() + tracking_width + 20 > event.width
+        if stacked == self.import_layout_stacked:
+            return
+        self.import_layout_stacked = stacked
+        self.import_actions.pack_forget()
+        self.tracking_actions.pack_forget()
+        if stacked:
+            self.import_actions.pack(anchor='w')
+            self.tracking_actions.pack(anchor='w')
+        else:
+            self.import_actions.pack(side='left')
+            self.tracking_actions.pack(side='left')
 
     def resource_changed(self, *, manual=True, arrival=None):
         self.overview_open = False

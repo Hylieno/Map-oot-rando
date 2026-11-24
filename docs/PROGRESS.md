@@ -2,6 +2,7 @@
 
 Les zones voisines restent accessibles dans une fenêtre étroite.
 La barre affiche un menu quand les destinations ne tiennent plus.
+Les commandes de suivi et de mémoire peuvent aussi passer à la ligne.
 
 Le raccourci Goron indique les deux apparitions possibles dans la galerie.
 Le retour dans les Bois Perdus indique leur point commun.
