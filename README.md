@@ -203,7 +203,8 @@ décocher le suivi de zone en gardant le marqueur. L’application mémorise
 ce choix sur l’ordinateur. Si le jeu s’arrête ou que la seed active est
 différente, le marqueur disparaît.
 Sur la carte d’Hyrule, clique sur le marqueur de Link pour ouvrir sa
-zone et son étage actuels.
+zone et son étage actuels. Tu peux aussi cliquer directement sur le nom
+de sa zone dans la barre latérale.
 
 Clique sur **Choisir le dossier de sauvegardes…** et indique le dossier qui
 contient les sauvegardes de ton jeu. L’application cherche dans les sous-dossiers

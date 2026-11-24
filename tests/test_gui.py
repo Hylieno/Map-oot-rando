@@ -465,12 +465,22 @@ class GuiTests(unittest.TestCase):
         self.assertTrue(app.canvas.find_withtag('player-pin'))
         app.update_link(LinkPosition(woods, 'Child', 0, 100, 0, 0))
         self.assertEqual(app.resource.get(), forest_view)
+        self.assertIn(woods_view, app.link_status.get())
+        self.assertEqual(app.link_zone_button.winfo_manager(), 'pack')
+        app.link_zone_button.invoke()
+        self.assertEqual(app.resource.get(), woods_view)
+        self.assertFalse(app.follow_link.get())
+        self.assertTrue(app.canvas.find_withtag('player-pin'))
+        app.update_link(LinkPosition(forest, 'Child', 0, 100, 0, 0))
+        self.assertEqual(app.resource.get(), woods_view)
         self.assertTrue(app.use_live.is_set())
         self.assertTrue(app.show_link.get())
         app.follow_link_check.invoke()
-        self.assertEqual(app.resource.get(), woods_view)
+        self.assertEqual(app.resource.get(), forest_view)
         self.assertTrue(app.canvas.find_withtag('player-pin'))
         self.assertTrue(SaveProfiles(self.profiles_path).follow_link_enabled())
+        app.update_link(None)
+        self.assertFalse(app.link_zone_button.winfo_manager())
 
     def test_automatic_reconnect_keeps_snapshot_and_manual_choice_resets_it(self):
         from pathlib import Path

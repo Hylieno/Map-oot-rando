@@ -7,6 +7,8 @@ immédiate du suivi lorsqu’il est réactivé.
 Le clic sur le marqueur de Link depuis la carte d’Hyrule a été
 vérifié au Temple du Temps adulte, sous le cimetière et sur la
 passerelle du labyrinthe avec des positions simulées.
+Le test de réouverture vérifie aussi l’accès par la barre latérale
+et masque la commande dès que la position devient indisponible.
 
 Les trois trajets du Monde des rêves ont été vérifiés dans Tk avec les
 scènes publiques. Le réveil a été vérifié aux deux âges. Le test

@@ -167,7 +167,12 @@ class MapApplication:
         self.follow_link_check = ttk.Checkbutton(sidebar, text='Suivre Link entre les zones',
                                                  variable=self.follow_link, command=self.configure_follow_link)
         self.follow_link_check.pack(anchor='w')
-        ttk.Label(sidebar, textvariable=self.link_status, wraplength=270).pack(anchor='w')
+        link_panel = ttk.Frame(sidebar)
+        link_panel.pack(fill='x')
+        self.link_status_label = ttk.Label(link_panel, textvariable=self.link_status, wraplength=270)
+        self.link_status_label.pack(anchor='w')
+        self.link_zone_button = tk.Button(link_panel, textvariable=self.link_status, wraplength=252,
+                                          justify='left', anchor='w', cursor='hand2', command=self.show_link_zone)
         ttk.Label(sidebar, text='Catégorie').pack(anchor='w', pady=(10, 0))
         self.categories = ttk.Combobox(sidebar, textvariable=self.category, state='readonly')
         self.categories.pack(fill='x')
@@ -435,7 +440,7 @@ class MapApplication:
         try:
             self.save_profiles.remember_follow_link(self.follow_link.get())
         except OSError:
-            self.link_status.set('Le choix de suivi de Link n’a pas pu être mémorisé.')
+            self.import_status.set('Le choix de suivi de Link n’a pas pu être mémorisé.')
 
     def link_region(self):
         scene = self.link.scene
@@ -488,24 +493,36 @@ class MapApplication:
         changed = self.link != position
         self.link = position
         view = self.link_view() if position else None
+        if view:
+            self.link_status.set(f'Link · {view}')
+            if not self.link_zone_button.winfo_manager():
+                self.link_status_label.pack_forget()
+                self.link_zone_button.pack(fill='x')
+        else:
+            self.link_status.set('Zone de Link hors carte' if position else self.link_message())
+            if self.link_zone_button.winfo_manager():
+                self.link_zone_button.pack_forget()
+                self.link_status_label.pack(anchor='w')
         area = (position.scene, position.age, view) if position else None
         if area is not None and area != self.link_area:
             self.link_area = area
             if view and self.resume_follow_link():
                 return
-        self.link_status.set('Link en direct' if view else 'Zone de Link hors carte' if position
-                             else self.link_message())
         if changed:
             self.draw()
+
+    def show_link_zone(self, view=None):
+        if self.link and (view := view or self.link_view()):
+            self.resource.set(view)
+            self.resource_changed(manual=False)
+            return True
+        return False
 
     def resume_follow_link(self):
         if self.follow_link.get() and self.link:
             view = self.link_view()
             if view and (self.resource.get() != view or self.overview_open):
-                self.resource.set(view)
-                self.link_status.set('Link en direct')
-                self.resource_changed(manual=False)
-                return True
+                return self.show_link_zone(view)
         return False
 
     def draw_link_pin(self, x, y, yaw):
