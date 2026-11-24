@@ -33,6 +33,7 @@ REGION_NAMES = {
     'GerudoValley': 'Vallée Gerudo',
     'GerudoFortress': 'Forteresse Gerudo',
     'GerudoTrainingGround': 'Centre d’entraînement Gerudo',
+    'HountedWasteland': 'Désert hanté',
 }
 # These scenes have buried actor placements below their surface.
 SURFACE_MIN_Y = {'Graveyard': 92, 'DeathMountainTrail': 80, 'DeathMountainCrater': 90}

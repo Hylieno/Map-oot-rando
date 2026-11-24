@@ -1,7 +1,7 @@
 """Map symbols derived from OotrR landmarks in the active resource's coordinates."""
 from math import isfinite
 
-from .model import REGION_NAMES, SURFACE_MIN_Y, resource_region
+from .model import REGION_NAMES, SURFACE_MIN_Y, read_position, resource_region
 
 MAP_SUFFIX = '.bcett.byml.zs'
 REGION_VIEWS = {region: {'Child': f'{name} · Enfant', 'Adult': f'{name} · Adulte'}
@@ -126,8 +126,10 @@ NEIGHBORS = {
                     'Market': 'Porte de la Citadelle', 'GerudoValley': 'Vers la Vallée Gerudo'},
     'GerudoValley': {'HyruleField': 'Vers la plaine d’Hyrule', 'GerudoFortress': 'Vers la Forteresse Gerudo'},
     'GerudoFortress': {'GerudoValley': 'Vers la Vallée Gerudo',
-                       'GerudoTrainingGround': 'Vers le centre d’entraînement'},
+                       'GerudoTrainingGround': 'Vers le centre d’entraînement',
+                       'HountedWasteland': 'Vers le Désert hanté'},
     'GerudoTrainingGround': {'GerudoFortress': 'Vers la Forteresse Gerudo'},
+    'HountedWasteland': {'GerudoFortress': 'Vers la Forteresse Gerudo'},
     'Market': {'HyruleField': 'Vers la plaine d’Hyrule', 'HyruleCastle': 'Vers le Château d’Hyrule',
                'GanonCastle': 'Vers le Château de Ganon'},
     'HyruleCastle': {'Market': 'Vers la Citadelle d’Hyrule'},
@@ -349,6 +351,34 @@ LEVEL_POINT_EXTRACTORS = {
     'GerudoTrainingGround': training_level_points,
 }
 
+GUIDE_ROUTE = 'Trajet du guide'
+
+
+def guide_routes(sources):
+    """Project the native Guide rail, including its Bézier handles, onto X/Z."""
+    routes = set()
+    for source in sources.values():
+        for rail in source['root'].get('Rails', ()):
+            if rail.get('Name') != 'Guide' or rail.get('Gyaml') != 'Guide' or rail.get('IsClosed'):
+                continue
+            knots = rail.get('Points', ())
+            if len(knots) < 2:
+                continue
+            points = []
+            for left, right in zip(knots, knots[1:]):
+                start = read_position(left['Translate'])
+                end = read_position(right['Translate'])
+                takeoff = read_position(left.get('Control1')) or start
+                arrival = read_position(right.get('Control0')) or end
+                for step in range(12):
+                    t = step / 12
+                    u = 1 - t
+                    points.append(tuple(u**3 * start[axis] + 3*u*u*t * takeoff[axis]
+                                        + 3*u*t*t * arrival[axis] + t**3 * end[axis] for axis in (0, 2)))
+            points.append((end[0], end[2]))
+            routes.add((GUIDE_ROUTE, tuple(points)))
+    return routes
+
 
 def projection_points(region, sources):
     points = set()
@@ -397,6 +427,14 @@ def projection_points(region, sources):
                 dynamic = actor.get('Dynamic')
                 if isinstance(dynamic, dict) and dynamic.get('NextStartPosName') == 'GerudoFortress_FromGerudoTrainingGround':
                     label = NEIGHBORS[region]['GerudoFortress']
+            elif region == 'HountedWasteland':
+                if gyaml == 'MapIconEntranceAnchor' and actor.get('Hash') == 13756540388226076963:
+                    label = NEIGHBORS[region]['GerudoFortress']
+                elif gyaml == 'Land_Desert_Ruin_A_01':
+                    label = 'Ruines du guide'
+                elif gyaml == 'DestinationAnchor':
+                    label = {'GuideStartPos': 'Départ du guide',
+                             'GuidePoeComplete': 'Fin du trajet'}.get(actor.get('Name'))
             elif gyaml == 'MapIconEntranceAnchor':
                 dynamic = actor.get('Dynamic')
                 if isinstance(dynamic, dict) and (region in {'GoronCity', 'DeathMountainCrater'}
@@ -457,10 +495,13 @@ def extract_scenes(maps, landmarks):
             points.update(projection_points(region, sources))
         extract_levels = LEVEL_POINT_EXTRACTORS.get(region)
         levels = extract_levels(sources) if extract_levels else ()
-        if rooms or points or levels:
+        routes = guide_routes(sources) if region == 'HountedWasteland' else ()
+        if rooms or points or levels or routes:
             scene = {'rooms': rooms, 'points': sorted(points)}
             if levels:
                 scene['level_points'] = sorted(levels)
+            if routes:
+                scene['routes'] = sorted(routes)
             scenes[path] = scene
     return scenes
 
@@ -484,6 +525,11 @@ def read_scenes(document):
                         or any(len(point) != 2 or any(type(v) not in (int, float)
                                or not isfinite(v) for v in point) for point in entry[1:])):
                     raise ValueError('Repère de carte invalide')
+        for route in scene.get('routes', ()):
+            if (len(route) != 2 or not isinstance(route[0], str) or not 2 <= len(route[1]) <= 4096
+                    or any(len(point) != 2 or any(type(v) not in (int, float) or not isfinite(v)
+                                                  for v in point) for point in route[1])):
+                raise ValueError('Trajet de carte invalide')
     return scenes
 
 
@@ -618,6 +664,8 @@ def group_scenes(scenes):
         view = grouped.setdefault(view_name(resource), {'rooms': set(), 'points': set()})
         view['rooms'].update((name, tuple(low), tuple(high)) for name, low, high in scene['rooms'])
         view['points'].update((name, tuple(point)) for name, point in scene['points'])
+        if scene.get('routes'):
+            view.setdefault('routes', set()).update((name, tuple(map(tuple, points))) for name, points in scene['routes'])
         for floor, name, point in scene.get('level_points', ()):
             _, view_name_for_floor = DUNGEON_FLOORS[resource_region(resource)][floor]
             level = grouped.setdefault(view_name_for_floor, {'rooms': set(), 'points': set()})

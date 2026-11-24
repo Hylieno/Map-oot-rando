@@ -1,5 +1,9 @@
 # Checkpoint — 24 novembre 2026
 
+Le Désert hanté est relié à la forteresse adulte et affiche les quatre
+checks du catalogue. Les deux âges utilisent le tracé du guide lu dans
+la scène. Le raccord vers le Colosse du désert reste à intégrer.
+
 Le Centre d’entraînement est accessible depuis la forteresse adulte.
 Un schéma représente les salles et un deuxième affiche la passerelle
 du labyrinthe. Vingt checks ont été placés. Les neuf entrées historiques

@@ -39,6 +39,9 @@ Le Centre d’entraînement réutilise les repères par niveau pour séparer
 les deux hauteurs du labyrinthe. Le numéro de salle de l’acteur et sa
 hauteur déterminent la vue des checks. Le suivi de Link utilise sa
 hauteur dans le périmètre du labyrinthe.
+Le champ facultatif `routes` conserve les chemins X/Z associés à la
+scène. Le Désert hanté projette la trajectoire du guide depuis les
+segments de Bézier de la scène. Le cadrage inclut toute la courbe.
 Dans les zones Zora, à la Caverne de glace et au Temple du Feu, les identifiants typés du catalogue
 peuvent compléter le scan par correspondance du hash et du type d’acteur
 dans chaque scène, sans écraser un placement déjà produit pour cette vue.

@@ -991,6 +991,8 @@ class MapApplication:
         if aerial:
             points.extend(aerial.corners())
         points.extend(point for _, point in scene.get('points', ()))
+        for _, route in scene.get('routes', ()):
+            points.extend(route)
         for _, low, high in scene.get('rooms', ()):
             points.extend((low, high))
         self.viewport.fit(points, self.canvas.winfo_width(), self.canvas.winfo_height())
@@ -1081,6 +1083,13 @@ class MapApplication:
                 self.canvas.create_rectangle(x1, y1, x2, y2, fill='#1f5577',
                                              outline='#7bb6ce', width=2, tags='scene')
                 captions.append((label, (x1 + x2) / 2, min(y1, y2) - 10))
+            routes = scene.get('routes', ())
+            for _, route in routes:
+                coordinates = [coordinate for point in route for coordinate in self.viewport.screen(point)]
+                self.canvas.create_line(*coordinates, fill='#332d25', width=8,
+                                        capstyle='round', joinstyle='round', tags='scene-route')
+                self.canvas.create_line(*coordinates, fill='#ffe19b', width=3, arrow='last',
+                                        capstyle='round', joinstyle='round', tags='scene-route')
             for label, point in scene['points']:
                 if label in exits:
                     continue
@@ -1088,7 +1097,8 @@ class MapApplication:
                 self.canvas.create_polygon(x, y-5, x+5, y, x, y+5, x-5, y,
                                            fill='#b4dec0', tags='scene')
                 captions.append((label, x, y - 13))
-            heading = f'{name} | Repères du jeu (schéma)'
+            topic = routes[0][0] if routes else 'Repères du jeu'
+            heading = f'{name} | {topic} (schéma)'
         else:
             self.canvas.configure(background=ATLAS_BACKGROUND)
             step, xs, ys = self.viewport.grid(width, height)

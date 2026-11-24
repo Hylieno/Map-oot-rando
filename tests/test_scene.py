@@ -5,6 +5,23 @@ from map_oot_rando.scene import extract_scenes, read_scenes
 
 
 class SceneTests(unittest.TestCase):
+    def test_wasteland_route_keeps_native_curve_and_deduplicates_scene_layers(self):
+        from map_oot_rando.scene import GUIDE_ROUTE, REGION_VIEWS, group_scenes
+
+        region = 'HountedWasteland'
+        path = f'Banc/{region}/{region}_Adult_Static.bcett.byml.zs'
+        guide = dict(Name='Guide', Gyaml='Guide', IsClosed=False, Points=[
+            dict(Translate=(0, 100, 0), Control1=(0, 110, -8)),
+            dict(Translate=(12, 100, 0), Control0=(12, 110, -8)),
+        ])
+        maps = {path: {'root': {'Rails': [guide]}},
+                path.replace('_Static', '_Dynamic'): {'root': {'Actors': []}}}
+        document = {'scenes': extract_scenes(maps, lambda _: {})}
+        grouped = group_scenes(read_scenes(json.loads(json.dumps(document))))
+        (name, route), = grouped[REGION_VIEWS[region]['Adult']]['routes']
+        self.assertEqual(name, GUIDE_ROUTE)
+        self.assertEqual((route[0], route[6], route[-1]), ((0, 0), (6, -6), (12, 0)))
+
     def test_gerudo_training_ground_preserves_the_walkway_above_the_maze(self):
         from map_oot_rando.model import Location
         from map_oot_rando.scene import TRAINING_VIEWS, group_scenes, location_view

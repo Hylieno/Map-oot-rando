@@ -721,6 +721,36 @@ class GuiTests(unittest.TestCase):
         app.open_neighbor(fortress)
         self.assertEqual(app.resource.get(), REGION_VIEWS[fortress]['Adult'])
 
+    def test_wasteland_draws_the_guide_and_hides_the_child_fortress_portal(self):
+        from unittest.mock import patch
+        from map_oot_rando.scene import GUIDE_ROUTE, REGION_VIEWS
+
+        app = self.app
+        fortress, desert = 'GerudoFortress', 'HountedWasteland'
+        scenes = {
+            'Banc/GerudoFortress/GerudoFortress_Adult_Dynamic.bcett.byml.zs':
+                {'rooms': [], 'points': [('Vers le Désert hanté', (-45, -117))]},
+        }
+        for age in ('Child', 'Adult'):
+            scenes[f'Banc/HountedWasteland/HountedWasteland_{age}_Static.bcett.byml.zs'] = {
+                'rooms': [], 'points': [('Vers la Forteresse Gerudo', (123, 58))],
+                'routes': [(GUIDE_ROUTE, [(14, -93), (-33, -100), (-92, -56)])],
+            }
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=['KokiriForest', fortress, desert],
+                   locations=[], scenes=scenes)
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        app.resource.set(REGION_VIEWS[fortress]['Adult'])
+        app.resource_changed()
+        self.assertIn(desert, app.navigation_markers.values())
+        app.open_neighbor(desert)
+        self.assertEqual(app.resource.get(), REGION_VIEWS[desert]['Adult'])
+        self.assertEqual(len(app.canvas.find_withtag('scene-route')), 2)
+        self.assertIn(fortress, app.navigation_markers.values())
+        app.choose_age('Child')
+        self.assertEqual(len(app.canvas.find_withtag('scene-route')), 2)
+        self.assertNotIn(fortress, app.navigation_markers.values())
+
     def test_ganon_castle_switches_scene_without_mixing_coordinates(self):
         from unittest.mock import patch
         from map_oot_rando.link_position import LinkPosition

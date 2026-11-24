@@ -25,6 +25,9 @@
   la passerelle sont lus dans la scène. Le retour vers la forteresse
   utilise le passage du hall. Les entrées historiques du catalogue
   conservent leur ID tant que leur acteur correspondant reste à vérifier.
+- Désert hanté. Le schéma trace le rail natif du guide avec ses points
+  de contrôle. Le repère est commun aux deux âges. Le passage de la
+  forteresse utilise le portail de la scène adulte.
 
 - La carte générale réutilise l’illustration Nintendúo et les positions
   géographiques publiées par Ocarina Atlas. Tous les fonds locaux publiés

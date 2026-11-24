@@ -1,5 +1,12 @@
 # Validation
 
+Les quatre scènes publiques du Désert hanté placent les quatre checks
+du catalogue. Le coffre et la Skulltula sont communs aux deux âges et
+chaque âge a son ID de caisse. Les deux rails du guide contiennent les
+mêmes quinze repères et points de contrôle. Les tests Tk vérifient le
+tracé et l’accès adulte depuis la forteresse. Le scan du NUP et le trajet
+en partie restent à vérifier.
+
 Les deux scènes publiques du Centre d’entraînement Gerudo ont permis
 de positionner 20 checks. Les deux coffres de la passerelle sont visibles
 au-dessus du labyrinthe. Neuf entrées historiques du catalogue restent
