@@ -202,6 +202,8 @@ ouvre sa nouvelle zone à chaque changement de scène ou d’âge. Tu peux
 décocher le suivi de zone en gardant le marqueur. L’application mémorise
 ce choix sur l’ordinateur. Si le jeu s’arrête ou que la seed active est
 différente, le marqueur disparaît.
+Sur la carte d’Hyrule, clique sur le marqueur de Link pour ouvrir sa
+zone et son étage actuels.
 
 Clique sur **Choisir le dossier de sauvegardes…** et indique le dossier qui
 contient les sauvegardes de ton jeu. L’application cherche dans les sous-dossiers

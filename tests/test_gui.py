@@ -553,6 +553,7 @@ class GuiTests(unittest.TestCase):
     def test_world_pin_opens_subzone_menu_for_the_selected_age(self):
         from PIL import Image
         from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
         from map_oot_rando.scene import REGION_VIEWS
 
         app = self.app
@@ -582,6 +583,21 @@ class GuiTests(unittest.TestCase):
         app.marker_menu.invoke(1)
         self.assertFalse(app.overview_open)
         self.assertEqual(app.resource.get(), REGION_VIEWS['TempleOfTime']['Adult'])
+        app.follow_link.set(False)
+        app.show_world()
+        app.age_buttons['Child'].invoke()
+        app.update_link(LinkPosition('SageRoom', 'Adult', 0, 100, 0, 0))
+        self.assertTrue(app.overview_open)
+        ring, _ = app.canvas.find_withtag('player-pin')
+        left, top, right, bottom = app.canvas.bbox(ring)
+        event = SimpleNamespace(x=(left+right)//2, y=(top+bottom)//2)
+        app.world_hover(event)
+        self.assertEqual(app.canvas.itemcget('world-heading', 'text'), 'Link · Chambre des Sages')
+        app.press(event)
+        self.assertFalse(app.overview_open)
+        self.assertEqual(app.resource.get(), REGION_VIEWS['SageRoom'][None])
+        self.assertFalse(app.follow_link.get())
+        self.assertTrue(app.canvas.find_withtag('player-pin'))
 
     def test_kakariko_story_variant_stays_separate_and_follows_snapshot(self):
         from map_oot_rando.scene import BURNT_VILLAGE, REGION_VIEWS

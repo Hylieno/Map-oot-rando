@@ -3,6 +3,8 @@
 Le choix de suivre Link entre les zones est conservé après la fermeture
 de l’application. Le marqueur reste utilisable avec le suivi de zone
 désactivé.
+Un clic sur Link depuis la carte d’Hyrule ouvre sa vue actuelle,
+y compris un étage ou une sous-zone.
 
 Le lit de Link, le réveil à Kokiri et l’entrée du défi des boss
 indiquent leurs points d’arrivée dans le Monde des rêves et la forêt.

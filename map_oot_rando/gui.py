@@ -515,9 +515,10 @@ class MapApplication:
                  x - 5*axis_x - 7*axis_y, y - 5*axis_y + 7*axis_x,
                  x - 2*axis_x, y - 2*axis_y,
                  x - 5*axis_x + 7*axis_y, y - 5*axis_y - 7*axis_x)
-        self.canvas.create_oval(x-11, y-11, x+11, y+11, fill='#0a332f',
-                                outline='#9df4b4', width=2, tags='player-pin')
-        self.canvas.create_polygon(*arrow, fill='#9df4b4', outline='#0a332f', tags='player-pin')
+        ring = self.canvas.create_oval(x-11, y-11, x+11, y+11, fill='#0a332f',
+                                       outline='#9df4b4', width=2, tags='player-pin')
+        heading = self.canvas.create_polygon(*arrow, fill='#9df4b4', outline='#0a332f', tags='player-pin')
+        return ring, heading
 
     def close_window(self):
         self.tracking_stop.set()
@@ -1179,8 +1180,9 @@ class MapApplication:
             self.canvas.create_image(left, top, anchor='nw', image=self.world_photo, tags='world-map')
         region = self.current_region()
         region = WORLD_PIN_PARENTS.get(region, region)
-        link_region = self.link_region() if self.link else None
-        link_region = WORLD_PIN_PARENTS.get(link_region, link_region)
+        link_view = self.link_view() if self.link else None
+        link_region = VIEWS.get(link_view, (None, None))[0]
+        link_anchor = WORLD_PIN_PARENTS.get(link_region, link_region)
         pins = {}
         for target, view in self.world_targets().items():
             pins.setdefault(WORLD_PIN_PARENTS.get(target, target), []).append((target, view))
@@ -1190,9 +1192,10 @@ class MapApplication:
                                           tags='world-heading')
         occupied = [self.canvas.bbox(heading)]
         occupied.extend((x-9, y-9, x+9, y+9) for x, y in positions.values())
-        if link_region in positions:
-            x, y = positions[link_region]
-            occupied.append((x+4, y-21, x+20, y-3))
+        if link_anchor in WORLD_PINS:
+            link_x = left + WORLD_PINS[link_anchor][0] * size[0] + 12
+            link_y = top + WORLD_PINS[link_anchor][1] * size[1] - 12
+            occupied.append((link_x-12, link_y-12, link_x+12, link_y+12))
         for anchor, destinations in pins.items():
             x, y = positions[anchor]
             color = '#8ae8c1' if anchor == region else '#ffca91' if anchor in SHARED_DUNGEONS else '#fff3ca'
@@ -1210,8 +1213,10 @@ class MapApplication:
                 else:
                     self.navigation_markers[item] = target
                     self.portal_views[item] = view
-            if link_region == anchor:
-                self.draw_link_pin(x + 12, y - 12, self.link.yaw)
+        if link_anchor in WORLD_PINS:
+            for item in self.draw_link_pin(link_x, link_y, self.link.yaw):
+                self.navigation_markers[item] = link_region
+                self.portal_views[item] = link_view
 
     def draw_world_label(self, title, x, y, width, height, occupied):
         label = self.canvas.create_text(x, y, text=title, fill='#fff7de')
@@ -1254,6 +1259,8 @@ class MapApplication:
                     break
                 if item in self.navigation_markers:
                     text = REGION_NAMES[self.navigation_markers[item]]
+                    if 'player-pin' in self.canvas.gettags(item):
+                        text = f'Link · {self.portal_views[item]}'
                     break
         self.canvas.itemconfigure('world-heading', text=text)
 
