@@ -43,6 +43,8 @@ Kokiri donne accès au village, au pont et au Monde des rêves. La
 Citadelle donne accès au Temple du Temps et à la Chambre des Sages.
 Les boutons Enfant et Adulte permettent de choisir l’âge avant
 d’ouvrir une zone. Survole un repère pour lire son nom en haut de la carte.
+Si tu réimportes la même seed, l’application garde ta vue lorsqu’elle
+est encore disponible, ainsi que ton choix de suivre ou non l’âge sauvegardé.
 
 Dans les Bois Perdus, le tracé doré indique le chemin normal de Kokiri au Bosquet
 sacré. Le plan inclut aussi la branche ouest et ses checks près du pont.

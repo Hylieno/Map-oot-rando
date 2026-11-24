@@ -1,5 +1,8 @@
 # Checkpoint — 24 novembre 2026
 
+Un réimport de la même seed garde la vue en cours quand elle existe
+dans la nouvelle carte. Le réglage de suivi de l’âge est conservé.
+
 Le build Windows vérifie la priorité de la mise à jour sur le jeu
 de base lors de l’import, les ressources conservées du jeu de base
 et les marqueurs des deux âges dans la fenêtre.

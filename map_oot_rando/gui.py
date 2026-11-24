@@ -216,6 +216,12 @@ class MapApplication:
         locations = load_metadata(document)  # Validate before replacing current state.
         scenes = group_scenes(read_scenes(document))
         synthetic = document['provenance'] == 'synthetic'
+        seed_id = document.get('seed_id', '')
+        old_store = getattr(self, 'store', None)
+        same_seed = (not synthetic and bool(seed_id) and old_store is not None
+                     and not old_store.simulated and old_store.seed_id == seed_id)
+        previous_view = self.resource.get() if same_seed else ''
+        previous_age = self.navigation_age if same_seed else None
         aerial = {}
         for resource, row in sorted(document.get('aerial', {}).items()):
             view = view_name(resource)
@@ -237,7 +243,8 @@ class MapApplication:
         self.save_commands = None
         self.save_age = None
         self.kakariko_burned = None
-        self.follow_age.set(True)
+        if not same_seed:
+            self.follow_age.set(True)
         self.follow_age_check.state(['disabled'])
         self.manual_button.pack_forget()
         self.stop_track_button.state(['disabled'])
@@ -253,7 +260,7 @@ class MapApplication:
         self.track_button.state([track_state])
         self.live_check.state([track_state])
         self.report_button.state(['disabled' if self.simulation else '!disabled'])
-        self.store = self.simulation.store if self.simulation else StateStore(document.get('seed_id', ''), [r.id for r in locations])
+        self.store = self.simulation.store if self.simulation else StateStore(seed_id, [r.id for r in locations])
         self.selected = None
         self.details.set('Sélectionnez un emplacement.')
         views = {location_view(row) for row in locations if row.position is not None}
@@ -276,8 +283,9 @@ class MapApplication:
         self.zone_targets.update((view, None) for view in self.views if view not in VIEWS)
         self.zones['values'] = tuple(self.zone_targets)
         first_positioned = next((location_view(r) for r in locations if r.position is not None), '')
-        self.navigation_age = None
-        self.resource.set(prefer[0] if prefer else first_positioned or next(iter(sorted(views)), ''))
+        self.navigation_age = previous_age
+        initial_view = prefer[0] if prefer else first_positioned or next(iter(sorted(views)), '')
+        self.resource.set(previous_view if previous_view in views else initial_view)
         self.categories['values'] = ['Toutes'] + sorted({r.category for r in locations})
         self.category.set('Toutes')
         if self.simulation:

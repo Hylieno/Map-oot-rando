@@ -115,6 +115,32 @@ class GuiTests(unittest.TestCase):
         self.assertIn('Carte chargée', app.import_status.get())
         self.assertFalse(app.import_button.instate(['disabled']))
 
+    def test_reimport_keeps_the_same_seed_view_and_manual_age(self):
+        from unittest.mock import patch
+        from map_oot_rando.scene import REGION_VIEWS
+
+        app = self.app
+        doc = dict(demo_document(), provenance='ootrr-scan', seed_id='same-seed',
+                   regions=['KokiriForest', 'LostWood'])
+        template = doc['locations'][0]
+        doc['locations'] = [
+            dict(template, id='forest', resource='Banc/KokiriForest/KokiriForest_Child_Static.bcett.byml.zs'),
+            dict(template, id='woods', resource='Banc/LostWood/LostWood_Adult_Static.bcett.byml.zs'),
+        ]
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        app.resource.set(REGION_VIEWS['LostWood']['Adult'])
+        app.resource_changed()
+        app.follow_age.set(False)
+        updated = dict(doc, locations=[doc['locations'][0], dict(doc['locations'][1], position=(2, 100, 4))])
+        app.load(updated)
+        self.assertEqual(app.resource.get(), REGION_VIEWS['LostWood']['Adult'])
+        self.assertEqual([row.position for row in app.visible], [(2, 100, 4)])
+        self.assertFalse(app.follow_age.get())
+        app.load(dict(updated, seed_id='another-seed'))
+        self.assertEqual(app.resource.get(), REGION_VIEWS['KokiriForest']['Child'])
+        self.assertTrue(app.follow_age.get())
+
     def test_scene_follows_resource_and_stays_behind_checks(self):
         app = self.app
         doc = demo_document()
