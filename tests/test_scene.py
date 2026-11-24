@@ -5,6 +5,21 @@ from map_oot_rando.scene import extract_scenes, read_scenes
 
 
 class SceneTests(unittest.TestCase):
+    def test_water_temple_preserves_the_pool_and_its_submerged_rooms(self):
+        from map_oot_rando.model import Location
+        from map_oot_rando.scene import WATER_VIEWS, location_view
+
+        region = 'WaterTemple'
+        path = f'Banc/{region}/{region}_Static.bcett.byml.zs'
+        for point, room, floor in (((-4.5, 118.6, 43.61), None, 0),
+                                   ((-4.5, 124.36, -88.05), 23, 2),
+                                   ((-4.5, 125, -88), None, 2),
+                                   ((12, 92.71, -4.5), 2, 3),
+                                   ((-54.54, 114.01, -59.25), 21, 1)):
+            with self.subTest(point=point):
+                row = Location('test', 'Check', 'test', path, point, region=region, dungeon_room=room)
+                self.assertEqual(location_view(row), WATER_VIEWS[floor])
+
     def test_spirit_temple_separates_the_statue_balcony_from_the_lower_room(self):
         from map_oot_rando.model import Location
         from map_oot_rando.scene import SPIRIT_VIEWS, location_view

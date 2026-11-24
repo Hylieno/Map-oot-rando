@@ -39,6 +39,9 @@
   L’alignement utilise le portail, les deux petites îles, le laboratoire,
   le ponton de pêche et l’île des flèches de feu. Le passage Zora
   apparaît dans les deux sens en vue enfant.
+- Temple de l’Eau. La carte ouvre l’étage de l’entrée immergée. Le
+  rez-de-chaussée comprend le bassin de Morpha, même si sa hauteur
+  correspond à celle de l’étage supérieur.
 
 - La carte générale réutilise l’illustration Nintendúo et les positions
   géographiques publiées par Ocarina Atlas. Tous les fonds locaux publiés

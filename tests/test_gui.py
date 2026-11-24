@@ -800,6 +800,37 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(app.resource.get(), REGION_VIEWS[lake]['Adult'])
         self.assertNotIn(domain, app.available_neighbors())
 
+    def test_water_temple_opens_from_the_adult_lake_at_the_top(self):
+        from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
+        from map_oot_rando.scene import REGION_VIEWS, WATER_VIEWS
+
+        app = self.app
+        lake, temple = 'LakeHylia', 'WaterTemple'
+        doc = dict(demo_document(), provenance='ootrr-scan',
+                   regions=['KokiriForest', 'HyruleField', lake, temple], locations=[], scenes={
+                       **{f'Banc/HyruleField/HyruleField_{age}_Static.bcett.byml.zs':
+                          {'rooms': [], 'points': [('Vers le Temple de l’Eau', (-186, 499))]}
+                          for age in ('Adult', 'Child')},
+                       'Banc/WaterTemple/WaterTemple_Static.bcett.byml.zs':
+                           {'rooms': [], 'points': [('Vers le Lac Hylia', (-4.5, 47))]},
+                   })
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        app.resource.set(REGION_VIEWS[lake]['Child'])
+        app.resource_changed()
+        self.assertNotIn(temple, app.available_neighbors())
+        app.choose_age('Adult')
+        self.assertIn(temple, app.navigation_markers.values())
+        app.open_neighbor(temple)
+        self.assertEqual(app.resource.get(), WATER_VIEWS[0])
+        app.update_link(LinkPosition(temple, 'Adult', -4.5, 118.6, 43.61, 0))
+        app.update_link(LinkPosition(temple, 'Adult', 12, 93, -4.5, 0))
+        self.assertEqual(app.resource.get(), WATER_VIEWS[3])
+        app.choose_age('Child')
+        app.open_neighbor(lake)
+        self.assertEqual(app.resource.get(), REGION_VIEWS[lake]['Adult'])
+
     def test_spirit_temple_hand_portal_opens_the_upper_floor(self):
         from unittest.mock import patch
         from map_oot_rando.link_position import LinkPosition

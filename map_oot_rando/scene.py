@@ -31,6 +31,8 @@ SHADOW_LEVELS = ('Sous-sol 1', 'Sous-sol 2', 'Sous-sol 3', 'Sous-sol 4', 'Arène
 SHADOW_VIEWS = tuple(f'{REGION_NAMES["ShadowTemple"]} · {level}' for level in SHADOW_LEVELS)
 SPIRIT_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', '3e étage', 'Arène de Twinrova')
 SPIRIT_VIEWS = tuple(f'{REGION_NAMES["SpiritTemple"]} · {level}' for level in SPIRIT_LEVELS)
+WATER_LEVELS = ('2e étage', '1er étage', 'Rez-de-chaussée', 'Sous-sol')
+WATER_VIEWS = tuple(f'{REGION_NAMES["WaterTemple"]} · {level}' for level in WATER_LEVELS)
 GANON_DUNGEON_LEVELS = ('Épreuves', 'Accès à la tour', 'Tour · 1er étage',
                         'Tour · 2e étage', 'Tour · 3e étage', 'Sommet')
 GANON_DUNGEON_VIEWS = tuple(f'{REGION_NAMES["InsideGanonCastle"]} · {level}' for level in GANON_DUNGEON_LEVELS)
@@ -45,6 +47,7 @@ DUNGEON_FLOORS = {
     'BottomOfTheWell': tuple(zip(WELL_LEVELS, WELL_VIEWS)),
     'ShadowTemple': tuple(zip(SHADOW_LEVELS, SHADOW_VIEWS)),
     'SpiritTemple': tuple(zip(SPIRIT_LEVELS, SPIRIT_VIEWS)),
+    'WaterTemple': tuple(zip(WATER_LEVELS, WATER_VIEWS)),
     'InsideGanonCastle': tuple(zip(GANON_DUNGEON_LEVELS, GANON_DUNGEON_VIEWS)),
     'GerudoTrainingGround': tuple(zip(TRAINING_LEVELS, TRAINING_VIEWS)),
 }
@@ -57,6 +60,7 @@ DUNGEON_ATLAS_KEYS = {
     **dict(zip(WELL_VIEWS, ('S1', 'S2'))),
     **dict(zip(SHADOW_VIEWS, ('S1', 'S2', 'S3', 'S4'))),
     **dict(zip(SPIRIT_VIEWS, ('1F', '2F', '3F', '4F'))),
+    **dict(zip(WATER_VIEWS, ('3F', '2F', '1F', 'S1'))),
 }
 FOUNTAIN_DUNGEON_AGES = {'IceCavern': 'Adult', 'InsideJabuJabuBelly': 'Child'}
 JABU_ROOM_VIEWS = {
@@ -92,6 +96,12 @@ SPIRIT_ROOM_FLOORS = {
     **dict.fromkeys((9, 10, 22, 23, 26), 2),
     **dict.fromkeys((27, 29, 31), 3),
     33: 4,
+}
+WATER_ROOM_FLOORS = {
+    **dict.fromkeys((1, 7, 17), 0),
+    **dict.fromkeys((0, 4, 20, 21, 25), 1),
+    **dict.fromkeys((3, 8, 15, 18, 23, 24), 2),
+    2: 3,
 }
 for region, floors in DUNGEON_FLOORS.items():
     REGION_VIEWS[region] = {None: floors[0][1]}
@@ -137,7 +147,8 @@ NEIGHBORS = {
                     'Market': 'Porte de la Citadelle', 'GerudoValley': 'Vers la Vallée Gerudo',
                     'LakeHylia': 'Vers le Lac Hylia'},
     'LakeHylia': {'HyruleField': 'Vers la plaine d’Hyrule', 'GerudoValley': 'Vers la Vallée Gerudo',
-                  'ZoraDomain': 'Vers le Domaine Zora'},
+                  'ZoraDomain': 'Vers le Domaine Zora', 'WaterTemple': 'Vers le Temple de l’Eau'},
+    'WaterTemple': {'LakeHylia': 'Vers le Lac Hylia'},
     'GerudoValley': {'HyruleField': 'Vers la plaine d’Hyrule', 'GerudoFortress': 'Vers la Forteresse Gerudo',
                     'LakeHylia': 'Vers le Lac Hylia'},
     'GerudoFortress': {'GerudoValley': 'Vers la Vallée Gerudo',
@@ -495,13 +506,15 @@ def projection_points(region, sources):
                              'GuidePoeComplete': 'Fin du trajet'}.get(actor.get('Name'))
             elif region == 'SpiritTemple' and gyaml == 'MapIconEntranceAnchor' and actor.get('Hash') == 4365488265954739873:
                 label = NEIGHBORS[region]['DesertColossus']
+            elif region == 'WaterTemple' and gyaml == 'MapIconEntranceAnchor' and actor.get('Hash') == 18222828140606986520:
+                label = NEIGHBORS[region]['LakeHylia']
             elif gyaml == 'MapIconEntranceAnchor':
                 dynamic = actor.get('Dynamic')
                 if isinstance(dynamic, dict):
                     target = dynamic.get('Location')
                     if region == 'HyruleField' and actor.get('Hash') in LAKE_FIELD_RETURN_ANCHORS:
                         label = NEIGHBORS['LakeHylia']['HyruleField']
-                    elif (region == 'HyruleField' and target in {'GerudoValley', 'ZoraDomain'}
+                    elif (region == 'HyruleField' and target in {'GerudoValley', 'ZoraDomain', 'WaterTemple'}
                           and lake_position((position[0], position[2]))):
                         label = NEIGHBORS['LakeHylia'][target]
                     entrances = ENTRANCE_LABELS.get(region, {})
@@ -720,6 +733,17 @@ def location_view(row):
             return SPIRIT_VIEWS[2]
         floor = SPIRIT_ROOM_FLOORS.get(row.dungeon_room, sum(y >= cutoff for cutoff in (111, 127, 149)))
         return SPIRIT_VIEWS[floor]
+    if view == WATER_VIEWS[0] and row.position is not None:
+        x, y, z = row.position
+        # The entrance and Morpha's pool belong to different plans despite their elevations.
+        if row.id == 'boss#Morpha' or row.category == 'full_bossheart':
+            return WATER_VIEWS[2]
+        if row.dungeon_room in WATER_ROOM_FLOORS:
+            return WATER_VIEWS[WATER_ROOM_FLOORS[row.dungeon_room]]
+        if y >= 119 and -18 <= x <= 9 and -102 <= z <= -72:
+            return WATER_VIEWS[2]
+        floor = sum(y < cutoff for cutoff in (116, 106.5, 97.5))
+        return WATER_VIEWS[floor]
     if view == TRAINING_VIEWS[0] and row.position is not None:
         x, y, z = row.position
         if y >= 103 and (row.dungeon_room == 8 or (

@@ -1,5 +1,12 @@
 # Validation
 
+Les deux scènes publiques du Temple de l’Eau placent les 20 checks du
+catalogue. Sept marqueurs se projettent à 2 à 22 pixels du trait sur
+des plans de 700 pixels et conservent leurs coordonnées natives.
+Les tests couvrent l’accès depuis le lac adulte, les quatre plans,
+Morpha et le suivi simulé de Link. Le scan du NUP complet et les
+transitions en partie restent à vérifier.
+
 Les scènes publiques de la plaine donnent une position aux cinq checks
 du catalogue du lac et à huit autres checks des environs. Avec la
 Skulltula commune, cela donne huit checks enfant et six adulte. Cette

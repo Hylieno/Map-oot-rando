@@ -1,9 +1,14 @@
 # Checkpoint — 24 novembre 2026
 
+Le Temple de l’Eau est relié au lac adulte. Ses 20 checks sont
+positionnés sur quatre fonds Field Atlas, dont le bassin de Morpha
+sur le plan du rez-de-chaussée. Le build de ce jalon inclut le lac
+Hylia et le temple.
+
 Le lac Hylia affiche son fond Field Atlas et 13 checks distincts.
 La plaine, la Vallée Gerudo et le Domaine Zora sont reliés au lac.
 Le suivi change de carte entre le lac et la plaine à partir des
-coordonnées de Link. Le Temple de l’Eau reste à intégrer.
+coordonnées de Link.
 
 Le Temple de l’Esprit est relié au Colosse par l’entrée principale et
 les deux mains. Les 41 checks du catalogue sont positionnés. Quatre

@@ -51,6 +51,9 @@ Le lac Hylia conserve les ressources Banc de la plaine. Le rendu et
 le suivi de Link utilisent la même limite X/Z pour choisir la vue
 locale. Les libellés natifs du portail principal distinguent les
 deux sens de navigation aux abords de cette limite.
+Au Temple de l’Eau, le numéro de salle détermine le plan des checks.
+Le suivi de Link utilise la hauteur et le périmètre de la salle de
+Morpha, qui figure sur le même plan que les galeries basses.
 Dans les zones Zora, à la Caverne de glace et au Temple du Feu, les identifiants typés du catalogue
 peuvent compléter le scan par correspondance du hash et du type d’acteur
 dans chaque scène, sans écraser un placement déjà produit pour cette vue.

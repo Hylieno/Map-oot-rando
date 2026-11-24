@@ -121,6 +121,9 @@ Le lac Hylia possède son fond Field Atlas. On y accède depuis la
 plaine et la Vallée Gerudo aux deux âges, ou depuis le Domaine Zora
 avec Link enfant. Le suivi peut passer de la plaine au lac pendant
 que le jeu conserve la même scène chargée.
+Le passage immergé du lac ouvre le Temple de l’Eau au deuxième étage
+avec Link adulte. Les quatre plans Field Atlas couvrent aussi la salle
+de Morpha, au nord du rez-de-chaussée.
 
 ## Suivre la partie
 

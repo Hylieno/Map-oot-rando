@@ -433,7 +433,8 @@ class MapApplication:
         area = (self.link_region(), position.age) if position else None
         if area and area[0] == 'HyruleCastle':
             area = (*area, castle_view(position.z))
-        if area and area[0] in {'GanonCastle', 'InsideGanonCastle', 'GerudoTrainingGround', 'SpiritTemple'}:
+        if area and area[0] in {'GanonCastle', 'InsideGanonCastle', 'GerudoTrainingGround', 'SpiritTemple',
+                                'WaterTemple'}:
             area = (*area, self.link_view())
         if area is not None and area != self.link_area:
             self.link_area = area
@@ -809,6 +810,10 @@ class MapApplication:
             origin = self.current_region()
             if {origin, region} == {'LakeHylia', 'ZoraDomain'} and age != 'Child':
                 return None
+            if region == 'WaterTemple' and origin == 'LakeHylia' and age != 'Adult':
+                return None
+            if region == 'LakeHylia' and origin == 'WaterTemple':
+                age = 'Adult'
             if origin == 'GerudoTrainingGround' and region == 'GerudoFortress':
                 if self.resource.get() != TRAINING_VIEWS[0]:
                     return None

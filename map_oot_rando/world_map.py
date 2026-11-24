@@ -40,6 +40,7 @@ WORLD_PINS = {
     'DesertColossus': (.2310, .2873),
     'SpiritTemple': (.1562, .2396),
     'LakeHylia': (.4268, .7706),
+    'WaterTemple': (.4045, .9097),
     'ShadowTemple': (.8012, .3182),
 }
 
