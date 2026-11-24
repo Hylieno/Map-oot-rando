@@ -28,6 +28,7 @@ EVENT_ACTORS = {
     'InsideTheDekuTree': {('Enemy_DungeonBoss_Gohma', None): 'boss#Queen Gohma'},
     'ForestTemple': {('Enemy_DungeonBoss_PhantomGanon', None): 'boss#Phantom Ganon'},
     'ShadowTemple': {('Enemy_DungeonBoss_BongoBongo', None): 'boss#Bongo Bongo'},
+    'SpiritTemple': {('Enemy_DungeonBoss_Twinrova', None): 'boss#Twinrova'},
     'Market': {
         ('MapIconFacilityAnchor', 'Market_MiniGame_BombchuBowling_FirstTalk'): (
             'npc#Market Bombchu Bowling First Prize', 'npc#Market Bombchu Bowling Second Prize'),
@@ -103,13 +104,14 @@ PLACEMENT_REGIONS = frozenset({'FireTemple', 'ZoraRiver', 'ZoraDomain', 'ZoraFou
                                'InsideJabuJabuBelly', 'InsideTheDekuTree', 'ForestTemple', 'BottomOfTheWell',
                                'ShadowTemple', 'Market', 'HyruleCastle', 'GanonCastle', 'InsideGanonCastle',
                                'GerudoValley', 'GerudoFortress', 'GerudoTrainingGround', 'HountedWasteland',
-                               'DesertColossus'})
+                               'DesertColossus', 'SpiritTemple'})
 EVENT_ACTOR_FIELDS = {
     'MapIconFacilityAnchor': 'MapIconFacilityIsOpen',
     'HeartPieceAnchor': 'HeartPieceAnchor_GameDataPath',
 }
 DUNGEON_ROOM_REGIONS = frozenset({'InsideJabuJabuBelly', 'InsideTheDekuTree', 'ForestTemple',
-                                  'BottomOfTheWell', 'ShadowTemple', 'InsideGanonCastle', 'GerudoTrainingGround'})
+                                  'BottomOfTheWell', 'ShadowTemple', 'InsideGanonCastle', 'GerudoTrainingGround',
+                                  'SpiritTemple'})
 
 
 def add_dungeon_rooms(rows, maps):
@@ -311,7 +313,7 @@ def bind_catalogue(document, catalogue):
                   "Outside Ganon's Castle": 'GanonCastle', "Ganon's Castle": 'InsideGanonCastle',
                   'Gerudo Valley': 'GerudoValley', 'Gerudo Fortress': 'GerudoFortress',
                   'Gerudo Training Ground': 'GerudoTrainingGround', 'Haunted Wasteland': 'HountedWasteland',
-                  'Desert Colossus': 'DesertColossus'})
+                  'Desert Colossus': 'DesertColossus', 'Spirit Temple': 'SpiritTemple'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']

@@ -29,6 +29,8 @@ WELL_LEVELS = ('Sous-sol', 'Sous-sol profond')
 WELL_VIEWS = tuple(f'{REGION_NAMES["BottomOfTheWell"]} · {level}' for level in WELL_LEVELS)
 SHADOW_LEVELS = ('Sous-sol 1', 'Sous-sol 2', 'Sous-sol 3', 'Sous-sol 4', 'Arène de Bongo Bongo')
 SHADOW_VIEWS = tuple(f'{REGION_NAMES["ShadowTemple"]} · {level}' for level in SHADOW_LEVELS)
+SPIRIT_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', '3e étage', 'Arène de Twinrova')
+SPIRIT_VIEWS = tuple(f'{REGION_NAMES["SpiritTemple"]} · {level}' for level in SPIRIT_LEVELS)
 GANON_DUNGEON_LEVELS = ('Épreuves', 'Accès à la tour', 'Tour · 1er étage',
                         'Tour · 2e étage', 'Tour · 3e étage', 'Sommet')
 GANON_DUNGEON_VIEWS = tuple(f'{REGION_NAMES["InsideGanonCastle"]} · {level}' for level in GANON_DUNGEON_LEVELS)
@@ -42,6 +44,7 @@ DUNGEON_FLOORS = {
     'ForestTemple': tuple(zip(FOREST_LEVELS, FOREST_VIEWS)),
     'BottomOfTheWell': tuple(zip(WELL_LEVELS, WELL_VIEWS)),
     'ShadowTemple': tuple(zip(SHADOW_LEVELS, SHADOW_VIEWS)),
+    'SpiritTemple': tuple(zip(SPIRIT_LEVELS, SPIRIT_VIEWS)),
     'InsideGanonCastle': tuple(zip(GANON_DUNGEON_LEVELS, GANON_DUNGEON_VIEWS)),
     'GerudoTrainingGround': tuple(zip(TRAINING_LEVELS, TRAINING_VIEWS)),
 }
@@ -53,6 +56,7 @@ DUNGEON_ATLAS_KEYS = {
     **dict(zip(FOREST_VIEWS, ('1F', '2F', '3F', 'S1', 'S2'))),
     **dict(zip(WELL_VIEWS, ('S1', 'S2'))),
     **dict(zip(SHADOW_VIEWS, ('S1', 'S2', 'S3', 'S4'))),
+    **dict(zip(SPIRIT_VIEWS, ('1F', '2F', '3F', '4F'))),
 }
 FOUNTAIN_DUNGEON_AGES = {'IceCavern': 'Adult', 'InsideJabuJabuBelly': 'Child'}
 JABU_ROOM_VIEWS = {
@@ -81,6 +85,13 @@ SHADOW_ROOM_VIEWS = {
     **dict.fromkeys((9, 10, 11, 14, 15, 16, 31), SHADOW_VIEWS[2]),
     **dict.fromkeys((17, 19, 20, 21), SHADOW_VIEWS[3]),
     24: SHADOW_VIEWS[4],
+}
+SPIRIT_ROOM_FLOORS = {
+    **dict.fromkeys((0, 2, 3, 4, 5, 14, 15, 16), 0),
+    **dict.fromkeys((6, 7, 18), 1),
+    **dict.fromkeys((9, 10, 22, 23, 26), 2),
+    **dict.fromkeys((27, 29, 31), 3),
+    33: 4,
 }
 for region, floors in DUNGEON_FLOORS.items():
     REGION_VIEWS[region] = {None: floors[0][1]}
@@ -131,7 +142,9 @@ NEIGHBORS = {
     'GerudoTrainingGround': {'GerudoFortress': 'Vers la Forteresse Gerudo'},
     'HountedWasteland': {'GerudoFortress': 'Vers la Forteresse Gerudo',
                         'DesertColossus': 'Vers le Colosse du désert'},
-    'DesertColossus': {'HountedWasteland': 'Vers le Désert hanté'},
+    'DesertColossus': {'HountedWasteland': 'Vers le Désert hanté',
+                      'SpiritTemple': 'Vers le Temple de l’Esprit'},
+    'SpiritTemple': {'DesertColossus': 'Vers le Colosse du désert'},
     'Market': {'HyruleField': 'Vers la plaine d’Hyrule', 'HyruleCastle': 'Vers le Château d’Hyrule',
                'GanonCastle': 'Vers le Château de Ganon'},
     'HyruleCastle': {'Market': 'Vers la Citadelle d’Hyrule'},
@@ -162,6 +175,16 @@ NEIGHBORS = {
     'IceCavern': {'ZoraFountain': 'Vers la Fontaine Zora'},
     'InsideJabuJabuBelly': {'ZoraFountain': 'Vers la Fontaine Zora'},
     'InsideTheDekuTree': {'KokiriForest': 'Vers la forêt Kokiri'},
+}
+SIDE_PORTALS = {
+    'DesertColossus': {
+        'spirit_temple_left_hand_entrance': ('SpiritTemple', SPIRIT_VIEWS[2], 'Temple · main gauche'),
+        'spirit_temple_right_hand_entrance': ('SpiritTemple', SPIRIT_VIEWS[2], 'Temple · main droite'),
+    },
+    'SpiritTemple': {
+        'left_hand_entrance': ('DesertColossus', None, 'Colosse · main gauche'),
+        'right_hand_entrance': ('DesertColossus', None, 'Colosse · main droite'),
+    },
 }
 KAKARIKO_ENTRANCES = {
     'HyruleField': 'Vers la plaine d’Hyrule',
@@ -349,9 +372,22 @@ def training_level_points(sources):
             and (position := actor.get('Translate'))}
 
 
+def spirit_level_points(sources):
+    anchors = {
+        ('MapIconEntranceAnchor', 452821593555612172): (2, 'right_hand_entrance'),
+        ('MapIconEntranceAnchor', 17977111214894828225): (2, 'left_hand_entrance'),
+        ('DungeonRoomCenterAnchor', 8163808957952677095): (4, 'Arène de Twinrova'),
+    }
+    return {(*anchors[key], (position[0], position[2]))
+            for source in sources.values() for actor in source['root'].get('Actors', ())
+            if (key := (actor.get('Gyaml'), actor.get('Hash'))) in anchors
+            and (position := actor.get('Translate'))}
+
+
 LEVEL_POINT_EXTRACTORS = {
     'InsideGanonCastle': ganon_tower_points,
     'GerudoTrainingGround': training_level_points,
+    'SpiritTemple': spirit_level_points,
 }
 
 GUIDE_ROUTE = 'Trajet du guide'
@@ -443,12 +479,16 @@ def projection_points(region, sources):
                 elif gyaml == 'DestinationAnchor':
                     label = {'GuideStartPos': 'Départ du guide',
                              'GuidePoeComplete': 'Fin du trajet'}.get(actor.get('Name'))
+            elif region == 'SpiritTemple' and gyaml == 'MapIconEntranceAnchor' and actor.get('Hash') == 4365488265954739873:
+                label = NEIGHBORS[region]['DesertColossus']
             elif gyaml == 'MapIconEntranceAnchor':
                 dynamic = actor.get('Dynamic')
                 if isinstance(dynamic, dict) and (region in {'GoronCity', 'DeathMountainCrater'}
                                                   or dynamic.get('IsVisible') is not False):
                     entrances = ENTRANCE_LABELS.get(region, {})
                     label = entrances.get(dynamic.get('Location'))
+                    if region == 'DesertColossus' and dynamic.get('Location') == 'SpiritTemple' and position[1] > 100:
+                        label = None  # The two upper entrances lead to the side galleries.
             elif region == 'KakarikoVillage':
                 label = KAKARIKO_BUILDINGS.get(gyaml)
             elif region == 'Graveyard':
@@ -498,7 +538,8 @@ def extract_scenes(maps, landmarks):
                         for name, low, high in marks.get('rooms', ())})
         labels = {'LostWood': LOST_WOOD_POINT_LABELS, 'DeathMountainTrail': TRAIL_LABELS}.get(region, {})
         points = {(labels.get(name, name), (position[0], position[2]))
-                  for name, position in marks.get('points', ())}
+                  for name, position in marks.get('points', ())
+                  if region != 'SpiritTemple' or name not in SIDE_PORTALS['SpiritTemple']}
         if region != 'KokiriForest':
             points.update(projection_points(region, sources))
         extract_levels = LEVEL_POINT_EXTRACTORS.get(region)
@@ -647,6 +688,14 @@ def location_view(row):
     if view == GANON_DUNGEON_VIEWS[0] and row.position is not None:
         floor = 4 if row.dungeon_room == 24 else ganon_dungeon_floor(row.position)
         return GANON_DUNGEON_VIEWS[floor]
+    if view == SPIRIT_VIEWS[0] and row.position is not None:
+        x, y, z = row.position
+        if row.id == 'boss#Twinrova' or row.category == 'full_bossheart' or (abs(x) <= 36 and z < -125):
+            return SPIRIT_VIEWS[4]
+        if row.dungeon_room == 7 and y >= 127:
+            return SPIRIT_VIEWS[2]
+        floor = SPIRIT_ROOM_FLOORS.get(row.dungeon_room, sum(y >= cutoff for cutoff in (111, 127, 149)))
+        return SPIRIT_VIEWS[floor]
     if view == TRAINING_VIEWS[0] and row.position is not None:
         x, y, z = row.position
         if y >= 103 and (row.dungeon_room == 8 or (

@@ -44,6 +44,9 @@ scène. Le Désert hanté projette la trajectoire du guide depuis les
 segments de Bézier de la scène. Le cadrage inclut toute la courbe.
 Au Colosse du désert, le fond et le repère X/Z sont communs aux deux
 âges. Le passage conserve l’âge lors de la navigation.
+Au Temple de l’Esprit, les passages latéraux ciblent un étage précis.
+Les coffres des mains appartiennent au catalogue du temple et utilisent
+leurs coordonnées dans la scène extérieure du Colosse.
 Dans les zones Zora, à la Caverne de glace et au Temple du Feu, les identifiants typés du catalogue
 peuvent compléter le scan par correspondance du hash et du type d’acteur
 dans chaque scène, sans écraser un placement déjà produit pour cette vue.

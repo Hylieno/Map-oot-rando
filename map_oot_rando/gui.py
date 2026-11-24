@@ -22,7 +22,7 @@ from .scene import (BURNT_VILLAGE, CASTLE_COURT, DUNGEON_ATLAS_KEYS, DUNGEON_FLO
                     FOUNTAIN_DUNGEON_AGES, GANON_DUNGEON_VIEWS, GANON_ESCAPE, MARKET_CASTLE_AGES,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS,
-                    NEIGHBORS, REGION_VIEWS, SHARED_DUNGEONS, TRAINING_VIEWS,
+                    NEIGHBORS, REGION_VIEWS, SHARED_DUNGEONS, SIDE_PORTALS, TRAINING_VIEWS,
                     UNDERGROUND_LABELS, UNDERGROUND_VIEWS, VIEWS,
                     castle_view, field_atlas_scene, group_scenes, location_view, read_scenes, view_name)
 from .simulation import Simulation, demo_document
@@ -430,7 +430,7 @@ class MapApplication:
         area = (self.link_region(), position.age) if position else None
         if area and area[0] == 'HyruleCastle':
             area = (*area, castle_view(position.z))
-        if area and area[0] in {'GanonCastle', 'InsideGanonCastle', 'GerudoTrainingGround'}:
+        if area and area[0] in {'GanonCastle', 'InsideGanonCastle', 'GerudoTrainingGround', 'SpiritTemple'}:
             area = (*area, self.link_view())
         if area is not None and area != self.link_area:
             self.link_area = area
@@ -833,8 +833,9 @@ class MapApplication:
             candidates = (BURNT_VILLAGE, *candidates)
         return next((view for view in candidates if view in self.views), None)
 
-    def open_neighbor(self, region):
-        view = self.browse_view(region) if self.overview_open else self.view_for_region(region)
+    def open_neighbor(self, region, *, view=None):
+        if view is None:
+            view = self.browse_view(region) if self.overview_open else self.view_for_region(region)
         if view:
             self.resource.set(view)
             self.resource_changed(manual=False)
@@ -1041,6 +1042,7 @@ class MapApplication:
         self.background_photo = None
         self.markers = {}
         self.navigation_markers = {}
+        self.portal_views = {}
         width, height = self.canvas.winfo_width(), self.canvas.winfo_height()
         if self.overview_open:
             self.draw_overview(width, height)
@@ -1066,7 +1068,11 @@ class MapApplication:
                     portal_scene = self.scenes.get(GORON_VIEWS[age][0], {})
                 points = {tuple(p) for label, p in portal_scene.get('points', ()) if label == portal}
                 if len(points) == 1 and self.view_for_region(neighbor):
-                    exits[portal] = (neighbor, points.pop())
+                    exits[portal] = (neighbor, points.pop(), REGION_NAMES[neighbor], None)
+            for portal, (neighbor, floor, title) in SIDE_PORTALS.get(region, {}).items():
+                points = {tuple(p) for label, p in (scene or {}).get('points', ()) if label == portal}
+                if len(points) == 1 and self.view_for_region(neighbor) and (floor is None or floor in self.views):
+                    exits[portal] = (neighbor, points.pop(), title, floor)
         heading_color = '#d2e1da'
         if aerial:
             self.canvas.configure(background=ATLAS_BACKGROUND)
@@ -1111,7 +1117,7 @@ class MapApplication:
                        else f'Schéma X/Z | Grille : {step:g} unités')
         self.canvas.create_text(12, 12, anchor='nw', fill=heading_color, text=heading)
         exit_names = {}
-        for neighbor, exit_point in exits.values():
+        for neighbor, exit_point, exit_name, floor in exits.values():
             if aerial and not aerial.covers(exit_point):
                 continue
             x, y = self.viewport.screen(exit_point)
@@ -1119,8 +1125,9 @@ class MapApplication:
                                                 fill='#147c82', outline='#ebfbef', width=2,
                                                 tags=('zone-navigation',))
             self.navigation_markers[marker] = neighbor
-            exit_name = REGION_NAMES[neighbor]
-            exit_names[exit_name] = neighbor
+            if floor:
+                self.portal_views[marker] = floor
+            exit_names[exit_name] = (neighbor, floor)
             captions.append((exit_name, x, y - 16))
         rows = [row for row in self.visible if location_view(row) == self.resource.get()
                 and row.position is not None
@@ -1156,7 +1163,10 @@ class MapApplication:
             if row is not None:
                 self.markers[label] = row
             elif name in exit_names:
-                self.navigation_markers[label] = exit_names[name]
+                neighbor, floor = exit_names[name]
+                self.navigation_markers[label] = neighbor
+                if floor:
+                    self.portal_views[label] = floor
         if self.link and self.resource.get() == self.link_view():
             x, y = self.viewport.screen((self.link.x, self.link.z))
             self.draw_link_pin(x, y, self.link.yaw)
@@ -1218,7 +1228,7 @@ class MapApplication:
         hits = self.canvas.find_overlapping(event.x-3, event.y-3, event.x+3, event.y+3)
         for item in reversed(hits):
             if item in self.navigation_markers:
-                self.open_neighbor(self.navigation_markers[item])
+                self.open_neighbor(self.navigation_markers[item], view=self.portal_views.get(item))
                 return
             if item in self.markers:
                 if 'check-pin' in self.canvas.gettags(item):

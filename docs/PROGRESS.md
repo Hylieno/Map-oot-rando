@@ -1,11 +1,16 @@
 # Checkpoint — 24 novembre 2026
 
+Le Temple de l’Esprit est relié au Colosse par l’entrée principale et
+les deux mains. Les 41 checks du catalogue sont positionnés. Quatre
+plans couvrent les étages, un schéma couvre l’arène de Twinrova et les
+deux coffres extérieurs restent sur la carte du Colosse. Le build de
+ce jalon inclut le temple et ses passages.
+
 Le Désert hanté est relié à la forteresse adulte et affiche les quatre
 checks du catalogue. Les deux âges utilisent le tracé du guide lu dans
 la scène. Le passage du Colosse du désert fonctionne dans les deux sens
 et la zone affiche les 27 checks du catalogue sur un fond Field Atlas.
-Le build de ce jalon inclut le désert et le Colosse. Le Temple de l’Esprit
-reste hors de ce jalon.
+Le build de ce jalon inclut le désert et le Colosse.
 
 Le Centre d’entraînement est accessible depuis la forteresse adulte.
 Un schéma représente les salles et un deuxième affiche la passerelle

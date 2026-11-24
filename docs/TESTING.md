@@ -1,5 +1,13 @@
 # Validation
 
+Le croisement des scènes publiques du Temple de l’Esprit et du Colosse
+situe les 41 checks du catalogue du temple. Trente-sept se répartissent
+sur quatre plans, deux sont dans l’arène et deux sont sur les mains du
+Colosse. Six marqueurs d’étage se projettent à 2 à 8 pixels du trait
+sur des plans de 700 pixels de large. Les tests vérifient le passage
+d’une main vers son étage et le suivi simulé de Link jusqu’à l’arène.
+Le scan du NUP complet et les transitions en partie restent à vérifier.
+
 Les quatre scènes publiques du Colosse du désert placent les 27 checks
 du catalogue, avec 13 en vue enfant et 19 en vue adulte. Le coffre
 souterrain utilise son accès en surface et conserve ses coordonnées

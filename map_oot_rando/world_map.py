@@ -38,6 +38,7 @@ WORLD_PINS = {
     'GerudoTrainingGround': (.2614, .4397),
     'HountedWasteland': (.1554, .3466),
     'DesertColossus': (.2310, .2873),
+    'SpiritTemple': (.1562, .2396),
     'ShadowTemple': (.8012, .3182),
 }
 

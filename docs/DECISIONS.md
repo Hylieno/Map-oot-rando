@@ -31,6 +31,10 @@
 - Colosse du désert. L’entrée est, la porte du temple et le centre
   de l’oasis servent de repères pour le fond. La Grande Fée utilise le
   repère de la scène et le coffre souterrain celui de l’accès à sa grotte.
+- Temple de l’Esprit. Les quatre captures utilisent un repère commun.
+  Le numéro de salle et la hauteur distinguent les checks qui se
+  superposent autour de la statue. Les passages des mains mènent
+  directement aux galeries du deuxième étage.
 
 - La carte générale réutilise l’illustration Nintendúo et les positions
   géographiques publiées par Ocarina Atlas. Tous les fonds locaux publiés

@@ -5,6 +5,16 @@ from map_oot_rando.scene import extract_scenes, read_scenes
 
 
 class SceneTests(unittest.TestCase):
+    def test_spirit_temple_separates_the_statue_balcony_from_the_lower_room(self):
+        from map_oot_rando.model import Location
+        from map_oot_rando.scene import SPIRIT_VIEWS, location_view
+
+        path = 'Banc/SpiritTemple/SpiritTemple_Static.bcett.byml.zs'
+        for point, floor in (((0, 114.15, -57.58), 1), ((-23.09, 129.67, -66.68), 2)):
+            with self.subTest(point=point):
+                row = Location('test', 'Check', 'test', path, point, region='SpiritTemple', dungeon_room=7)
+                self.assertEqual(location_view(row), SPIRIT_VIEWS[floor])
+
     def test_wasteland_route_keeps_native_curve_and_deduplicates_scene_layers(self):
         from map_oot_rando.scene import GUIDE_ROUTE, REGION_VIEWS, group_scenes
 

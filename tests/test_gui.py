@@ -763,6 +763,39 @@ class GuiTests(unittest.TestCase):
             app.open_neighbor(desert)
             self.assertEqual(app.resource.get(), REGION_VIEWS[desert][age])
 
+    def test_spirit_temple_hand_portal_opens_the_upper_floor(self):
+        from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
+        from map_oot_rando.scene import REGION_VIEWS, SPIRIT_VIEWS
+
+        app = self.app
+        outside, temple = 'DesertColossus', 'SpiritTemple'
+        colossus = 'Banc/DesertColossus/DesertColossus_Adult_Dynamic.bcett.byml.zs'
+        interior = 'Banc/SpiritTemple/SpiritTemple_Dynamic.bcett.byml.zs'
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=['KokiriForest', outside, temple],
+                   locations=[], scenes={
+                       colossus: {'rooms': [], 'points': [('Vers le Temple de l’Esprit', (-161, 10)),
+                                                         ('spirit_temple_right_hand_entrance', (-165, 36))]},
+                       interior: {'rooms': [], 'points': [('Vers le Colosse du désert', (0, 13))],
+                                  'level_points': [(2, 'right_hand_entrance', (-56, 44)),
+                                                   (4, 'Arène de Twinrova', (0, -158))]},
+                   })
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        app.resource.set(REGION_VIEWS[outside]['Adult'])
+        app.resource_changed()
+        x, y = app.viewport.screen((-165, 36))
+        app.press(SimpleNamespace(x=round(x), y=round(y)))
+        self.assertEqual(app.resource.get(), SPIRIT_VIEWS[2])
+        self.assertIn(outside, app.navigation_markers.values())
+        app.open_neighbor(outside)
+        self.assertEqual(app.resource.get(), REGION_VIEWS[outside]['Adult'])
+        app.open_neighbor(temple)
+        self.assertEqual(app.resource.get(), SPIRIT_VIEWS[0])
+        app.update_link(LinkPosition(temple, 'Adult', 0, 100, 0, 0))
+        app.update_link(LinkPosition(temple, 'Adult', 0, 145, -157, 0))
+        self.assertEqual(app.resource.get(), SPIRIT_VIEWS[4])
+
     def test_ganon_castle_switches_scene_without_mixing_coordinates(self):
         from unittest.mock import patch
         from map_oot_rando.link_position import LinkPosition

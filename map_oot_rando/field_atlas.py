@@ -83,6 +83,12 @@ SHADOW_VIEWBOXES = {
     'S3': (439, 144, 406, 355),
     'S4': (-35, -35, 910, 382),
 }
+SPIRIT_VIEWBOXES = {
+    '1F': (16, -29, 810, 763),
+    '2F': (127, 110, 607, 320),
+    '3F': (-21, 63, 883, 834),
+    '4F': (209, 18, 417, 519),
+}
 SHARED_FIELD_FRAMES = {
     'HyruleField': ((-50, -49, 950, 739), (1.4552, 504.27, 1.4867, 11.89)),
     'SacredForestMeadow': ((190, -8, 492, 1821), (6.15, 487.31, 6.15, 1062.72)),
@@ -120,6 +126,7 @@ for region, frame, viewboxes in (
     ('ForestTemple', (5.5747, 462.29, 5.6324, 406.55), FOREST_VIEWBOXES),
     ('BottomOfTheWell', (8.0269, 535.33, 8.1374, 945.29), WELL_VIEWBOXES),
     ('ShadowTemple', (1.9291, 467.09, 1.9529, 259.55), SHADOW_VIEWBOXES),
+    ('SpiritTemple', (6.08, 421, 6.16, 595), SPIRIT_VIEWBOXES),
 ):
     FIELD_FRAMES[region] = {level: (viewbox, frame) for level, viewbox in viewboxes.items()}
 for region, source, digest in (
@@ -173,6 +180,12 @@ REGION_MAPS['ShadowTemple'] = {
     'S2': ('field-atlas-shadow-s2', '1706f580e2ba0f5fec806e3e3e131ddc09014ac453f9c0f9d840153369342bb3'),
     'S3': ('field-atlas-shadow-s3', '1e8a9e584a5012aa8e41bb2f9037751ec6ca09a18615fd140860281964fc0d87'),
     'S4': ('field-atlas-shadow-s4', 'a551de4d49cb4a18b6a4ec401c90dc484d16dee5ab2bee6886058c1718139f8a'),
+}
+REGION_MAPS['SpiritTemple'] = {
+    '1F': ('field-atlas-spirit-1f', '6d90d5af6d3d02186251ba6c7241f92819e448e9876ba640c7ea279ec9b96da9'),
+    '2F': ('field-atlas-spirit-2f', 'ff599955dbdf9fe3dd5ea1f01b77d641d8a098b70feb94389a377d8f7be4ef1f'),
+    '3F': ('field-atlas-spirit-3f', 'a73b491afd39f0769279d5955fd1201a0c66e207fe373b9353ab67037268e6df'),
+    '4F': ('field-atlas-spirit-4f', '9c0b60900300576f24c7281d377894f7f7f37e942f6c79ac0f2f9701ec36bd98'),
 }
 REGION_MAPS['Market'] = {
     'Child': ('field-atlas-market-child', '44d0923e6fd7b7bcf0f77a90c43ff41bd8fe8fe8954bea1e3914c35e837cf8f7'),

@@ -113,6 +113,9 @@ dans la scène du jeu.
 Le passage ouest du Désert hanté mène au Colosse du désert aux deux
 âges. Le fond Field Atlas se charge automatiquement. Le coffre
 souterrain apparaît à l’entrée de sa grotte.
+Le Colosse donne accès au Temple de l’Esprit par l’entrée principale
+et les deux passages des mains. Le temple affiche quatre fonds Field
+Atlas et un schéma de l’arène de Twinrova.
 
 ## Suivre la partie
 
