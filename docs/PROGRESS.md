@@ -1,5 +1,9 @@
 # Checkpoint — 24 novembre 2026
 
+Trois entrées historiques du centre d’entraînement Gerudo reprennent
+les positions de leurs coffres dans le remake. Le build de ce jalon
+inclut le suivi de Link lors d’un changement de vue dans une même scène.
+
 Seize checks de récompense supplémentaires ont une position vérifiée.
 Cela comprend les cinq récompenses des Skulltulas à Cocorico, les
 deux Gorons roulants, la remise de l’ocarina de Saria sur le pont et

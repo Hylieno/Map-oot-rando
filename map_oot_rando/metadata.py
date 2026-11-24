@@ -139,6 +139,13 @@ EVENT_ACTOR_FIELDS = {
     'HeartPieceAnchor': 'HeartPieceAnchor_GameDataPath',
     'Npc_Goron_DaruniaJr_Adult': 'ActorDeleteSetGameDataBool',
 }
+# The original catalogue labels also exist as actor checks in the remake.
+# Match only encounters with an explicit chest trigger or a unique room reward.
+CATALOGUE_PLACEMENT_ALIASES = {
+    'ap#Gerudo Training Ground Stalfos Chest': 'GerudoTrainingGround#13501407288943710656',
+    'ap#Gerudo Training Ground Beamos Chest': 'GerudoTrainingGround#4709724720801091788',
+    'ap#Gerudo Training Ground Underwater Silver Rupee Chest': 'GerudoTrainingGround#3717705376223508790',
+}
 DUNGEON_ROOM_REGIONS = frozenset({'InsideJabuJabuBelly', 'InsideTheDekuTree', 'ForestTemple',
                                   'BottomOfTheWell', 'ShadowTemple', 'InsideGanonCastle', 'GerudoTrainingGround',
                                   'SpiritTemple', 'WaterTemple'})
@@ -365,6 +372,9 @@ def bind_catalogue(document, catalogue):
             raise ValueError(f'Identifiant en double dans le catalogue : {ident}')
         seen.add(ident)
         matches = by_id.get(ident, ())
+        if not any(row['position'] is not None for row in matches) and ident in CATALOGUE_PLACEMENT_ALIASES:
+            native = by_id.get(CATALOGUE_PLACEMENT_ALIASES[ident], ())
+            matches = [row for row in native if row['position'] is not None] or matches
         if not matches and ident.isdecimal():
             # OotrR's original Kokiri chest mode uses the bare actor hash.
             matches = by_id.get('KokiriForest#' + ident, ())

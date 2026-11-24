@@ -77,6 +77,29 @@ class ExportTests(unittest.TestCase):
         self.assertIsNone(event.project())
         self.assertEqual(len(result['diagnostics']), 1)
 
+    def test_training_catalogue_alias_uses_native_position_and_retains_its_id(self):
+        region = 'GerudoTrainingGround'
+        path = f'Banc/{region}/{region}_Static.bcett.byml.zs'
+        original = 'ap#Gerudo Training Ground Stalfos Chest'
+        native = f'{region}#13501407288943710656'
+        checks = [dict(id=ident, name=ident, category='chest', zone=region)
+                  for ident in (original, native)]
+        catalogue = dict(self.catalogue, checks=checks)
+        placement = dict(id=native, name='GTG_room1_chest_1', category='chest', resource=path,
+                         position=(-50.25, 98.13, -15.59), dungeon_room=1)
+        doc = dict(self.document, locations=[placement], regions=['KokiriForest', region])
+        rows = load_metadata(bind_catalogue(doc, catalogue))
+        self.assertEqual([row.id for row in rows], [original, native])
+        self.assertEqual([row.position for row in rows], [placement['position']] * 2)
+        self.assertEqual(rows[0].dungeon_room, 1)
+
+        doc['locations'].append(dict(placement, id=original, position=(-51, 98, -15)))
+        rows = load_metadata(bind_catalogue(doc, catalogue))
+        self.assertEqual(rows[0].position, (-51, 98, -15))
+        doc['locations'].clear()
+        rows = load_metadata(bind_catalogue(doc, catalogue))
+        self.assertIsNone(rows[0].position)
+
     def test_jabu_native_room_overrides_height_and_survives_reload(self):
         from map_oot_rando.scene import JABU_VIEWS, location_view
 

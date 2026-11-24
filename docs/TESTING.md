@@ -1,5 +1,9 @@
 # Validation
 
+Les coffres des Stalfos, du Beamos et du bassin sont liés à leurs
+récompenses natives. Le test couvre la priorité d’une position
+directe et le cas où le coffre attendu est absent du scan.
+
 Le test de suivi du Temple du Feu simule deux changements d’étage
 dans une même scène. Il vérifie aussi qu’une lecture manquante entre
 deux poses au même étage ne force pas le retour depuis une vue
