@@ -901,8 +901,13 @@ def location_view(row):
             return WATER_VIEWS[2]
         if row.dungeon_room in WATER_ROOM_FLOORS:
             return WATER_VIEWS[WATER_ROOM_FLOORS[row.dungeon_room]]
-        if y >= 119 and -18 <= x <= 9 and -102 <= z <= -72:
+        # The high walkway into Morpha's room and its basin share the same plan.
+        if y >= 119 and -18 <= x <= 9 and -107 <= z <= -69:
             return WATER_VIEWS[2]
+        # The eastern chest has native FloorNumber 1 even though its raised
+        # platform is above the usual height boundary for that floor.
+        if 116 <= y <= 120 and 31 <= x <= 60 and -30 <= z <= -17:
+            return WATER_VIEWS[1]
         floor = sum(y < cutoff for cutoff in (116, 106.5, 97.5))
         return WATER_VIEWS[floor]
     if view == TRAINING_VIEWS[0] and row.position is not None:

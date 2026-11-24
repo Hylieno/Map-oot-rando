@@ -1,5 +1,8 @@
 # Checkpoint — 24 novembre 2026
 
+Le suivi de Link au Temple de l’Eau affiche le premier étage sur la
+plateforme du coffre à l’est et le rez-de-chaussée dès l’accès à Morpha.
+
 Les passages indiquent la porte d’arrivée quand le repère de retour
 est disponible. Le diagnostic compare les marqueurs aux contours
 dessinés sur les fonds Field Atlas déjà chargés.

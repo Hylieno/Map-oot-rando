@@ -109,8 +109,10 @@ le suivi de Link utilisent la même limite X/Z pour choisir la vue
 locale. Les libellés natifs du portail principal distinguent les
 deux sens de navigation aux abords de cette limite.
 Au Temple de l’Eau, le numéro de salle détermine le plan des checks.
-Le suivi de Link utilise la hauteur et le périmètre de la salle de
-Morpha, qui figure sur le même plan que les galeries basses.
+Le suivi de Link utilise la hauteur et le périmètre des zones qui
+chevauchent plusieurs étages. Le bassin de Morpha et son couloir figurent
+avec les galeries basses. À l’est, la plateforme suit l’étage défini
+par le coffre de la salle dans les données du jeu.
 Le ranch Lon Lon réutilise la sélection de vue locale dans la scène
 de la plaine. Un périmètre X/Z couvre la cour, l’enclos et les ruines.
 Dans les zones Zora, à la Caverne de glace et au Temple du Feu, les identifiants typés du catalogue

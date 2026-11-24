@@ -84,8 +84,8 @@
   le ponton de pêche et l’île des flèches de feu. Le passage Zora
   apparaît dans les deux sens en vue enfant.
 - Temple de l’Eau. La carte ouvre l’étage de l’entrée immergée. Le
-  rez-de-chaussée comprend le bassin de Morpha, même si sa hauteur
-  correspond à celle de l’étage supérieur.
+  rez-de-chaussée comprend le bassin de Morpha et son couloir d’accès.
+  La plateforme du coffre à l’est reste au premier étage.
 - Ranch Lon Lon. Le portail d’entrée, les bâtiments, le passage
   de l’enclos et les ruines recoupent le fond commun aux deux âges.
   Le repère natif du mini-jeu situe la récompense de Talon.
