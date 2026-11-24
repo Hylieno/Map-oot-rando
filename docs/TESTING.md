@@ -1,7 +1,13 @@
 # Validation
 
+Les six traversées reliant la Citadelle aux deux châteaux et les
+abords du Château de Ganon à son intérieur ont été vérifiées avec
+les scènes publiques et leurs plans.
+
 Le test du raccourci depuis le cratère vérifie l’anneau d’arrivée
 au rez-de-chaussée du Village Goron.
+Les vingt traversées autour de Cocorico, du cimetière et du mont du
+Péril ont aussi été vérifiées aux deux âges.
 
 Le test de suivi renomme temporairement le fichier actif et vérifie
 la conservation du dernier état, le retour au fichier restauré et

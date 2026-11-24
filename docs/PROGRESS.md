@@ -1,5 +1,9 @@
 # Checkpoint — 24 novembre 2026
 
+La Citadelle, le Château d’Hyrule et le Château de Ganon indiquent
+leurs points d’arrivée respectifs. Le passage vers l’intérieur du
+château de Ganon indique aussi son arrivée dans les deux sens.
+
 Les passages de Cocorico au cimetière et au mont du Péril indiquent
 les points d’arrivée de Link. Les liaisons du mont avec le Village
 Goron et le cratère, ainsi que leur raccourci, les indiquent aussi.

@@ -166,6 +166,8 @@ Lors de l’import, les coffres et les Skulltulas indexés dans la table
 des étages du jeu s’affichent sur leur plan Field Atlas correspondant.
 
 Le Temple du Temps se rejoint depuis la Citadelle aux deux âges.
+Les passages de la Citadelle vers le Château d’Hyrule et le Château
+de Ganon indiquent aussi les points d’arrivée.
 Sur la carte du temple, le piédestal de l’épée ouvre la Chambre des
 Sages. Le repère au centre de la plateforme permet de revenir au temple.
 Dans la forêt Kokiri, le lit de Link mène à la carte du Monde des rêves.

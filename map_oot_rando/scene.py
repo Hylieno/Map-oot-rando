@@ -307,6 +307,12 @@ PORTAL_ARRIVAL_STARTS = {
     ('DeathMountainCrater', NEIGHBORS['DeathMountainCrater']['DeathMountainTrail']): ('Crater_MountainTrailSide',),
     ('DeathMountainCrater', NEIGHBORS['DeathMountainCrater']['GoronCity']): ('Crater_GoronCitySide',),
     ('GoronCity', NEIGHBORS['GoronCity']['DeathMountainCrater']): ('GoronCity_CraterSide',),
+    ('Market', NEIGHBORS['Market']['HyruleCastle']): ('Market_FrontOfHyruleCastle',),
+    ('HyruleCastle', NEIGHBORS['HyruleCastle']['Market']): ('HyruleCastle_Entrance',),
+    ('Market', NEIGHBORS['Market']['GanonCastle']): ('Market_Entrance_FromCastle',),
+    ('GanonCastle', NEIGHBORS['GanonCastle']['Market']): ('GanonCastleEntrance',),
+    ('GanonCastle', NEIGHBORS['GanonCastle']['InsideGanonCastle']): ('GanonCastleEntrance_FromInside',),
+    ('InsideGanonCastle', NEIGHBORS['InsideGanonCastle']['GanonCastle']): ('Entrance',),
 }
 PORTAL_START_NAMES = {}
 for (zone, _), names in PORTAL_ARRIVAL_STARTS.items():
