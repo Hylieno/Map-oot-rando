@@ -39,6 +39,9 @@ de Link utilise la hauteur dans l’emprise de la tour.
 Le champ facultatif `entrance` indique où accéder à un check souterrain
 sur une carte de surface. Le rendu projette cet accès et les détails
 conservent la position XYZ de l’acteur.
+Le pont côté plaine est une vue de la scène Kokiri, sélectionnée
+d’après les coordonnées de l’acteur ou de Link. La copie du coffre
+dans les Bois Perdus reste dans le repère de cette scène.
 En Vallée Gerudo, les scènes des deux âges utilisent le même fond et le
 même repère. Chaque entrée de grotte est résolue dans la scène de l’âge
 du check.

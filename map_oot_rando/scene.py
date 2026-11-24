@@ -148,7 +148,9 @@ VIEWS.update({view: (region, None) for region, floors in DUNGEON_FLOORS.items() 
 NEIGHBORS = {
     'KokiriForest': {'LostWood': 'front_of_lost_wood_entrance',
                      'HyruleField': 'front_of_hyrule_field_entrance',
+                     'KokiriBridge': 'Vers le pont de Kokiri',
                      'InsideTheDekuTree': 'front_deku_tree_entrance', 'DreamWorld': 'Lit de Link'},
+    'KokiriBridge': {'KokiriForest': 'Vers le village Kokiri', 'HyruleField': 'front_of_hyrule_field_entrance'},
     'DreamWorld': {'KokiriForest': 'Retour à la forêt Kokiri'},
     'LostWood': {'KokiriForest': 'arrivee_de_kokiri', 'SacredForestMeadow': 'Vers le Bosquet sacré',
                  'GoronCity': 'Vers le Village Goron', 'ZoraRiver': 'Vers la Rivière Zora'},
@@ -254,6 +256,8 @@ HYRULE_ANCHORS = {
 }
 LAKE_FIELD_RETURN_ANCHORS = {14388254154737389511, 12222278877302081165}
 FIELD_VIEW_AGES = {view: age for age, view in REGION_VIEWS['HyruleField'].items()}
+KOKIRI_VIEW_AGES = {view: age for age, view in AGE_VIEWS.items()}
+KOKIRI_BRIDGE_GATE = (-90.0, -38.4)
 MARKET_VIEW_AGES = {view: age for age, view in REGION_VIEWS['Market'].items()}
 # The TimeTemple LocationArea uses different horizontal bounds at each age.
 TEMPLE_BOUNDS = {
@@ -477,6 +481,12 @@ def temple_position(point, age):
     (west, north), (east, south) = TEMPLE_BOUNDS[age]
     x, z = point
     return west <= x <= east and north <= z <= south
+
+
+def kokiri_bridge_position(point):
+    x, z = point
+    # The field-side ravine lies west of the village approach.
+    return x <= KOKIRI_BRIDGE_GATE[0] and -83 <= z <= 0
 
 
 def guide_routes(sources):
@@ -749,6 +759,8 @@ def view_name(resource):
 
 def location_view(row):
     view = view_name(row.resource)
+    if view in KOKIRI_VIEW_AGES and row.position is not None and kokiri_bridge_position(row.project()):
+        return REGION_VIEWS['KokiriBridge'][KOKIRI_VIEW_AGES[view]]
     if view in FIELD_VIEW_AGES and row.position is not None:
         return REGION_VIEWS[field_area(row.project())][FIELD_VIEW_AGES[view]]
     if (view in MARKET_VIEW_AGES and row.position is not None
@@ -876,7 +888,13 @@ def group_scenes(scenes):
         view['rooms'].update((name, tuple(low), tuple(high)) for name, low, high in scene['rooms'])
         for label, point in scene['points']:
             target = view
-            if name in FIELD_VIEW_AGES:
+            if (name in KOKIRI_VIEW_AGES and label == NEIGHBORS['KokiriBridge']['HyruleField']
+                    and kokiri_bridge_position(point)):
+                bridge = REGION_VIEWS['KokiriBridge'][KOKIRI_VIEW_AGES[name]]
+                target = grouped.setdefault(bridge, {'rooms': set(), 'points': set()})
+                view['points'].add((NEIGHBORS['KokiriForest']['KokiriBridge'], KOKIRI_BRIDGE_GATE))
+                target['points'].add((NEIGHBORS['KokiriBridge']['KokiriForest'], KOKIRI_BRIDGE_GATE))
+            elif name in FIELD_VIEW_AGES:
                 area = FIELD_PORTAL_AREAS.get(label) or field_area(point)
                 local_view = REGION_VIEWS[area][FIELD_VIEW_AGES[name]]
                 target = grouped.setdefault(local_view, {'rooms': set(), 'points': set()})
@@ -919,7 +937,12 @@ def field_atlas_scene(scenes, view):
         return next(iter(points)) if len(points) == 1 else None
 
     for name in SHARED_ENTRANCES:
-        child_pos, adult_pos = entrance(scene, name), entrance(adult, name)
+        if name == NEIGHBORS['KokiriBridge']['HyruleField'] and all(
+                label in scenes for label in REGION_VIEWS['KokiriBridge'].values()):
+            child_pos, adult_pos = (entrance(scenes[REGION_VIEWS['KokiriBridge'][age]], name)
+                                    for age in ('Child', 'Adult'))
+        else:
+            child_pos, adult_pos = entrance(scene, name), entrance(adult, name)
         if child_pos is None or adult_pos is None or dist(child_pos, adult_pos) > 0.5:
             return scene
     # OotrR numbers some unnamed rooms independently by age. Child numbering

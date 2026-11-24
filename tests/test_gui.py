@@ -529,6 +529,58 @@ class GuiTests(unittest.TestCase):
             app.open_neighbor('LostWood')
             self.assertEqual(app.resource.get(), REGION_VIEWS['LostWood']['Adult'])
 
+    def test_kokiri_bridge_routes_field_and_link_to_the_right_scene_view(self):
+        from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
+        from map_oot_rando.lost_woods import kokiri_bridge_plan, lost_woods_plan
+        from map_oot_rando.metadata import add_surface_entrances
+        from map_oot_rando.scene import NEIGHBORS, REGION_VIEWS, location_view
+
+        app = self.app
+        forest, bridge, woods, field = 'KokiriForest', 'KokiriBridge', 'LostWood', 'HyruleField'
+        forest_path, woods_path, field_path = (
+            f'Banc/{region}/{region}_Child_Static.bcett.byml.zs' for region in (forest, woods, field))
+        chest = 'LostWood#17479747339356189279'
+        grotto = 'KokiriForest#14818888396401495482'
+        template = demo_document()
+        locations = [
+            dict(template['locations'][0], id=chest, region=forest, resource=forest_path,
+                 position=(-132.18, 123.89, -16.01)),
+            dict(template['locations'][0], id=chest, region=woods, resource=woods_path,
+                 position=(-49.40, 104.53, 71.85)),
+            dict(template['locations'][0], id=grotto, region=forest, resource=forest_path,
+                 position=(-70.84, 103.58, -63.39)),
+        ]
+        entrance = (-51.93, 121.57, -62.82)
+        cover = dict(Hash=389687166017056250, Gyaml='Land_Kokiri_HidingHoleCover_A_01', Translate=entrance)
+        add_surface_entrances(locations, {forest_path: {'root': {'Actors': [cover]}}})
+        doc = dict(template, provenance='ootrr-scan', regions=[forest, woods, field],
+                   locations=locations, scenes={
+                       forest_path: {'rooms': [], 'points': [(NEIGHBORS[forest][field], (-127.94, -38.36))]},
+                       field_path: {'rooms': [], 'points': [(NEIGHBORS[field][forest], (200.10, 309.06))]},
+                   })
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        first, duplicate, underground = app.locations
+        self.assertEqual(location_view(first), REGION_VIEWS[bridge]['Child'])
+        self.assertEqual(location_view(duplicate), REGION_VIEWS[woods]['Child'])
+        self.assertEqual(location_view(underground), REGION_VIEWS[forest]['Child'])
+        self.assertEqual(underground.entrance, entrance)
+        self.assertEqual(underground.position, (-70.84, 103.58, -63.39))
+        self.assertTrue(kokiri_bridge_plan().covers(first.project()))
+        self.assertTrue(all(lost_woods_plan().covers(point) for point in
+                            (duplicate.project(), (-45.24, 72.55), (-33.19, 31.42))))
+        app.update_link(LinkPosition(field, 'Child', 199, 163, 309, 0))
+        app.open_neighbor(forest)
+        self.assertEqual(app.resource.get(), REGION_VIEWS[bridge]['Child'])
+        self.assertIn(field, app.navigation_markers.values())
+        self.assertIn(forest, app.navigation_markers.values())
+        app.update_link(LinkPosition(forest, 'Child', -126, 114, -38, 0))
+        self.assertTrue(app.canvas.find_withtag('player-pin'))
+        app.update_link(LinkPosition(forest, 'Child', -80, 115, -39, 0))
+        self.assertEqual(app.resource.get(), REGION_VIEWS[forest]['Child'])
+        self.assertIn(bridge, app.navigation_markers.values())
+
     def test_link_pin_and_zone_follow_can_be_used_independently(self):
         from dataclasses import replace
         from unittest.mock import patch

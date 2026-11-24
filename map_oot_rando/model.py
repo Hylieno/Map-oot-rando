@@ -7,6 +7,7 @@ OLDER_EXPORT_REVISIONS = frozenset({'283d3ec0f161d32e168afac45e502442c1ffb081'})
 STATUSES = frozenset({'available', 'blocked', 'unknown', 'completed', 'partial'})
 REGION_NAMES = {
     'KokiriForest': 'Kokiri Forest',
+    'KokiriBridge': 'Pont de Kokiri',
     'LostWood': 'Bois Perdus',
     'HyruleField': 'Plaine d’Hyrule',
     'SacredForestMeadow': 'Bosquet sacré',

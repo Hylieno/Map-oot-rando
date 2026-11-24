@@ -12,7 +12,8 @@ from PIL import Image, ImageTk
 from .aerial import AerialImage
 from .field_atlas import (CALIBRATION, FIELD_FRAMES, REGION_CALIBRATION, REGION_MAPS, align_region_image,
                            align_kokiri_image, load_atlas_image, load_kokiri_image)
-from .lost_woods import CALIBRATION as LOST_CALIBRATION, SOURCE as LOST_SOURCE, lost_woods_plan
+from .lost_woods import (BRIDGE_CALIBRATION, BRIDGE_SOURCE, CALIBRATION as LOST_CALIBRATION,
+                         SOURCE as LOST_SOURCE, kokiri_bridge_plan, lost_woods_plan)
 from .export import import_seed
 from .model import Location, REGION_NAMES, SURFACE_MIN_Y, load_metadata, resource_region, select
 from .state import StateStore
@@ -25,8 +26,8 @@ from .scene import (BURNT_VILLAGE, CASTLE_COURT, DREAM_SCENE_VIEWS, DUNGEON_ATLA
                     GORON_LEVELS, GORON_VIEWS,
                     NEIGHBORS, REGION_VIEWS, SHARED_DUNGEONS, SIDE_PORTALS, TRAINING_VIEWS,
                     UNDERGROUND_LABELS, UNDERGROUND_VIEWS, VIEWS,
-                    castle_view, field_area, field_atlas_scene, group_scenes, location_view, read_scenes,
-                    temple_position, view_name)
+                    castle_view, field_area, field_atlas_scene, group_scenes, kokiri_bridge_position,
+                    location_view, read_scenes, temple_position, view_name)
 from .simulation import Simulation, demo_document
 from .view import Viewport
 from .world_map import WORLD_PINS, WORLD_SIZE, load_world_map
@@ -49,6 +50,8 @@ def background_spec(view):
         return 'field-atlas', CALIBRATION, None
     if region == 'LostWood':
         return LOST_SOURCE, LOST_CALIBRATION, None
+    if region == 'KokiriBridge':
+        return BRIDGE_SOURCE, BRIDGE_CALIBRATION, None
     entry = REGION_MAPS.get(region, {}).get(DUNGEON_ATLAS_KEYS.get(view, age))
     if entry:
         return entry[0], REGION_CALIBRATION, entry[1]
@@ -401,6 +404,9 @@ class MapApplication:
         if scene == 'Market' and temple_position((self.link.x, self.link.z), self.link.age):
             if REGION_VIEWS['TempleOfTime'].get(self.link.age) in self.views:
                 return 'TempleOfTime'
+        if (scene == 'KokiriForest' and kokiri_bridge_position((self.link.x, self.link.z))
+                and REGION_VIEWS['KokiriBridge'].get(self.link.age) in self.views):
+            return 'KokiriBridge'
         return {'LostWoods': 'LostWood', 'DekuTree': 'InsideTheDekuTree',
                 'CastleGrounds': 'HyruleCastle',
                 'ZorasRiver': 'ZoraRiver', 'ZorasDomain': 'ZoraDomain',
@@ -636,8 +642,8 @@ class MapApplication:
             return
         source, _, digest = spec
         region, age = VIEWS[view]
-        if region == 'LostWood':
-            self.aerial[view] = lost_woods_plan()
+        if region in {'LostWood', 'KokiriBridge'}:
+            self.aerial[view] = (lost_woods_plan if region == 'LostWood' else kokiri_bridge_plan)()
             self.render()
             self.fit()
             return
@@ -817,6 +823,10 @@ class MapApplication:
             age = self.navigation_age
         if from_portal:
             origin = self.current_region()
+            if origin == 'HyruleField' and region == 'KokiriForest':
+                bridge = REGION_VIEWS['KokiriBridge'].get(age)
+                if bridge in self.views:
+                    return bridge
             if origin == 'SageRoom' and region == 'TempleOfTime':
                 age = 'Adult'
             if {origin, region} == {'LakeHylia', 'ZoraDomain'} and age != 'Child':
@@ -1033,7 +1043,8 @@ class MapApplication:
                                                       master=self.canvas)
                 self.world_photo_size = size
             self.canvas.create_image(left, top, anchor='nw', image=self.world_photo, tags='world-map')
-        nearby_pins = {'TempleOfTime': 'Market', 'SageRoom': 'Market', 'DreamWorld': 'KokiriForest'}
+        nearby_pins = {'TempleOfTime': 'Market', 'SageRoom': 'Market',
+                       'DreamWorld': 'KokiriForest', 'KokiriBridge': 'KokiriForest'}
         region = self.current_region()
         region = nearby_pins.get(region, region)
         link_region = self.link_region() if self.link else None
@@ -1104,7 +1115,8 @@ class MapApplication:
             raster = aerial.render(self.viewport, (width, height), fillcolor=ATLAS_BACKGROUND)
             self.background_photo = ImageTk.PhotoImage(raster, master=self.canvas)
             self.canvas.create_image(0, 0, image=self.background_photo, anchor='nw', tags='aerial')
-            attribution = 'Itinéraire vers le Bosquet sacré' if aerial.source == LOST_SOURCE else 'Field Atlas'
+            attribution = {LOST_SOURCE: 'Itinéraire vers le Bosquet sacré',
+                           BRIDGE_SOURCE: 'Repères du jeu (schéma)'}.get(aerial.source, 'Field Atlas')
             heading = f'{name} | {attribution}'
         elif scene:
             self.canvas.configure(background=ATLAS_BACKGROUND)

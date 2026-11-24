@@ -1,5 +1,9 @@
 # Checkpoint — 24 novembre 2026
 
+Les quatre checks détectés hors des fonds de Kokiri et des Bois
+Perdus sont couverts. La plaine ouvre la vue du pont et le coffre
+des pestes Mojo indique son accès à la surface.
+
 La recherche par identifiant d’acteur couvre désormais toutes les
 zones. Sur le catalogue de 1 103 checks et les scènes publiques,
 elle porte le total de positions de 782 à 1 068.

@@ -1,5 +1,9 @@
 # Décisions
 
+- Pont de Kokiri. Les appuis du pont et les accès de la scène guident
+  le schéma. La branche ouest des Bois Perdus utilise son propre repère.
+  Les deux placements du coffre gardent le même identifiant OotrR.
+
 - Citadelle. Les plans sont distincts par âge. Les étagères utilisent le
   placement renvoyé par OotrR. Les deux récompenses du bowling gardent
   leurs identifiants et partagent le repère du jeu.

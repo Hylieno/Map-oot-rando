@@ -79,6 +79,7 @@ GERUDO_CARD_WARPS = {
     15652772230412420096: (15.83, 110.0, -76.06),
 }
 GROTTO_ENTRANCE_ACTORS = {
+    'KokiriForest#14818888396401495482': ((389687166017056250, 'Land_Kokiri_HidingHoleCover_A_01'),),
     'SacredForestMeadow#7995233962349162969': ((8456945034417122929, 'Land_Kokiri_HidingHoleCover_A_01'),),
     'SacredForestMeadow#1764383515296652106': ((15024208487326008169, 'Land_SacredForest_HidingHoleCover_A_02'),),
     **dict.fromkeys(DEKU_THEATER_CHECKS, ((4876738002315557989, 'DestinationAnchor'),)),
@@ -145,8 +146,7 @@ def add_surface_entrances(rows, maps):
     entrance_ids = {key for keys in GROTTO_ENTRANCE_ACTORS.values() for key in keys}
     candidates = {}
     for path, source in maps.items():
-        if resource_region(path) not in {'SacredForestMeadow', 'LostWood', 'ZoraRiver', 'ZoraFountain',
-                                         'GerudoValley', 'GerudoFortress', 'DesertColossus'}:
+        if resource_region(path) is None:
             continue
         age_frame = path.rsplit('_', 1)[0]
         for actor in source['root'].get('Actors', ()):

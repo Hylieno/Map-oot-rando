@@ -1,5 +1,11 @@
 # Validation
 
+L’audit des fonds couvre les quatre checks précédemment détectés
+hors des plans de Kokiri et des Bois Perdus, soit sept placements
+en comptant les variantes d’âge et de scène. Le test Tk vérifie
+l’accès depuis la plaine, les deux sorties du pont, le suivi simulé
+de Link et la conservation de la coordonnée XYZ du coffre souterrain.
+
 L’import du catalogue de 1 103 checks a été exécuté avec les 160
 ressources de scène publiques déjà décodées. Le rapprochement par
 identifiant et par type retrouve 286 checks supplémentaires, soit

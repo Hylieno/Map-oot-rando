@@ -39,8 +39,12 @@ L’illustration générale est celle de Nintendúo, publiée par Field Atlas et
 utilisée par Ocarina Atlas. [Field Atlas](https://oot.gousse.cool/) · [Ocarina Atlas](https://github.com/antonioalvromero/Ocarina-Atlas)
 
 Dans les Bois Perdus, le tracé doré indique le chemin normal de Kokiri au Bosquet
-sacré. Les marqueurs de passage ouvrent le Village Goron et la rivière Zora. Leurs
-passages permettent aussi de revenir aux Bois Perdus. La rivière Zora est reliée
+sacré. Le plan inclut aussi la branche ouest et ses checks près du pont.
+Depuis la plaine d’Hyrule, l’entrée de la forêt ouvre la vue du pont de
+Kokiri. Le coffre souterrain des pestes Mojo est indiqué à sa bouche de
+grotte dans le village. Les marqueurs de passage ouvrent le Village Goron
+et la rivière Zora. Leurs passages permettent aussi de revenir aux Bois
+Perdus. La rivière Zora est reliée
 à la plaine d’Hyrule et affiche ses checks enfant et adulte. Le coffre et les pots
 en grotte sont indiqués à leur entrée en surface. Le Domaine Zora se rejoint
 depuis la rivière. Ses checks incluent les rayons de la boutique et le mini-jeu
