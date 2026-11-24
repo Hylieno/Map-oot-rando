@@ -3,23 +3,23 @@ from pathlib import Path
 import sys
 
 from map_oot_rando.__main__ import main
-from map_oot_rando.export import scan_game
+from map_oot_rando.export import import_seed
+from map_oot_rando.model import load_metadata
+from map_oot_rando.scene import AGE_VIEWS, location_view
 
 
 if __name__ == '__main__':
-    if len(sys.argv) == 3 and sys.argv[1] == '--check-bundled-import':
-        # Exercise the frozen scanner imports and parser with a harmless invalid file.
-        import evfl  # The real scanner imports this lazily when parsing events.
+    if len(sys.argv) == 4 and sys.argv[1] == '--check-bundled-import':
+        # Decode both scene layers and join them to a synthetic checks catalogue.
+        import evfl  # Include support for event parsing in the frozen build.
         from oot_rando.logic.world import World
         from oot_rando.tracker.auto_tracker import TrackerSession
         assert World().fingerprint()
-        try:
-            scan_game(Path(sys.argv[2]))
-        except ValueError as error:
-            if str(error) == 'Not a NUP container':
-                sys.exit(0)
-            raise
-        sys.exit(1)
+        document = import_seed(Path(sys.argv[2]), Path(sys.argv[3]))
+        checks = [(row.id, row.position, location_view(row)) for row in load_metadata(document)]
+        expected = [('KokiriForest#123', (12.5, 106, -4.5), AGE_VIEWS['Child']),
+                    ('KokiriForest#pots#321', (14, 106, -3), AGE_VIEWS['Child'])]
+        sys.exit(0 if checks == expected and not document['diagnostics'] else 1)
     if sys.argv[1:] == ['--check-bundled-gui']:
         from tkinter import Tk
         from map_oot_rando.gui import MapApplication

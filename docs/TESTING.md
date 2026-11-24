@@ -1,5 +1,9 @@
 # Validation
 
+Le test de l’exécutable Windows importe un NUP synthétique contenant
+un coffre et un pot, répartis entre deux couches. Il vérifie leurs
+identifiants, leurs coordonnées et leur regroupement sur la vue enfant.
+
 Le test du centre d’entraînement vérifie qu’une liaison retient
 les deux centres et la position exacte de la porte après sauvegarde
 et relecture. Une porte ambiguë est écartée.

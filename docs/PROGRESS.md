@@ -2,6 +2,8 @@
 
 Le plan du centre d’entraînement Gerudo trace les liaisons entre
 salles et passe par les portes du jeu.
+Le build vérifie l’import complet d’un NUP synthétique, du décodage
+des deux couches jusqu’aux coordonnées dans la vue enfant.
 
 Trois entrées historiques du centre d’entraînement Gerudo reprennent
 les positions de leurs coffres dans le remake. Le build de ce jalon

@@ -60,9 +60,13 @@ jobs:
       - name: Verify frozen scanner
         if: steps.preview.outputs.package == 'true'
         shell: pwsh
+        env:
+          PYTHONPATH: upstream-ootrr/src
         run: |
-          Set-Content -Path invalid.nup -Value 'Invalid test input'
-          $app = Start-Process -FilePath dist/Map-oot-rando/Map-oot-rando.exe -ArgumentList '--check-bundled-import', 'invalid.nup' -Wait -PassThru
+          python packaging/import_fixture.py scanner-fixture
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Remove-Item Env:PYTHONPATH
+          $app = Start-Process -FilePath dist/Map-oot-rando/Map-oot-rando.exe -ArgumentList '--check-bundled-import', 'scanner-fixture/synthetic.nup', 'scanner-fixture/checks.json' -Wait -PassThru
           if ($app.ExitCode -ne 0) { exit $app.ExitCode }
       - name: Verify frozen map window
         if: steps.preview.outputs.package == 'true'
