@@ -297,6 +297,16 @@ PORTAL_ARRIVAL_STARTS = {
     ('ZoraDomain', NEIGHBORS['ZoraDomain']['ZoraFountain']): ('ZoraDomain_FromZoraFountain',),
     ('LakeHylia', NEIGHBORS['LakeHylia']['ZoraDomain']): ('ZoraLakeHylia_FromZoraDomain',),
     ('ZoraDomain', NEIGHBORS['ZoraDomain']['LakeHylia']): ('ZoraDomain_FromLakeHylia',),
+    ('KakarikoVillage', NEIGHBORS['KakarikoVillage']['Graveyard']): ('Kakariko_GraveYardSide',),
+    ('Graveyard', NEIGHBORS['Graveyard']['KakarikoVillage']): ('GraveYard_KakarikoSide',),
+    ('KakarikoVillage', NEIGHBORS['KakarikoVillage']['DeathMountainTrail']): ('Kakariko_MountainTrailSide',),
+    ('DeathMountainTrail', NEIGHBORS['DeathMountainTrail']['KakarikoVillage']): ('MountainTrail_KakarikoSide',),
+    ('DeathMountainTrail', NEIGHBORS['DeathMountainTrail']['GoronCity']): ('MountainTrail_GoronCitySide',),
+    ('GoronCity', NEIGHBORS['GoronCity']['DeathMountainTrail']): ('GoronCity_MountainTrailSide',),
+    ('DeathMountainTrail', NEIGHBORS['DeathMountainTrail']['DeathMountainCrater']): ('MountainTrail_CraterSide',),
+    ('DeathMountainCrater', NEIGHBORS['DeathMountainCrater']['DeathMountainTrail']): ('Crater_MountainTrailSide',),
+    ('DeathMountainCrater', NEIGHBORS['DeathMountainCrater']['GoronCity']): ('Crater_GoronCitySide',),
+    ('GoronCity', NEIGHBORS['GoronCity']['DeathMountainCrater']): ('GoronCity_CraterSide',),
 }
 PORTAL_START_NAMES = {}
 for (zone, _), names in PORTAL_ARRIVAL_STARTS.items():

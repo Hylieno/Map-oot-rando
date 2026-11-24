@@ -614,13 +614,21 @@ class GuiTests(unittest.TestCase):
         crater = 'Banc/DeathMountainCrater/DeathMountainCrater_Adult_Static.bcett.byml.zs'
         goron = 'Banc/GoronCity/GoronCity_Adult_Static.bcett.byml.zs'
         doc['locations'] = [dict(row, resource=crater)]
-        doc['scenes'] = {goron: {'rooms': [], 'points': [('Repère nord Goron', (10, 15))]}}
+        goron_spawn = (-0.15, -47.35)
+        crater_exit = (-55, -20)
+        doc['scenes'] = {
+            crater: {'rooms': [], 'points': [('goron_city_entrance', crater_exit)]},
+            goron: {'rooms': [], 'points': [('Repère nord Goron', (10, 15)), ('GoronCity_CraterSide', goron_spawn)]},
+        }
         app.load(doc)
         app.resource.set(REGION_VIEWS['DeathMountainCrater']['Adult'])
         app.resource_changed()
-        app.open_neighbor('GoronCity')
+        x, y = app.viewport.screen(crater_exit)
+        app.press(SimpleNamespace(x=round(x), y=round(y)))
         self.assertEqual(app.resource.get(), GORON_VIEWS['Adult'][GORON_CRATER_FLOOR])
         self.assertEqual(set(app.navigation_markers.values()), {'DeathMountainCrater'})
+        line, = app.canvas.find_withtag('portal-approach')
+        self.assertEqual(tuple(app.canvas.coords(line)[-2:]), app.viewport.screen(goron_spawn))
 
     def test_fire_temple_groups_layers_and_retains_empty_floor(self):
         from unittest.mock import patch

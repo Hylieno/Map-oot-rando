@@ -1,5 +1,8 @@
 # Validation
 
+Le test du raccourci depuis le cratère vérifie l’anneau d’arrivée
+au rez-de-chaussée du Village Goron.
+
 Le test de suivi renomme temporairement le fichier actif et vérifie
 la conservation du dernier état, le retour au fichier restauré et
 le choix d’une autre sauvegarde compatible.

@@ -1,5 +1,9 @@
 # Checkpoint — 24 novembre 2026
 
+Les passages de Cocorico au cimetière et au mont du Péril indiquent
+les points d’arrivée de Link. Les liaisons du mont avec le Village
+Goron et le cratère, ainsi que leur raccourci, les indiquent aussi.
+
 Le suivi laisse un cycle de lecture à la sauvegarde active lorsqu’elle
 disparaît pendant son remplacement. Une sauvegarde plus récente de
 la même seed reste prioritaire.
