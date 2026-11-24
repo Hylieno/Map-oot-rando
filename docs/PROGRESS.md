@@ -1,5 +1,11 @@
 # Checkpoint — 24 novembre 2026
 
+Les passages entre la plaine et le pont de Kokiri, la Citadelle, Cocorico,
+la rivière Zora et la vallée Gerudo indiquent les arrivées des deux côtés.
+Il en va de même entre la vallée Gerudo et le lac Hylia.
+Les libellés des checks dégagent les passages, notamment celui de
+Cocorico près du vendeur Mojo de la plaine.
+
 Les deux passages entre la Fontaine Zora et la Caverne de glace
 sont cliquables et indiquent leur arrivée. La Caverne Dodongo,
 le Temple du Feu, le Temple de l’Ombre, le Puits et Jabu-Jabu

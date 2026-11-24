@@ -765,10 +765,14 @@ class GuiTests(unittest.TestCase):
         entrance = (-51.93, 121.57, -62.82)
         cover = dict(Hash=389687166017056250, Gyaml='Land_Kokiri_HidingHoleCover_A_01', Translate=entrance)
         add_surface_entrances(locations, {forest_path: {'root': {'Actors': [cover]}}})
+        bridge_door, bridge_spawn = (-127.94, -38.36), (-126.50, -38.40)
+        field_door, field_spawn = (200.10, 309.06), (198.22, 309.55)
         doc = dict(template, provenance='ootrr-scan', regions=[forest, woods, field],
                    locations=locations, scenes={
-                       forest_path: {'rooms': [], 'points': [(NEIGHBORS[forest][field], (-127.94, -38.36))]},
-                       field_path: {'rooms': [], 'points': [(NEIGHBORS[field][forest], (200.10, 309.06))]},
+                       forest_path: {'rooms': [], 'points': [(NEIGHBORS[forest][field], bridge_door),
+                                                             ('LostWoodBridge_FrontOfHyruleField', bridge_spawn)]},
+                       field_path: {'rooms': [], 'points': [(NEIGHBORS[field][forest], field_door),
+                                                            ('HyruleField_FrontOfLostWoodBridge', field_spawn)]},
                    })
         self.enterContext(patch.object(app, 'ensure_atlas'))
         app.load(doc)
@@ -782,10 +786,18 @@ class GuiTests(unittest.TestCase):
         self.assertTrue(all(lost_woods_plan().covers(point) for point in
                             (duplicate.project(), (-45.24, 72.55), (-33.19, 31.42))))
         app.update_link(LinkPosition(field, 'Child', 199, 163, 309, 0))
-        app.open_neighbor(forest)
+        def click_door(point, arrival):
+            x, y = app.viewport.screen(point)
+            app.press(SimpleNamespace(x=round(x), y=round(y)))
+            line, = app.canvas.find_withtag('portal-approach')
+            self.assertEqual(tuple(app.canvas.coords(line)[-2:]), app.viewport.screen(arrival))
+
+        click_door(field_door, bridge_spawn)
         self.assertEqual(app.resource.get(), REGION_VIEWS[bridge]['Child'])
         self.assertIn(field, app.navigation_markers.values())
         self.assertIn(forest, app.navigation_markers.values())
+        click_door(bridge_door, field_spawn)
+        self.assertEqual(app.resource.get(), REGION_VIEWS[field]['Child'])
         app.update_link(LinkPosition(forest, 'Child', -126, 114, -38, 0))
         self.assertTrue(app.canvas.find_withtag('player-pin'))
         app.update_link(LinkPosition(forest, 'Child', -80, 115, -39, 0))
@@ -1586,6 +1598,17 @@ class GuiTests(unittest.TestCase):
         app.marker_menu.invoke(0)
         self.assertEqual(app.selected.id, row['id'])
         app.marker_menu.invoke(1)
+        self.assertEqual(app.resource.get(), REGION_VIEWS[woods]['Child'])
+
+        row['position'] = (-15, 0, 20)
+        app.load(document)
+        width, height = app.canvas.winfo_width(), app.canvas.winfo_height()
+        app.viewport.scale = 1
+        app.viewport.center((10, 20), width, height)
+        app.draw()
+        self.assertTrue(app.canvas.find_withtag('check-pin'))
+        self.assertFalse(any(app.canvas.type(item) == 'text' for item in app.markers))
+        app.press(SimpleNamespace(x=round(width/2), y=round(height/2)))
         self.assertEqual(app.resource.get(), REGION_VIEWS[woods]['Child'])
 
     def test_choose_save_uses_a_directory_picker(self):

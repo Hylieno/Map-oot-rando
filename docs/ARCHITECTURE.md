@@ -9,6 +9,9 @@ lorsque leurs commandes dépassent la largeur disponible.
 Les entrées des temples de la Forêt, de l’Esprit et de l’Eau utilisent
 les points d’apparition des scènes. Le retour du Temple de l’Eau
 appartient au lac Hylia dans la scène partagée de la plaine.
+Le pont de Kokiri reçoit son repère d’arrivée depuis la scène de la forêt.
+Le retour vise l’entrée de Kokiri sur la carte de la plaine.
+Les libellés des checks laissent la place aux symboles de passage.
 La Caverne de glace possède deux passages distincts vers la Fontaine
 Zora. Chaque passage sélectionne son propre repère de retour.
 

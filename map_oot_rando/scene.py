@@ -271,6 +271,18 @@ PORTAL_ARRIVAL_STARTS = {
     ('IceCavern', NEIGHBORS['IceCavern']['ZoraFountain']): ('IceCavern_FromZoraFountain',),
     ('ZoraFountain', FOUNTAIN_ICE_BACKDOOR): ('ZoraFountain_FromIceCavern_Backdoor',),
     ('IceCavern', ICE_CAVERN_BACKDOOR): ('IceCavern_FromZoraFountain_Backdoor',),
+    ('KokiriBridge', NEIGHBORS['KokiriBridge']['HyruleField']): ('LostWoodBridge_FrontOfHyruleField',),
+    ('HyruleField', NEIGHBORS['HyruleField']['KokiriForest']): ('HyruleField_FrontOfLostWoodBridge',),
+    ('Market', NEIGHBORS['Market']['HyruleField']): ('Market_Entrance',),
+    ('HyruleField', NEIGHBORS['HyruleField']['Market']): ('HyruleField_FrontOfMarket',),
+    ('KakarikoVillage', NEIGHBORS['KakarikoVillage']['HyruleField']): ('KakarikoVillage_Entrance',),
+    ('HyruleField', NEIGHBORS['HyruleField']['KakarikoVillage']): ('HyruleField_FrontOfKakarikoVillage',),
+    ('ZoraRiver', NEIGHBORS['ZoraRiver']['HyruleField']): ('ZoraRiver_Entrance',),
+    ('HyruleField', NEIGHBORS['HyruleField']['ZoraRiver']): ('HyruleField_FrontOfZoraRiver',),
+    ('GerudoValley', NEIGHBORS['GerudoValley']['HyruleField']): ('GerudoValley_Entrance',),
+    ('HyruleField', NEIGHBORS['HyruleField']['GerudoValley']): ('HyruleField_FrontOfGerudoValley',),
+    ('GerudoValley', NEIGHBORS['GerudoValley']['LakeHylia']): ('GerudoValley_FromLakeHylia',),
+    ('LakeHylia', NEIGHBORS['LakeHylia']['GerudoValley']): ('LakeHylia_FromGerudoValley',),
 }
 PORTAL_START_NAMES = {}
 for (zone, _), names in PORTAL_ARRIVAL_STARTS.items():
@@ -615,6 +627,8 @@ def projection_points(region, sources):
         arrivals = set(PORTAL_ARRIVAL_STARTS[region, NEIGHBORS[region]['DesertColossus']])
     elif region == 'HyruleField':
         arrivals = arrivals | PORTAL_START_NAMES['LakeHylia']
+    elif region == 'KokiriForest':
+        arrivals = arrivals | PORTAL_START_NAMES['KokiriBridge']
     for path, source in sources.items():
         for actor in source['root'].get('Actors', ()):
             position = actor.get('Translate')
@@ -1015,12 +1029,14 @@ def group_scenes(scenes):
         view['rooms'].update((name, tuple(low), tuple(high)) for name, low, high in scene['rooms'])
         for label, point in scene['points']:
             target = view
-            if (name in KOKIRI_VIEW_AGES and label == NEIGHBORS['KokiriBridge']['HyruleField']
+            if (name in KOKIRI_VIEW_AGES
+                    and (label == NEIGHBORS['KokiriBridge']['HyruleField'] or label in PORTAL_START_NAMES['KokiriBridge'])
                     and kokiri_bridge_position(point)):
                 bridge = REGION_VIEWS['KokiriBridge'][KOKIRI_VIEW_AGES[name]]
                 target = grouped.setdefault(bridge, {'rooms': set(), 'points': set()})
-                view['points'].add((NEIGHBORS['KokiriForest']['KokiriBridge'], KOKIRI_BRIDGE_GATE))
-                target['points'].add((NEIGHBORS['KokiriBridge']['KokiriForest'], KOKIRI_BRIDGE_GATE))
+                if label == NEIGHBORS['KokiriBridge']['HyruleField']:
+                    view['points'].add((NEIGHBORS['KokiriForest']['KokiriBridge'], KOKIRI_BRIDGE_GATE))
+                    target['points'].add((NEIGHBORS['KokiriBridge']['KokiriForest'], KOKIRI_BRIDGE_GATE))
             elif name in FIELD_VIEW_AGES:
                 area = FIELD_PORTAL_AREAS.get(label) or field_area(point)
                 local_view = REGION_VIEWS[area][FIELD_VIEW_AGES[name]]

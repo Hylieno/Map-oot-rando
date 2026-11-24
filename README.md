@@ -56,8 +56,10 @@ Dans les Bois Perdus, le tracé doré indique le chemin normal de Kokiri au Bosq
 sacré. Les passages de cette route indiquent où Link apparaît à chaque entrée.
 Le plan inclut aussi la branche ouest et ses checks près du pont.
 Depuis la plaine d’Hyrule, l’entrée de la forêt ouvre la vue du pont de
-Kokiri. Le coffre souterrain des pestes Mojo est indiqué à sa bouche de
-grotte dans le village. Les marqueurs de passage ouvrent le Village Goron
+Kokiri et indique le point d’arrivée de Link. Les liaisons de la plaine
+avec la Citadelle, Cocorico, la rivière Zora et la vallée Gerudo indiquent
+également leurs arrivées. Le coffre souterrain des pestes Mojo est indiqué
+à l’entrée de sa grotte. Les marqueurs de passage ouvrent le Village Goron
 et la rivière Zora. Leurs passages permettent aussi de revenir aux Bois
 Perdus. L’anneau doré indique où Link apparaît pour ces raccourcis.
 Au Village Goron, la carte indique les deux arrivées prévues par le jeu.

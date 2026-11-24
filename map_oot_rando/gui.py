@@ -1290,7 +1290,9 @@ class MapApplication:
                 destination = self.view_for_region(neighbor)
                 if destination:
                     destination_region = VIEWS[destination][0]
-                    arrival = NEIGHBORS[destination_region].get(region)
+                    # The plain labels this connection Kokiri, via the bridge view.
+                    origin = 'KokiriForest' if region == 'KokiriBridge' and destination_region == 'HyruleField' else region
+                    arrival = NEIGHBORS[destination_region].get(origin)
                     exits[portal] = (neighbor, points.pop(), REGION_NAMES[neighbor], None, arrival)
                     if portal == self.arrival:
                         arrival_scene = portal_scene
@@ -1352,6 +1354,7 @@ class MapApplication:
             heading += ' · Deux arrivées possibles'
         self.canvas.create_text(12, 12, anchor='nw', fill=heading_color, text=heading)
         exit_names = {}
+        exit_bounds = []
         exits_by_point = {}
         for portal, (neighbor, exit_point, exit_name, floor, arrival) in exits.items():
             if aerial and not aerial.covers(exit_point):
@@ -1372,6 +1375,7 @@ class MapApplication:
             marker = self.canvas.create_polygon(x, y-9, x+9, y, x, y+9, x-9, y,
                                                 fill='#147c82', outline='#ebfbef', width=2,
                                                 tags=('zone-navigation',))
+            exit_bounds.append(self.canvas.bbox(marker))
             self.navigation_markers[marker] = neighbor
             self.local_portals[marker] = actions
             if floor:
@@ -1405,7 +1409,8 @@ class MapApplication:
         for name, x, y, anchor, color, row in foreground + landmarks + background:
             label = self.canvas.create_text(x, y, anchor=anchor, text=name, fill=color)
             left, top, right, bottom = self.canvas.bbox(label)
-            if (any(left < r and right > l and top < b and bottom > t for l, t, r, b in used)
+            occupied = used if row is None else used + exit_bounds
+            if (any(left < r and right > l and top < b and bottom > t for l, t, r, b in occupied)
                     or right < 0 or bottom < 0 or left > width or top > height):
                 self.canvas.delete(label)
                 continue

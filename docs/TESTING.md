@@ -1,5 +1,11 @@
 # Validation
 
+Le test Tk vérifie les points d’arrivée entre le pont de Kokiri et
+la plaine, puis montre le marqueur de Link sur la vue du pont.
+Un autre test vérifie qu’un libellé de check laisse son passage voisin cliquable.
+Les 24 traversées de la plaine et de la vallée Gerudo ont été vérifiées
+aux deux âges avec les scènes publiques et les fonds chargés.
+
 Le test Tk extrait les deux entrées de la Caverne de glace, vérifie
 leurs points d’arrivée à l’aller et au retour, et contrôle leur
 disponibilité dans la vue adulte de la Fontaine Zora.
