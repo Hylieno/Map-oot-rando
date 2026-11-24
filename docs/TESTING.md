@@ -1,9 +1,9 @@
 # Validation
 
-Deux tests de suivi couvrent la réécriture temporaire de la
-sauvegarde active et son remplacement par une sauvegarde d’une
-autre seed. Ils utilisent la lecture de sauvegarde OotrR et des
-fichiers synthétiques.
+Les tests de suivi couvrent la réécriture temporaire de la
+sauvegarde active, le réimport pendant cette écriture et son
+remplacement par une sauvegarde d’une autre seed. Ils utilisent
+la lecture de sauvegarde OotrR et des fichiers synthétiques.
 
 Le test de réimport actualise les coordonnées d’un check et conserve
 la vue et l’âge choisis pour la même seed. Il vérifie aussi le retour

@@ -98,6 +98,7 @@ class MapApplication:
         root.protocol('WM_DELETE_WINDOW', self.close_window)
         self.save_profiles = profiles if profiles is not None else SaveProfiles(local_tracker_dir() / 'profiles.json')
         self.save_commands = None
+        self.verified_save_source = None
         self.follow_age = tk.BooleanVar(value=True)
         self.save_age = None
         self.kakariko_burned = None
@@ -221,6 +222,8 @@ class MapApplication:
         same_seed = (not synthetic and bool(seed_id) and old_store is not None
                      and not old_store.simulated and old_store.seed_id == seed_id)
         resume_snapshot = same_seed and old_store.last_success is not None
+        if not resume_snapshot:
+            self.verified_save_source = None
         previous_view = self.resource.get() if same_seed else ''
         previous_age = self.navigation_age if same_seed else None
         aerial = {}
@@ -521,10 +524,14 @@ class MapApplication:
         self.save_generation += 1
         generation = self.save_generation
         store = self.store
+        preferred_save = None
         if preserve_snapshot:
             store.disconnect()
+            if self.verified_save_source and self.verified_save_source[0] == save_path:
+                preferred_save = self.verified_save_source[1]
         else:
             store.reset(store.seed_id, store.states)
+            self.verified_save_source = None
         self.save_age = None
         self.kakariko_burned = None
         self.follow_age_check.state(['disabled'])
@@ -543,7 +550,7 @@ class MapApplication:
                 if cancel.is_set():
                     return
                 try:
-                    active = SaveConnection(folder, save_path, store)
+                    active = SaveConnection(folder, save_path, store, preferred_save=preferred_save)
                 except Exception as error:
                     results.put((SaveUpdate(str(error), reset=isinstance(error, ValueError)), False))
                     return
@@ -574,6 +581,10 @@ class MapApplication:
                 self.root.after(100, publish)
                 return
             apply_save_update(store, update)
+            if update.save_path is not None:
+                self.verified_save_source = (save_path, update.save_path)
+            elif update.reset:
+                self.verified_save_source = None
             self.save_age = update.age
             self.kakariko_burned = update.kakariko_burned
             if not active:

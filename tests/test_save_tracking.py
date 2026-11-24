@@ -197,6 +197,41 @@ class SaveTrackingTests(unittest.TestCase):
             self.assertEqual(conn.refresh().states['test'], 'unknown')
             self.assertEqual(conn.path, older)
 
+    def test_reopening_during_a_save_rewrite_retains_the_watched_slot(self):
+        import os
+
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory).resolve()
+            seed_id = write_seed(folder)
+            store = StateStore(seed_id, ['test'])
+            saves = folder / 'saves'
+            older = saves / 'older' / 'progress.sav'
+            current = saves / 'current' / 'progress.sav'
+            for path in (older, current):
+                path.parent.mkdir(parents=True)
+            write_save(older)
+            os.utime(older, (1_700_000_000,) * 2)
+            write_save(current, collected=True)
+            initial = SaveConnection(folder, saves, store).refresh()
+            self.assertEqual(initial.save_path, current)
+            apply_save_update(store, initial)
+
+            current.write_bytes(b'truncated')
+            reopened = SaveConnection(folder, saves, store, preferred_save=initial.save_path)
+            paused = reopened.refresh()
+            self.assertIsNone(paused.states)
+            self.assertIsNone(reopened.path)
+            apply_save_update(store, paused)
+            self.assertEqual(store.states['test'], 'completed')
+            self.assertEqual(store.connection, 'disconnected')
+
+            write_save(current, collected=True)
+            resumed = reopened.refresh()
+            self.assertEqual(resumed.save_path, current)
+            apply_save_update(store, resumed)
+            self.assertEqual(store.states['test'], 'completed')
+            self.assertEqual(store.connection, 'save')
+
     def test_replaced_slot_for_another_seed_discards_the_previous_snapshot(self):
         with tempfile.TemporaryDirectory() as directory:
             folder = Path(directory).resolve()

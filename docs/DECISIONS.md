@@ -5,8 +5,9 @@
   lisible affilié à une autre seed invalide immédiatement son état.
 
 - Réimport. Le dernier instantané OotrR reste visible pour les checks
-  communs à la même seed. La position de Link attend une nouvelle
-  lecture en direct.
+  communs à la même seed. La reprise automatique du même dossier
+  utilise le dernier fichier vérifié comme repère pour la nouvelle
+  lecture. La position de Link attend une nouvelle lecture en direct.
 
 - Carte d’Hyrule. Les sous-zones de Kokiri et de la Citadelle partagent
   les coordonnées du repère principal et ouvrent un menu de destinations.

@@ -45,7 +45,8 @@ Les boutons Enfant et Adulte permettent de choisir l’âge avant
 d’ouvrir une zone. Survole un repère pour lire son nom en haut de la carte.
 Si tu réimportes la même seed, l’application garde ta vue lorsqu’elle
 est encore disponible, ainsi que ton choix de suivre ou non l’âge sauvegardé.
-Les derniers états connus restent affichés pendant la reconnexion.
+Les derniers états connus restent affichés pendant la reconnexion,
+même si la sauvegarde suivie est brièvement en cours d’écriture.
 La barre de suivi indique la date de la dernière synchronisation.
 
 Dans les Bois Perdus, le tracé doré indique le chemin normal de Kokiri au Bosquet

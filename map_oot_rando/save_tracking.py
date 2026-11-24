@@ -22,6 +22,7 @@ class SaveUpdate:
     mode: str = 'save'
     kakariko_burned: bool | None = None
     link: LinkPosition | None = None
+    save_path: Path | None = None
 
 
 def kakariko_variant(flags, medallions, story_played, uses_medallions):
@@ -38,7 +39,7 @@ def kakariko_variant(flags, medallions, story_played, uses_medallions):
 
 
 class SaveConnection:
-    def __init__(self, seed_folder, save_path, store, *, manual_dir=None, live_factory=None):
+    def __init__(self, seed_folder, save_path, store, *, preferred_save=None, manual_dir=None, live_factory=None):
         from oot_rando.tracker.auto_tracker import TrackerSession
         from oot_rando.randomizer.randomizer_services import ManualTracker
         from oot_rando.tracker.live_memory import LiveGameData, SEQUENCE_IS_CHILDHOOD
@@ -76,6 +77,7 @@ class SaveConnection:
         self.live_factory = live_factory or LiveGameData
         self.selector = SaveDirectory(path, int(self.session.metadata['seed_marker']),
                                       load_snapshot) if path.is_dir() else None
+        self.preferred_save = Path(preferred_save) if self.selector is not None and preferred_save else None
         self.path = None
         if self.selector is None:
             self._select(path)
@@ -94,11 +96,12 @@ class SaveConnection:
         from oot_rando.tracker.live_memory import LiveUnavailable
 
         if self.selector is not None:
-            path = self.selector.newest(current=self.path)
+            watched = self.path or self.preferred_save
+            path = self.selector.newest(current=watched)
             if path is None:
                 self.close()
                 return SaveUpdate('En attente d’un progress.sav lisible lié à cette seed.',
-                                  reset=self.path is None or self.selector.is_unlinked(self.path),
+                                  reset=watched is None or self.selector.is_unlinked(watched),
                                   action_error='Aucune sauvegarde liée à cette seed.' if manual_changes else '')
             if path != self.path:
                 self._select(path)
@@ -141,7 +144,7 @@ class SaveConnection:
                           tracker_states(self.session, self.ids),
                           {ident: self.session.check_state(ident) for ident in self.ids},
                           action_error=action_error, age=self.session.age, mode='live' if realtime else 'save',
-                          kakariko_burned=self.session.kakariko_burned, link=position)
+                          kakariko_burned=self.session.kakariko_burned, link=position, save_path=self.path)
 
 
 def apply_save_update(store, update):

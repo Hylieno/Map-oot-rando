@@ -4,6 +4,8 @@ Le suivi attend un nouveau cycle lorsque le fichier suivi devient
 temporairement illisible. Si la lecture échoue encore, il peut choisir
 une autre sauvegarde lisible de la même seed. Un fichier remplacé
 par une autre seed efface les états qu’il fournissait.
+Cette attente s’applique aussi au réimport de la même seed pendant
+l’écriture, si le dossier de sauvegardes est identique.
 
 Un réimport de la même seed garde la vue en cours quand elle existe
 dans la nouvelle carte. Le réglage de suivi de l’âge est conservé,

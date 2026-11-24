@@ -8,7 +8,9 @@ le suivi peut reprendre avec une sauvegarde compatible plus ancienne.
 Un réimport de même seed reprend les états des identifiants présents
 dans les deux cartes pendant la reconnexion. Le suivi affiche le mode
 déconnecté avec la dernière date vérifiée. Une nouvelle lecture par
-OotrR remplace cet instantané. Le choix manuel d’une autre sauvegarde
+OotrR remplace cet instantané. Pour le même dossier de sauvegardes,
+le dernier fichier vérifié garde son droit à une nouvelle lecture
+si l’écriture est en cours. Le choix manuel d’une autre sauvegarde
 redémarre avec des états inconnus.
 
 La carte d’Hyrule regroupe les destinations qui partagent le même
