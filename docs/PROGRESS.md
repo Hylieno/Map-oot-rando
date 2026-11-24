@@ -1,5 +1,9 @@
 # Checkpoint — 24 novembre 2026
 
+Le suivi laisse un cycle de lecture à la sauvegarde active lorsqu’elle
+disparaît pendant son remplacement. Une sauvegarde plus récente de
+la même seed reste prioritaire.
+
 Le Domaine Zora indique les arrivées depuis la rivière, la Fontaine
 et le lac Hylia, dans les deux sens.
 

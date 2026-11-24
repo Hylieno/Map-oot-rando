@@ -1,5 +1,9 @@
 # Validation
 
+Le test de suivi renomme temporairement le fichier actif et vérifie
+la conservation du dernier état, le retour au fichier restauré et
+le choix d’une autre sauvegarde compatible.
+
 Les dix traversées entre la rivière, le Domaine, la Fontaine et le lac
 ont été vérifiées avec les fonds et les scènes publiques.
 

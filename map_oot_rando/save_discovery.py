@@ -38,6 +38,10 @@ class SaveDirectory:
                     continue
 
         present = {path for _, _, _, path in candidates}
+        previous = self._checked.get(current)
+        missing = current is not None and current not in present and self._deferred != current
+        if missing:
+            self._deferred = current
         self._checked = {path: stamp for path, stamp in self._checked.items() if path in present}
         for mtime, size, inode, path in sorted(candidates, reverse=True):
             stamp = (mtime, size, inode)
@@ -54,8 +58,11 @@ class SaveDirectory:
                     continue
                 self._checked[path] = (stamp, matches)
             if self._checked[path][1]:
+                # Some writers rename the active slot before creating its replacement.
+                if missing and (previous is None or mtime <= previous[0][0]):
+                    return None
                 self._deferred = None
                 return path
-        if self._deferred not in present:
+        if self._deferred != current and self._deferred not in present:
             self._deferred = None
         return None

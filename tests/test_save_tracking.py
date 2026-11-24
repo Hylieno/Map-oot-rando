@@ -197,6 +197,43 @@ class SaveTrackingTests(unittest.TestCase):
             self.assertEqual(conn.refresh().states['test'], 'unknown')
             self.assertEqual(conn.path, older)
 
+    def test_save_rename_waits_once_before_returning_to_an_older_slot(self):
+        import os
+
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory).resolve()
+            store = StateStore(write_seed(folder), ['test'])
+            root = folder / 'saves'
+            older = root / 'older' / 'progress.sav'
+            current = root / 'current' / 'progress.sav'
+            for path in (older, current):
+                path.parent.mkdir(parents=True)
+            write_save(older)
+            os.utime(older, (1_700_000_000,) * 2)
+            write_save(current, collected=True)
+            os.utime(current, (1_700_000_010,) * 2)
+            conn = SaveConnection(folder, root, store)
+            apply_save_update(store, conn.refresh())
+
+            backup = current.rename(current.with_suffix('.bak'))
+            interrupted = conn.refresh()
+            self.assertIsNone(interrupted.states)
+            apply_save_update(store, interrupted)
+            self.assertEqual(conn.path, current)
+            self.assertEqual(store.states['test'], 'completed')
+
+            backup.rename(current)
+            self.assertEqual(conn.refresh().save_path, current)
+            current.rename(backup)
+            self.assertIsNone(conn.refresh().states)
+            self.assertEqual(conn.refresh().save_path, older)
+
+            backup.rename(current)
+            self.assertEqual(conn.refresh().save_path, current)
+            current.rename(backup)
+            os.utime(older, (1_700_000_020,) * 2)
+            self.assertEqual(conn.refresh().save_path, older)
+
     def test_reopening_during_a_save_rewrite_retains_the_watched_slot(self):
         import os
 
