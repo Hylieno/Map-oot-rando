@@ -1,5 +1,10 @@
 # Checkpoint — 24 novembre 2026
 
+Seize checks de récompense supplémentaires ont une position vérifiée.
+Cela comprend les cinq récompenses des Skulltulas à Cocorico, les
+deux Gorons roulants, la remise de l’ocarina de Saria sur le pont et
+l’ocarina du Temps près de la Citadelle.
+
 Les quatre checks détectés hors des fonds de Kokiri et des Bois
 Perdus sont couverts. La plaine ouvre la vue du pont et le coffre
 des pestes Mojo indique son accès à la surface.

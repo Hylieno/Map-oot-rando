@@ -12,9 +12,30 @@ LOST_WOOD_EVENT_ACTORS = {
     'scrub#LW Deku Scrub Grotto Front': ('Enemy_Scrub_Business', 'Enemy_Scrub_Business_DekuNutsPouch_01'),
 }
 EVENT_ACTORS = {
+    'KokiriForest': {('Npc_Kokiri_Saria_Child', 'KokiriForest_ArriveLostWood'): 'quest#LW Gift from Saria'},
     'LostWood': {actor: ident for ident, actor in LOST_WOOD_EVENT_ACTORS.items()},
-    'GoronCity': {('Npc_Goron_Darunia_Child', None): 'npc#GC Darunias Joy'},
+    'GoronCity': {
+        ('Npc_Goron_Darunia_Child', None): 'npc#GC Darunias Joy',
+        ('Npc_Goron_006_Child', None): 'npc#GC Rolling Goron as Child',
+        ('Npc_Goron_DaruniaJr_Adult', 'SageOfFire_Step01_DaruniaJr_BombHit'): 'npc#GC Rolling Goron as Adult',
+    },
+    'KakarikoVillage': {
+        ('MapIconFacilityAnchor', 'GatheringTokenGold_FirstTalk'): tuple(
+            f'npc#Kak {count} Gold Skulltula Reward' for count in range(10, 51, 10)),
+        ('MapIconFacilityAnchor', 'KakarikoVillage_MiniGame_HitTarget_FirstTalk'): 'npc#Kak Shooting Gallery Reward',
+        ('Npc_Hylia_049_Child', None): 'npc#Kak Anju as Child',
+        ('Npc_Hylia_001_Adult', None): 'npc#Kak Man on Roof',
+    },
+    'Graveyard': {
+        ('MapIconFacilityAnchor', 'MiniGame_DiggingHole_MinigameIconOn'): 'npc#Graveyard Dampe Gravedigging Tour',
+    },
+    'DeathMountainTrail': {
+        ('MapIconFacilityAnchor', 'HavePlayedEvent.Dm_FairyFountain_Din'): 'fairy#DMT Great Fairy Reward',
+        ('Npc_Goron_Biggoron_Adult', None): 'quest#DMT Biggoron',
+    },
     'HyruleField': {
+        ('Obj_Ocarina_Time_A_01', None): 'quest#HF Ocarina of Time Item',
+        ('Enemy_Scrub_Business', 'Enemy_Scrub_Business_Heart_01'): 'scrub#HF Deku Scrub Grotto',
         ('Npc_Hylia_Fishman_001_Child', None): 'npc#LH Child Fishing',
         ('Npc_Hylia_Fishman_001_Adult', None): 'npc#LH Adult Fishing',
         ('Npc_Hylia_045_Child', None): 'npc#LH Lab Dive',
@@ -80,6 +101,7 @@ GERUDO_CARD_WARPS = {
 }
 GROTTO_ENTRANCE_ACTORS = {
     'KokiriForest#14818888396401495482': ((389687166017056250, 'Land_Kokiri_HidingHoleCover_A_01'),),
+    'scrub#HF Deku Scrub Grotto': ((2319887810288392884, 'Land_HrlField_HidingHoleCover_A_01'),),
     'SacredForestMeadow#7995233962349162969': ((8456945034417122929, 'Land_Kokiri_HidingHoleCover_A_01'),),
     'SacredForestMeadow#1764383515296652106': ((15024208487326008169, 'Land_SacredForest_HidingHoleCover_A_02'),),
     **dict.fromkeys(DEKU_THEATER_CHECKS, ((4876738002315557989, 'DestinationAnchor'),)),
@@ -115,6 +137,7 @@ CHECK_ACTOR_PATTERNS = {
 EVENT_ACTOR_FIELDS = {
     'MapIconFacilityAnchor': 'MapIconFacilityIsOpen',
     'HeartPieceAnchor': 'HeartPieceAnchor_GameDataPath',
+    'Npc_Goron_DaruniaJr_Adult': 'ActorDeleteSetGameDataBool',
 }
 DUNGEON_ROOM_REGIONS = frozenset({'InsideJabuJabuBelly', 'InsideTheDekuTree', 'ForestTemple',
                                   'BottomOfTheWell', 'ShadowTemple', 'InsideGanonCastle', 'GerudoTrainingGround',
@@ -257,6 +280,8 @@ def event_check_rows(maps, eligible):
             parameter = EVENT_ACTOR_FIELDS.get(gyaml, 'TalkEventName')
             event = dynamic.get(parameter) if isinstance(dynamic, dict) else None
             ident = ids.get((gyaml, event))
+            if ident is None and actor.get('Name'):
+                ident = ids.get((gyaml, actor['Name']))
             position = actor.get('Translate')
             if ident == 'boss#Volvagia':
                 # The model waits below the floor before the cutscene. The linked
@@ -276,6 +301,9 @@ def event_check_rows(maps, eligible):
             if ident == 'boss#Links Pocket':
                 # Dm_SageRoom_0005 moves Link to the center of the platform.
                 position = (0, 100.12000274658203, 0)
+            if ident == 'quest#LW Gift from Saria':
+                # Goto_HyruleCastle places Saria on the bridge before Dm_Kokiri_0155.
+                position = (-120.1259994506836, 114.48249816894531, -36.88779830932617)
             checks = (ident,) if isinstance(ident, str) else ident or ()
             if (region == 'LostWood' and actor.get('Gyaml') == 'Enemy_Scrub_ForestStage_Elder'
                     and actor.get('Name') == 'ScrubForestStageElder' and age_frame.endswith('_Child')):

@@ -43,6 +43,21 @@ class ExportTests(unittest.TestCase):
                          {'npc#Market Bombchu Bowling First Prize', 'npc#Market Bombchu Bowling Second Prize'})
         self.assertEqual({row['position'] for row in rows}, {(-25, 116, 8)})
 
+    def test_rolling_goron_uses_the_quest_actor_among_the_adult_models(self):
+        from map_oot_rando.model import Location
+        from map_oot_rando.scene import GORON_VIEWS, location_view
+
+        path = 'Banc/GoronCity/GoronCity_Adult_Static.bcett.byml.zs'
+        rolling = dict(Gyaml='Npc_Goron_DaruniaJr_Adult', Translate=(5.75, 109.9, -12.1),
+                       Dynamic={'ActorDeleteSetGameDataBool': 'SageOfFire_Step01_DaruniaJr_BombHit'})
+        scenes = {path: {'root': {'Actors': [
+            rolling, dict(Gyaml=rolling['Gyaml'], Name='demo1', Translate=(-11.77, 114.92, 24.61)),
+        ]}}}
+        row, = event_check_rows(scenes, lambda *_: True)
+        self.assertEqual(row['id'], 'npc#GC Rolling Goron as Adult')
+        self.assertEqual(row['position'], rolling['Translate'])
+        self.assertEqual(location_view(Location(**row)), GORON_VIEWS['Adult'][1])
+
     def setUp(self):
         self.groups = {'KokiriForest#123': [dict(
             resource='Banc/KokiriForest/Test', position=[1, 2, 3], label='KF_example')]}

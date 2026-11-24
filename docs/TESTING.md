@@ -1,5 +1,11 @@
 # Validation
 
+Les scènes publiques et les repères de quête placent 1 084 checks
+sur 1 103. L’audit des fonds couvre tous les placements qui utilisent
+un plan chargé. Les 19 entrées sans coordonnées sont 18 entrées
+vanilla sans source de collecte OotrR dans cette seed et le vendeur
+enfant du cratère, dont la scène est exclue par OotrR pour cet âge.
+
 L’audit des fonds couvre les quatre checks précédemment détectés
 hors des plans de Kokiri et des Bois Perdus, soit sept placements
 en comptant les variantes d’âge et de scène. Le test Tk vérifie
