@@ -97,6 +97,10 @@ FIELD_FRAMES['ZoraFountain'] = {
     'Adult': ((-45, 10, 939, 902), (7.0485, 200.7, 7.1346, 527.48)),
 }
 FIELD_FRAMES['IceCavern'] = {None: ((-51, -50, 947, 1179), (5.2876, 337.98, 5.1869, 469.16))}
+FIELD_FRAMES['Market'] = {
+    'Child': ((-34, -38, 887, 795), (5.4314, 422.86, 5.2191, 305.08)),
+    'Adult': ((-35, -42, 890, 1207), (8.4001, 190.51, 8.0681, 467.58)),
+}
 for region, frame, viewboxes in (
     ('FireTemple', (3.965, 354.2, 3.9651, 218.31), FIRE_VIEWBOXES),
     ('InsideJabuJabuBelly', (7.6, 392, 7.6, 1580), JABU_VIEWBOXES),
@@ -155,6 +159,10 @@ REGION_MAPS['ShadowTemple'] = {
     'S2': ('field-atlas-shadow-s2', '1706f580e2ba0f5fec806e3e3e131ddc09014ac453f9c0f9d840153369342bb3'),
     'S3': ('field-atlas-shadow-s3', '1e8a9e584a5012aa8e41bb2f9037751ec6ca09a18615fd140860281964fc0d87'),
     'S4': ('field-atlas-shadow-s4', 'a551de4d49cb4a18b6a4ec401c90dc484d16dee5ab2bee6886058c1718139f8a'),
+}
+REGION_MAPS['Market'] = {
+    'Child': ('field-atlas-market-child', '44d0923e6fd7b7bcf0f77a90c43ff41bd8fe8fe8954bea1e3914c35e837cf8f7'),
+    'Adult': ('field-atlas-market-adult', '0565ce9e3947134f48f704e0b83266b1400c6ff469c5c08e634444653c6c5b6b'),
 }
 REGION_CALIBRATION = 1
 

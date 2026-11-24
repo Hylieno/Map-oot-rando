@@ -1,5 +1,9 @@
 # Checkpoint — 23 novembre 2026
 
+La Citadelle est reliée à la plaine d’Hyrule et affiche les 61 checks du
+catalogue. Les vues enfant et adulte chargent les fonds et placements
+correspondants.
+
 Le Puits de Cocorico est relié au village. Ses 42 checks se répartissent
 entre deux plans Field Atlas. Le niveau profond contient la Loupe et le
 coffre de la carte.

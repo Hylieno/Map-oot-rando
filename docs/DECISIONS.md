@@ -1,5 +1,9 @@
 # Décisions
 
+- Citadelle. Les plans sont distincts par âge. Les étagères utilisent le
+  placement renvoyé par OotrR. Les deux récompenses du bowling gardent
+  leurs identifiants et partagent le repère du jeu.
+
 - La carte générale réutilise l’illustration Nintendúo et les positions
   géographiques publiées par Ocarina Atlas. Tous les fonds locaux publiés
   viennent de Field Atlas et se chargent automatiquement.

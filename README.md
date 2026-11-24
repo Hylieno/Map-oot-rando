@@ -85,6 +85,10 @@ Les checks hors du fond restent consultables dans la liste. Sélectionner
 leur entrée affiche leur position réelle, et la case **Afficher les checks
 hors du fond** permet de les afficher ensemble.
 
+La Citadelle d’Hyrule se rejoint depuis la plaine. Les deux âges ont un
+plan distinct. Les jeux, les boutiques et la maison du garde reprennent
+les positions du jeu.
+
 ## Suivre la partie
 
 Coche **Afficher la position de Link**. Cette option active **Mémoire du jeu**

@@ -28,6 +28,13 @@ EVENT_ACTORS = {
     'InsideTheDekuTree': {('Enemy_DungeonBoss_Gohma', None): 'boss#Queen Gohma'},
     'ForestTemple': {('Enemy_DungeonBoss_PhantomGanon', None): 'boss#Phantom Ganon'},
     'ShadowTemple': {('Enemy_DungeonBoss_BongoBongo', None): 'boss#Bongo Bongo'},
+    'Market': {
+        ('MapIconFacilityAnchor', 'Market_MiniGame_BombchuBowling_FirstTalk'): (
+            'npc#Market Bombchu Bowling First Prize', 'npc#Market Bombchu Bowling Second Prize'),
+        ('MapIconFacilityAnchor', 'Market_MiniGame_HitTarget_FirstTalk'): 'npc#Market Shooting Gallery Reward',
+        ('MapIconFacilityAnchor', 'HaveTalked_Special.Npc_Hylia_048_BottleShop_Talk_Event5'): 'npc#Market 10 Big Poes',
+        ('HeartPieceAnchor', 'SubEvent_FindRichard_GetHeartPiece'): 'npc#Market Lost Dog',
+    },
     'DeathMountainCrater': {
         ('MapIconFacilityAnchor', 'HavePlayedEvent.Dm_FairyFountain_Wisdom'): 'fairy#DMC Great Fairy Reward',
     },
@@ -55,13 +62,18 @@ CHECK_ACTOR_PATTERNS = {
     ('full_pots', 'pots'): ('Obj_Pot_*',),
     ('full_rocks', 'rocks'): ('Obj_BrokenRock_*', 'Obj_LiftRock_*'),
     ('full_bushes', 'bushes'): ('Obj_Plant_Grass_*',),
+    ('full_trees', 'trees'): ('Obj_Tree_*',),
     ('full_freestanding', 'free'): ('Obj_Heart', 'Obj_Heart_Piece', 'Obj_Rupee_*'),
     ('full_skulltula', 'gs'): ('Enemy_Skulltula_Gold',),
     ('full_bossheart', 'heart'): ('Obj_Heart_Container',),
 }
 PLACEMENT_REGIONS = frozenset({'FireTemple', 'ZoraRiver', 'ZoraDomain', 'ZoraFountain', 'IceCavern',
                                'InsideJabuJabuBelly', 'InsideTheDekuTree', 'ForestTemple', 'BottomOfTheWell',
-                               'ShadowTemple'})
+                               'ShadowTemple', 'Market'})
+EVENT_ACTOR_FIELDS = {
+    'MapIconFacilityAnchor': 'MapIconFacilityIsOpen',
+    'HeartPieceAnchor': 'HeartPieceAnchor_GameDataPath',
+}
 DUNGEON_ROOM_REGIONS = frozenset({'InsideJabuJabuBelly', 'InsideTheDekuTree', 'ForestTemple',
                                   'BottomOfTheWell', 'ShadowTemple'})
 
@@ -199,7 +211,7 @@ def event_check_rows(maps, eligible):
         for actor in actors:
             dynamic = actor.get('Dynamic')
             gyaml = actor.get('Gyaml')
-            parameter = 'MapIconFacilityIsOpen' if gyaml == 'MapIconFacilityAnchor' else 'TalkEventName'
+            parameter = EVENT_ACTOR_FIELDS.get(gyaml, 'TalkEventName')
             event = dynamic.get(parameter) if isinstance(dynamic, dict) else None
             ident = ids.get((gyaml, event))
             position = actor.get('Translate')
@@ -213,7 +225,7 @@ def event_check_rows(maps, eligible):
                           and anchor.get('Translate')]
                 if len(points) == 1:
                     position = points[0]
-            checks = (ident,) if ident else ()
+            checks = (ident,) if isinstance(ident, str) else ident or ()
             if (region == 'LostWood' and actor.get('Gyaml') == 'Enemy_Scrub_ForestStage_Elder'
                     and actor.get('Name') == 'ScrubForestStageElder' and age_frame.endswith('_Child')):
                 checks = DEKU_THEATER_CHECKS
@@ -253,7 +265,7 @@ def bind_catalogue(document, catalogue):
                   "Zora's Fountain": 'ZoraFountain', 'Ice Cavern': 'IceCavern',
                   "Inside Jabu-Jabu's Belly": 'InsideJabuJabuBelly', 'Inside the Deku Tree': 'InsideTheDekuTree',
                   'Forest Temple': 'ForestTemple', 'Bottom of the Well': 'BottomOfTheWell',
-                  'Shadow Temple': 'ShadowTemple'})
+                  'Shadow Temple': 'ShadowTemple', 'the Market': 'Market'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']

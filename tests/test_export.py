@@ -12,6 +12,16 @@ from map_oot_rando.model import load_metadata, select
 
 
 class ExportTests(unittest.TestCase):
+    def test_market_bowling_uses_one_location_and_two_tracker_ids(self):
+        path = 'Banc/Market/Market_Child_Static.bcett.byml.zs'
+        anchor = dict(Gyaml='MapIconFacilityAnchor', Translate=(-25, 116, 8),
+                      Dynamic={'MapIconFacilityIsOpen': 'Market_MiniGame_BombchuBowling_FirstTalk'})
+        maps = {path: {'root': {'Actors': [anchor]}}}
+        rows = event_check_rows(maps, lambda *_: True)
+        self.assertEqual({row['id'] for row in rows},
+                         {'npc#Market Bombchu Bowling First Prize', 'npc#Market Bombchu Bowling Second Prize'})
+        self.assertEqual({row['position'] for row in rows}, {(-25, 116, 8)})
+
     def setUp(self):
         self.groups = {'KokiriForest#123': [dict(
             resource='Banc/KokiriForest/Test', position=[1, 2, 3], label='KF_example')]}

@@ -26,6 +26,7 @@ REGION_NAMES = {
     'ForestTemple': 'Temple de la Forêt',
     'BottomOfTheWell': 'Puits de Cocorico',
     'ShadowTemple': 'Temple de l’Ombre',
+    'Market': 'Citadelle d’Hyrule',
 }
 # These scenes have buried actor placements below their surface.
 SURFACE_MIN_Y = {'Graveyard': 92, 'DeathMountainTrail': 80, 'DeathMountainCrater': 90}

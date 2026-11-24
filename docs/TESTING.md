@@ -1,5 +1,10 @@
 # Validation
 
+Les quatre scènes publiques de la Citadelle placent les 61 checks du
+catalogue, dont 58 en vue enfant et trois en vue adulte. Les deux passages
+vers la plaine ont été recoupés. Le test du bowling vérifie que les
+récompenses gardent deux identifiants pour un même emplacement.
+
 Les deux scènes publiques du Temple de l’Ombre contiennent les 48 checks
 du catalogue. Le chargement des quatre plans et l’entrée depuis le
 cimetière ont été vérifiés dans l’application. Trois marqueurs sont à
