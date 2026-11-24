@@ -10,6 +10,10 @@
   adulte. Les deux châteaux partagent un repère géographique sur la
   carte générale, qui affiche le château de l’âge courant. L’effondrement
   a sa propre vue et conserve les coordonnées natives des pots.
+- Intérieur du Château de Ganon. Les repères des épreuves viennent
+  des événements de levée de barrière. La tour utilise les acteurs de
+  terrain et la hauteur. Le pont d’entrée mène aux épreuves même si sa
+  hauteur recoupe celle de l’accès à la tour.
 
 - La carte générale réutilise l’illustration Nintendúo et les positions
   géographiques publiées par Ocarina Atlas. Tous les fonds locaux publiés

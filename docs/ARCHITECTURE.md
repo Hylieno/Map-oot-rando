@@ -22,6 +22,10 @@ située au-delà du plan publié. Le marqueur peut suivre ce passage.
 Au Château de Ganon, les abords et l’effondrement ont deux repères
 distincts. Le lecteur de position conserve le nom de la ressource
 de scène pour les différencier dans le même dossier Banc.
+À l’intérieur, le champ facultatif `level_points` d’une scène associe
+chaque repère de la tour à un niveau. Les coordonnées X/Z se superposent
+entre étages. Le coffre de clé utilise son numéro de salle et le suivi
+de Link utilise la hauteur dans l’emprise de la tour.
 Le champ facultatif `entrance` indique où accéder à un check souterrain
 sur une carte de surface. Le rendu projette cet accès et les détails
 conservent la position XYZ de l’acteur.

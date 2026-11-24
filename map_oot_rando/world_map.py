@@ -32,6 +32,7 @@ WORLD_PINS = {
     'Market': (.4333, .3850),
     'HyruleCastle': (.4259, .3128),
     'GanonCastle': (.4259, .3128),
+    'InsideGanonCastle': (.4092, .2333),
     'ShadowTemple': (.8012, .3182),
 }
 

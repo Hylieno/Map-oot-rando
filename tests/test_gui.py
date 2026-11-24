@@ -672,6 +672,48 @@ class GuiTests(unittest.TestCase):
         app.update_link(LinkPosition('GanonCastle', 'Adult', 30, 100, 20, 0, 'FinalBattleField'))
         self.assertIsNone(app.link_view())
 
+    def test_ganon_tower_follow_tracks_floors_and_respects_manual_browsing(self):
+        from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
+        from map_oot_rando.scene import GANON_DUNGEON_VIEWS, GANON_OUTSKIRTS
+
+        app = self.app
+        region = 'InsideGanonCastle'
+        path = f'Banc/{region}/{region}_Static.bcett.byml.zs'
+        ganon = 'Banc/GanonCastle/GanonCastle_Static.bcett.byml.zs'
+        template = demo_document()
+        doc = dict(template, provenance='ootrr-scan', regions=['KokiriForest', 'GanonCastle', region])
+        doc['locations'] = [
+            dict(template['locations'][0], id='trial', resource=path, position=(48, 104, -105), dungeon_room=8),
+            dict(template['locations'][0], id='boss-key', resource=path, position=(0, 149.7, -24.7), dungeon_room=24),
+        ]
+        doc['scenes'] = {
+            ganon: {'rooms': [], 'points': [('Entrée du château', (40.61, 220.77))]},
+            path: {'rooms': [], 'points': [('Vers les abords', (0, 97))],
+                   'level_points': [(2, 'Salle du premier étage', (0, -24.7))]},
+        }
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        app.update_link(LinkPosition('GanonCastle', 'Adult', 40, 99, 221, 0))
+        self.assertEqual(app.resource.get(), GANON_OUTSKIRTS)
+        self.assertIn(region, app.navigation_markers.values())
+        app.open_neighbor(region)
+        self.assertEqual(app.resource.get(), GANON_DUNGEON_VIEWS[0])
+        self.assertIn('GanonCastle', app.navigation_markers.values())
+        self.assertEqual([r.id for r in app.visible], ['trial'])
+        app.update_link(LinkPosition(region, 'Adult', 0, 128, 97, 0))
+        self.assertEqual(app.resource.get(), GANON_DUNGEON_VIEWS[0])
+        app.update_link(LinkPosition(region, 'Adult', 0, 136.25, -24.7, 0))
+        self.assertEqual(app.resource.get(), GANON_DUNGEON_VIEWS[2])
+        self.assertFalse(app.available_neighbors())
+        app.follow_link.set(False)
+        app.update_link(LinkPosition(region, 'Adult', 0, 149.7, -24.7, 0))
+        self.assertEqual(app.resource.get(), GANON_DUNGEON_VIEWS[2])
+        app.follow_link.set(True)
+        self.assertTrue(app.resume_follow_link())
+        self.assertEqual(app.resource.get(), GANON_DUNGEON_VIEWS[4])
+        self.assertEqual([r.id for r in app.visible], ['boss-key'])
+
     def test_jabu_fountain_portal_and_room_selection(self):
         from unittest.mock import patch
         from map_oot_rando.scene import JABU_LEVELS, JABU_VIEWS, REGION_VIEWS

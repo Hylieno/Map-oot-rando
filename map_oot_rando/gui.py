@@ -19,7 +19,7 @@ from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
 from .scene import (BURNT_VILLAGE, CASTLE_COURT, DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS, FIRE_VIEWS, FLOOR_OPTIONS,
-                    FOUNTAIN_DUNGEON_AGES, GANON_ESCAPE, MARKET_CASTLE_AGES,
+                    FOUNTAIN_DUNGEON_AGES, GANON_DUNGEON_VIEWS, GANON_ESCAPE, MARKET_CASTLE_AGES,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS,
                     NEIGHBORS, REGION_VIEWS, SHARED_DUNGEONS,
@@ -426,7 +426,7 @@ class MapApplication:
         area = (self.link_region(), position.age) if position else None
         if area and area[0] == 'HyruleCastle':
             area = (*area, castle_view(position.z))
-        if area and area[0] == 'GanonCastle':
+        if area and area[0] in {'GanonCastle', 'InsideGanonCastle'}:
             area = (*area, self.link_view())
         if area is not None and area != self.link_area:
             self.link_area = area
@@ -802,7 +802,9 @@ class MapApplication:
             origin = self.current_region()
             if origin == 'Market' and region in MARKET_CASTLE_AGES and age != MARKET_CASTLE_AGES[region]:
                 return None
-            if self.resource.get() == GANON_ESCAPE and region == 'Market':
+            if self.resource.get() == GANON_ESCAPE:
+                return None
+            if origin == 'InsideGanonCastle' and region == 'GanonCastle' and self.resource.get() != GANON_DUNGEON_VIEWS[0]:
                 return None
             if origin == 'ZoraFountain' and region in FOUNTAIN_DUNGEON_AGES and age != FOUNTAIN_DUNGEON_AGES[region]:
                 return None
@@ -1063,20 +1065,20 @@ class MapApplication:
             heading = f'{name} | {attribution}'
         elif scene:
             self.canvas.configure(background=ATLAS_BACKGROUND)
-            for name, low, high in scene['rooms']:
+            for label, low, high in scene['rooms']:
                 x1, y1 = self.viewport.screen(low)
                 x2, y2 = self.viewport.screen(high)
                 self.canvas.create_rectangle(x1, y1, x2, y2, fill='#1f5577',
                                              outline='#7bb6ce', width=2, tags='scene')
-                captions.append((name, (x1 + x2) / 2, min(y1, y2) - 10))
-            for name, point in scene['points']:
-                if name in exits:
+                captions.append((label, (x1 + x2) / 2, min(y1, y2) - 10))
+            for label, point in scene['points']:
+                if label in exits:
                     continue
                 x, y = self.viewport.screen(point)
                 self.canvas.create_polygon(x, y-5, x+5, y, x, y+5, x-5, y,
                                            fill='#b4dec0', tags='scene')
-                captions.append((name, x, y - 13))
-            heading = f'{REGION_NAMES[region]} | Repères du jeu (schéma)'
+                captions.append((label, x, y - 13))
+            heading = f'{name} | Repères du jeu (schéma)'
         else:
             self.canvas.configure(background=ATLAS_BACKGROUND)
             step, xs, ys = self.viewport.grid(width, height)

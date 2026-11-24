@@ -5,6 +5,22 @@ from map_oot_rando.scene import extract_scenes, read_scenes
 
 
 class SceneTests(unittest.TestCase):
+    def test_ganon_tower_preserves_separate_landmarks_at_the_same_xz(self):
+        from map_oot_rando.scene import GANON_DUNGEON_VIEWS, group_scenes
+
+        path = 'Banc/InsideGanonCastle/InsideGanonCastle_Static.bcett.byml.zs'
+        actors = [
+            dict(Gyaml='Land_InsideGanonCastle_Room20_A_01', Translate=(0, 136.25, -24.65)),
+            dict(Gyaml='Land_InsideGanonCastle_Room24_A_01', Translate=(0, 149.65, -24.65)),
+            dict(Gyaml='EventRequestActor', Translate=(-40, 141, -79),
+                 Dynamic={'RequestEventName': 'InsideGanonCastle_Dungeon_BarrierRemove_Fire'}),
+        ]
+        raw = extract_scenes({path: {'root': {'Actors': actors}}}, lambda _: {})
+        grouped = group_scenes(read_scenes(json.loads(json.dumps({'scenes': raw}))))
+        self.assertEqual(grouped[GANON_DUNGEON_VIEWS[0]]['points'], [('Épreuve · Feu', (-40, -79))])
+        self.assertEqual(grouped[GANON_DUNGEON_VIEWS[2]]['points'], [('Salle du premier étage', (0, -24.65))])
+        self.assertEqual(grouped[GANON_DUNGEON_VIEWS[4]]['points'], [('Salle du troisième étage', (0, -24.65))])
+
     def test_shadow_temple_keeps_raised_targets_on_their_room_floor(self):
         from map_oot_rando.model import Location
         from map_oot_rando.scene import SHADOW_VIEWS, location_view

@@ -93,6 +93,10 @@ cour ont leur propre vue schématique.
 Adulte, la Citadelle mène aux abords du Château de Ganon. Le sélecteur
 du château donne aussi accès à la vue schématique de l’effondrement,
 où se trouvent les quatre pots du catalogue.
+L’entrée des abords ouvre l’intérieur. Le sélecteur d’étage permet de
+passer des six épreuves à la tour et à la salle de Ganondorf. Ces vues
+utilisent les repères du jeu sur des schémas. Réimporte le jeu et la seed
+pour ajouter ces vues à une carte enregistrée auparavant.
 
 ## Suivre la partie
 

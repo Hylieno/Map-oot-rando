@@ -8,6 +8,14 @@ de l’effondrement. Les tests Tk couvrent le passage adulte dans les deux
 sens, le choix de la vue et le suivi de Link avec des positions simulées.
 Le scan du NUP et les transitions en jeu restent à vérifier.
 
+Les deux scènes publiques de l’intérieur du Château de Ganon placent
+les dix-huit checks du catalogue. Dix-sept se trouvent dans les épreuves
+et la clé du boss est au troisième étage de la tour. Les tests couvrent
+les étages qui partagent les mêmes X/Z, la navigation depuis les abords
+et le suivi simulé de Link avec l’option de changement automatique
+activée ou désactivée. Aucun plan Field Atlas n’est publié pour
+l’intérieur. Le contrôle en partie reste à faire.
+
 Les deux scènes publiques du Château d’Hyrule placent les 14 checks
 du catalogue. Le plan des abords contient onze positions, dont la
 Grande Fée. La cour garde les coordonnées de la lettre et des deux

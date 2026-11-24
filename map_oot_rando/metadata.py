@@ -76,13 +76,13 @@ CHECK_ACTOR_PATTERNS = {
 }
 PLACEMENT_REGIONS = frozenset({'FireTemple', 'ZoraRiver', 'ZoraDomain', 'ZoraFountain', 'IceCavern',
                                'InsideJabuJabuBelly', 'InsideTheDekuTree', 'ForestTemple', 'BottomOfTheWell',
-                               'ShadowTemple', 'Market', 'HyruleCastle', 'GanonCastle'})
+                               'ShadowTemple', 'Market', 'HyruleCastle', 'GanonCastle', 'InsideGanonCastle'})
 EVENT_ACTOR_FIELDS = {
     'MapIconFacilityAnchor': 'MapIconFacilityIsOpen',
     'HeartPieceAnchor': 'HeartPieceAnchor_GameDataPath',
 }
 DUNGEON_ROOM_REGIONS = frozenset({'InsideJabuJabuBelly', 'InsideTheDekuTree', 'ForestTemple',
-                                  'BottomOfTheWell', 'ShadowTemple'})
+                                  'BottomOfTheWell', 'ShadowTemple', 'InsideGanonCastle'})
 
 
 def add_dungeon_rooms(rows, maps):
@@ -273,7 +273,7 @@ def bind_catalogue(document, catalogue):
                   "Inside Jabu-Jabu's Belly": 'InsideJabuJabuBelly', 'Inside the Deku Tree': 'InsideTheDekuTree',
                   'Forest Temple': 'ForestTemple', 'Bottom of the Well': 'BottomOfTheWell',
                   'Shadow Temple': 'ShadowTemple', 'the Market': 'Market', 'Hyrule Castle': 'HyruleCastle',
-                  "Outside Ganon's Castle": 'GanonCastle'})
+                  "Outside Ganon's Castle": 'GanonCastle', "Ganon's Castle": 'InsideGanonCastle'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']
