@@ -3,8 +3,8 @@
 - Couverture du dessin. Le diagnostic relève les écarts avec le raster.
   La position et l’étage du check continuent de suivre les données du jeu.
 
-- Passages réciproques. Les portes des mains du Colosse et la passerelle
-  Gerudo indiquent l’arrivée au repère correspondant.
+- Passages réciproques. Chaque passage indique l’arrivée quand le repère
+  de retour est présent dans la vue de destination.
 
 - Vendeur Mojo du cratère. Le marqueur utilise les coordonnées de
   l’acteur enfant associé à la vente suivie par OotrR.

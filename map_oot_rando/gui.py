@@ -1223,8 +1223,13 @@ class MapApplication:
                     age = VIEWS[self.resource.get()][1]
                     portal_scene = self.scenes.get(GORON_VIEWS[age][0], {})
                 points = {tuple(p) for label, p in portal_scene.get('points', ()) if label == portal}
-                if len(points) == 1 and self.view_for_region(neighbor):
-                    exits[portal] = (neighbor, points.pop(), REGION_NAMES[neighbor], None, None)
+                if len(points) != 1:
+                    continue
+                destination = self.view_for_region(neighbor)
+                if destination:
+                    destination_region = VIEWS[destination][0]
+                    arrival = NEIGHBORS[destination_region].get(region)
+                    exits[portal] = (neighbor, points.pop(), REGION_NAMES[neighbor], None, arrival)
             for portal, (neighbor, floor, title, arrival) in SIDE_PORTALS.get(region, {}).items():
                 points = {tuple(p) for label, p in (scene or {}).get('points', ()) if label == portal}
                 if len(points) == 1 and self.view_for_region(neighbor) and (floor is None or floor in self.views):

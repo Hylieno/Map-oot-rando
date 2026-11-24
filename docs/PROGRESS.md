@@ -1,7 +1,7 @@
 # Checkpoint — 24 novembre 2026
 
-Les passages des mains du Colosse et de la passerelle Gerudo indiquent
-la porte d’arrivée. Le diagnostic compare les marqueurs aux contours
+Les passages indiquent la porte d’arrivée quand le repère de retour
+est disponible. Le diagnostic compare les marqueurs aux contours
 dessinés sur les fonds Field Atlas déjà chargés.
 
 Le vendeur Mojo du cratère a un marqueur vérifié sur la vue enfant.

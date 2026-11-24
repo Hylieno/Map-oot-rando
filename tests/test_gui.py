@@ -614,7 +614,7 @@ class GuiTests(unittest.TestCase):
 
     def test_lost_woods_shortcuts_and_age_buttons(self):
         from unittest.mock import patch
-        from map_oot_rando.scene import GORON_LOST_WOODS_FLOOR, GORON_VIEWS, REGION_VIEWS
+        from map_oot_rando.scene import GORON_LOST_WOODS_FLOOR, GORON_VIEWS, NEIGHBORS, REGION_VIEWS
 
         app = self.app
         regions = ('KokiriForest', 'LostWood', 'GoronCity', 'ZoraRiver', 'HyruleField', 'ZoraDomain', 'ZoraFountain')
@@ -641,14 +641,20 @@ class GuiTests(unittest.TestCase):
         self.assertFalse(any('Adulte' in label for label in app.zones['values']))
         app.age_buttons['Adult'].invoke()
         self.assertEqual(app.resource.get(), REGION_VIEWS['LostWood']['Adult'])
-        for target, view in [('GoronCity', GORON_VIEWS['Adult'][GORON_LOST_WOODS_FLOOR]),
-                             ('ZoraRiver', REGION_VIEWS['ZoraRiver']['Adult'])]:
+
+        def click_portal(target):
             exits = app.canvas.find_withtag('zone-navigation')
             pin = next(item for item in exits if app.navigation_markers[item] == target)
             l, t, r, b = app.canvas.bbox(pin)
             app.press(SimpleNamespace(x=(l+r)//2, y=(t+b)//2))
+
+        for target, view in [('GoronCity', GORON_VIEWS['Adult'][GORON_LOST_WOODS_FLOOR]),
+                             ('ZoraRiver', REGION_VIEWS['ZoraRiver']['Adult'])]:
+            click_portal(target)
             self.assertEqual(app.resource.get(), view)
             self.assertIn('LostWood', app.navigation_markers.values())
+            self.assertEqual(app.arrival, NEIGHBORS[target]['LostWood'])
+            self.assertTrue(app.canvas.find_withtag('portal-arrival'))
             if target == 'ZoraRiver':
                 self.assertIn('HyruleField', app.navigation_markers.values())
                 app.open_neighbor('HyruleField')
@@ -665,8 +671,10 @@ class GuiTests(unittest.TestCase):
                 self.assertIn('ZoraDomain', app.navigation_markers.values())
                 app.open_neighbor('ZoraDomain')
                 app.open_neighbor('ZoraRiver')
-            app.open_neighbor('LostWood')
+            click_portal('LostWood')
             self.assertEqual(app.resource.get(), REGION_VIEWS['LostWood']['Adult'])
+            self.assertEqual(app.arrival, NEIGHBORS['LostWood'][target])
+            self.assertTrue(app.canvas.find_withtag('portal-arrival'))
 
     def test_kokiri_bridge_routes_field_and_link_to_the_right_scene_view(self):
         from unittest.mock import patch
