@@ -1,5 +1,10 @@
 # Validation
 
+Le test Tk superpose un check au passage de Kokiri vers les Bois Perdus.
+Il vérifie les deux actions du menu et la destination à l’âge enfant.
+L’audit des scènes publiques a examiné 144 passages cliquables,
+dont 134 sur des fonds. Tous les passages avec un fond sont couverts.
+
 Le test Tk ouvre un résultat de Kokiri adulte depuis la vue enfant,
 attend le chargement asynchrone du fond et vérifie le centrage du
 marqueur. Le test de la Vallée Gerudo couvre l’indication de l’autre

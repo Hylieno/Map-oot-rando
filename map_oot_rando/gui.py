@@ -1177,6 +1177,7 @@ class MapApplication:
         self.markers = {}
         self.navigation_markers = {}
         self.portal_views = {}
+        self.portal_titles = {}
         self.world_menus = {}
         width, height = self.canvas.winfo_width(), self.canvas.winfo_height()
         if self.overview_open:
@@ -1263,6 +1264,7 @@ class MapApplication:
                                                 fill='#147c82', outline='#ebfbef', width=2,
                                                 tags=('zone-navigation',))
             self.navigation_markers[marker] = neighbor
+            self.portal_titles[marker] = exit_name
             if floor:
                 self.portal_views[marker] = floor
             exit_names[exit_name] = (neighbor, floor)
@@ -1303,6 +1305,7 @@ class MapApplication:
             elif name in exit_names:
                 neighbor, floor = exit_names[name]
                 self.navigation_markers[label] = neighbor
+                self.portal_titles[label] = name
                 if floor:
                     self.portal_views[label] = floor
         if self.link and self.resource.get() == self.link_view():
@@ -1368,6 +1371,14 @@ class MapApplication:
     def press(self, event):
         self.drag = None
         hits = self.canvas.find_overlapping(event.x-3, event.y-3, event.x+3, event.y+3)
+        checks = dict.fromkeys(self.markers[item] for item in reversed(hits)
+                               if item in self.markers and 'check-pin' in self.canvas.gettags(item))
+        portals = dict.fromkeys((self.portal_titles[item], self.navigation_markers[item],
+                                self.portal_views.get(item))
+                                for item in reversed(hits) if item in self.portal_titles)
+        if portals and len(checks) + len(portals) > 1:
+            self.choose_overlapping(checks, event.x_root, event.y_root, portals=portals)
+            return
         for item in reversed(hits):
             if item in self.world_menus:
                 self.choose_world_destination(self.world_menus[item], event.x_root, event.y_root)
@@ -1376,23 +1387,23 @@ class MapApplication:
                 self.open_neighbor(self.navigation_markers[item], view=self.portal_views.get(item))
                 return
             if item in self.markers:
-                if 'check-pin' in self.canvas.gettags(item):
-                    colocated = dict.fromkeys(self.markers[other] for other in reversed(hits)
-                                              if 'check-pin' in self.canvas.gettags(other))
-                    if len(colocated) > 1:
-                        self.choose_overlapping(colocated, event.x_root, event.y_root)
-                        return
+                if len(checks) > 1 and 'check-pin' in self.canvas.gettags(item):
+                    self.choose_overlapping(checks, event.x_root, event.y_root)
+                    return
                 self.choose(self.markers[item])
                 return
         if not self.overview_open:
             self.drag = (event.x, event.y)
 
-    def choose_overlapping(self, rows, x, y):
+    def choose_overlapping(self, rows, x, y, *, portals=()):
         self.marker_menu.delete(0, 'end')
         names = Counter(row.name for row in rows)
         for row in rows:
             label = row.name if names[row.name] == 1 else f'{row.name} · {row.id}'
             self.marker_menu.add_command(label=label, command=lambda result=row: self.choose(result))
+        for title, region, view in portals:
+            self.marker_menu.add_command(label=title,
+                                         command=lambda target=region, floor=view: self.open_neighbor(target, view=floor))
         self.post_marker_menu(x, y)
 
     def choose_world_destination(self, destinations, x, y):

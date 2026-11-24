@@ -1,5 +1,9 @@
 # Checkpoint — 24 novembre 2026
 
+Un passage reste accessible depuis le menu des marqueurs quand un
+check le recouvre. L’audit des scènes publiques place les 134 passages
+qui disposent d’un fond dans les limites de leur plan.
+
 La recherche indique la vue des résultats situés ailleurs. Quand un
 résultat ouvre une zone dont le fond se charge, le marqueur reste
 centré après l’arrivée du fond.

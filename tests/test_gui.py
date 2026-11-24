@@ -1347,6 +1347,37 @@ class GuiTests(unittest.TestCase):
         app.marker_menu.invoke(1)
         self.assertEqual({first_choice, app.selected.id}, {first['id'], second['id']})
 
+    def test_portal_remains_clickable_under_a_check(self):
+        from unittest.mock import patch
+        from map_oot_rando.scene import NEIGHBORS, REGION_NAMES, REGION_VIEWS
+
+        app = self.app
+        forest, woods = 'KokiriForest', 'LostWood'
+        resource = 'Banc/KokiriForest/KokiriForest_Child_Static.bcett.byml.zs'
+        document = dict(demo_document(), provenance='ootrr-scan', regions=[forest, woods])
+        row = dict(document['locations'][0], name='Pot près du passage',
+                   resource=resource, position=(10, 0, 20))
+        document['locations'] = [row]
+        document['scenes'] = {
+            resource: {'rooms': [], 'points': [(NEIGHBORS[forest][woods], (10, 20))]},
+            'Banc/LostWood/LostWood_Child_Static.bcett.byml.zs': {
+                'rooms': [], 'points': [(NEIGHBORS[woods][forest], (-30, 15))],
+            },
+        }
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(document)
+        x, y = app.viewport.screen((10, 20))
+        event = SimpleNamespace(x=round(x), y=round(y), x_root=50, y_root=50)
+        with patch.object(app, 'post_marker_menu') as popup:
+            app.press(event)
+        popup.assert_called_once_with(50, 50)
+        self.assertEqual(app.marker_menu.entrycget(0, 'label'), row['name'])
+        self.assertEqual(app.marker_menu.entrycget(1, 'label'), REGION_NAMES[woods])
+        app.marker_menu.invoke(0)
+        self.assertEqual(app.selected.id, row['id'])
+        app.marker_menu.invoke(1)
+        self.assertEqual(app.resource.get(), REGION_VIEWS[woods]['Child'])
+
     def test_choose_save_uses_a_directory_picker(self):
         from pathlib import Path
         from tempfile import TemporaryDirectory

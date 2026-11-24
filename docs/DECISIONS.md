@@ -1,5 +1,8 @@
 # Décisions
 
+- Passages. Le menu des marqueurs superposés indique les destinations
+  cliquables avec leur libellé de carte.
+
 - Recherche. Un résultat hors de la vue courante indique sa zone,
   son âge ou son étage selon le nom de la destination. Les coordonnées
   distinguent les placements d’un même check dans une même vue.

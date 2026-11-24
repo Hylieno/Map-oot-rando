@@ -1,5 +1,9 @@
 # Architecture et audit initial
 
+La zone de clic regroupe les marqueurs de checks et de passages
+qu’elle touche. Un menu expose chaque action quand le clic est ambigu.
+Le symbole et le libellé d’un même passage partagent une action.
+
 Une recherche utilise les mêmes vues que les marqueurs. La sélection
 d’un résultat ajuste le zoom à la vue de destination et centre le
 marqueur. Le chargement différé du fond recalcule l’échelle à partir
