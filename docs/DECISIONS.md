@@ -35,6 +35,10 @@
   Le numéro de salle et la hauteur distinguent les checks qui se
   superposent autour de la statue. Les passages des mains mènent
   directement aux galeries du deuxième étage.
+- Lac Hylia. Les vues du lac et de la plaine partagent la scène native.
+  L’alignement utilise le portail, les deux petites îles, le laboratoire,
+  le ponton de pêche et l’île des flèches de feu. Le passage Zora
+  apparaît dans les deux sens en vue enfant.
 
 - La carte générale réutilise l’illustration Nintendúo et les positions
   géographiques publiées par Ocarina Atlas. Tous les fonds locaux publiés

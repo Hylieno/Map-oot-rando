@@ -36,6 +36,7 @@ REGION_NAMES = {
     'HountedWasteland': 'Désert hanté',
     'DesertColossus': 'Colosse du désert',
     'SpiritTemple': 'Temple de l’Esprit',
+    'LakeHylia': 'Lac Hylia',
 }
 # These scenes have buried actor placements below their surface.
 SURFACE_MIN_Y = {'Graveyard': 92, 'DeathMountainTrail': 80, 'DeathMountainCrater': 90}

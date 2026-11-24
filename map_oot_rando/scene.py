@@ -134,8 +134,12 @@ NEIGHBORS = {
                  'GoronCity': 'Vers le Village Goron', 'ZoraRiver': 'Vers la Rivière Zora'},
     'HyruleField': {'KokiriForest': 'front_of_lost_wood_bridge_entrance',
                     'KakarikoVillage': 'Vers Cocorico', 'ZoraRiver': 'Vers la Rivière Zora',
-                    'Market': 'Porte de la Citadelle', 'GerudoValley': 'Vers la Vallée Gerudo'},
-    'GerudoValley': {'HyruleField': 'Vers la plaine d’Hyrule', 'GerudoFortress': 'Vers la Forteresse Gerudo'},
+                    'Market': 'Porte de la Citadelle', 'GerudoValley': 'Vers la Vallée Gerudo',
+                    'LakeHylia': 'Vers le Lac Hylia'},
+    'LakeHylia': {'HyruleField': 'Vers la plaine d’Hyrule', 'GerudoValley': 'Vers la Vallée Gerudo',
+                  'ZoraDomain': 'Vers le Domaine Zora'},
+    'GerudoValley': {'HyruleField': 'Vers la plaine d’Hyrule', 'GerudoFortress': 'Vers la Forteresse Gerudo',
+                    'LakeHylia': 'Vers le Lac Hylia'},
     'GerudoFortress': {'GerudoValley': 'Vers la Vallée Gerudo',
                        'GerudoTrainingGround': 'Vers le centre d’entraînement',
                        'HountedWasteland': 'Vers le Désert hanté'},
@@ -169,7 +173,8 @@ NEIGHBORS = {
     'FireTemple': {'DeathMountainCrater': 'Vers le cratère'},
     'ZoraRiver': {'LostWood': 'Vers les Bois Perdus', 'HyruleField': 'Vers la plaine d’Hyrule',
                   'ZoraDomain': 'Vers le Domaine Zora'},
-    'ZoraDomain': {'ZoraRiver': 'Vers la Rivière Zora', 'ZoraFountain': 'Vers la Fontaine Zora'},
+    'ZoraDomain': {'ZoraRiver': 'Vers la Rivière Zora', 'ZoraFountain': 'Vers la Fontaine Zora',
+                   'LakeHylia': 'Vers le Lac Hylia'},
     'ZoraFountain': {'ZoraDomain': 'Vers le Domaine Zora', 'IceCavern': 'Vers la Caverne de glace',
                      'InsideJabuJabuBelly': 'Vers Jabu-Jabu'},
     'IceCavern': {'ZoraFountain': 'Vers la Fontaine Zora'},
@@ -217,9 +222,12 @@ HYRULE_ANCHORS = {
     'Market': 'Porte de la Citadelle',
     'KakarikoVillage': 'Vers Cocorico',
     'GerudoValley': NEIGHBORS['HyruleField']['GerudoValley'],
-    'LakeHylia': 'Vers le Lac Hylia',
+    'LakeHylia': NEIGHBORS['HyruleField']['LakeHylia'],
     'ZoraRiver': 'Vers la Rivière Zora',
 }
+LAKE_FIELD_RETURN_ANCHORS = {14388254154737389511, 12222278877302081165}
+LAKE_VIEWS_BY_FIELD_VIEW = {view: REGION_VIEWS['LakeHylia'][age]
+                            for age, view in REGION_VIEWS['HyruleField'].items()}
 ZORA_RIVER_EXITS = {
     'ZoraRiver_LostWoodSide': NEIGHBORS['ZoraRiver']['LostWood'],
     'ZoraRiver_Entrance': NEIGHBORS['ZoraRiver']['HyruleField'],
@@ -398,6 +406,12 @@ WASTELAND_PORTALS = {
 }
 
 
+def lake_position(point):
+    x, z = point
+    # The main gate lies at Z=396. The canyon passage enters farther north.
+    return (x <= -35 and z >= 396) or (x <= -230 and z >= 385)
+
+
 def guide_routes(sources):
     """Project the native Guide rail, including its Bézier handles, onto X/Z."""
     routes = set()
@@ -483,12 +497,20 @@ def projection_points(region, sources):
                 label = NEIGHBORS[region]['DesertColossus']
             elif gyaml == 'MapIconEntranceAnchor':
                 dynamic = actor.get('Dynamic')
-                if isinstance(dynamic, dict) and (region in {'GoronCity', 'DeathMountainCrater'}
-                                                  or dynamic.get('IsVisible') is not False):
+                if isinstance(dynamic, dict):
+                    target = dynamic.get('Location')
+                    if region == 'HyruleField' and actor.get('Hash') in LAKE_FIELD_RETURN_ANCHORS:
+                        label = NEIGHBORS['LakeHylia']['HyruleField']
+                    elif (region == 'HyruleField' and target in {'GerudoValley', 'ZoraDomain'}
+                          and lake_position((position[0], position[2]))):
+                        label = NEIGHBORS['LakeHylia'][target]
                     entrances = ENTRANCE_LABELS.get(region, {})
-                    label = entrances.get(dynamic.get('Location'))
-                    if region == 'DesertColossus' and dynamic.get('Location') == 'SpiritTemple' and position[1] > 100:
-                        label = None  # The two upper entrances lead to the side galleries.
+                    if label is None and (region in {'GoronCity', 'DeathMountainCrater'}
+                                          or dynamic.get('IsVisible') is not False
+                                          or (target == 'LakeHylia' and region in {'GerudoValley', 'ZoraDomain'})):
+                        label = entrances.get(target)
+                        if region == 'DesertColossus' and target == 'SpiritTemple' and position[1] > 100:
+                            label = None  # The two upper entrances lead to the side galleries.
             elif region == 'KakarikoVillage':
                 label = KAKARIKO_BUILDINGS.get(gyaml)
             elif region == 'Graveyard':
@@ -612,6 +634,8 @@ def view_name(resource):
 
 def location_view(row):
     view = view_name(row.resource)
+    if view in LAKE_VIEWS_BY_FIELD_VIEW and row.position is not None and lake_position(row.project()):
+        return LAKE_VIEWS_BY_FIELD_VIEW[view]
     if view == CASTLE_OUTSKIRTS and row.position is not None:
         return castle_view(row.position[2])
     if row.underground and view in VIEWS:
@@ -718,9 +742,16 @@ def castle_view(z):
 def group_scenes(scenes):
     grouped = {}
     for resource, scene in scenes.items():
-        view = grouped.setdefault(view_name(resource), {'rooms': set(), 'points': set()})
+        name = view_name(resource)
+        view = grouped.setdefault(name, {'rooms': set(), 'points': set()})
         view['rooms'].update((name, tuple(low), tuple(high)) for name, low, high in scene['rooms'])
-        view['points'].update((name, tuple(point)) for name, point in scene['points'])
+        for label, point in scene['points']:
+            target = view
+            if name in LAKE_VIEWS_BY_FIELD_VIEW and (
+                    label == NEIGHBORS['LakeHylia']['HyruleField']
+                    or (label != NEIGHBORS['HyruleField']['LakeHylia'] and lake_position(point))):
+                target = grouped.setdefault(LAKE_VIEWS_BY_FIELD_VIEW[name], {'rooms': set(), 'points': set()})
+            target['points'].add((label, tuple(point)))
         if scene.get('routes'):
             view.setdefault('routes', set()).update((name, tuple(map(tuple, points))) for name, points in scene['routes'])
         for floor, name, point in scene.get('level_points', ()):

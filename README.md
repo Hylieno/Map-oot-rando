@@ -117,6 +117,11 @@ Le Colosse donne accès au Temple de l’Esprit par l’entrée principale
 et les deux passages des mains. Le temple affiche quatre fonds Field
 Atlas et un schéma de l’arène de Twinrova.
 
+Le lac Hylia possède son fond Field Atlas. On y accède depuis la
+plaine et la Vallée Gerudo aux deux âges, ou depuis le Domaine Zora
+avec Link enfant. Le suivi peut passer de la plaine au lac pendant
+que le jeu conserve la même scène chargée.
+
 ## Suivre la partie
 
 Coche **Afficher la position de Link**. Cette option active **Mémoire du jeu**

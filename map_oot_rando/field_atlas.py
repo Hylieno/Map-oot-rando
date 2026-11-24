@@ -97,6 +97,7 @@ SHARED_FIELD_FRAMES = {
     # Both ages share the bridge, log, and field passage. The tent is an adult control.
     'GerudoValley': ((-46, -44, 942, 951), (5.5214, 404.3226, 4.3607, 476.2467, -0.3290, 0.1337)),
     'DesertColossus': ((3, -35, 893, 740), (3.9292, 790.626, 4.0185, 282.5508)),
+    'LakeHylia': ((-37, -29, 930, 742), (2.9569, 981.3686, 2.9648, -1131.4452, 0.0175, -0.0661)),
 }
 FIELD_FRAMES = {region: dict.fromkeys(('Child', 'Adult'), frame)
                 for region, frame in SHARED_FIELD_FRAMES.items()}
@@ -136,6 +137,7 @@ for region, source, digest in (
     ('ZoraDomain', 'zora-domain', 'b95e0d63a7da7501193467fe251b484daa93ac88928c246a4c133a73c26d9711'),
     ('GerudoValley', 'gerudo-valley', '254d68e697b8bf52c564d79a5ca178129e9ac5df65376171e29a0243e432b9d2'),
     ('DesertColossus', 'desert-colossus', 'b96a8e67771eb6a92175556550dce8f1c1f93e7241ab4a3c00c3ea7f1ee059c5'),
+    ('LakeHylia', 'lake-hylia', '81029fed8441b630fa74c855a65890673c97bb3be5334f68dc10d8c919a7ffac'),
 ):
     REGION_MAPS[region] = dict.fromkeys(('Child', 'Adult'), (f'field-atlas-{source}', digest))
 REGION_MAPS['FireTemple'] = {

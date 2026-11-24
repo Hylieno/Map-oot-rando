@@ -14,6 +14,11 @@ LOST_WOOD_EVENT_ACTORS = {
 EVENT_ACTORS = {
     'LostWood': {actor: ident for ident, actor in LOST_WOOD_EVENT_ACTORS.items()},
     'GoronCity': {('Npc_Goron_Darunia_Child', None): 'npc#GC Darunias Joy'},
+    'HyruleField': {
+        ('Npc_Hylia_Fishman_001_Child', None): 'npc#LH Child Fishing',
+        ('Npc_Hylia_Fishman_001_Adult', None): 'npc#LH Adult Fishing',
+        ('Npc_Hylia_045_Child', None): 'npc#LH Lab Dive',
+    },
     'ZoraRiver': {('OcarinaPoint_MiniGame_FrogTenors', None): 'npc#ZR Frogs Ocarina Game'},
     'ZoraDomain': {
         ('MapIconFacilityAnchor', 'MiniGame_Diving_Mapicon'): 'npc#ZD Diving Minigame',
@@ -313,7 +318,7 @@ def bind_catalogue(document, catalogue):
                   "Outside Ganon's Castle": 'GanonCastle', "Ganon's Castle": 'InsideGanonCastle',
                   'Gerudo Valley': 'GerudoValley', 'Gerudo Fortress': 'GerudoFortress',
                   'Gerudo Training Ground': 'GerudoTrainingGround', 'Haunted Wasteland': 'HountedWasteland',
-                  'Desert Colossus': 'DesertColossus', 'Spirit Temple': 'SpiritTemple'})
+                  'Desert Colossus': 'DesertColossus', 'Spirit Temple': 'SpiritTemple', 'Lake Hylia': 'LakeHylia'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']

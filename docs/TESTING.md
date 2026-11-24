@@ -1,5 +1,14 @@
 # Validation
 
+Les scènes publiques de la plaine donnent une position aux cinq checks
+du catalogue du lac et à huit autres checks des environs. Avec la
+Skulltula commune, cela donne huit checks enfant et six adulte. Cette
+Skulltula se projette à 28 pixels du trait sur le plan de 650 pixels,
+et le passage Gerudo se trouve au-delà du contour dessiné. Ils gardent
+leurs coordonnées natives. Les passages ont été testés avec les scènes
+publiques dans l’application, ainsi que le changement de vue de Link
+dans une même scène. Le scan du NUP complet reste à vérifier.
+
 Le croisement des scènes publiques du Temple de l’Esprit et du Colosse
 situe les 41 checks du catalogue du temple. Trente-sept se répartissent
 sur quatre plans, deux sont dans l’arène et deux sont sur les mains du

@@ -47,6 +47,10 @@ Au Colosse du désert, le fond et le repère X/Z sont communs aux deux
 Au Temple de l’Esprit, les passages latéraux ciblent un étage précis.
 Les coffres des mains appartiennent au catalogue du temple et utilisent
 leurs coordonnées dans la scène extérieure du Colosse.
+Le lac Hylia conserve les ressources Banc de la plaine. Le rendu et
+le suivi de Link utilisent la même limite X/Z pour choisir la vue
+locale. Les libellés natifs du portail principal distinguent les
+deux sens de navigation aux abords de cette limite.
 Dans les zones Zora, à la Caverne de glace et au Temple du Feu, les identifiants typés du catalogue
 peuvent compléter le scan par correspondance du hash et du type d’acteur
 dans chaque scène, sans écraser un placement déjà produit pour cette vue.

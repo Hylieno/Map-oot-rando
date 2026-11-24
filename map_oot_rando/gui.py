@@ -24,7 +24,7 @@ from .scene import (BURNT_VILLAGE, CASTLE_COURT, DUNGEON_ATLAS_KEYS, DUNGEON_FLO
                     GORON_LEVELS, GORON_VIEWS,
                     NEIGHBORS, REGION_VIEWS, SHARED_DUNGEONS, SIDE_PORTALS, TRAINING_VIEWS,
                     UNDERGROUND_LABELS, UNDERGROUND_VIEWS, VIEWS,
-                    castle_view, field_atlas_scene, group_scenes, location_view, read_scenes, view_name)
+                    castle_view, field_atlas_scene, group_scenes, lake_position, location_view, read_scenes, view_name)
 from .simulation import Simulation, demo_document
 from .view import Viewport
 from .world_map import WORLD_PINS, WORLD_SIZE, load_world_map
@@ -392,6 +392,9 @@ class MapApplication:
 
     def link_region(self):
         scene = self.link.scene
+        if (scene == 'HyruleField' and lake_position((self.link.x, self.link.z))
+                and REGION_VIEWS['LakeHylia'].get(self.link.age) in self.views):
+            return 'LakeHylia'
         return {'LostWoods': 'LostWood', 'DekuTree': 'InsideTheDekuTree',
                 'CastleGrounds': 'HyruleCastle',
                 'ZorasRiver': 'ZoraRiver', 'ZorasDomain': 'ZoraDomain',
@@ -804,6 +807,8 @@ class MapApplication:
             age = self.navigation_age
         if from_portal:
             origin = self.current_region()
+            if {origin, region} == {'LakeHylia', 'ZoraDomain'} and age != 'Child':
+                return None
             if origin == 'GerudoTrainingGround' and region == 'GerudoFortress':
                 if self.resource.get() != TRAINING_VIEWS[0]:
                     return None

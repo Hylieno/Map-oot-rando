@@ -763,6 +763,43 @@ class GuiTests(unittest.TestCase):
             app.open_neighbor(desert)
             self.assertEqual(app.resource.get(), REGION_VIEWS[desert][age])
 
+    def test_lake_view_follows_link_inside_the_same_native_scene(self):
+        from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
+        from map_oot_rando.scene import REGION_VIEWS
+
+        app = self.app
+        field, lake, domain = 'HyruleField', 'LakeHylia', 'ZoraDomain'
+        template = demo_document()
+        doc = dict(template, provenance='ootrr-scan', regions=['KokiriForest', field, lake, domain])
+        doc['locations'] = [
+            dict(template['locations'][0], id='lake', resource='Banc/HyruleField/HyruleField_Child_Static.bcett.byml.zs',
+                 position=(-151, 125, 461)),
+        ]
+        doc['scenes'] = {
+            f'Banc/HyruleField/HyruleField_{age}_Static.bcett.byml.zs': {
+                'rooms': [], 'points': [('Vers le Lac Hylia', (-93, 398)),
+                                         ('Vers la plaine d’Hyrule', (-89, 396)),
+                                         ('Vers le Domaine Zora', (-139, 446))],
+            }
+            for age in ('Child', 'Adult')
+        }
+        doc['scenes']['Banc/ZoraDomain/ZoraDomain_Child_Static.bcett.byml.zs'] = {
+            'rooms': [], 'points': [('Vers le Lac Hylia', (0, -3))],
+        }
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        app.update_link(LinkPosition(field, 'Child', -93, 144, 382, 0))
+        self.assertEqual(app.resource.get(), REGION_VIEWS[field]['Child'])
+        self.assertIn(lake, app.navigation_markers.values())
+        app.update_link(LinkPosition(field, 'Child', -93, 143, 402, 0))
+        self.assertEqual(app.resource.get(), REGION_VIEWS[lake]['Child'])
+        self.assertEqual([row.id for row in app.visible], ['lake'])
+        self.assertIn(domain, app.navigation_markers.values())
+        app.update_link(LinkPosition(field, 'Adult', -253, 134, 402, 0))
+        self.assertEqual(app.resource.get(), REGION_VIEWS[lake]['Adult'])
+        self.assertNotIn(domain, app.available_neighbors())
+
     def test_spirit_temple_hand_portal_opens_the_upper_floor(self):
         from unittest.mock import patch
         from map_oot_rando.link_position import LinkPosition

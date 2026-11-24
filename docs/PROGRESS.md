@@ -1,5 +1,10 @@
 # Checkpoint — 24 novembre 2026
 
+Le lac Hylia affiche son fond Field Atlas et 13 checks distincts.
+La plaine, la Vallée Gerudo et le Domaine Zora sont reliés au lac.
+Le suivi change de carte entre le lac et la plaine à partir des
+coordonnées de Link. Le Temple de l’Eau reste à intégrer.
+
 Le Temple de l’Esprit est relié au Colosse par l’entrée principale et
 les deux mains. Les 41 checks du catalogue sont positionnés. Quatre
 plans couvrent les étages, un schéma couvre l’arène de Twinrova et les

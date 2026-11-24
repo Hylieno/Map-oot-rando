@@ -39,6 +39,7 @@ WORLD_PINS = {
     'HountedWasteland': (.1554, .3466),
     'DesertColossus': (.2310, .2873),
     'SpiritTemple': (.1562, .2396),
+    'LakeHylia': (.4268, .7706),
     'ShadowTemple': (.8012, .3182),
 }
 
