@@ -94,6 +94,8 @@ Le [cimetière](https://oot.gousse.cool/graveyard) a aussi un fond Field Atlas.
 **Souterrains** ouvre les checks enfouis dans une vue schématique. La recherche
 indique la destination des checks situés dans une autre vue. Sélectionne
 un résultat pour centrer son marqueur, même si le fond se charge ensuite.
+Si ses coordonnées sont inconnues, la sélection ouvre sa zone
+lorsqu’elle est disponible.
 En vue adulte, le passage du moulin de Cocorico ouvre la tombe de Dampé
 dans les souterrains du cimetière. Le raccourci indique l’arrivée dans les
 deux sens.
@@ -146,7 +148,7 @@ Les deux récompenses du tir à l’arc sont associées à l’organisatrice et
 la carte Gerudo peut apparaître près de chaque cellule.
 Le Centre d’entraînement est accessible depuis la forteresse. Un schéma
 reprend les salles du jeu et le sélecteur permet d’afficher la passerelle
-au-dessus du labyrinthe.
+au-dessus du labyrinthe, où se trouve le coffre du plafond caché.
 La porte au nord-ouest de la forteresse mène au Désert hanté. Sa vue
 schématique montre les ruines, les checks et le trajet tracé par le guide
 dans la scène du jeu.

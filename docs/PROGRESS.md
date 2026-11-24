@@ -1,10 +1,11 @@
 # Checkpoint — 24 novembre 2026
 
-L’audit des scènes publiques place 1 099 des 1 103 checks du catalogue
+L’audit des scènes publiques place 1 100 des 1 103 checks du catalogue
 de référence. Les nouveaux emplacements couvrent le cratère du Péril,
-la Forteresse Gerudo et le centre d’entraînement. Le don des Sages, deux
-coffres et une clé du centre d’entraînement restent sans coordonnées
-confirmées.
+la Forteresse Gerudo et le centre d’entraînement. Le coffre du plafond
+caché est sur la passerelle du labyrinthe. Le don des Sages, le coffre
+près de l’épouvantail et la clé libre du labyrinthe restent sans
+coordonnées confirmées. Leur sélection ouvre la zone disponible.
 
 En vue adulte, le moulin de Cocorico mène aux souterrains du cimetière.
 Chaque sens indique le point d’arrivée du jeu.

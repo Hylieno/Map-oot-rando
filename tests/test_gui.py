@@ -61,6 +61,38 @@ class GuiTests(unittest.TestCase):
         self.assertIn('inconnues', app.details.get())
         self.assertFalse(app.markers)
 
+    def test_search_opens_the_known_zone_of_an_unpositioned_check(self):
+        from unittest.mock import patch
+        from map_oot_rando.scene import REGION_VIEWS, TRAINING_VIEWS
+
+        app = self.app
+        forest, training, temple = 'KokiriForest', 'GerudoTrainingGround', 'TempleOfTime'
+        scenes = {view: {'rooms': [], 'points': []} for view in (REGION_VIEWS[forest]['Child'], *TRAINING_VIEWS)}
+        missing = dict(id='ap#Gerudo Training Ground Freestanding Key', name='Clé du labyrinthe', category='key',
+                       resource='Emplacements sans position', position=None, region=training)
+        gift = dict(missing, id='ap#Gift from Sages', name='Don des Sages', region=temple)
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=[forest, training, temple],
+                   locations=[missing, gift], scenes=scenes)
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        self.assertEqual(app.resource.get(), REGION_VIEWS[forest]['Child'])
+        app.query.set(missing['name'])
+        app.choose_first()
+        self.assertEqual(app.resource.get(), TRAINING_VIEWS[0])
+        self.assertIn('Centre d’entraînement Gerudo', app.details.get())
+        self.assertIn('inconnues', app.details.get())
+        self.assertFalse(app.canvas.find_withtag('check-pin'))
+
+        app.resource.set(TRAINING_VIEWS[1])
+        app.resource_changed(manual=False)
+        app.choose_first()
+        self.assertEqual(app.resource.get(), TRAINING_VIEWS[1])
+
+        app.query.set(gift['name'])
+        app.choose_first()
+        self.assertEqual(app.selected.id, gift['id'])
+        self.assertEqual(app.resource.get(), TRAINING_VIEWS[1])
+
     def test_navigation_and_tracking_remain_available_in_a_narrow_window(self):
         from unittest.mock import patch
         from map_oot_rando.scene import NEIGHBORS, REGION_NAMES, REGION_VIEWS

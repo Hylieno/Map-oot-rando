@@ -1445,23 +1445,27 @@ class MapApplication:
 
     def choose(self, row):
         self.selected = row
-        if row.position is not None:
+        target = location_view(row)
+        if row.position is None and target not in self.views:
+            target = None
+            if row.region in REGION_VIEWS and (self.overview_open or row.region != self.current_region()):
+                target = self.browse_view(row.region)
+        point = row.project()
+        if target and (self.resource.get() != target or self.overview_open):
             self.arrival = None
-            from_overview = self.overview_open
             self.overview_open = False
-            target = location_view(row)
-            if self.resource.get() != target or from_overview:
-                _, age = VIEWS.get(target, (None, None))
-                if self.save_age is not None and age is not None and age != self.save_age:
-                    self.follow_age.set(False)
-                self.resource.set(target)
-                self.refresh_navigation()
-                self.ensure_atlas()
-                self.render()
-                self.fit(focus=row.project())
-                return
-            self.viewport.center(row.project(), self.canvas.winfo_width(),
-                                 self.canvas.winfo_height())
+            _, age = VIEWS.get(target, (None, None))
+            if self.save_age is not None and age is not None and age != self.save_age:
+                self.follow_age.set(False)
+            self.resource.set(target)
+            self.refresh_navigation()
+            self.ensure_atlas()
+            self.render()
+            self.fit(focus=point)
+            return
+        if point is not None:
+            self.arrival = None
+            self.viewport.center(point, self.canvas.winfo_width(), self.canvas.winfo_height())
         self.show_details()
         self.draw()
 
@@ -1475,7 +1479,10 @@ class MapApplication:
             self.manual_button.pack(fill='x', pady=(5, 0))
         else:
             self.manual_button.pack_forget()
-        self.details.set(f'{row.name}\nID : {row.id}\n{row.category}\n{location_view(row)}\n'
+        view = location_view(row)
+        if row.position is None and view not in self.views:
+            view = REGION_NAMES.get(row.region, view)
+        self.details.set(f'{row.name}\nID : {row.id}\n{row.category}\n{view}\n'
                          f'XYZ : {row.position if row.position is not None else "inconnues"}\n'
                          f'État : {LABELS[self.store.states.get(row.id, "unknown")]}'
                          + (f'\nEntrée affichée (XYZ) : {row.entrance}' if row.entrance else '')

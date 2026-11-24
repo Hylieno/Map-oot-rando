@@ -1,5 +1,11 @@
 # Validation
 
+Le coffre du plafond caché a été sélectionné dans le catalogue de
+référence. Son marqueur et celui de Link s’affichent sur la passerelle.
+Un test Tk vérifie que sélectionner un check sans coordonnées ouvre sa
+zone si elle est disponible et conserve l’étage si la zone est déjà
+ouverte.
+
 Onze checks hérités ont été sélectionnés dans Tk après import du
 catalogue de référence et des scènes publiques. Les marqueurs s’affichent
 sur les vues attendues, à l’intérieur du fond Field Atlas quand il est

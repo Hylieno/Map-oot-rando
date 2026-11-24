@@ -162,6 +162,8 @@ CATALOGUE_PLACEMENT_ALIASES = {
     'ap#Gerudo Training Ground Eye Statue Chest': 'GerudoTrainingGround#11563468890171962383',
     'ap#Gerudo Training Ground Hammer Room Switch Chest': 'GerudoTrainingGround#4372363658229299619',
     'ap#Gerudo Training Ground Heavy Block Third Chest': 'GerudoTrainingGround#5329807728555596183',
+    # The upper chest by the climbable wall and Lens of Truth panel at the maze entrance.
+    'ap#Gerudo Training Ground Hidden Ceiling Chest': 'GerudoTrainingGround#4320448574091221496',
 }
 DUNGEON_ROOM_REGIONS = frozenset({'InsideJabuJabuBelly', 'InsideTheDekuTree', 'ForestTemple',
                                   'BottomOfTheWell', 'ShadowTemple', 'InsideGanonCastle', 'GerudoTrainingGround',
