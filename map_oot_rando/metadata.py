@@ -59,8 +59,9 @@ CHECK_ACTOR_PATTERNS = {
     ('full_bossheart', 'heart'): ('Obj_Heart_Container',),
 }
 PLACEMENT_REGIONS = frozenset({'FireTemple', 'ZoraRiver', 'ZoraDomain', 'ZoraFountain', 'IceCavern',
-                               'InsideJabuJabuBelly', 'InsideTheDekuTree', 'ForestTemple'})
-DUNGEON_ROOM_REGIONS = frozenset({'InsideJabuJabuBelly', 'InsideTheDekuTree', 'ForestTemple'})
+                               'InsideJabuJabuBelly', 'InsideTheDekuTree', 'ForestTemple', 'BottomOfTheWell'})
+DUNGEON_ROOM_REGIONS = frozenset({'InsideJabuJabuBelly', 'InsideTheDekuTree', 'ForestTemple',
+                                  'BottomOfTheWell'})
 
 
 def add_dungeon_rooms(rows, maps):
@@ -249,7 +250,7 @@ def bind_catalogue(document, catalogue):
                   'Fire Temple': 'FireTemple', "Zora's River": 'ZoraRiver', "Zora's Domain": 'ZoraDomain',
                   "Zora's Fountain": 'ZoraFountain', 'Ice Cavern': 'IceCavern',
                   "Inside Jabu-Jabu's Belly": 'InsideJabuJabuBelly', 'Inside the Deku Tree': 'InsideTheDekuTree',
-                  'Forest Temple': 'ForestTemple'})
+                  'Forest Temple': 'ForestTemple', 'Bottom of the Well': 'BottomOfTheWell'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']

@@ -28,6 +28,8 @@
   de salle vérifiés. Le coffre de la clé du boss, sans numéro de salle,
   utilise sa hauteur et le plan correspondant. Le cœur et Ganon spectral
   ont une vue dédiée.
+- Puits de Cocorico. Les salles de la Loupe et du niveau profond utilisent
+  le deuxième plan. Le passage du puits reprend le repère natif de Cocorico.
 - Link. Le marqueur et le changement automatique de zone sont deux commandes
   distinctes. Les coordonnées sont lues via la connexion mémoire OotrR.
   Les décalages du module et les champs de pose viennent de la documentation

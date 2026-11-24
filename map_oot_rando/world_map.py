@@ -28,6 +28,7 @@ WORLD_PINS = {
     'InsideJabuJabuBelly': (.7673, .4510),
     'InsideTheDekuTree': (.6835, .7656),
     'ForestTemple': (.8656, .6039),
+    'BottomOfTheWell': (.6610, .3741),
 }
 
 

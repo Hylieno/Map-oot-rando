@@ -25,12 +25,15 @@ DEKU_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', 'Sous-sol', 'Sous-
 DEKU_VIEWS = tuple(f'{REGION_NAMES["InsideTheDekuTree"]} · {level}' for level in DEKU_LEVELS)
 FOREST_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', 'Sous-sol', 'Sous-sol profond', 'Arène du boss')
 FOREST_VIEWS = tuple(f'{REGION_NAMES["ForestTemple"]} · {level}' for level in FOREST_LEVELS)
+WELL_LEVELS = ('Sous-sol', 'Sous-sol profond')
+WELL_VIEWS = tuple(f'{REGION_NAMES["BottomOfTheWell"]} · {level}' for level in WELL_LEVELS)
 DUNGEON_FLOORS = {
     'DodongoCavern': tuple(zip(DODONGO_LEVELS, DODONGO_VIEWS)),
     'FireTemple': tuple(zip(FIRE_LEVELS, FIRE_VIEWS)),
     'InsideJabuJabuBelly': tuple(zip(JABU_LEVELS, JABU_VIEWS)),
     'InsideTheDekuTree': tuple(zip(DEKU_LEVELS, DEKU_VIEWS)),
     'ForestTemple': tuple(zip(FOREST_LEVELS, FOREST_VIEWS)),
+    'BottomOfTheWell': tuple(zip(WELL_LEVELS, WELL_VIEWS)),
 }
 DUNGEON_ATLAS_KEYS = {
     **dict(zip(DODONGO_VIEWS, ('1F', '2F'))),
@@ -38,6 +41,7 @@ DUNGEON_ATLAS_KEYS = {
     **dict(zip(JABU_VIEWS, ('1F', 'S1', '2F'))),
     **dict(zip(DEKU_VIEWS, ('1F', '2F', '3F', 'S1', 'S2'))),
     **dict(zip(FOREST_VIEWS, ('1F', '2F', '3F', 'S1', 'S2'))),
+    **dict(zip(WELL_VIEWS, ('S1', 'S2'))),
 }
 FOUNTAIN_DUNGEON_AGES = {'IceCavern': 'Adult', 'InsideJabuJabuBelly': 'Child'}
 JABU_ROOM_VIEWS = {
@@ -92,7 +96,8 @@ NEIGHBORS = {
                            'ForestTemple': 'outside_of_forest_temple_entrance'},
     'ForestTemple': {'SacredForestMeadow': 'Vers le Bosquet sacré'},
     'KakarikoVillage': {'HyruleField': 'Vers la plaine d’Hyrule', 'Graveyard': 'Vers le cimetière',
-                        'DeathMountainTrail': 'Vers le Mont du Péril'},
+                        'DeathMountainTrail': 'Vers le Mont du Péril', 'BottomOfTheWell': 'Puits'},
+    'BottomOfTheWell': {'KakarikoVillage': 'Vers Cocorico'},
     'Graveyard': {'KakarikoVillage': 'Vers Cocorico'},
     'DeathMountainTrail': {'KakarikoVillage': 'Vers Cocorico', 'GoronCity': 'Repère Goron',
                            'DodongoCavern': 'Vers la Caverne Dodongo', 'DeathMountainCrater': 'Repère du cratère'},
@@ -160,6 +165,7 @@ ENTRANCE_LABELS = {
     'InsideJabuJabuBelly': NEIGHBORS['InsideJabuJabuBelly'],
     'InsideTheDekuTree': NEIGHBORS['InsideTheDekuTree'],
     'ForestTemple': NEIGHBORS['ForestTemple'],
+    'BottomOfTheWell': NEIGHBORS['BottomOfTheWell'],
     'DeathMountainTrail': {
         'DeathMountainCrater': 'Repère du cratère',
         'DodongoCavern': 'Repère Dodongo',
@@ -402,6 +408,9 @@ def location_view(row):
             return FOREST_VIEWS[2]
         if y >= 109:
             return FOREST_VIEWS[1]
+    if view == WELL_VIEWS[0] and row.position is not None:
+        if row.dungeon_room in {8, 9} or (row.dungeon_room is None and row.position[1] < 94):
+            return WELL_VIEWS[1]
     if view == DODONGO_VIEWS[0] and row.position is not None:
         y = row.position[1]
         if y < 82:

@@ -1,5 +1,11 @@
 # Validation
 
+Les deux scènes publiques du Puits de Cocorico ont permis de positionner
+les 42 checks du catalogue, dont 31 au premier niveau et 11 au niveau
+profond. Deux placements sont entre 14 et 17 pixels à l’extérieur du
+contour dessiné sur le plan de 700 pixels de large. Leurs coordonnées
+d’acteur restent intactes. Le scan du NUP complet reste à vérifier.
+
 Les deux scènes publiques du Temple de la Forêt contiennent les 25 checks
 du catalogue. Les 23 marqueurs hors arène tombent sur les plans ou à un
 pixel du dessin, sur des fonds de 700 pixels de large. Le test d’étage

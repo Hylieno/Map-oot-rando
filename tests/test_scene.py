@@ -5,6 +5,17 @@ from map_oot_rando.scene import extract_scenes, read_scenes
 
 
 class SceneTests(unittest.TestCase):
+    def test_well_uses_the_native_room_before_the_height_cutoff(self):
+        from map_oot_rando.model import Location
+        from map_oot_rando.scene import WELL_VIEWS, location_view
+
+        region = 'BottomOfTheWell'
+        path = f'Banc/{region}/{region}_Static.bcett.byml.zs'
+        for room, height, floor in ((1, 96.2, 0), (8, 98, 1), (9, 87, 1), (None, 92, 1)):
+            with self.subTest(room=room, height=height):
+                row = Location('test', 'Check', 'test', path, (0, height, 0), region=region, dungeon_room=room)
+                self.assertEqual(location_view(row), WELL_VIEWS[floor])
+
     def test_forest_temple_distinguishes_raised_checks_from_their_rooms(self):
         from map_oot_rando.model import Location
         from map_oot_rando.scene import FOREST_VIEWS, location_view

@@ -73,6 +73,10 @@ FOREST_VIEWBOXES = {
     'S1': (238, 142, 345, 345),
     'S2': (323, 157, 304, 395),
 }
+WELL_VIEWBOXES = {
+    'S1': (-61, 24, 967, 1447),
+    'S2': (237, -35, 651, 1101),
+}
 SHARED_FIELD_FRAMES = {
     'HyruleField': ((-50, -49, 950, 739), (1.4552, 504.27, 1.4867, 11.89)),
     'SacredForestMeadow': ((190, -8, 492, 1821), (6.15, 487.31, 6.15, 1062.72)),
@@ -92,6 +96,7 @@ for region, frame, viewboxes in (
     ('InsideJabuJabuBelly', (7.6, 392, 7.6, 1580), JABU_VIEWBOXES),
     ('InsideTheDekuTree', (8.5609, 733.86, 8.9211, 139.64), DEKU_VIEWBOXES),
     ('ForestTemple', (5.5747, 462.29, 5.6324, 406.55), FOREST_VIEWBOXES),
+    ('BottomOfTheWell', (8.0269, 535.33, 8.1374, 945.29), WELL_VIEWBOXES),
 ):
     FIELD_FRAMES[region] = {level: (viewbox, frame) for level, viewbox in viewboxes.items()}
 for region, source, digest in (
@@ -133,6 +138,10 @@ REGION_MAPS['ForestTemple'] = {
     '3F': ('field-atlas-forest-3f', '4ae5a5642885668f29d466cea5d7716b7d09526bad1f30f5ee1305b04e86367a'),
     'S1': ('field-atlas-forest-s1', '6cbf450c90cd3ed53dfe3249f7775c4b34eb3dae5419c2d380b8acde5afb0c07'),
     'S2': ('field-atlas-forest-s2', '3f1bf57ae45da9a1d0c7b9b3752290d36957d6144716f69e0d35d29bb8624a56'),
+}
+REGION_MAPS['BottomOfTheWell'] = {
+    'S1': ('field-atlas-well-s1', 'b68501c771ee8c193ed6bf8ac11339f3dd8b4bcdad4aa2b8b0034e4680eadd58'),
+    'S2': ('field-atlas-well-s2', '4235409bd4f77a4b1067d80c1f2544a9978ab5bb528fbeeae03e0aa9d35c5f59'),
 }
 REGION_CALIBRATION = 1
 
