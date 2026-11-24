@@ -2,6 +2,8 @@
 
 En vue adulte, le moulin de Cocorico mène aux souterrains du cimetière.
 Chaque sens indique le point d’arrivée du jeu.
+Les deux trajets de la course de Dampé sont visibles dans la vue
+souterraine adulte.
 
 La Citadelle, le Château d’Hyrule et le Château de Ganon indiquent
 leurs points d’arrivée respectifs. Le passage vers l’intérieur du
@@ -248,7 +250,7 @@ seuls les jalons marqués `[preview]` déclenchent aussi un build.
 
 Le cimetière est accessible depuis Cocorico. Field Atlas fournit le fond
 de surface. Les checks en sous-sol ont une vue schématique par âge.
-Les intérieurs de tombe et la course de Dampé restent à dessiner.
+Les contours des intérieurs de tombe restent à dessiner.
 
 Cocorico est relié à la plaine. Ses fonds enfant et adulte de Field Atlas
 s’alignent automatiquement. Le suivi bascule vers la variante après

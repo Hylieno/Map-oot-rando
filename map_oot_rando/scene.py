@@ -597,6 +597,7 @@ LEVEL_POINT_EXTRACTORS = {
 }
 
 GUIDE_ROUTE = 'Trajet du guide'
+DAMPE_ROUTES = {'Playing': 'Première course', 'PlayingSecond': 'Seconde course'}
 WASTELAND_PORTALS = {
     13756540388226076963: 'GerudoFortress',
     10151104999260881916: 'DesertColossus',
@@ -634,12 +635,16 @@ def kokiri_bridge_position(point):
     return x <= KOKIRI_BRIDGE_GATE[0] and -83 <= z <= 0
 
 
-def guide_routes(sources):
+def guide_routes(sources, labels=None, *, references=None):
     """Project the native Guide rail, including its Bézier handles, onto X/Z."""
+    if labels is None:
+        labels = {'Guide': GUIDE_ROUTE}
     routes = set()
     for source in sources.values():
         for rail in source['root'].get('Rails', ()):
-            if rail.get('Name') != 'Guide' or rail.get('Gyaml') != 'Guide' or rail.get('IsClosed'):
+            label = labels.get(rail.get('Name'))
+            if (not label or rail.get('Gyaml') != 'Guide' or rail.get('IsClosed')
+                    or (references is not None and rail.get('Hash') not in references)):
                 continue
             knots = rail.get('Points', ())
             if len(knots) < 2:
@@ -656,8 +661,16 @@ def guide_routes(sources):
                     points.append(tuple(u**3 * start[axis] + 3*u*u*t * takeoff[axis]
                                         + 3*u*t*t * arrival[axis] + t**3 * end[axis] for axis in (0, 2)))
             points.append((end[0], end[2]))
-            routes.add((GUIDE_ROUTE, tuple(points)))
+            routes.add((label, tuple(points)))
     return routes
+
+
+def dampe_routes(sources):
+    references = {link.get('Dst') for source in sources.values()
+                  for actor in source['root'].get('Actors', ())
+                  if actor.get('Gyaml') == 'Npc_Hylia_Dampe_002'
+                  for link in actor.get('Rails', ()) if link.get('Dst') is not None}
+    return guide_routes(sources, DAMPE_ROUTES, references=references)
 
 
 def projection_points(region, sources):
@@ -862,7 +875,11 @@ def extract_scenes(maps, landmarks):
                 rooms.append(('Salle intermédiaire', (x - dx, z - dz), (x + dx, z + dz)))
         extract_levels = LEVEL_POINT_EXTRACTORS.get(region)
         levels = extract_levels(sources) if extract_levels else ()
-        route_extractor = {'HountedWasteland': guide_routes, 'GerudoTrainingGround': training_connections}.get(region)
+        route_extractor = {
+            'HountedWasteland': guide_routes,
+            'GerudoTrainingGround': training_connections,
+            'Graveyard': dampe_routes,
+        }.get(region)
         routes = route_extractor(sources) if route_extractor else ()
         if rooms or points or levels or routes:
             scene = {'rooms': rooms, 'points': sorted(points)}
@@ -1099,8 +1116,13 @@ def group_scenes(scenes):
                 if label == NEIGHBORS['TempleOfTime']['Market']:
                     target['rooms'].add((REGION_NAMES['TempleOfTime'], *TEMPLE_BOUNDS[age]))
             target['points'].add((label, tuple(point)))
-        if scene.get('routes'):
-            view.setdefault('routes', set()).update((name, tuple(map(tuple, points))) for name, points in scene['routes'])
+        for label, points in scene.get('routes', ()):
+            if name == REGION_VIEWS['Graveyard']['Adult'] and label in DAMPE_ROUTES.values():
+                underground = UNDERGROUND_VIEWS['Graveyard']['Adult']
+                route_view = grouped.setdefault(underground, {'rooms': set(), 'points': set()})
+            else:
+                route_view = view
+            route_view.setdefault('routes', set()).add((label, tuple(map(tuple, points))))
         for floor, name, point in scene.get('level_points', ()):
             _, view_name_for_floor = DUNGEON_FLOORS[resource_region(resource)][floor]
             level = grouped.setdefault(view_name_for_floor, {'rooms': set(), 'points': set()})

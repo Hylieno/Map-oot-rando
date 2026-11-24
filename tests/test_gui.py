@@ -608,7 +608,7 @@ class GuiTests(unittest.TestCase):
     def test_adult_windmill_opens_the_graveyard_underground_view(self):
         from unittest.mock import patch
         from map_oot_rando.link_position import LinkPosition
-        from map_oot_rando.scene import REGION_VIEWS, UNDERGROUND_VIEWS, extract_scenes
+        from map_oot_rando.scene import DAMPE_ROUTES, REGION_VIEWS, UNDERGROUND_VIEWS, extract_scenes
 
         app = self.app
         village, graveyard = 'KakarikoVillage', 'Graveyard'
@@ -619,6 +619,16 @@ class GuiTests(unittest.TestCase):
             dict(Gyaml='FieldAndDungeonEntranceEventRequestActor', Name=names[region], Translate=gates[region]),
             dict(Gyaml='StartPos', Name=names[region], Translate=spawns[region]),
         ]}} for region in names}
+        tomb = maps[f'Banc/{graveyard}/{graveyard}_Adult_Static.bcett.byml.zs']['root']
+        tomb['Actors'].append(dict(Gyaml='Npc_Hylia_Dampe_002', Rails=[dict(Dst=1), dict(Dst=2)]))
+        tomb['Rails'] = [
+            dict(Name='Playing', Gyaml='Guide', Hash=1, Points=[dict(Translate=point)
+                 for point in ((22, 79, -11), (34, 81, 0), (12, 82, 57))]),
+            dict(Name='PlayingSecond', Gyaml='Guide', Hash=2, Points=[dict(Translate=point)
+                 for point in ((22, 79, -11), (40, 80, 5), (12, 82, 57))]),
+            dict(Name='Playing', Gyaml='Guide', Hash=3, Points=[dict(Translate=point)
+                 for point in ((0, 99, 0), (0, 99, 40))]),
+        ]
         scenes = extract_scenes(maps, lambda _: {})
         scenes[REGION_VIEWS[village]['Child']] = {'rooms': [], 'points': []}
         doc = dict(demo_document(), provenance='ootrr-scan', regions=['KokiriForest', village, graveyard],
@@ -628,6 +638,7 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(app.resource.get(), REGION_VIEWS[village]['Child'])
         self.assertFalse(app.canvas.find_withtag('zone-navigation'))
         app.age_buttons['Adult'].invoke()
+        self.assertFalse(app.canvas.find_withtag('scene-route'))
 
         def cross(target):
             marker, = app.canvas.find_withtag('zone-navigation')
@@ -640,6 +651,12 @@ class GuiTests(unittest.TestCase):
 
         cross(graveyard)
         self.assertEqual(app.resource.get(), UNDERGROUND_VIEWS[graveyard]['Adult'])
+        self.assertEqual([app.canvas.itemcget(item, 'text') for item in app.canvas.find_withtag('race-legend')],
+                         list(DAMPE_ROUTES.values()))
+        route_items = app.canvas.find_withtag('scene-route')
+        self.assertEqual(len(route_items), 4)
+        self.assertNotEqual(app.canvas.itemcget(route_items[-2], 'fill'), app.canvas.itemcget(route_items[-1], 'fill'))
+        self.assertTrue(app.canvas.itemcget(route_items[-1], 'dash'))
         app.update_link(LinkPosition(graveyard, 'Adult', *spawns[graveyard], 0))
         self.assertTrue(app.canvas.find_withtag('player-pin'))
         cross(village)

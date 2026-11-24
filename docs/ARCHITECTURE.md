@@ -114,6 +114,9 @@ Le passage adulte entre le moulin et la tombe de Dampé utilise les
 événements de scène et leurs points d’arrivée natifs. Le regroupement
 place les repères côté cimetière dans la vue souterraine que le suivi
 de Link choisit à partir de sa hauteur.
+Les deux parcours de Dampé utilisent les rails référencés par son acteur.
+Ils conservent le repère X/Z du cimetière et s’affichent dans la vue
+souterraine adulte.
 Le champ facultatif `entrance` indique où accéder à un check souterrain
 sur une carte de surface. Le rendu projette cet accès et les détails
 conservent la position XYZ de l’acteur.

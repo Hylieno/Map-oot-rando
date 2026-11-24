@@ -19,7 +19,7 @@ from .model import Location, REGION_NAMES, SURFACE_MIN_Y, load_metadata, resourc
 from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
-from .scene import (BURNT_VILLAGE, CASTLE_COURT, DREAM_SCENE_VIEWS, DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS,
+from .scene import (BURNT_VILLAGE, CASTLE_COURT, DAMPE_ROUTES, DREAM_SCENE_VIEWS, DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS,
                     FIRE_VIEWS, FLOOR_OPTIONS,
                     FOUNTAIN_DUNGEON_AGES, GANON_DUNGEON_VIEWS, GANON_ESCAPE, MARKET_CASTLE_AGES,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
@@ -1318,13 +1318,19 @@ class MapApplication:
                                              outline='#7bb6ce', width=2, tags='scene')
                 captions.append((label, (x1 + x2) / 2, min(y1, y2) - 10))
             routes = scene.get('routes', ())
-            for title, route in routes:
-                coordinates = [coordinate for point in route for coordinate in self.viewport.screen(point)]
-                guide = title == GUIDE_ROUTE
+            race_colors = {DAMPE_ROUTES['Playing']: '#ffe19b', DAMPE_ROUTES['PlayingSecond']: '#76ddf1'}
+            race_tracks = [(title, race_colors[title]) for title, _ in routes if title in race_colors]
+            paths = [(title, [c for point in route for c in self.viewport.screen(point)])
+                     for title, route in routes]
+            for title, coordinates in paths:
+                guide = title == GUIDE_ROUTE or title in race_colors
                 self.canvas.create_line(*coordinates, fill='#332d25' if guide else '#7bb6ce', width=8,
                                         capstyle='round', joinstyle='round', tags='scene-route')
-                self.canvas.create_line(*coordinates, fill='#ffe19b' if guide else '#1f5577',
+            for title, coordinates in paths:
+                guide = title == GUIDE_ROUTE or title in race_colors
+                self.canvas.create_line(*coordinates, fill=race_colors.get(title, '#ffe19b' if guide else '#1f5577'),
                                         width=3 if guide else 6, arrow='last' if guide else 'none',
+                                        dash=(5, 3) if title == DAMPE_ROUTES['PlayingSecond'] else (),
                                         capstyle='round', joinstyle='round', tags='scene-route')
             for label, point in scene['points']:
                 if label in exits or label in PORTAL_START_NAMES.get(region, ()):
@@ -1334,7 +1340,13 @@ class MapApplication:
                                            fill='#b4dec0', tags='scene')
                 captions.append((label, x, y - 13))
             topic = routes[0][0] if routes else 'Repères du jeu'
+            if race_tracks:
+                topic = 'Course de Dampé'
             heading = f'{name} | {topic} (schéma)'
+            legend_x = 12
+            for title, color in race_tracks:
+                item = self.canvas.create_text(legend_x, 30, anchor='nw', fill=color, text=title, tags='race-legend')
+                legend_x = self.canvas.bbox(item)[2] + 16
         else:
             self.canvas.configure(background=ATLAS_BACKGROUND)
             step, xs, ys = self.viewport.grid(width, height)
@@ -1401,7 +1413,8 @@ class MapApplication:
             labels.append((title, x + (12 if right else -12), y,
                            'w' if right else 'e', '#edf2f4', row))
         # Give the selected check first claim on label space, then the landmarks.
-        used = [(0, 0, width, 30)]
+        heading_height = 50 if self.canvas.find_withtag('race-legend') else 30
+        used = [(0, 0, width, heading_height)]
         foreground = [label for label in labels if label[-1] == self.selected]
         background = [label for label in labels if label[-1] != self.selected]
         landmarks = [(name.replace('_', ' '), x, y, 'center', '#d0e8d8', None)
@@ -1427,7 +1440,8 @@ class MapApplication:
             x, y = self.viewport.screen((self.link.x, self.link.z))
             self.draw_link_pin(x, y, self.link.yaw)
         if not self.markers:
-            self.canvas.create_text(25, 35, anchor='nw', text='Aucun marqueur positionné pour cette vue.', fill=heading_color)
+            self.canvas.create_text(25, heading_height + 5, anchor='nw',
+                                    text='Aucun marqueur positionné pour cette vue.', fill=heading_color)
 
     def choose(self, row):
         self.selected = row
