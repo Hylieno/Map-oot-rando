@@ -34,6 +34,7 @@ WORLD_PINS = {
     'GanonCastle': (.4259, .3128),
     'InsideGanonCastle': (.4092, .2333),
     'GerudoValley': (.2228, .5620),
+    'GerudoFortress': (.2067, .4079),
     'ShadowTemple': (.8012, .3182),
 }
 

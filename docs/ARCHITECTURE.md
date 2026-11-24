@@ -32,6 +32,9 @@ conservent la position XYZ de l’acteur.
 En Vallée Gerudo, les scènes des deux âges utilisent le même fond et le
 même repère. Chaque entrée de grotte est résolue dans la scène de l’âge
 du check.
+À la Forteresse Gerudo, plusieurs coordonnées peuvent représenter le même
+événement dans une seule scène. La carte Gerudo partage un ID de suivi à
+tous ses points de remise.
 Dans les zones Zora, à la Caverne de glace et au Temple du Feu, les identifiants typés du catalogue
 peuvent compléter le scan par correspondance du hash et du type d’acteur
 dans chaque scène, sans écraser un placement déjà produit pour cette vue.

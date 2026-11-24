@@ -109,6 +109,9 @@ FIELD_FRAMES['HyruleCastle'] = {
 FIELD_FRAMES['GanonCastle'] = {
     'Adult': ((15, -12, 844, 968), (5.4, 203, 5.49, -1154)),
 }
+FIELD_FRAMES['GerudoFortress'] = {
+    'Adult': ((-34, -17, 928, 768), (3.098, 183.15, 3.152, 426.5)),
+}
 for region, frame, viewboxes in (
     ('FireTemple', (3.965, 354.2, 3.9651, 218.31), FIRE_VIEWBOXES),
     ('InsideJabuJabuBelly', (7.6, 392, 7.6, 1580), JABU_VIEWBOXES),
@@ -178,6 +181,9 @@ REGION_MAPS['HyruleCastle'] = {
 }
 REGION_MAPS['GanonCastle'] = {
     'Adult': ('field-atlas-ganon-castle', 'a30a638cbcac739ff725ad832e8d98e4eef85b979d38016f4b33291cc8c9c3c6'),
+}
+REGION_MAPS['GerudoFortress'] = {
+    'Adult': ('field-atlas-gerudo-fortress', '9070082489c25351045761a308aa95f8270233f85476ec158c01a04849d0ae73'),
 }
 REGION_CALIBRATION = 1
 

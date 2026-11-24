@@ -101,6 +101,9 @@ pour ajouter ces vues à une carte enregistrée auparavant.
 La plaine donne aussi accès à la Vallée Gerudo dans les deux âges. Le
 fond Field Atlas se charge automatiquement et les checks en grotte
 apparaissent à leur entrée, avec les coordonnées de l’objet dans les détails.
+Depuis la vallée adulte, le passage ouest mène à la Forteresse Gerudo.
+Les deux récompenses du tir à l’arc sont associées à l’organisatrice et
+la carte Gerudo peut apparaître près de chaque cellule.
 
 ## Suivre la partie
 

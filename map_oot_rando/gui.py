@@ -804,6 +804,8 @@ class MapApplication:
             age = self.navigation_age
         if from_portal:
             origin = self.current_region()
+            if region == 'GerudoFortress' and age != 'Adult':
+                return None
             if origin == 'Market' and region in MARKET_CASTLE_AGES and age != MARKET_CASTLE_AGES[region]:
                 return None
             if self.resource.get() == GANON_ESCAPE:

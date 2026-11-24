@@ -657,6 +657,37 @@ class GuiTests(unittest.TestCase):
         app.open_neighbor('HyruleField')
         self.assertEqual(app.resource.get(), REGION_VIEWS['HyruleField']['Child'])
 
+    def test_gerudo_fortress_portal_only_opens_as_adult(self):
+        from unittest.mock import patch
+        from map_oot_rando.scene import REGION_VIEWS
+
+        app = self.app
+        valley = 'GerudoValley'
+        fortress = 'GerudoFortress'
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=['KokiriForest', valley, fortress],
+                   locations=[], scenes={
+                       'Banc/GerudoValley/GerudoValley_Child_Static.bcett.byml.zs':
+                           {'rooms': [], 'points': [('Vers la Forteresse Gerudo', (-67, -6))]},
+                       'Banc/GerudoValley/GerudoValley_Adult_Static.bcett.byml.zs':
+                           {'rooms': [], 'points': [('Vers la Forteresse Gerudo', (-67, -6))]},
+                       'Banc/GerudoFortress/GerudoFortress_Adult_Static.bcett.byml.zs':
+                           {'rooms': [], 'points': [('Vers la Vallée Gerudo', (-31, -16))]},
+                   })
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        app.resource.set(REGION_VIEWS[valley]['Child'])
+        app.resource_changed()
+        self.assertNotIn(fortress, app.navigation_markers.values())
+        self.assertIn(fortress, app.world_targets())
+        app.choose_age('Adult')
+        self.assertIn(fortress, app.navigation_markers.values())
+        app.open_neighbor(fortress)
+        self.assertEqual(app.resource.get(), REGION_VIEWS[fortress]['Adult'])
+        self.assertTrue(app.age_buttons['Child'].instate(['disabled']))
+        self.assertIn(valley, app.navigation_markers.values())
+        app.open_neighbor(valley)
+        self.assertEqual(app.resource.get(), REGION_VIEWS[valley]['Adult'])
+
     def test_ganon_castle_switches_scene_without_mixing_coordinates(self):
         from unittest.mock import patch
         from map_oot_rando.link_position import LinkPosition

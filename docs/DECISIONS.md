@@ -17,6 +17,10 @@
 - Vallée Gerudo. Un repère affine commun utilise le pont principal, le
   rondin, la tente adulte et les deux extrémités du passage. Les deux
   grottes utilisent leurs entrées issues de la scène.
+- Forteresse Gerudo. Le passage depuis la vallée dépend de l’âge. Les
+  deux scores du tir à l’arc partagent le repère de l’organisatrice.
+  Les positions de la carte Gerudo viennent des quatre branches de la
+  cinématique `Dm_Gerudo_0025`.
 
 - La carte générale réutilise l’illustration Nintendúo et les positions
   géographiques publiées par Ocarina Atlas. Tous les fonds locaux publiés

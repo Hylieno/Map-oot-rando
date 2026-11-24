@@ -12,6 +12,27 @@ from map_oot_rando.model import load_metadata, select
 
 
 class ExportTests(unittest.TestCase):
+    def test_gerudo_card_retains_multiple_award_sites_and_archery_retains_both_rewards(self):
+        region = 'GerudoFortress'
+        path = f'Banc/{region}/{region}_Adult_Static.bcett.byml.zs'
+        maps = {path: {'root': {'Actors': [
+            dict(Gyaml='Npc_Gerudo_008', Translate=(69, 115, 36)),
+            dict(Gyaml='DestinationAnchor', Name='Dm_Gerudo_0023_LinkEndPosition',
+                 Hash=2581536444609170668, Translate=(30, 102.5, -71.5)),
+            dict(Gyaml='DestinationAnchor', Name='Dm_Gerudo_0023_LinkEndPosition',
+                 Hash=15652772230412420096, Translate=(15, 110, -75.5)),
+        ]}}}
+        document = export_scan({}, {}, provenance='ootrr-scan', regions=('KokiriForest', region))
+        document['locations'].extend(event_check_rows(maps, lambda *_: True))
+        checks = [dict(id=ident, name=ident.split('#')[1], category='test', zone=region)
+                  for ident in ('gerudo_card#Hideout Gerudo Membership Card',
+                                'npc#GF HBA 1000 Points', 'npc#GF HBA 1500 Points')]
+        rows = load_metadata(bind_catalogue(document, dict(self.catalogue, checks=checks)))
+        self.assertEqual({r.position for r in rows if r.id == checks[0]['id']},
+                         {(28.79, 102.5, -71.60), (15.83, 110, -76.06)})
+        self.assertEqual([r.id for r in rows if r.position == (69, 115, 36)],
+                         [check['id'] for check in checks[1:]])
+
     def test_market_bowling_uses_one_location_and_two_tracker_ids(self):
         path = 'Banc/Market/Market_Child_Static.bcett.byml.zs'
         anchor = dict(Gyaml='MapIconFacilityAnchor', Translate=(-25, 116, 8),

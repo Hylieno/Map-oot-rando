@@ -1,5 +1,11 @@
 # Validation
 
+Les deux scènes publiques de la Forteresse Gerudo et la cinématique
+de la carte Gerudo donnent une position à 26 des 30 checks du catalogue.
+Tous les marqueurs positionnés tombent sur le dessin à 650 pixels de
+large. Les quatre clés restent recherchables dans la liste. Le scan
+du NUP complet et les transitions en jeu restent à vérifier.
+
 Les quatre scènes publiques de la Vallée Gerudo placent les 32 checks
 du catalogue, avec sept checks en vue enfant et 27 en vue adulte.
 Deux rochers propres à chaque âge occupent le même emplacement, à

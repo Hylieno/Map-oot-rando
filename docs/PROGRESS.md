@@ -1,8 +1,13 @@
 # Checkpoint — 24 novembre 2026
 
+La Forteresse Gerudo est reliée à la vallée adulte et charge son fond
+Field Atlas. Vingt-six checks ont été placés. Pour les quatre clés, les
+acteurs natifs sont localisés et le lien avec les noms des prisons dans
+le catalogue OotrR reste à recouper.
+
 La Vallée Gerudo est reliée à la plaine dans les deux âges et affiche
 les 32 checks du catalogue. Le fond Field Atlas est commun. Les deux
-grottes utilisent leurs entrées. La Forteresse Gerudo reste à intégrer.
+grottes utilisent leurs entrées.
 
 La Citadelle adulte mène aux abords du Château de Ganon, qui chargent
 un plan Field Atlas. Les six checks du catalogue ont été placés. Le

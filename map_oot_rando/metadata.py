@@ -42,6 +42,9 @@ EVENT_ACTORS = {
     'GanonCastle': {
         ('MapIconFacilityAnchor', 'HavePlayedEvent.Dm_FairyFountain_Courage'): 'fairy#OGC Great Fairy Reward',
     },
+    'GerudoFortress': {
+        ('Npc_Gerudo_008', None): ('npc#GF HBA 1000 Points', 'npc#GF HBA 1500 Points'),
+    },
     'DeathMountainCrater': {
         ('MapIconFacilityAnchor', 'HavePlayedEvent.Dm_FairyFountain_Wisdom'): 'fairy#DMC Great Fairy Reward',
     },
@@ -51,6 +54,15 @@ ZORA_POT_ENTRANCE = ((5489068764052953067, 'Land_Kokiri_HidingHoleCover_A_01'),)
 FOUNTAIN_CAVE_ENTRANCES = ((8723749739734887775, 'Land_ZoraFountain_Cave_A_01'),
                           (9794916849655187961, 'Land_ZoraFountain_Cave_A_01'))
 GERUDO_STORMS_ENTRANCE = ((12817575131469044248, 'Land_Gerudo_HidingHoleCover_A_02'),)
+FORTRESS_STORMS_ENTRANCE = ((1947815094993250377, 'DestinationAnchor'),)
+# Dm_Gerudo_0025 moves Link beside the last freed carpenter. Each branch is
+# identified by its nearby rescue anchor in the adult scene.
+GERUDO_CARD_WARPS = {
+    2581536444609170668: (28.79, 102.5, -71.60),
+    15831574489666697813: (70.22, 120.5, -111.74),
+    15814936526007887057: (42.30, 119.0, -25.93),
+    15652772230412420096: (15.83, 110.0, -76.06),
+}
 GROTTO_ENTRANCE_ACTORS = {
     'SacredForestMeadow#7995233962349162969': ((8456945034417122929, 'Land_Kokiri_HidingHoleCover_A_01'),),
     'SacredForestMeadow#1764383515296652106': ((15024208487326008169, 'Land_SacredForest_HidingHoleCover_A_02'),),
@@ -68,6 +80,8 @@ GROTTO_ENTRANCE_ACTORS = {
         'pots#3407692112799570510', 'pots#15334540056586068351', 'pots#10851977283896645114')},
     'GerudoValley#6463521162691873710': ((2898121583347267819, 'DestinationAnchor'),
                                        (15684957330767796996, 'DestinationAnchor')),
+    'GerudoFortress#16619432200060282313': FORTRESS_STORMS_ENTRANCE,
+    'GerudoFortress#pots#12401477347800941236': FORTRESS_STORMS_ENTRANCE,
 }
 CHECK_ACTOR_PATTERNS = {
     ('full_chests', ''): ('Obj_TBox_*',),
@@ -83,7 +97,7 @@ CHECK_ACTOR_PATTERNS = {
 PLACEMENT_REGIONS = frozenset({'FireTemple', 'ZoraRiver', 'ZoraDomain', 'ZoraFountain', 'IceCavern',
                                'InsideJabuJabuBelly', 'InsideTheDekuTree', 'ForestTemple', 'BottomOfTheWell',
                                'ShadowTemple', 'Market', 'HyruleCastle', 'GanonCastle', 'InsideGanonCastle',
-                               'GerudoValley'})
+                               'GerudoValley', 'GerudoFortress'})
 EVENT_ACTOR_FIELDS = {
     'MapIconFacilityAnchor': 'MapIconFacilityIsOpen',
     'HeartPieceAnchor': 'HeartPieceAnchor_GameDataPath',
@@ -117,7 +131,8 @@ def add_surface_entrances(rows, maps):
     entrance_ids = {key for keys in GROTTO_ENTRANCE_ACTORS.values() for key in keys}
     candidates = {}
     for path, source in maps.items():
-        if resource_region(path) not in {'SacredForestMeadow', 'LostWood', 'ZoraRiver', 'ZoraFountain', 'GerudoValley'}:
+        if resource_region(path) not in {'SacredForestMeadow', 'LostWood', 'ZoraRiver', 'ZoraFountain',
+                                         'GerudoValley', 'GerudoFortress'}:
             continue
         age_frame = path.rsplit('_', 1)[0]
         for actor in source['root'].get('Actors', ()):
@@ -243,9 +258,16 @@ def event_check_rows(maps, eligible):
             if (region == 'LostWood' and actor.get('Gyaml') == 'Enemy_Scrub_ForestStage_Elder'
                     and actor.get('Name') == 'ScrubForestStageElder' and age_frame.endswith('_Child')):
                 checks = DEKU_THEATER_CHECKS
+            variant = None
+            if (region == 'GerudoFortress' and gyaml == 'DestinationAnchor'
+                    and actor.get('Name') == 'Dm_Gerudo_0023_LinkEndPosition'
+                    and actor.get('Hash') in GERUDO_CARD_WARPS):
+                variant = actor['Hash']
+                position = GERUDO_CARD_WARPS[variant]
+                checks = ('gerudo_card#Hideout Gerudo Membership Card',)
             if position and checks and eligible(path, actor):
                 for check in checks:
-                    candidates.setdefault((check, age_frame), []).append(
+                    candidates.setdefault((check, age_frame, variant), []).append(
                         dict(id=check, name=check.partition('#')[2], category='event',
                              resource=path, position=position))
     return [rows[0] for rows in candidates.values() if len(rows) == 1]
@@ -281,7 +303,7 @@ def bind_catalogue(document, catalogue):
                   'Forest Temple': 'ForestTemple', 'Bottom of the Well': 'BottomOfTheWell',
                   'Shadow Temple': 'ShadowTemple', 'the Market': 'Market', 'Hyrule Castle': 'HyruleCastle',
                   "Outside Ganon's Castle": 'GanonCastle', "Ganon's Castle": 'InsideGanonCastle',
-                  'Gerudo Valley': 'GerudoValley'})
+                  'Gerudo Valley': 'GerudoValley', 'Gerudo Fortress': 'GerudoFortress'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']

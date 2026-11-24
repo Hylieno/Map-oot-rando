@@ -88,6 +88,7 @@ REGION_VIEWS['HyruleCastle'] = {'Child': CASTLE_OUTSKIRTS}
 GANON_AREAS = ('Abords', 'Effondrement')
 GANON_OUTSKIRTS, GANON_ESCAPE = (f'{REGION_NAMES["GanonCastle"]} · {area}' for area in GANON_AREAS)
 REGION_VIEWS['GanonCastle'] = {'Adult': GANON_OUTSKIRTS}
+del REGION_VIEWS['GerudoFortress']['Child']
 MARKET_CASTLE_AGES = {'HyruleCastle': 'Child', 'GanonCastle': 'Adult'}
 SHARED_DUNGEONS = frozenset(region for region, views in REGION_VIEWS.items() if None in views)
 FLOOR_OPTIONS = {
@@ -120,7 +121,8 @@ NEIGHBORS = {
     'HyruleField': {'KokiriForest': 'front_of_lost_wood_bridge_entrance',
                     'KakarikoVillage': 'Vers Cocorico', 'ZoraRiver': 'Vers la Rivière Zora',
                     'Market': 'Porte de la Citadelle', 'GerudoValley': 'Vers la Vallée Gerudo'},
-    'GerudoValley': {'HyruleField': 'Vers la plaine d’Hyrule'},
+    'GerudoValley': {'HyruleField': 'Vers la plaine d’Hyrule', 'GerudoFortress': 'Vers la Forteresse Gerudo'},
+    'GerudoFortress': {'GerudoValley': 'Vers la Vallée Gerudo'},
     'Market': {'HyruleField': 'Vers la plaine d’Hyrule', 'HyruleCastle': 'Vers le Château d’Hyrule',
                'GanonCastle': 'Vers le Château de Ganon'},
     'HyruleCastle': {'Market': 'Vers la Citadelle d’Hyrule'},
@@ -196,6 +198,7 @@ ENTRANCE_LABELS = {
     'ShadowTemple': NEIGHBORS['ShadowTemple'],
     'HyruleField': HYRULE_ANCHORS,
     'GerudoValley': NEIGHBORS['GerudoValley'],
+    'GerudoFortress': NEIGHBORS['GerudoFortress'],
     'Market': NEIGHBORS['Market'],
     'HyruleCastle': NEIGHBORS['HyruleCastle'],
     'GanonCastle': NEIGHBORS['GanonCastle'],
