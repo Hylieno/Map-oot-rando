@@ -3,6 +3,9 @@
 - Citadelle. Les plans sont distincts par âge. Les étagères utilisent le
   placement renvoyé par OotrR. Les deux récompenses du bowling gardent
   leurs identifiants et partagent le repère du jeu.
+- Château d’Hyrule. La cour a sa propre vue schématique pour garder
+  les coordonnées de la lettre et des caisses. L’accès depuis la
+  Citadelle utilise le repère de la vue enfant.
 
 - La carte générale réutilise l’illustration Nintendúo et les positions
   géographiques publiées par Ocarina Atlas. Tous les fonds locaux publiés

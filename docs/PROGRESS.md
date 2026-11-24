@@ -2,7 +2,9 @@
 
 La Citadelle est reliée à la plaine d’Hyrule et affiche les 61 checks du
 catalogue. Les vues enfant et adulte chargent les fonds et placements
-correspondants.
+correspondants. Depuis la vue enfant, le Château d’Hyrule ajoute 14
+checks. Onze sont aux abords et trois dans la cour. Le build de ce
+jalon inclut la Citadelle et le Château d’Hyrule.
 
 Le Puits de Cocorico est relié au village. Ses 42 checks se répartissent
 entre deux plans Field Atlas. Le niveau profond contient la Loupe et le

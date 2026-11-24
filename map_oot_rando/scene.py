@@ -78,16 +78,21 @@ SHADOW_ROOM_VIEWS = {
 for region, floors in DUNGEON_FLOORS.items():
     REGION_VIEWS[region] = {None: floors[0][1]}
 REGION_VIEWS['IceCavern'] = {None: REGION_NAMES['IceCavern']}
+CASTLE_VIEWS = tuple(f'{REGION_NAMES["HyruleCastle"]} · {area}' for area in ('Abords', 'Cour'))
+CASTLE_OUTSKIRTS, CASTLE_COURT = CASTLE_VIEWS
+REGION_VIEWS['HyruleCastle'] = {'Child': CASTLE_OUTSKIRTS}
 SHARED_DUNGEONS = frozenset(region for region, views in REGION_VIEWS.items() if None in views)
 FLOOR_OPTIONS = {
     **{view: tuple(zip(GORON_LEVELS, views)) for views in GORON_VIEWS.values() for view in views},
     **{view: floors for floors in DUNGEON_FLOORS.values() for _, view in floors},
+    **dict.fromkeys(CASTLE_VIEWS, tuple(zip(('Abords', 'Cour'), CASTLE_VIEWS))),
 }
 AGE_VIEWS = REGION_VIEWS['KokiriForest']
 VIEWS = {label: (region, age) for region, ages in REGION_VIEWS.items()
          for age, label in ages.items()}
 BURNT_VILLAGE = 'Cocorico · Après l’incendie'
 VIEWS[BURNT_VILLAGE] = ('KakarikoVillage', 'Adult')
+VIEWS[CASTLE_COURT] = ('HyruleCastle', 'Child')
 UNDERGROUND_VIEWS = {region: {age: f'{view} · Souterrains' for age, view in REGION_VIEWS[region].items()}
                      for region in SURFACE_MIN_Y}
 UNDERGROUND_LABELS = {view for ages in UNDERGROUND_VIEWS.values() for view in ages.values()}
@@ -104,7 +109,8 @@ NEIGHBORS = {
     'HyruleField': {'KokiriForest': 'front_of_lost_wood_bridge_entrance',
                     'KakarikoVillage': 'Vers Cocorico', 'ZoraRiver': 'Vers la Rivière Zora',
                     'Market': 'Porte de la Citadelle'},
-    'Market': {'HyruleField': 'Vers la plaine d’Hyrule'},
+    'Market': {'HyruleField': 'Vers la plaine d’Hyrule', 'HyruleCastle': 'Vers le Château d’Hyrule'},
+    'HyruleCastle': {'Market': 'Vers la Citadelle d’Hyrule'},
     'SacredForestMeadow': {'LostWood': 'front_of_lost_wood_entrance',
                            'ForestTemple': 'outside_of_forest_temple_entrance'},
     'ForestTemple': {'SacredForestMeadow': 'Vers le Bosquet sacré'},
@@ -174,6 +180,7 @@ ENTRANCE_LABELS = {
     'ShadowTemple': NEIGHBORS['ShadowTemple'],
     'HyruleField': HYRULE_ANCHORS,
     'Market': NEIGHBORS['Market'],
+    'HyruleCastle': NEIGHBORS['HyruleCastle'],
     'ZoraRiver': {'ZoraDomain': NEIGHBORS['ZoraRiver']['ZoraDomain']},
     'ZoraDomain': NEIGHBORS['ZoraDomain'],
     'ZoraFountain': {'ZoraDomain': NEIGHBORS['ZoraFountain']['ZoraDomain']},
@@ -349,6 +356,9 @@ def read_scenes(document):
 def view_name(resource):
     """Group scene layers within a region and age."""
     region = resource_region(resource)
+    if region == 'HyruleCastle' and resource in (
+            f'Banc/{region}/{region}_{layer}{MAP_SUFFIX}' for layer in ('Static', 'Dynamic')):
+        return CASTLE_OUTSKIRTS
     if region in SHARED_DUNGEONS and resource in (
             f'Banc/{region}/{region}_{layer}{MAP_SUFFIX}' for layer in ('Static', 'Dynamic')):
         return REGION_VIEWS[region][None]
@@ -369,6 +379,8 @@ def view_name(resource):
 
 def location_view(row):
     view = view_name(row.resource)
+    if view == CASTLE_OUTSKIRTS and row.position is not None:
+        return castle_view(row.position[2])
     if row.underground and view in VIEWS:
         region, age = VIEWS[view]
         return UNDERGROUND_VIEWS[region][age]
@@ -447,6 +459,11 @@ def location_view(row):
         if y >= 105:
             return DODONGO_VIEWS[1]
     return view
+
+
+def castle_view(z):
+    """The courtyard is loaded in the castle scene beyond the outdoor map."""
+    return CASTLE_COURT if z < -170 else CASTLE_OUTSKIRTS
 
 
 def group_scenes(scenes):

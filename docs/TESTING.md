@@ -1,5 +1,12 @@
 # Validation
 
+Les deux scènes publiques du Château d’Hyrule placent les 14 checks
+du catalogue. Le plan des abords contient onze positions, dont la
+Grande Fée. La cour garde les coordonnées de la lettre et des deux
+caisses sur une vue distincte. Les tests couvrent l’accès depuis la
+Citadelle enfant, le retour et la synchronisation d’âge depuis la cour.
+Le scan du NUP complet reste à vérifier pour ces zones.
+
 Les quatre scènes publiques de la Citadelle placent les 61 checks du
 catalogue, dont 58 en vue enfant et trois en vue adulte. Les deux passages
 vers la plaine ont été recoupés. Le test du bowling vérifie que les

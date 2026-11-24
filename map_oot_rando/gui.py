@@ -18,13 +18,13 @@ from .model import Location, REGION_NAMES, SURFACE_MIN_Y, load_metadata, resourc
 from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
-from .scene import (BURNT_VILLAGE, DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS, FIRE_VIEWS, FLOOR_OPTIONS,
+from .scene import (BURNT_VILLAGE, CASTLE_COURT, DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS, FIRE_VIEWS, FLOOR_OPTIONS,
                     FOUNTAIN_DUNGEON_AGES,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS,
                     NEIGHBORS, REGION_VIEWS, SHARED_DUNGEONS,
                     UNDERGROUND_LABELS, UNDERGROUND_VIEWS, VIEWS,
-                    field_atlas_scene, group_scenes, location_view, read_scenes, view_name)
+                    castle_view, field_atlas_scene, group_scenes, location_view, read_scenes, view_name)
 from .simulation import Simulation, demo_document
 from .view import Viewport
 from .world_map import WORLD_PINS, WORLD_SIZE, load_world_map
@@ -40,7 +40,7 @@ LABELS = dict(available='Accessible', blocked='Bloqué', unknown='Inconnu', comp
 
 def background_spec(view):
     region, age = VIEWS.get(view, (None, None))
-    if view in UNDERGROUND_LABELS or GORON_FLOORS.get(view) == len(GORON_LEVELS) - 1:
+    if view == CASTLE_COURT or view in UNDERGROUND_LABELS or GORON_FLOORS.get(view) == len(GORON_LEVELS) - 1:
         return None
     if region == 'KokiriForest':
         return 'field-atlas', CALIBRATION, None
@@ -388,6 +388,7 @@ class MapApplication:
     def link_region(self):
         scene = self.link.scene
         return {'LostWoods': 'LostWood', 'DekuTree': 'InsideTheDekuTree',
+                'CastleGrounds': 'HyruleCastle',
                 'ZorasRiver': 'ZoraRiver', 'ZorasDomain': 'ZoraDomain',
                 'ZorasFountain': 'ZoraFountain', 'JabuJabusBelly': 'InsideJabuJabuBelly'}.get(scene, scene)
 
@@ -397,6 +398,9 @@ class MapApplication:
         if region not in REGION_VIEWS:
             return None
         view = self.view_for_region(region, age=age, from_portal=False)
+        if region == 'HyruleCastle':
+            subarea = castle_view(self.link.z)
+            return subarea if subarea in self.views else view
         if region in DUNGEON_FLOORS or region == 'GoronCity' or region in SURFACE_MIN_Y:
             suffix = 'Static' if region in DUNGEON_FLOORS else f'{age}_Static'
             path = f'Banc/{region}/{region}_{suffix}.bcett.byml.zs'
@@ -414,6 +418,8 @@ class MapApplication:
         changed = self.link != position
         self.link = position
         area = (self.link_region(), position.age) if position else None
+        if area and area[0] == 'HyruleCastle':
+            area = (*area, castle_view(position.z))
         if area is not None and area != self.link_area:
             self.link_area = area
             if self.follow_link.get() and self.resume_follow_link():
@@ -737,7 +743,12 @@ class MapApplication:
             self.resource_changed(manual=False)
 
     def view_for_age(self, age):
-        view = self.view_for_region(self.current_region(), age=age, from_portal=False)
+        region = self.current_region()
+        if age not in REGION_VIEWS[region]:
+            return None
+        if self.resource.get() == CASTLE_COURT:
+            return CASTLE_COURT
+        view = self.view_for_region(region, age=age, from_portal=False)
         if self.resource.get() in GORON_FLOORS:
             same_floor = GORON_VIEWS[age][GORON_FLOORS[self.resource.get()]]
             if same_floor in self.views:
@@ -781,6 +792,8 @@ class MapApplication:
             age = self.navigation_age
         if from_portal:
             origin = self.current_region()
+            if origin == 'Market' and region == 'HyruleCastle' and age != 'Child':
+                return None
             if origin == 'ZoraFountain' and region in FOUNTAIN_DUNGEON_AGES and age != FOUNTAIN_DUNGEON_AGES[region]:
                 return None
             if region == 'ZoraFountain' and origin in FOUNTAIN_DUNGEON_AGES:
@@ -1008,7 +1021,7 @@ class MapApplication:
         name = REGION_NAMES[region]
         if self.resource.get() in GORON_FLOORS:
             name = f'{name} · {GORON_LEVELS[GORON_FLOORS[self.resource.get()]]}'
-        elif region in DUNGEON_FLOORS and self.resource.get() in FLOOR_OPTIONS:
+        elif self.resource.get() in FLOOR_OPTIONS:
             name = self.resource.get()
         exits = {}
         if not self.simulation:

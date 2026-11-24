@@ -35,6 +35,10 @@ EVENT_ACTORS = {
         ('MapIconFacilityAnchor', 'HaveTalked_Special.Npc_Hylia_048_BottleShop_Talk_Event5'): 'npc#Market 10 Big Poes',
         ('HeartPieceAnchor', 'SubEvent_FindRichard_GetHeartPiece'): 'npc#Market Lost Dog',
     },
+    'HyruleCastle': {
+        ('MapIconFacilityAnchor', 'HavePlayedEvent.Dm_FairyFountain_Power'): 'fairy#HC Great Fairy Reward',
+        ('Npc_Hylia_Zelda_Child', None): 'quest#HC Zeldas Letter',
+    },
     'DeathMountainCrater': {
         ('MapIconFacilityAnchor', 'HavePlayedEvent.Dm_FairyFountain_Wisdom'): 'fairy#DMC Great Fairy Reward',
     },
@@ -69,7 +73,7 @@ CHECK_ACTOR_PATTERNS = {
 }
 PLACEMENT_REGIONS = frozenset({'FireTemple', 'ZoraRiver', 'ZoraDomain', 'ZoraFountain', 'IceCavern',
                                'InsideJabuJabuBelly', 'InsideTheDekuTree', 'ForestTemple', 'BottomOfTheWell',
-                               'ShadowTemple', 'Market'})
+                               'ShadowTemple', 'Market', 'HyruleCastle'})
 EVENT_ACTOR_FIELDS = {
     'MapIconFacilityAnchor': 'MapIconFacilityIsOpen',
     'HeartPieceAnchor': 'HeartPieceAnchor_GameDataPath',
@@ -265,7 +269,7 @@ def bind_catalogue(document, catalogue):
                   "Zora's Fountain": 'ZoraFountain', 'Ice Cavern': 'IceCavern',
                   "Inside Jabu-Jabu's Belly": 'InsideJabuJabuBelly', 'Inside the Deku Tree': 'InsideTheDekuTree',
                   'Forest Temple': 'ForestTemple', 'Bottom of the Well': 'BottomOfTheWell',
-                  'Shadow Temple': 'ShadowTemple', 'the Market': 'Market'})
+                  'Shadow Temple': 'ShadowTemple', 'the Market': 'Market', 'Hyrule Castle': 'HyruleCastle'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']

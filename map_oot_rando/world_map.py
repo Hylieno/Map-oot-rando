@@ -30,6 +30,7 @@ WORLD_PINS = {
     'ForestTemple': (.8656, .6039),
     'BottomOfTheWell': (.6610, .3741),
     'Market': (.4333, .3850),
+    'HyruleCastle': (.4259, .3128),
     'ShadowTemple': (.8012, .3182),
 }
 

@@ -16,6 +16,9 @@ OotrR après validation du marqueur de seed. Le lecteur de position réutilise
 l’adresse de module relocalisée par OotrR et vérifie les structures avant de
 publier la pose. Une lecture de position indisponible masque le marqueur.
 La navigation suivie réagit aux transitions de scène ou d’âge.
+Le Château d’Hyrule utilise la scène enfant. Les abords et la cour
+partagent les coordonnées natives, avec une vue distincte pour la cour
+située au-delà du plan publié. Le marqueur peut suivre ce passage.
 Le champ facultatif `entrance` indique où accéder à un check souterrain
 sur une carte de surface. Le rendu projette cet accès et les détails
 conservent la position XYZ de l’acteur.

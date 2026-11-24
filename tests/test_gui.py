@@ -587,6 +587,40 @@ class GuiTests(unittest.TestCase):
         app.open_neighbor('ZoraFountain')
         self.assertEqual(app.resource.get(), REGION_VIEWS['ZoraFountain']['Adult'])
 
+    def test_castle_child_passage_and_courtyard_survive_following_age(self):
+        from unittest.mock import patch
+        from map_oot_rando.scene import CASTLE_COURT, CASTLE_OUTSKIRTS, REGION_VIEWS
+
+        app = self.app
+        template = demo_document()
+        doc = dict(template, provenance='ootrr-scan', regions=['KokiriForest', 'Market', 'HyruleCastle'])
+        market = 'Banc/Market/Market_{}_Static.bcett.byml.zs'
+        castle = 'Banc/HyruleCastle/HyruleCastle_Static.bcett.byml.zs'
+        doc['locations'] = [dict(template['locations'][0], id='letter', resource=castle, position=(5, 128, -256))]
+        doc['scenes'] = {
+            market.format('Child'): {'rooms': [], 'points': [('Vers le Château d’Hyrule', (-2, -36))]},
+            market.format('Adult'): {'rooms': [], 'points': [('Place', (-2, -36))]},
+            castle: {'rooms': [], 'points': [('Vers la Citadelle d’Hyrule', (12, -10))]},
+        }
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        app.age_buttons['Adult'].invoke()
+        self.assertNotIn('HyruleCastle', app.available_neighbors())
+        self.assertIn('HyruleCastle', app.world_targets())
+        app.age_buttons['Child'].invoke()
+        app.open_neighbor('HyruleCastle')
+        self.assertEqual(app.resource.get(), CASTLE_OUTSKIRTS)
+        self.assertIn('Market', app.navigation_markers.values())
+        self.assertTrue(app.age_buttons['Adult'].instate(['disabled']))
+        app.floor_picker.set('Cour')
+        app.choose_floor(None)
+        app.save_age = 'Child'
+        app.sync_age()
+        self.assertEqual(app.resource.get(), CASTLE_COURT)
+        self.assertEqual([row.id for row in app.visible], ['letter'])
+        app.open_neighbor('Market')
+        self.assertEqual(app.resource.get(), REGION_VIEWS['Market']['Child'])
+
     def test_jabu_fountain_portal_and_room_selection(self):
         from unittest.mock import patch
         from map_oot_rando.scene import JABU_LEVELS, JABU_VIEWS, REGION_VIEWS

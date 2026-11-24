@@ -87,7 +87,9 @@ hors du fond** permet de les afficher ensemble.
 
 La Citadelle d’Hyrule se rejoint depuis la plaine. Les deux âges ont un
 plan distinct. Les jeux, les boutiques et la maison du garde reprennent
-les positions du jeu.
+les positions du jeu. Enfant, la Citadelle mène au Château d’Hyrule.
+Un plan représente les abords. La lettre de Zelda et les caisses de la
+cour ont leur propre vue schématique.
 
 ## Suivre la partie
 
