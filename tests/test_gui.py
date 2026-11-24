@@ -1215,25 +1215,30 @@ class GuiTests(unittest.TestCase):
     def test_spirit_temple_hand_portal_opens_the_upper_floor(self):
         from unittest.mock import patch
         from map_oot_rando.link_position import LinkPosition
-        from map_oot_rando.scene import REGION_VIEWS, SPIRIT_VIEWS
+        from map_oot_rando.scene import REGION_VIEWS, SPIRIT_ARRIVAL_STARTS, SPIRIT_VIEWS
 
         app = self.app
         outside, temple = 'DesertColossus', 'SpiritTemple'
         colossus = 'Banc/DesertColossus/DesertColossus_Adult_Dynamic.bcett.byml.zs'
         interior = 'Banc/SpiritTemple/SpiritTemple_Dynamic.bcett.byml.zs'
         hands = {'left': ((-165, -16), (56, 44)), 'right': ((-164, 37), (-56, 44))}
+        spawns = {'left': ((-165, -12), (56, 39)), 'right': ((-164, 33), (-56, 39))}
         doc = dict(demo_document(), provenance='ootrr-scan', regions=['KokiriForest', outside, temple],
                    locations=[], scenes={
                        colossus: {'rooms': [], 'points': [
                            ('Vers le Temple de l’Esprit', (-161, 10)),
                            *((f'spirit_temple_{hand}_hand_entrance', entry)
                              for hand, (entry, _) in hands.items()),
+                           *((SPIRIT_ARRIVAL_STARTS[f'spirit_temple_{hand}_hand_entrance'], spawn)
+                             for hand, (spawn, _) in spawns.items()),
                        ]},
                        interior: {'rooms': [], 'points': [('Vers le Colosse du désert', (0, 13))],
                                   'level_points': [
                                       (4, 'Arène de Twinrova', (0, -158)),
                                       *((2, f'{hand}_hand_entrance', entry)
                                         for hand, (_, entry) in hands.items()),
+                                      *((2, SPIRIT_ARRIVAL_STARTS[f'{hand}_hand_entrance'], spawn)
+                                        for hand, (_, spawn) in spawns.items()),
                                   ]},
                    })
         self.enterContext(patch.object(app, 'ensure_atlas'))
@@ -1251,13 +1256,13 @@ class GuiTests(unittest.TestCase):
             self.assertAlmostEqual((x0 + x1) / 2, x)
             self.assertAlmostEqual((y0 + y1) / 2, y)
 
-        for exterior, entrance in hands.values():
+        for hand, (exterior, entrance) in hands.items():
             click(exterior)
             self.assertEqual(app.resource.get(), SPIRIT_VIEWS[2])
-            check_arrival(entrance)
+            check_arrival(spawns[hand][1])
             click(entrance)
             self.assertEqual(app.resource.get(), REGION_VIEWS[outside]['Adult'])
-            check_arrival(exterior)
+            check_arrival(spawns[hand][0])
         app.open_neighbor(temple)
         self.assertEqual(app.resource.get(), SPIRIT_VIEWS[0])
         self.assertFalse(app.canvas.find_withtag('portal-arrival'))

@@ -28,7 +28,8 @@ La zone de clic regroupe les marqueurs de checks et de passages
 qu’elle touche. Un menu expose chaque action quand le clic est ambigu.
 Le symbole et le libellé d’un même passage partagent une action.
 Sur la carte de destination, l’anneau d’arrivée reprend l’ancre du
-passage de retour dans la vue sélectionnée.
+passage de retour dans la vue sélectionnée. Les mains du Colosse
+utilisent le point d’apparition du jeu quand il figure dans les métadonnées.
 
 Une recherche utilise les mêmes vues que les marqueurs. La sélection
 d’un résultat ajuste le zoom à la vue de destination et centre le

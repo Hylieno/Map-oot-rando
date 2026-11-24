@@ -30,7 +30,8 @@ def write_fixture(directory):
         floors = [{'TBox': [{'InstanceID': 987}] if number == floor else [],
                    'CollectSign': [{'InstanceID': 988}] if number == -1 else []}
                   for number in range(-1, 3)]
-        return resource({'WaterTemple': {'MinFloor': -1, 'Floor': floors}})
+        return dump({'endian': '<', 'version': 7,
+                     'root': {'WaterTemple': {'MinFloor': -1, 'Floor': floors}}})
 
     # Both package trees start at their own root in the directory table.
     directories = [(None, b''), (0, b'romfs'), (1, b'Pack'), (1, b'Banc'), (3, b'KokiriForest'),
@@ -43,8 +44,8 @@ def write_fixture(directory):
              (8, child_static, scene(updated_chest)),
              (8, b'KokiriForest_Adult_Dynamic.bcett.byml.zs', scene(adult_pot)),
              (9, b'WaterTemple_Static.bcett.byml.zs', scene(water_chest, water_skulltula)),
-             (10, b'MapParam.byml.zs', map_parameters(0)),
-             (11, b'MapParam.byml.zs', map_parameters(1))]
+             (10, b'MapParam.byml', map_parameters(0)),
+             (11, b'MapParam.byml.zs', compressor.compress(map_parameters(1)))]
     children_by_directory = [[] for _ in directories]
     for index, (parent, _) in enumerate(directories):
         if parent is not None:

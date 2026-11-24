@@ -34,12 +34,11 @@ def read_map_parameters(nup, members, dictionaries):
     from zstandard import ZstdError
 
     path = 'Banc/BancBasedResource/MapParam.byml'
-    for resource in (path, path + '.zs'):
-        if resource not in members:
-            continue
+    candidates = [members[resource] for resource in (path, path + '.zs') if resource in members]
+    for member in sorted(candidates, key=lambda entry: entry.partition('/')[0], reverse=True):
         try:
-            payload = nup.read(members[resource])
-            if resource.endswith('.zs'):
+            payload = nup.read(member)
+            if member.endswith('.zs'):
                 payload = decompress(payload, dictionaries)
             return Byml(payload).root
         except (OSError, ValueError, IndexError, struct.error, ZstdError):

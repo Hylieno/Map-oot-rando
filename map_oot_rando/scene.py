@@ -228,6 +228,12 @@ SIDE_PORTALS = {
         'right_hand_entrance': ('DesertColossus', None, 'Colosse · main droite', 'spirit_temple_right_hand_entrance'),
     },
 }
+SPIRIT_ARRIVAL_STARTS = {
+    'left_hand_entrance': 'SpiritTemple_FromLeftHand',
+    'right_hand_entrance': 'SpiritTemple_FromRightHand',
+    'spirit_temple_left_hand_entrance': 'DesertColossus_FromSpiritTempleLeftHand',
+    'spirit_temple_right_hand_entrance': 'DesertColossus_FromSpiritTempleRightHand',
+}
 KAKARIKO_ENTRANCES = {
     'HyruleField': 'Vers la plaine d’Hyrule',
     'DeathMountainTrail': 'Vers le Mont du Péril',
@@ -480,9 +486,12 @@ def spirit_level_points(sources):
         ('MapIconEntranceAnchor', 17977111214894828225): (2, 'left_hand_entrance'),
         ('DungeonRoomCenterAnchor', 8163808957952677095): (4, 'Arène de Twinrova'),
     }
+    anchors.update({('StartPos', name): (2, name) for portal, name in SPIRIT_ARRIVAL_STARTS.items()
+                    if portal in SIDE_PORTALS['SpiritTemple']})
     return {(*anchors[key], (position[0], position[2]))
             for source in sources.values() for actor in source['root'].get('Actors', ())
-            if (key := (actor.get('Gyaml'), actor.get('Hash'))) in anchors
+            if (kind := actor.get('Gyaml'))
+            and (key := (kind, actor.get('Name') if kind == 'StartPos' else actor.get('Hash'))) in anchors
             and (position := actor.get('Translate'))}
 
 
@@ -577,6 +586,9 @@ def projection_points(region, sources):
                 target = {'ZoraFountain_FromIceCavern': 'IceCavern',
                           'ZoraFountain_FromInsideJabuJabuBelly': 'InsideJabuJabuBelly'}.get(actor.get('Name'))
                 label = NEIGHBORS[region].get(target)
+            elif (region == 'DesertColossus' and gyaml == 'StartPos'
+                  and actor.get('Name') in SPIRIT_ARRIVAL_STARTS.values()):
+                label = actor['Name']
             elif region == 'SacredForestMeadow':
                 label = GROVE_ANCHORS.get(gyaml)
                 if gyaml in {'Land_SacredForest_Prop_A_33', 'Land_SacredForest_Prop_A_41'}:
