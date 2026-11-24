@@ -1,5 +1,8 @@
 # Validation
 
+Les dix traversées entre la rivière, le Domaine, la Fontaine et le lac
+ont été vérifiées avec les fonds et les scènes publiques.
+
 Les dix traversées entre la vallée Gerudo, la forteresse, le centre
 d’entraînement, le Désert hanté et le Colosse ont été vérifiées
 avec les scènes publiques et leurs fonds.

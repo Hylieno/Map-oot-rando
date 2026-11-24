@@ -1,5 +1,8 @@
 # Checkpoint — 24 novembre 2026
 
+Le Domaine Zora indique les arrivées depuis la rivière, la Fontaine
+et le lac Hylia, dans les deux sens.
+
 La route Gerudo entre la vallée et le Colosse indique les arrivées
 de la forteresse, du désert et du centre d’entraînement.
 

@@ -68,8 +68,9 @@ pour choisir le check ou la destination. La rivière Zora est reliée
 à la plaine d’Hyrule et affiche ses checks enfant et adulte. Le coffre et les pots
 en grotte sont indiqués à leur entrée en surface. Le Domaine Zora se rejoint
 depuis la rivière. Ses checks incluent les rayons de la boutique et le mini-jeu
-de plongeon. Les variantes adultes partagent la même vue. Le Domaine donne
-accès à la Fontaine Zora, avec un plan Field Atlas par âge et un repère de
+de plongeon. Les variantes adultes partagent la même vue. Les passages
+du Domaine vers la rivière, la Fontaine et le lac indiquent leurs
+points d’arrivée. La Fontaine utilise un plan Field Atlas par âge et un repère de
 passage pour les checks derrière la paroi. La Caverne de glace est
 reliée à la vue adulte de la Fontaine et possède son propre plan.
 Ses deux passages se choisissent depuis la carte, avec un point

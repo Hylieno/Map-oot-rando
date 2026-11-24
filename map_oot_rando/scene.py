@@ -291,6 +291,12 @@ PORTAL_ARRIVAL_STARTS = {
     ('GerudoValley', NEIGHBORS['GerudoValley']['GerudoFortress']): ('GerudoValley_FromGerudoFortress',),
     ('GerudoFortress', NEIGHBORS['GerudoFortress']['GerudoTrainingGround']): ('GerudoFortress_FromGerudoTrainingGround',),
     ('GerudoTrainingGround', NEIGHBORS['GerudoTrainingGround']['GerudoFortress']): ('GerudoTrainingGround_FromGerudoFortress',),
+    ('ZoraRiver', NEIGHBORS['ZoraRiver']['ZoraDomain']): ('ZoraRiver_FromZoraDomain',),
+    ('ZoraDomain', NEIGHBORS['ZoraDomain']['ZoraRiver']): ('ZoraDomain_FromZoraRiver',),
+    ('ZoraFountain', NEIGHBORS['ZoraFountain']['ZoraDomain']): ('ZoraFountain_FromZoraDomain',),
+    ('ZoraDomain', NEIGHBORS['ZoraDomain']['ZoraFountain']): ('ZoraDomain_FromZoraFountain',),
+    ('LakeHylia', NEIGHBORS['LakeHylia']['ZoraDomain']): ('ZoraLakeHylia_FromZoraDomain',),
+    ('ZoraDomain', NEIGHBORS['ZoraDomain']['LakeHylia']): ('ZoraDomain_FromLakeHylia',),
 }
 PORTAL_START_NAMES = {}
 for (zone, _), names in PORTAL_ARRIVAL_STARTS.items():
