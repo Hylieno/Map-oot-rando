@@ -2,6 +2,8 @@
 
 Le lit de Link, le réveil à Kokiri et l’entrée du défi des boss
 indiquent leurs points d’arrivée dans le Monde des rêves et la forêt.
+Le passage entre le Temple du Temps et la Chambre des Sages affiche
+les arrivées de la cinématique, avec un retour dans la vue adulte.
 
 L’audit des scènes publiques place 1 100 des 1 103 checks du catalogue
 de référence. Les nouveaux emplacements couvrent le cratère du Péril,

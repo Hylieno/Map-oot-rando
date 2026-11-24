@@ -3,6 +3,9 @@
 Les trois trajets du Monde des rêves ont été vérifiés dans Tk avec les
 scènes publiques. Le réveil a été vérifié aux deux âges. Le test
 vérifie aussi l’anneau d’arrivée dans la salle intermédiaire.
+Le passage Temple du Temps–Chambre des Sages a été vérifié dans
+les deux sens aux coordonnées de la cinématique. Une position de Link
+simulée à chaque arrivée s’affiche sur la vue attendue.
 
 Le coffre du plafond caché a été sélectionné dans le catalogue de
 référence. Son marqueur et celui de Link s’affichent sur la passerelle.

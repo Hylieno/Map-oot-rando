@@ -181,6 +181,7 @@ Les passages de la Citadelle vers le Château d’Hyrule et le Château
 de Ganon indiquent aussi les points d’arrivée.
 Sur la carte du temple, le piédestal de l’épée ouvre la Chambre des
 Sages. Le repère au centre de la plateforme permet de revenir au temple.
+Les deux vues indiquent les points d’arrivée de la cinématique.
 Dans la forêt Kokiri, le lit de Link mène à la carte du Monde des rêves.
 Au musée, le repère de l’organisateur propose le retour à Kokiri
 ou la salle intermédiaire du défi des boss.

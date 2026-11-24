@@ -1321,21 +1321,25 @@ class GuiTests(unittest.TestCase):
         self.assertEqual([row.id for row in app.visible], ['sword'])
         self.assertIn(market, app.navigation_markers.values())
 
-        def click_portal(point, target):
+        def click_portal(point, target, arrival):
             x, y = app.viewport.screen((point[0], point[2]))
             with patch.object(app, 'post_marker_menu') as popup:
                 app.press(SimpleNamespace(x=round(x), y=round(y), x_root=50, y_root=50))
             popup.assert_called_once_with(50, 50)
             self.assertEqual(app.marker_menu.entrycget(1, 'label'), REGION_NAMES[target])
             app.marker_menu.invoke(1)
-            self.assertTrue(app.canvas.find_withtag('portal-arrival'))
+            ring, = app.canvas.find_withtag('portal-arrival')
+            left, top, right, bottom = app.canvas.coords(ring)
+            x, y = app.viewport.screen(arrival)
+            self.assertAlmostEqual((left + right) / 2, x)
+            self.assertAlmostEqual((top + bottom) / 2, y)
 
-        click_portal(pedestal, sages)
+        click_portal(pedestal, sages, (-0.029999999329447746, 0))
         self.assertEqual(app.resource.get(), REGION_VIEWS[sages][None])
         app.update_link(LinkPosition(sages, 'Adult', 0, 100, 0, 0))
         self.assertEqual(app.resource.get(), REGION_VIEWS[sages][None])
         self.assertEqual([row.id for row in app.visible], ['pocket'])
-        click_portal(platform, temple)
+        click_portal(platform, temple, (120.91000366210938, -26.65999984741211))
         self.assertEqual(app.resource.get(), REGION_VIEWS[temple]['Adult'])
         app.update_link(LinkPosition(market, 'Child', 64, 103, -34, 0))
         self.assertEqual(app.resource.get(), REGION_VIEWS[temple]['Child'])

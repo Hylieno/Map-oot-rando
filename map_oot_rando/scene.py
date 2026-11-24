@@ -221,6 +221,8 @@ GRAVE_TO_WINDMILL = 'Passage vers le moulin'
 GRAVE_TO_TOMB = 'Entrée de la tombe de Dampé'
 TOMB_TO_GRAVE = 'Remontée vers le cimetière'
 DREAM_CHALLENGE_ARRIVAL = 'Arrivée du défi'
+SAGE_ROOM_ARRIVAL = 'Arrivée dans la Chambre des Sages'
+TEMPLE_SAGE_RETURN = 'Retour de la Chambre des Sages'
 SIDE_PORTALS = {
     'GerudoTrainingGround': {
         TRAINING_TO_WALKWAY: ('GerudoTrainingGround', TRAINING_VIEWS[1], 'Passerelle', TRAINING_TO_STATUE),
@@ -273,6 +275,8 @@ PORTAL_ARRIVAL_STARTS = {
     ('KokiriForest', NEIGHBORS['KokiriForest']['DreamWorld']): ('ReturnFromDreamWorld',),
     ('DreamWorld', NEIGHBORS['DreamWorld']['KokiriForest']): ('EnemyMusuem',),
     ('DreamWorld', DREAM_CHALLENGE_ARRIVAL): ('BossRush',),
+    ('SageRoom', NEIGHBORS['SageRoom']['TempleOfTime']): (SAGE_ROOM_ARRIVAL,),
+    ('TempleOfTime', NEIGHBORS['TempleOfTime']['SageRoom']): (TEMPLE_SAGE_RETURN,),
     ('SacredForestMeadow', NEIGHBORS['SacredForestMeadow']['ForestTemple']): ('OutsideOfForestTemple',),
     ('ForestTemple', NEIGHBORS['ForestTemple']['SacredForestMeadow']): ('ForestTemple',),
     ('DesertColossus', NEIGHBORS['DesertColossus']['SpiritTemple']): ('DesertColossus_FromSpiritTempleEntrance',),
@@ -810,11 +814,17 @@ def projection_points(region, sources):
                     points.add((NEIGHBORS['TempleOfTime'][region], point))
             elif region == 'Market' and gyaml in TEMPLE_LANDMARKS:
                 label = TEMPLE_LANDMARKS[gyaml]
+                if (gyaml == 'Obj_TimeTemple_MasterSwordBase_A_01'
+                        and MARKET_VIEW_AGES.get(view_name(path)) == 'Adult'):
+                    # DoorOfTime.SageRoom_MeetRauru returns Link inside the adult temple.
+                    points.add((TEMPLE_SAGE_RETURN, (120.91000366210938, -26.65999984741211)))
             elif region == 'SageRoom':
                 if gyaml == 'EftLoc_SageRoom_LightPillar_00':
                     label = 'Pilier de lumière'
                 elif gyaml == 'StartPos' and not actor.get('Name'):
                     label = NEIGHBORS[region]['TempleOfTime']
+                    # DoorOfTime_Draw has an explicit arrival, without a named StartPos.
+                    points.add((SAGE_ROOM_ARRIVAL, (-0.029999999329447746, 0.0)))
             elif region == 'DreamWorld':
                 if gyaml == 'StartPos' and actor.get('Name') == 'BossRush':
                     label = DREAM_CHALLENGE_ARRIVAL
