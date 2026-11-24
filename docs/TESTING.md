@@ -5,6 +5,10 @@ identifiant d’acteur. Les 95 coffres repérés dans cette table et
 affichés sur un plan Field Atlas se trouvent à l’étage attendu.
 Le contrôle porte sur l’étage. Les écarts au contour dessiné
 figurent dans le diagnostic des fonds chargés.
+Le NUP synthétique vérifie la priorité de `MapParam` de la mise à jour
+et l’ouverture du plan correspondant au coffre dans la fenêtre.
+Le test d’export couvre aussi les étages sous le rez-de-chaussée et
+le retour aux règles de salle quand deux étages se contredisent.
 
 Le test du Monde des rêves choisit les deux destinations de
 l’organisateur depuis le symbole et son libellé. L’aller-retour

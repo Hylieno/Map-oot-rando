@@ -7,7 +7,7 @@ import struct
 import subprocess
 import sys
 
-from .metadata import (add_dungeon_rooms, add_surface_entrances, bind_catalogue,
+from .metadata import (add_dungeon_rooms, add_native_chest_floors, add_surface_entrances, bind_catalogue,
                        event_check_rows, export_scan, placed_check_rows, world_check_rows)
 from .model import REGION_NAMES, SURFACE_MIN_Y, UPSTREAM_REVISION, resource_region
 from .scene import extract_scenes
@@ -25,8 +25,27 @@ def verify_checkout(directory):
 
 def map_capture_catalogue(members):
     """Report candidate image/projection resource names, without exporting assets."""
-    candidates = re.compile(r'mapcapture|mapmenu|minimap|areamap|fieldmap', re.IGNORECASE)
+    candidates = re.compile(r'mapcapture|mapmenu|minimap|areamap|fieldmap|mapparam', re.IGNORECASE)
     return sorted(path for path in members if candidates.search(path))
+
+
+def read_map_parameters(nup, members, dictionaries):
+    from oot_rando.formats.inspect_resources import Byml, decompress
+    from zstandard import ZstdError
+
+    path = 'Banc/BancBasedResource/MapParam.byml'
+    for resource in (path, path + '.zs'):
+        if resource not in members:
+            continue
+        try:
+            payload = nup.read(members[resource])
+            if resource.endswith('.zs'):
+                payload = decompress(payload, dictionaries)
+            return Byml(payload).root
+        except (OSError, ValueError, IndexError, struct.error, ZstdError):
+            # The floor table is optional. Older exports use room and height rules.
+            continue
+    return {}
 
 
 def scan_game(path, progress=None, world_checks=(), placement_checks=()):
@@ -40,7 +59,9 @@ def scan_game(path, progress=None, world_checks=(), placement_checks=()):
     nup = Nup(path)
     with nup.stream:
         members = effective_members(nup)
-        maps, groups, _, extra = scan_world(nup, dictionaries(nup), members, progress)
+        compression = dictionaries(nup)
+        maps, groups, _, extra = scan_world(nup, compression, members, progress)
+        map_parameters = read_map_parameters(nup, members, compression)
     document = export_scan(groups, extra, provenance='ootrr-scan', regions=tuple(REGION_NAMES))
 
     def eligible(path, actor):
@@ -53,6 +74,7 @@ def scan_game(path, progress=None, world_checks=(), placement_checks=()):
         document['locations'].extend(placed_check_rows(maps, placement_checks, document['locations'], eligible))
     add_surface_entrances(document['locations'], maps)
     add_dungeon_rooms(document['locations'], maps)
+    add_native_chest_floors(document['locations'], map_parameters)
     for row in document['locations']:
         level = SURFACE_MIN_Y.get(resource_region(row['resource']))
         if level is not None and row['position'] is not None and row['position'][1] < level:

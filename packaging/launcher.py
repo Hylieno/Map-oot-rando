@@ -5,7 +5,7 @@ import sys
 from map_oot_rando.__main__ import main
 from map_oot_rando.export import import_seed
 from map_oot_rando.model import load_metadata
-from map_oot_rando.scene import AGE_VIEWS, location_view
+from map_oot_rando.scene import AGE_VIEWS, WATER_VIEWS, location_view
 
 
 if __name__ == '__main__':
@@ -19,7 +19,8 @@ if __name__ == '__main__':
         checks = [(row.id, row.position, location_view(row)) for row in load_metadata(document)]
         expected = [('KokiriForest#123', (18, 107, -7.5), AGE_VIEWS['Child']),
                     ('KokiriForest#pots#321', (14, 106, -3), AGE_VIEWS['Child']),
-                    ('KokiriForest#pots#322', (16, 108, -8), AGE_VIEWS['Adult'])]
+                    ('KokiriForest#pots#322', (16, 108, -8), AGE_VIEWS['Adult']),
+                    ('WaterTemple#987', (55.5, 119, -9.5), WATER_VIEWS[1])]
         sys.exit(0 if checks == expected and not document['diagnostics'] else 1)
     if len(sys.argv) == 4 and sys.argv[1] == '--check-bundled-gui':
         from tkinter import Tk
@@ -48,6 +49,12 @@ if __name__ == '__main__':
             root.update()
             adult_markers = {app.markers[item].id for item in app.canvas.find_withtag('check-pin')}
             if app.resource.get() != AGE_VIEWS['Adult'] or adult_markers != {'KokiriForest#pots#322'} or callback_errors:
+                sys.exit(1)
+            app.query.set('WaterTemple#987')
+            app.choose_first()
+            root.update()
+            dungeon_markers = {app.markers[item].id for item in app.canvas.find_withtag('check-pin')}
+            if app.resource.get() != WATER_VIEWS[1] or dungeon_markers != {'WaterTemple#987'} or callback_errors:
                 sys.exit(1)
         finally:
             root.destroy()

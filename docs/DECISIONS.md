@@ -1,5 +1,8 @@
 # Décisions
 
+- Étages des coffres. Une association unique dans `MapParam` détermine
+  le plan affiché. Les coordonnées viennent toujours de l’acteur de scène.
+
 - Monde des rêves. Le dialogue de l’organisateur déclenche le réveil
   de Link. Le menu du repère affiche le retour à Kokiri et l’accès au défi.
 

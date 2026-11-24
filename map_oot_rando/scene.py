@@ -148,6 +148,7 @@ VIEWS.update({view: (region, age) for region, ages in UNDERGROUND_VIEWS.items()
               for age, view in ages.items()})
 VIEWS.update({view: ('GoronCity', age) for age, views in GORON_VIEWS.items() for view in views})
 VIEWS.update({view: (region, None) for region, floors in DUNGEON_FLOORS.items() for _, view in floors})
+NATIVE_FLOOR_VIEWS = {(VIEWS[view][0], key): view for view, key in DUNGEON_ATLAS_KEYS.items()}
 NEIGHBORS = {
     'KokiriForest': {'LostWood': 'front_of_lost_wood_entrance',
                      'HyruleField': 'front_of_hyrule_field_entrance',
@@ -808,6 +809,12 @@ def view_name(resource):
 
 def location_view(row):
     view = view_name(row.resource)
+    if row.dungeon_floor is not None and view in VIEWS:
+        floor = row.dungeon_floor
+        key = f'{floor + 1}F' if floor >= 0 else f'S{-floor}'
+        native_view = NATIVE_FLOOR_VIEWS.get((VIEWS[view][0], key))
+        if native_view:
+            return native_view
     if view in KOKIRI_VIEW_AGES and row.position is not None and kokiri_bridge_position(row.project()):
         return REGION_VIEWS['KokiriBridge'][KOKIRI_VIEW_AGES[view]]
     if view in FIELD_VIEW_AGES and row.position is not None:

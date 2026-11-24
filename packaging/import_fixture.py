@@ -17,19 +17,31 @@ def write_fixture(directory):
     pot = {'Gyaml': 'Obj_Pot_A_01', 'Hash': 321, 'Translate': [14.0, 106.0, -3.0]}
     updated_chest = dict(chest, Translate=[18.0, 107.0, -7.5])
     adult_pot = dict(pot, Hash=322, Translate=[16.0, 108.0, -8.0])
+    water_chest = dict(chest, Hash=987, Translate=[55.5, 119.0, -9.5])
+
+    def resource(data):
+        return compressor.compress(dump({'endian': '<', 'version': 7, 'root': data}))
 
     def scene(actor):
-        return compressor.compress(dump({'endian': '<', 'version': 7, 'root': {'Actors': [actor]}}))
+        return resource({'Actors': [actor]})
+
+    def map_parameters(floor):
+        floors = [{'TBox': [{'InstanceID': 987}] if number == floor else []} for number in range(-1, 3)]
+        return resource({'WaterTemple': {'MinFloor': -1, 'Floor': floors}})
 
     # Both package trees start at their own root in the directory table.
     directories = [(None, b''), (0, b'romfs'), (1, b'Pack'), (1, b'Banc'), (3, b'KokiriForest'),
-                   (None, b''), (5, b'romfs'), (6, b'Banc'), (7, b'KokiriForest')]
+                   (None, b''), (5, b'romfs'), (6, b'Banc'), (7, b'KokiriForest'),
+                   (3, b'WaterTemple'), (3, b'BancBasedResource'), (7, b'BancBasedResource')]
     child_static = b'KokiriForest_Child_Static.bcett.byml.zs'
     files = [(2, b'ZsDic.pack.zs', compressor.compress(build_sarc({}))),
              (4, child_static, scene(chest)),
              (4, b'KokiriForest_Child_Dynamic.bcett.byml.zs', scene(pot)),
              (8, child_static, scene(updated_chest)),
-             (8, b'KokiriForest_Adult_Dynamic.bcett.byml.zs', scene(adult_pot))]
+             (8, b'KokiriForest_Adult_Dynamic.bcett.byml.zs', scene(adult_pot)),
+             (9, b'WaterTemple_Static.bcett.byml.zs', scene(water_chest)),
+             (10, b'MapParam.byml.zs', map_parameters(0)),
+             (11, b'MapParam.byml.zs', map_parameters(1))]
     children_by_directory = [[] for _ in directories]
     for index, (parent, _) in enumerate(directories):
         if parent is not None:
@@ -62,7 +74,8 @@ def write_fixture(directory):
     (directory / 'synthetic.nup').write_bytes(header + body + toc)
     checks = [{'id': 'KokiriForest#123', 'name': 'Fixture chest', 'category': 'full_chests'},
               {'id': 'KokiriForest#pots#321', 'name': 'Fixture pot', 'category': 'full_pots'},
-              {'id': 'KokiriForest#pots#322', 'name': 'Fixture adult pot', 'category': 'full_pots'}]
+              {'id': 'KokiriForest#pots#322', 'name': 'Fixture adult pot', 'category': 'full_pots'},
+              {'id': 'WaterTemple#987', 'name': 'Fixture Water Temple chest', 'category': 'full_chests'}]
     catalogue = {'schema_version': 1, 'seed_id': 'portable-test', 'checks': checks}
     (directory / 'checks.json').write_text(json.dumps(catalogue), encoding='utf-8')
 

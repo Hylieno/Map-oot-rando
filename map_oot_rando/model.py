@@ -67,6 +67,7 @@ class Location:
     entrance: tuple[float, float, float] | None = None
     underground: bool = False
     dungeon_room: int | None = None
+    dungeon_floor: int | None = None
 
     def project(self):
         """Raw X/Z plan, +Z downward; Y retained, orientation unverified in game."""
@@ -117,8 +118,11 @@ def load_metadata(document):
         dungeon_room = row.get('dungeon_room')
         if dungeon_room is not None and (type(dungeon_room) is not int or dungeon_room < 0 or position is None):
             raise ValueError('Salle de donjon invalide')
+        dungeon_floor = row.get('dungeon_floor')
+        if dungeon_floor is not None and (type(dungeon_floor) is not int or position is None):
+            raise ValueError('Étage de donjon invalide')
         location = Location(row['id'], row['name'], row['category'], row['resource'],
-                            position, alias, region, entrance, underground, dungeon_room)
+                            position, alias, region, entrance, underground, dungeon_room, dungeon_floor)
         # The tracker identifies the check, while the scan may report multiple
         # placements in a single resource. Collapse only identical records.
         if location not in seen:

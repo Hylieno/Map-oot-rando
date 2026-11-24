@@ -173,6 +173,34 @@ def add_dungeon_rooms(rows, maps):
                 row['dungeon_room'] = next(iter(indices))
 
 
+def add_native_chest_floors(rows, map_parameters):
+    """Use the game's minimap chest index to resolve an explicit floor by actor ID."""
+    if not isinstance(map_parameters, dict):
+        return
+    indexed = {}
+    for region, data in map_parameters.items():
+        if not isinstance(data, dict):
+            continue
+        first = data.get('MinFloor')
+        floors = data.get('Floor')
+        if type(first) is not int or not isinstance(floors, list):
+            continue
+        for number, floor in enumerate(floors, start=first):
+            boxes = floor.get('TBox') if isinstance(floor, dict) else None
+            if not isinstance(boxes, list):
+                continue
+            for box in boxes:
+                ident = box.get('InstanceID') if isinstance(box, dict) else None
+                if type(ident) is int and ident >= 0:
+                    indexed.setdefault((region, str(ident)), set()).add(number)
+    for row in rows:
+        region, sep, suffix = row['id'].partition('#')
+        if sep and row['position'] is not None and region == resource_region(row['resource']):
+            floors = indexed.get((region, suffix.partition('#')[0]), ())
+            if len(floors) == 1:
+                row['dungeon_floor'] = next(iter(floors))
+
+
 def add_surface_entrances(rows, maps):
     """Place the surface marker at the known entrance of a buried check."""
     entrance_ids = {key for keys in GROTTO_ENTRANCE_ACTORS.values() for key in keys}

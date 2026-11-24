@@ -1,5 +1,11 @@
 # Architecture et audit initial
 
+L’import lit la table facultative `MapParam` de la version effective du
+NUP. Les coffres sont associés à un étage par leur identifiant d’acteur.
+Le champ facultatif `dungeon_floor` indique le numéro du jeu. Le rendu
+utilise cet étage quand il correspond à un plan Field Atlas. Les cartes
+plus anciennes utilisent le numéro de salle et la hauteur.
+
 Au musée du Monde des rêves, le même acteur fournit les repères
 pour le défi et le retour vers le lit de Link. Les passages qui
 partagent un point ouvrent le même menu depuis le symbole et le libellé.
