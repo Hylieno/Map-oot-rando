@@ -1,5 +1,9 @@
 # Décisions
 
+- Liaisons du centre d’entraînement. Une liaison utilise exactement
+  deux centres de salle et leur porte. Le dessin indique la connexion
+  des salles et la position des portes dans le repère du jeu.
+
 - Pont de Kokiri. Les appuis du pont et les accès de la scène guident
   le schéma. La branche ouest des Bois Perdus utilise son propre repère.
   Les deux placements du coffre gardent le même identifiant OotrR.

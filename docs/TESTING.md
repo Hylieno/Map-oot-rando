@@ -1,5 +1,9 @@
 # Validation
 
+Le test du centre d’entraînement vérifie qu’une liaison retient
+les deux centres et la position exacte de la porte après sauvegarde
+et relecture. Une porte ambiguë est écartée.
+
 Les coffres des Stalfos, du Beamos et du bassin sont liés à leurs
 récompenses natives. Le test couvre la priorité d’une position
 directe et le cas où le coffre attendu est absent du scan.

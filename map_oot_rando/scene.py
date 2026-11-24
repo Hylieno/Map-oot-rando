@@ -398,6 +398,37 @@ TRAINING_ROOM_ANCHORS = {
 TRAINING_WALKWAY_ANCHORS = {
     11618577540114259236: 'Passerelle nord',
 }
+# Door actors between the corresponding native room centers. The elevated
+# door from the statue room to the maze walkway is outside this ground plan.
+TRAINING_DOORS = {
+    17271596773795074407: (3761826239942057234, 327131091130935122),
+    4403590790470660495: (327131091130935122, 9317343157379008028),
+    10001376845054106600: (9317343157379008028, 11763036527684746970),
+    2287906140519484787: (11763036527684746970, 7291217069696259205),
+    6126832166241244381: (11763036527684746970, 9501065223924577612),
+    2835828381713371595: (9501065223924577612, 1504970528840633775),
+    13905333383293071313: (1504970528840633775, 12371614488659450539),
+    14579251759478588816: (12371614488659450539, 12866839950667688328),
+    9340986794564645500: (12371614488659450539, 13258869565676702196),
+    1845019500144608623: (13258869565676702196, 3761826239942057234),
+    5885932930990178582: (12371614488659450539, 13588342684847587321),
+    2788856171788874734: (13588342684847587321, 3761826239942057234),
+}
+
+
+def training_connections(sources):
+    anchors = {}
+    for source in sources.values():
+        for actor in source['root'].get('Actors', ()):
+            ident = actor.get('Hash')
+            kind = actor.get('Gyaml')
+            if ((kind == 'DungeonRoomCenterAnchor' and ident in TRAINING_ROOM_ANCHORS)
+                    or (kind == 'Obj_Gerudo_SwitchShutter_A_04' and ident in TRAINING_DOORS)):
+                if position := actor.get('Translate'):
+                    anchors.setdefault(ident, set()).add((position[0], position[2]))
+    unique = {ident: next(iter(points)) for ident, points in anchors.items() if len(points) == 1}
+    return {('Liaisons entre les salles', (unique[start], unique[door], unique[end]))
+            for door, (start, end) in TRAINING_DOORS.items() if {start, door, end} <= unique.keys()}
 
 
 def ganon_dungeon_floor(position):
@@ -687,7 +718,8 @@ def extract_scenes(maps, landmarks):
                 rooms.append(('Salle intermédiaire', (x - dx, z - dz), (x + dx, z + dz)))
         extract_levels = LEVEL_POINT_EXTRACTORS.get(region)
         levels = extract_levels(sources) if extract_levels else ()
-        routes = guide_routes(sources) if region == 'HountedWasteland' else ()
+        route_extractor = {'HountedWasteland': guide_routes, 'GerudoTrainingGround': training_connections}.get(region)
+        routes = route_extractor(sources) if route_extractor else ()
         if rooms or points or levels or routes:
             scene = {'rooms': rooms, 'points': sorted(points)}
             if levels:

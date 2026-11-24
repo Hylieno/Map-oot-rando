@@ -1,5 +1,8 @@
 # Checkpoint — 24 novembre 2026
 
+Le plan du centre d’entraînement Gerudo trace les liaisons entre
+salles et passe par les portes du jeu.
+
 Trois entrées historiques du centre d’entraînement Gerudo reprennent
 les positions de leurs coffres dans le remake. Le build de ce jalon
 inclut le suivi de Link lors d’un changement de vue dans une même scène.

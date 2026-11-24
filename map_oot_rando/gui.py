@@ -23,7 +23,7 @@ from .scene import (BURNT_VILLAGE, CASTLE_COURT, DREAM_SCENE_VIEWS, DUNGEON_ATLA
                     FIRE_VIEWS, FLOOR_OPTIONS,
                     FOUNTAIN_DUNGEON_AGES, GANON_DUNGEON_VIEWS, GANON_ESCAPE, MARKET_CASTLE_AGES,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
-                    GORON_LEVELS, GORON_VIEWS,
+                    GORON_LEVELS, GORON_VIEWS, GUIDE_ROUTE,
                     NEIGHBORS, REGION_VIEWS, SHARED_DUNGEONS, SIDE_PORTALS, TRAINING_VIEWS,
                     UNDERGROUND_LABELS, UNDERGROUND_VIEWS, VIEWS,
                     castle_view, field_area, field_atlas_scene, group_scenes, kokiri_bridge_position,
@@ -1122,11 +1122,13 @@ class MapApplication:
                                              outline='#7bb6ce', width=2, tags='scene')
                 captions.append((label, (x1 + x2) / 2, min(y1, y2) - 10))
             routes = scene.get('routes', ())
-            for _, route in routes:
+            for title, route in routes:
                 coordinates = [coordinate for point in route for coordinate in self.viewport.screen(point)]
-                self.canvas.create_line(*coordinates, fill='#332d25', width=8,
+                guide = title == GUIDE_ROUTE
+                self.canvas.create_line(*coordinates, fill='#332d25' if guide else '#7bb6ce', width=8,
                                         capstyle='round', joinstyle='round', tags='scene-route')
-                self.canvas.create_line(*coordinates, fill='#ffe19b', width=3, arrow='last',
+                self.canvas.create_line(*coordinates, fill='#ffe19b' if guide else '#1f5577',
+                                        width=3 if guide else 6, arrow='last' if guide else 'none',
                                         capstyle='round', joinstyle='round', tags='scene-route')
             for label, point in scene['points']:
                 if label in exits:
