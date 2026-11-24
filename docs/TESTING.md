@@ -1,5 +1,9 @@
 # Validation
 
+Le test Tk traverse le raccourci du moulin dans les deux sens, vérifie
+sa disponibilité à l’âge adulte et affiche Link dans les souterrains
+du cimetière à partir de sa hauteur.
+
 Les six traversées reliant la Citadelle aux deux châteaux et les
 abords du Château de Ganon à son intérieur ont été vérifiées avec
 les scènes publiques et leurs plans.

@@ -110,6 +110,10 @@ de scène pour les différencier dans le même dossier Banc.
 chaque repère de la tour à un niveau. Les coordonnées X/Z se superposent
 entre étages. Le coffre de clé utilise son numéro de salle et le suivi
 de Link utilise la hauteur dans l’emprise de la tour.
+Le passage adulte entre le moulin et la tombe de Dampé utilise les
+événements de scène et leurs points d’arrivée natifs. Le regroupement
+place les repères côté cimetière dans la vue souterraine que le suivi
+de Link choisit à partir de sa hauteur.
 Le champ facultatif `entrance` indique où accéder à un check souterrain
 sur une carte de surface. Le rendu projette cet accès et les détails
 conservent la position XYZ de l’acteur.

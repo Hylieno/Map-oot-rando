@@ -94,6 +94,9 @@ Le [cimetière](https://oot.gousse.cool/graveyard) a aussi un fond Field Atlas.
 **Souterrains** ouvre les checks enfouis dans une vue schématique. La recherche
 indique la destination des checks situés dans une autre vue. Sélectionne
 un résultat pour centrer son marqueur, même si le fond se charge ensuite.
+En vue adulte, le passage du moulin de Cocorico ouvre la tombe de Dampé
+dans les souterrains du cimetière. Le raccourci indique l’arrivée dans les
+deux sens.
 Le mont du Péril est accessible depuis Cocorico. Le fond
 [Field Atlas du sentier](https://oot.gousse.cool/death-mountain-trail) est
 aligné pour les deux âges. **Souterrains** ouvre les checks en grotte.

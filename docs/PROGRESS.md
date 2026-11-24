@@ -1,5 +1,8 @@
 # Checkpoint — 24 novembre 2026
 
+En vue adulte, le moulin de Cocorico mène aux souterrains du cimetière.
+Chaque sens indique le point d’arrivée du jeu.
+
 La Citadelle, le Château d’Hyrule et le Château de Ganon indiquent
 leurs points d’arrivée respectifs. Le passage vers l’intérieur du
 château de Ganon indique aussi son arrivée dans les deux sens.

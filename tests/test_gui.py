@@ -605,6 +605,46 @@ class GuiTests(unittest.TestCase):
         app.open_neighbor('DeathMountainTrail')
         self.assertEqual(app.resource.get(), REGION_VIEWS['DeathMountainTrail']['Child'])
 
+    def test_adult_windmill_opens_the_graveyard_underground_view(self):
+        from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
+        from map_oot_rando.scene import REGION_VIEWS, UNDERGROUND_VIEWS, extract_scenes
+
+        app = self.app
+        village, graveyard = 'KakarikoVillage', 'Graveyard'
+        names = {village: 'KakarikoWindmill_GraveYardSide', graveyard: 'GraveYard_KakarikoWindmillSide'}
+        gates = {village: (29, 113, 44), graveyard: (-41, 99, 78)}
+        spawns = {village: (13, 108, 44), graveyard: (-29, 88, 78)}
+        maps = {f'Banc/{region}/{region}_Adult_Static.bcett.byml.zs': {'root': {'Actors': [
+            dict(Gyaml='FieldAndDungeonEntranceEventRequestActor', Name=names[region], Translate=gates[region]),
+            dict(Gyaml='StartPos', Name=names[region], Translate=spawns[region]),
+        ]}} for region in names}
+        scenes = extract_scenes(maps, lambda _: {})
+        scenes[REGION_VIEWS[village]['Child']] = {'rooms': [], 'points': []}
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=['KokiriForest', village, graveyard],
+                   locations=[], scenes=scenes)
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        self.assertEqual(app.resource.get(), REGION_VIEWS[village]['Child'])
+        self.assertFalse(app.canvas.find_withtag('zone-navigation'))
+        app.age_buttons['Adult'].invoke()
+
+        def cross(target):
+            marker, = app.canvas.find_withtag('zone-navigation')
+            left, top, right, bottom = app.canvas.bbox(marker)
+            self.assertEqual(app.navigation_markers[marker], target)
+            app.press(SimpleNamespace(x=(left+right)//2, y=(top+bottom)//2))
+            line, = app.canvas.find_withtag('portal-approach')
+            x, _, z = spawns[target]
+            self.assertEqual(tuple(app.canvas.coords(line)[-2:]), app.viewport.screen((x, z)))
+
+        cross(graveyard)
+        self.assertEqual(app.resource.get(), UNDERGROUND_VIEWS[graveyard]['Adult'])
+        app.update_link(LinkPosition(graveyard, 'Adult', *spawns[graveyard], 0))
+        self.assertTrue(app.canvas.find_withtag('player-pin'))
+        cross(village)
+        self.assertEqual(app.resource.get(), REGION_VIEWS[village]['Adult'])
+
     def test_crater_link_returns_to_goron_ground_floor(self):
         from map_oot_rando.scene import GORON_CRATER_FLOOR, GORON_VIEWS, REGION_VIEWS
 

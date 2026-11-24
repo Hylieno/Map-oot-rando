@@ -213,6 +213,8 @@ NEIGHBORS = {
 }
 FOUNTAIN_ICE_BACKDOOR = 'Accès secondaire à la caverne'
 ICE_CAVERN_BACKDOOR = 'Sortie secondaire de la caverne'
+WINDMILL_TO_GRAVE = 'Passage vers la tombe de Dampé'
+GRAVE_TO_WINDMILL = 'Passage vers le moulin'
 SIDE_PORTALS = {
     'GerudoTrainingGround': {
         TRAINING_TO_WALKWAY: ('GerudoTrainingGround', TRAINING_VIEWS[1], 'Passerelle', TRAINING_TO_STATUE),
@@ -234,6 +236,12 @@ SIDE_PORTALS = {
     },
     'IceCavern': {
         ICE_CAVERN_BACKDOOR: ('ZoraFountain', None, 'Fontaine Zora · passage secondaire', FOUNTAIN_ICE_BACKDOOR),
+    },
+    'KakarikoVillage': {
+        WINDMILL_TO_GRAVE: ('Graveyard', UNDERGROUND_VIEWS['Graveyard']['Adult'], 'Tombe de Dampé', GRAVE_TO_WINDMILL),
+    },
+    'Graveyard': {
+        GRAVE_TO_WINDMILL: ('KakarikoVillage', None, 'Moulin de Cocorico', WINDMILL_TO_GRAVE),
     },
 }
 PORTAL_ARRIVAL_STARTS = {
@@ -313,6 +321,8 @@ PORTAL_ARRIVAL_STARTS = {
     ('GanonCastle', NEIGHBORS['GanonCastle']['Market']): ('GanonCastleEntrance',),
     ('GanonCastle', NEIGHBORS['GanonCastle']['InsideGanonCastle']): ('GanonCastleEntrance_FromInside',),
     ('InsideGanonCastle', NEIGHBORS['InsideGanonCastle']['GanonCastle']): ('Entrance',),
+    ('KakarikoVillage', WINDMILL_TO_GRAVE): ('KakarikoWindmill_GraveYardSide',),
+    ('Graveyard', GRAVE_TO_WINDMILL): ('GraveYard_KakarikoWindmillSide',),
 }
 PORTAL_START_NAMES = {}
 for (zone, _), names in PORTAL_ARRIVAL_STARTS.items():
@@ -676,6 +686,12 @@ def projection_points(region, sources):
                     label = 'arrivee_de_kokiri'
             elif region == 'ZoraRiver' and gyaml == 'FieldAndDungeonEntranceEventRequestActor':
                 label = ZORA_RIVER_EXITS.get(actor.get('Name'))
+            elif (region == 'KakarikoVillage' and gyaml == 'FieldAndDungeonEntranceEventRequestActor'
+                  and actor.get('Name') == 'KakarikoWindmill_GraveYardSide'):
+                label = WINDMILL_TO_GRAVE
+            elif (region == 'Graveyard' and gyaml == 'FieldAndDungeonEntranceEventRequestActor'
+                  and actor.get('Name') == 'GraveYard_KakarikoWindmillSide'):
+                label = GRAVE_TO_WINDMILL
             elif region == 'ZoraFountain' and gyaml == 'FieldAndDungeonEntranceEventRequestActor':
                 target = {'ZoraFountain_FromIceCavern': 'IceCavern',
                           'ZoraFountain_FromInsideJabuJabuBelly': 'InsideJabuJabuBelly'}.get(actor.get('Name'))
@@ -1071,6 +1087,10 @@ def group_scenes(scenes):
                 area = FIELD_PORTAL_AREAS.get(label) or field_area(point)
                 local_view = REGION_VIEWS[area][FIELD_VIEW_AGES[name]]
                 target = grouped.setdefault(local_view, {'rooms': set(), 'points': set()})
+            elif (name == REGION_VIEWS['Graveyard']['Adult']
+                  and label in (GRAVE_TO_WINDMILL, *PORTAL_ARRIVAL_STARTS['Graveyard', GRAVE_TO_WINDMILL])):
+                underground = UNDERGROUND_VIEWS['Graveyard']['Adult']
+                target = grouped.setdefault(underground, {'rooms': set(), 'points': set()})
             elif (name in MARKET_VIEW_AGES and temple_position(point, MARKET_VIEW_AGES[name])
                   and label != NEIGHBORS['Market']['TempleOfTime']):
                 age = MARKET_VIEW_AGES[name]
