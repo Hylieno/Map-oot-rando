@@ -24,7 +24,7 @@ from .scene import (BURNT_VILLAGE, CASTLE_COURT, DREAM_SCENE_VIEWS, DUNGEON_ATLA
                     FOUNTAIN_DUNGEON_AGES, GANON_DUNGEON_VIEWS, GANON_ESCAPE, MARKET_CASTLE_AGES,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS, GUIDE_ROUTE,
-                    NEIGHBORS, REGION_VIEWS, SHARED_DUNGEONS, SIDE_PORTALS, SPIRIT_ARRIVAL_STARTS, TRAINING_VIEWS,
+                    NEIGHBORS, PORTAL_ARRIVAL_STARTS, REGION_VIEWS, SHARED_DUNGEONS, SIDE_PORTALS, TRAINING_VIEWS,
                     UNDERGROUND_LABELS, UNDERGROUND_VIEWS, VIEWS,
                     castle_view, field_area, field_atlas_scene, group_scenes, kokiri_bridge_position,
                     location_view, read_scenes, temple_position, view_name)
@@ -1261,7 +1261,7 @@ class MapApplication:
                                         width=3 if guide else 6, arrow='last' if guide else 'none',
                                         capstyle='round', joinstyle='round', tags='scene-route')
             for label, point in scene['points']:
-                if label in exits or label in SPIRIT_ARRIVAL_STARTS.values():
+                if label in exits or label in PORTAL_ARRIVAL_STARTS.values():
                     continue
                 x, y = self.viewport.screen(point)
                 self.canvas.create_polygon(x, y-5, x+5, y, x, y+5, x-5, y,
@@ -1280,7 +1280,7 @@ class MapApplication:
                        if self.resource.get() in UNDERGROUND_LABELS or self.resource.get() in FLOOR_OPTIONS
                        else f'Schéma X/Z | Grille : {step:g} unités')
         self.canvas.create_text(12, 12, anchor='nw', fill=heading_color, text=heading)
-        spawn_label = SPIRIT_ARRIVAL_STARTS.get(self.arrival)
+        spawn_label = PORTAL_ARRIVAL_STARTS.get((region, self.arrival))
         spawn_points = {point for name, point in (scene or {}).get('points', ()) if name == spawn_label}
         spawn = next(iter(spawn_points)) if len(spawn_points) == 1 else None
         exit_names = {}

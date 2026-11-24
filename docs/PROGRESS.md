@@ -1,7 +1,8 @@
 # Checkpoint — 24 novembre 2026
 
 Les mains du Colosse placent l’anneau d’arrivée au point d’apparition
-de Link dans la scène, dans les deux sens.
+de Link dans la scène, dans les deux sens. Le raccourci entre les Bois
+Perdus et la rivière Zora utilise aussi ses deux points d’apparition.
 
 Les coffres et les Skulltulas indexés dans la table d’étages du jeu
 utilisent leur étage natif sur les plans Field Atlas. L’import

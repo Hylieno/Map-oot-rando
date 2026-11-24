@@ -228,11 +228,13 @@ SIDE_PORTALS = {
         'right_hand_entrance': ('DesertColossus', None, 'Colosse · main droite', 'spirit_temple_right_hand_entrance'),
     },
 }
-SPIRIT_ARRIVAL_STARTS = {
-    'left_hand_entrance': 'SpiritTemple_FromLeftHand',
-    'right_hand_entrance': 'SpiritTemple_FromRightHand',
-    'spirit_temple_left_hand_entrance': 'DesertColossus_FromSpiritTempleLeftHand',
-    'spirit_temple_right_hand_entrance': 'DesertColossus_FromSpiritTempleRightHand',
+PORTAL_ARRIVAL_STARTS = {
+    ('SpiritTemple', 'left_hand_entrance'): 'SpiritTemple_FromLeftHand',
+    ('SpiritTemple', 'right_hand_entrance'): 'SpiritTemple_FromRightHand',
+    ('DesertColossus', 'spirit_temple_left_hand_entrance'): 'DesertColossus_FromSpiritTempleLeftHand',
+    ('DesertColossus', 'spirit_temple_right_hand_entrance'): 'DesertColossus_FromSpiritTempleRightHand',
+    ('LostWood', NEIGHBORS['LostWood']['ZoraRiver']): 'LostWood_ZoraRiverSide',
+    ('ZoraRiver', NEIGHBORS['ZoraRiver']['LostWood']): 'ZoraRiver_LostWoodSide',
 }
 KAKARIKO_ENTRANCES = {
     'HyruleField': 'Vers la plaine d’Hyrule',
@@ -486,8 +488,8 @@ def spirit_level_points(sources):
         ('MapIconEntranceAnchor', 17977111214894828225): (2, 'left_hand_entrance'),
         ('DungeonRoomCenterAnchor', 8163808957952677095): (4, 'Arène de Twinrova'),
     }
-    anchors.update({('StartPos', name): (2, name) for portal, name in SPIRIT_ARRIVAL_STARTS.items()
-                    if portal in SIDE_PORTALS['SpiritTemple']})
+    anchors.update({('StartPos', name): (2, name)
+                    for (region, _), name in PORTAL_ARRIVAL_STARTS.items() if region == 'SpiritTemple'})
     return {(*anchors[key], (position[0], position[2]))
             for source in sources.values() for actor in source['root'].get('Actors', ())
             if (kind := actor.get('Gyaml'))
@@ -567,6 +569,8 @@ def guide_routes(sources):
 
 def projection_points(region, sources):
     points = set()
+    arrivals = {start for (zone, _), start in PORTAL_ARRIVAL_STARTS.items()
+                if zone == region and zone != 'SpiritTemple'}
     for path, source in sources.items():
         for actor in source['root'].get('Actors', ()):
             position = actor.get('Translate')
@@ -574,6 +578,8 @@ def projection_points(region, sources):
                 continue
             gyaml = actor.get('Gyaml')
             label = None
+            if gyaml == 'StartPos' and actor.get('Name') in arrivals:
+                points.add((actor['Name'], (position[0], position[2])))
             if region == 'KokiriForest':
                 if gyaml == 'Obj_Kokiri_Bed_A_01':
                     label = NEIGHBORS[region]['DreamWorld']
@@ -586,9 +592,6 @@ def projection_points(region, sources):
                 target = {'ZoraFountain_FromIceCavern': 'IceCavern',
                           'ZoraFountain_FromInsideJabuJabuBelly': 'InsideJabuJabuBelly'}.get(actor.get('Name'))
                 label = NEIGHBORS[region].get(target)
-            elif (region == 'DesertColossus' and gyaml == 'StartPos'
-                  and actor.get('Name') in SPIRIT_ARRIVAL_STARTS.values()):
-                label = actor['Name']
             elif region == 'SacredForestMeadow':
                 label = GROVE_ANCHORS.get(gyaml)
                 if gyaml in {'Land_SacredForest_Prop_A_33', 'Land_SacredForest_Prop_A_41'}:

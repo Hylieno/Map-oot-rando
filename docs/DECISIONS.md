@@ -15,7 +15,8 @@
 
 - Passages réciproques. Chaque passage indique l’arrivée quand le repère
   de retour est présent dans la vue de destination. Les passages des
-  mains du Colosse disposent de points d’apparition distincts.
+  mains du Colosse et le raccourci Zora disposent de points
+  d’apparition distincts.
 
 - Vendeur Mojo du cratère. Le marqueur utilise les coordonnées de
   l’acteur enfant associé à la vente suivie par OotrR.
