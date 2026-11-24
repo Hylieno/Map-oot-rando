@@ -1,5 +1,12 @@
 # Validation
 
+L’import du catalogue de 1 103 checks a été exécuté avec les 160
+ressources de scène publiques déjà décodées. Le rapprochement par
+identifiant et par type retrouve 286 checks supplémentaires, soit
+1 068 checks positionnés. Les 35 autres restent consultables. Ce test
+utilise les scènes publiques et ne couvre ni l’extraction depuis le NUP
+ni les sources qui nécessitent les packs d’acteurs ou les événements binaires.
+
 Les dix identifiants du Monde des rêves correspondent aux dix acteurs
 de la salle intermédiaire. Les acteurs partagent la même position.
 Le test d’interface couvre la navigation depuis le lit, le passage

@@ -7,7 +7,7 @@ import struct
 import subprocess
 import sys
 
-from .metadata import (PLACEMENT_REGIONS, add_dungeon_rooms, add_surface_entrances, bind_catalogue,
+from .metadata import (add_dungeon_rooms, add_surface_entrances, bind_catalogue,
                        event_check_rows, export_scan, placed_check_rows, world_check_rows)
 from .model import REGION_NAMES, SURFACE_MIN_Y, UPSTREAM_REVISION, resource_region
 from .scene import extract_scenes
@@ -68,8 +68,7 @@ def import_seed(nup, checks, progress=None):
     world_checks = [check for check in catalogue['checks']
                     if check['id'].partition('#')[0] in REGION_NAMES
                     and check['id'].count('#') == 2 and check['id'].split('#', 2)[1].isdecimal()]
-    placement_checks = [check for check in catalogue['checks'] if check['id'].partition('#')[0] in PLACEMENT_REGIONS]
-    scanned = scan_game(nup, progress, world_checks, placement_checks)
+    scanned = scan_game(nup, progress, world_checks, catalogue['checks'])
     document = bind_catalogue(scanned, catalogue)
     if not document['locations']:
         raise ValueError('Aucun check des zones prises en charge dans le catalogue')

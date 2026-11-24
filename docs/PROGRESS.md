@@ -1,5 +1,9 @@
 # Checkpoint — 24 novembre 2026
 
+La recherche par identifiant d’acteur couvre désormais toutes les
+zones. Sur le catalogue de 1 103 checks et les scènes publiques,
+elle porte le total de positions de 782 à 1 068.
+
 Le Monde des rêves est relié à la forêt Kokiri. Le musée et la salle
 intermédiaire ont chacun une vue. Les dix coffres de la salle sont
 positionnés selon la scène et gardent chacun leur état dans le tracker.

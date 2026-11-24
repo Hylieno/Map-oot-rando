@@ -6,6 +6,10 @@ Un check sans position garde la zone de son catalogue. Un même ID peut avoir un
 position dans deux régions, comme le coffre du pont, et garde un état unique
 dans le tracker. La navigation par entrée conserve l’âge et chaque vue
 calcule son cadrage dans ses propres coordonnées.
+Quand le scan OotrR ne fournit aucune position pour un check dans une
+variante de scène, l’import peut retrouver son acteur par son dossier
+Banc, son identifiant numérique et son type. Cette recherche couvre
+toutes les zones prises en charge.
 
 La **Carte d’Hyrule** s’ouvre au dézoom et place toutes les zones disponibles
 sur une illustration à l’aide de coordonnées normalisées. Les passages locaux

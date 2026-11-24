@@ -84,21 +84,23 @@ class ExportTests(unittest.TestCase):
         self.assertEqual([row.dungeon_room for row in rows], [3, 15])
         self.assertEqual([location_view(row) for row in rows], [JABU_VIEWS[1], JABU_VIEWS[3]])
 
-    def test_fire_hash_fallback_checks_actor_type_and_keeps_scanner_result(self):
-        path = 'Banc/FireTemple/FireTemple_Static.bcett.byml.zs'
-        maps = {path: {'root': {'Actors': [
-            dict(Hash=1, Gyaml='Obj_Pot_A_03', Translate=[3, 145, 2]),
-            dict(Hash=2, Gyaml='Obj_Heart_Container', Translate=[0, 100, 0]),
-            dict(Hash=3, Gyaml='Obj_TBox_A_01_NoBake', Translate=[0, 102, 0]),
-        ]}}}
-        checks = [
-            dict(id='FireTemple#pots#1', category='full_pots', name='Pot'),
-            dict(id='FireTemple#free#2', category='full_freestanding', name='Heart'),
-            dict(id='FireTemple#3', category='full_chests', name='Chest'),
-        ]
-        existing = [dict(checks[2], resource=path, position=[2, 102, 4])]
-        rows = list(placed_check_rows(maps, checks, existing, lambda *_: True))
-        self.assertEqual(rows, [dict(checks[0], resource=path, position=[3, 145, 2])])
+    def test_hash_fallback_checks_actor_type_and_keeps_scanner_result_in_all_regions(self):
+        for region, suffix in (('FireTemple', ''), ('KokiriForest', '_Child')):
+            with self.subTest(region=region):
+                path = f'Banc/{region}/{region}{suffix}_Static.bcett.byml.zs'
+                maps = {path: {'root': {'Actors': [
+                    dict(Hash=1, Gyaml='Obj_Pot_A_03', Translate=[3, 145, 2]),
+                    dict(Hash=2, Gyaml='Obj_Heart_Container', Translate=[0, 100, 0]),
+                    dict(Hash=3, Gyaml='Obj_TBox_A_01_NoBake', Translate=[0, 102, 0]),
+                ]}}}
+                checks = [
+                    dict(id=f'{region}#pots#1', category='full_pots', name='Pot'),
+                    dict(id=f'{region}#free#2', category='full_freestanding', name='Heart'),
+                    dict(id=f'{region}#3', category='full_chests', name='Chest'),
+                ]
+                existing = [dict(checks[2], resource=path, position=[2, 102, 4])]
+                rows = list(placed_check_rows(maps, checks, existing, lambda *_: True))
+                self.assertEqual(rows, [dict(checks[0], resource=path, position=[3, 145, 2])])
 
     def test_colossus_chest_uses_its_surface_anchor_in_both_ages(self):
         region = 'DesertColossus'

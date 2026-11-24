@@ -111,11 +111,6 @@ CHECK_ACTOR_PATTERNS = {
     ('full_skulltula', 'gs'): ('Enemy_Skulltula_Gold',),
     ('full_bossheart', 'heart'): ('Obj_Heart_Container',),
 }
-PLACEMENT_REGIONS = frozenset({'FireTemple', 'ZoraRiver', 'ZoraDomain', 'ZoraFountain', 'IceCavern',
-                               'InsideJabuJabuBelly', 'InsideTheDekuTree', 'ForestTemple', 'BottomOfTheWell',
-                               'ShadowTemple', 'Market', 'HyruleCastle', 'GanonCastle', 'InsideGanonCastle',
-                               'GerudoValley', 'GerudoFortress', 'GerudoTrainingGround', 'HountedWasteland',
-                               'DesertColossus', 'SpiritTemple', 'WaterTemple'})
 EVENT_ACTOR_FIELDS = {
     'MapIconFacilityAnchor': 'MapIconFacilityIsOpen',
     'HeartPieceAnchor': 'HeartPieceAnchor_GameDataPath',
@@ -230,11 +225,11 @@ def placed_check_rows(maps, checks, existing, eligible):
         region, _, suffix = check['id'].partition('#')
         kind, _, actor_hash = suffix.rpartition('#')
         patterns = CHECK_ACTOR_PATTERNS.get((check['category'], kind))
-        if region in PLACEMENT_REGIONS and patterns and actor_hash.isascii() and actor_hash.isdecimal():
+        if region in REGION_NAMES and patterns and actor_hash.isascii() and actor_hash.isdecimal():
             requested.setdefault((region, int(actor_hash)), []).append((check, patterns))
     for path, source in maps.items():
         region = resource_region(path)
-        if region not in PLACEMENT_REGIONS:
+        if region is None:
             continue
         frame = path.rsplit('_', 1)[0]
         for actor in source['root'].get('Actors', ()):
