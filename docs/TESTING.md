@@ -5,9 +5,11 @@ choisit l’âge adulte et vérifie que le Temple du Temps s’ouvre dans
 la bonne vue. Le rendu du catalogue complet a été inspecté à la
 taille de fenêtre par défaut.
 
-Le test de l’exécutable Windows importe un NUP synthétique contenant
-un coffre et un pot, répartis entre deux couches. Il vérifie leurs
-identifiants, leurs coordonnées et leur regroupement sur la vue enfant.
+Le test de l’exécutable Windows importe un NUP synthétique qui
+contient le jeu de base et sa mise à jour. Le coffre prend sa position
+dans la mise à jour et le pot enfant reste disponible depuis le jeu
+de base. La fenêtre vérifie aussi que le pot adulte apparaît dans
+la bonne vue en utilisant le bouton Adulte.
 
 Le test du centre d’entraînement vérifie qu’une liaison retient
 les deux centres et la position exacte de la porte après sauvegarde

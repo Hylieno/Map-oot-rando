@@ -1,5 +1,9 @@
 # Checkpoint — 24 novembre 2026
 
+Le build Windows vérifie la priorité de la mise à jour sur le jeu
+de base lors de l’import, les ressources conservées du jeu de base
+et les marqueurs des deux âges dans la fenêtre.
+
 La carte d’Hyrule ouvre les sous-zones de Kokiri et de la Citadelle
 depuis leurs repères. Les boutons d’âge restent utilisables sur la
 carte générale. Les libellés se placent autour des repères.

@@ -72,7 +72,7 @@ jobs:
         if: steps.preview.outputs.package == 'true'
         shell: pwsh
         run: |
-          $app = Start-Process -FilePath dist/Map-oot-rando/Map-oot-rando.exe -ArgumentList '--check-bundled-gui' -Wait -PassThru
+          $app = Start-Process -FilePath dist/Map-oot-rando/Map-oot-rando.exe -ArgumentList '--check-bundled-gui', 'scanner-fixture/synthetic.nup', 'scanner-fixture/checks.json' -Wait -PassThru
           if ($app.ExitCode -ne 0) { exit $app.ExitCode }
       - name: Include usage and limitations
         if: steps.preview.outputs.package == 'true'
