@@ -18,6 +18,7 @@ EVENT_ACTORS = {
         ('Npc_Hylia_Fishman_001_Child', None): 'npc#LH Child Fishing',
         ('Npc_Hylia_Fishman_001_Adult', None): 'npc#LH Adult Fishing',
         ('Npc_Hylia_045_Child', None): 'npc#LH Lab Dive',
+        ('MapIconFacilityAnchor', 'MiniGame_Unlock_FindOutCucco'): 'npc#LLR Talons Chickens',
     },
     'ZoraRiver': {('OcarinaPoint_MiniGame_FrogTenors', None): 'npc#ZR Frogs Ocarina Game'},
     'ZoraDomain': {
@@ -320,7 +321,7 @@ def bind_catalogue(document, catalogue):
                   'Gerudo Valley': 'GerudoValley', 'Gerudo Fortress': 'GerudoFortress',
                   'Gerudo Training Ground': 'GerudoTrainingGround', 'Haunted Wasteland': 'HountedWasteland',
                   'Desert Colossus': 'DesertColossus', 'Spirit Temple': 'SpiritTemple',
-                  'Lake Hylia': 'LakeHylia', 'Water Temple': 'WaterTemple'})
+                  'Lake Hylia': 'LakeHylia', 'Water Temple': 'WaterTemple', 'Lon Lon Ranch': 'LonLonRanch'})
     locations, diagnostics, seen = [], [], set()
     for check in catalogue['checks']:
         ident = check['id']

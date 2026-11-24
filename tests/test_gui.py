@@ -800,6 +800,33 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(app.resource.get(), REGION_VIEWS[lake]['Adult'])
         self.assertNotIn(domain, app.available_neighbors())
 
+    def test_ranch_portal_and_link_switch_the_local_view_without_a_scene_change(self):
+        from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
+        from map_oot_rando.scene import REGION_VIEWS
+
+        app = self.app
+        field, ranch = 'HyruleField', 'LonLonRanch'
+        path = 'Banc/HyruleField/HyruleField_Child_Static.bcett.byml.zs'
+        template = demo_document()
+        doc = dict(template, provenance='ootrr-scan', regions=['KokiriForest', field, ranch], locations=[
+            dict(template['locations'][0], id='talon', resource=path, position=(-53.58, 151, 197.81)),
+        ], scenes={
+            path: {'rooms': [], 'points': [('Vers le ranch Lon Lon', (-61.8, 184.2)),
+                                           ('Sortie du ranch', (-61.8, 184.2))]},
+        })
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        app.update_link(LinkPosition(field, 'Child', -62, 151, 177, 0))
+        self.assertEqual(app.resource.get(), REGION_VIEWS[field]['Child'])
+        self.assertIn(ranch, app.navigation_markers.values())
+        app.update_link(LinkPosition(field, 'Child', -62, 151, 196, 0))
+        self.assertEqual(app.resource.get(), REGION_VIEWS[ranch]['Child'])
+        self.assertEqual([row.id for row in app.visible], ['talon'])
+        self.assertIn(field, app.navigation_markers.values())
+        app.open_neighbor(field)
+        self.assertEqual(app.resource.get(), REGION_VIEWS[field]['Child'])
+
     def test_water_temple_opens_from_the_adult_lake_at_the_top(self):
         from unittest.mock import patch
         from map_oot_rando.link_position import LinkPosition

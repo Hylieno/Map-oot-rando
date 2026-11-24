@@ -54,6 +54,8 @@ deux sens de navigation aux abords de cette limite.
 Au Temple de l’Eau, le numéro de salle détermine le plan des checks.
 Le suivi de Link utilise la hauteur et le périmètre de la salle de
 Morpha, qui figure sur le même plan que les galeries basses.
+Le ranch Lon Lon réutilise la sélection de vue locale dans la scène
+de la plaine. Un périmètre X/Z couvre la cour, l’enclos et les ruines.
 Dans les zones Zora, à la Caverne de glace et au Temple du Feu, les identifiants typés du catalogue
 peuvent compléter le scan par correspondance du hash et du type d’acteur
 dans chaque scène, sans écraser un placement déjà produit pour cette vue.

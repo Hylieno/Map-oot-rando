@@ -1,5 +1,9 @@
 # Checkpoint — 24 novembre 2026
 
+Le ranch Lon Lon est raccordé à la plaine. Le fond Field Atlas s’ouvre
+aux deux âges et affiche cinq checks distincts. Les coordonnées
+de Link permettent de suivre le passage entre les deux vues.
+
 Le Temple de l’Eau est relié au lac adulte. Ses 20 checks sont
 positionnés sur quatre fonds Field Atlas, dont le bassin de Morpha
 sur le plan du rez-de-chaussée. Le build de ce jalon inclut le lac

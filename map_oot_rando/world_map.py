@@ -41,6 +41,7 @@ WORLD_PINS = {
     'SpiritTemple': (.1562, .2396),
     'LakeHylia': (.4268, .7706),
     'WaterTemple': (.4045, .9097),
+    'LonLonRanch': (.3816, .5730),
     'ShadowTemple': (.8012, .3182),
 }
 

@@ -125,6 +125,10 @@ Le passage immergé du lac ouvre le Temple de l’Eau au deuxième étage
 avec Link adulte. Les quatre plans Field Atlas couvrent aussi la salle
 de Morpha, au nord du rez-de-chaussée.
 
+Le ranch Lon Lon se rejoint depuis la plaine aux deux âges. Le jeu
+des poules de Talon apparaît dans la vue enfant. Le suivi de Link
+bascule entre le ranch et la plaine au franchissement du portail.
+
 ## Suivre la partie
 
 Coche **Afficher la position de Link**. Cette option active **Mémoire du jeu**

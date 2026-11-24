@@ -145,7 +145,8 @@ NEIGHBORS = {
     'HyruleField': {'KokiriForest': 'front_of_lost_wood_bridge_entrance',
                     'KakarikoVillage': 'Vers Cocorico', 'ZoraRiver': 'Vers la Rivière Zora',
                     'Market': 'Porte de la Citadelle', 'GerudoValley': 'Vers la Vallée Gerudo',
-                    'LakeHylia': 'Vers le Lac Hylia'},
+                    'LakeHylia': 'Vers le Lac Hylia', 'LonLonRanch': 'Vers le ranch Lon Lon'},
+    'LonLonRanch': {'HyruleField': 'Sortie du ranch'},
     'LakeHylia': {'HyruleField': 'Vers la plaine d’Hyrule', 'GerudoValley': 'Vers la Vallée Gerudo',
                   'ZoraDomain': 'Vers le Domaine Zora', 'WaterTemple': 'Vers le Temple de l’Eau'},
     'WaterTemple': {'LakeHylia': 'Vers le Lac Hylia'},
@@ -237,8 +238,19 @@ HYRULE_ANCHORS = {
     'ZoraRiver': 'Vers la Rivière Zora',
 }
 LAKE_FIELD_RETURN_ANCHORS = {14388254154737389511, 12222278877302081165}
-LAKE_VIEWS_BY_FIELD_VIEW = {view: REGION_VIEWS['LakeHylia'][age]
-                            for age, view in REGION_VIEWS['HyruleField'].items()}
+FIELD_VIEW_AGES = {view: age for age, view in REGION_VIEWS['HyruleField'].items()}
+FIELD_PORTAL_AREAS = {
+    NEIGHBORS['HyruleField']['LakeHylia']: 'HyruleField',
+    NEIGHBORS['HyruleField']['LonLonRanch']: 'HyruleField',
+    NEIGHBORS['LakeHylia']['HyruleField']: 'LakeHylia',
+    NEIGHBORS['LonLonRanch']['HyruleField']: 'LonLonRanch',
+}
+RANCH_PERIMETER = (
+    (-102, 178), (-67, 185), (-65, 182), (-58, 183), (-57, 187),
+    (-34, 192), (-43, 222), (-22, 244), (-18, 262), (-26, 290),
+    (-44, 300), (-70, 304), (-121, 291), (-136, 280), (-162, 279),
+    (-163, 259), (-141, 257), (-131, 219), (-118, 209), (-108, 208),
+)
 ZORA_RIVER_EXITS = {
     'ZoraRiver_LostWoodSide': NEIGHBORS['ZoraRiver']['LostWood'],
     'ZoraRiver_Entrance': NEIGHBORS['ZoraRiver']['HyruleField'],
@@ -423,6 +435,18 @@ def lake_position(point):
     return (x <= -35 and z >= 396) or (x <= -230 and z >= 385)
 
 
+def field_area(point):
+    """Choose the local map without changing the native Hyrule Field frame."""
+    if lake_position(point):
+        return 'LakeHylia'
+    x, z = point
+    inside = False
+    for (x1, z1), (x2, z2) in zip(RANCH_PERIMETER, (*RANCH_PERIMETER[1:], RANCH_PERIMETER[0])):
+        if (z1 > z) != (z2 > z) and x < x1 + (x2-x1) * (z-z1) / (z2-z1):
+            inside = not inside
+    return 'LonLonRanch' if inside else 'HyruleField'
+
+
 def guide_routes(sources):
     """Project the native Guide rail, including its Bézier handles, onto X/Z."""
     routes = set()
@@ -508,6 +532,10 @@ def projection_points(region, sources):
                 label = NEIGHBORS[region]['DesertColossus']
             elif region == 'WaterTemple' and gyaml == 'MapIconEntranceAnchor' and actor.get('Hash') == 18222828140606986520:
                 label = NEIGHBORS[region]['LakeHylia']
+            elif region == 'HyruleField' and gyaml == 'Land_LonLon_Gate_B_01':
+                point = position[0], position[2]
+                points.add((NEIGHBORS[region]['LonLonRanch'], point))
+                label = NEIGHBORS['LonLonRanch'][region]
             elif gyaml == 'MapIconEntranceAnchor':
                 dynamic = actor.get('Dynamic')
                 if isinstance(dynamic, dict):
@@ -647,8 +675,8 @@ def view_name(resource):
 
 def location_view(row):
     view = view_name(row.resource)
-    if view in LAKE_VIEWS_BY_FIELD_VIEW and row.position is not None and lake_position(row.project()):
-        return LAKE_VIEWS_BY_FIELD_VIEW[view]
+    if view in FIELD_VIEW_AGES and row.position is not None:
+        return REGION_VIEWS[field_area(row.project())][FIELD_VIEW_AGES[view]]
     if view == CASTLE_OUTSKIRTS and row.position is not None:
         return castle_view(row.position[2])
     if row.underground and view in VIEWS:
@@ -771,10 +799,10 @@ def group_scenes(scenes):
         view['rooms'].update((name, tuple(low), tuple(high)) for name, low, high in scene['rooms'])
         for label, point in scene['points']:
             target = view
-            if name in LAKE_VIEWS_BY_FIELD_VIEW and (
-                    label == NEIGHBORS['LakeHylia']['HyruleField']
-                    or (label != NEIGHBORS['HyruleField']['LakeHylia'] and lake_position(point))):
-                target = grouped.setdefault(LAKE_VIEWS_BY_FIELD_VIEW[name], {'rooms': set(), 'points': set()})
+            if name in FIELD_VIEW_AGES:
+                area = FIELD_PORTAL_AREAS.get(label) or field_area(point)
+                local_view = REGION_VIEWS[area][FIELD_VIEW_AGES[name]]
+                target = grouped.setdefault(local_view, {'rooms': set(), 'points': set()})
             target['points'].add((label, tuple(point)))
         if scene.get('routes'):
             view.setdefault('routes', set()).update((name, tuple(map(tuple, points))) for name, points in scene['routes'])

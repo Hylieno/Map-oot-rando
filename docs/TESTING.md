@@ -1,5 +1,12 @@
 # Validation
 
+Les scènes publiques de la plaine placent la récompense de Talon
+et quatre autres checks dans le périmètre du ranch. La vue enfant
+affiche les cinq checks, la vue adulte les deux checks communs.
+Le fragment de cœur se projette à huit pixels du trait sur le fond
+de 650 pixels de large. Les vues et les deux sens du passage ont été
+testés dans l’application. Le scan du NUP complet reste à vérifier.
+
 Les deux scènes publiques du Temple de l’Eau placent les 20 checks du
 catalogue. Sept marqueurs se projettent à 2 à 22 pixels du trait sur
 des plans de 700 pixels et conservent leurs coordonnées natives.
