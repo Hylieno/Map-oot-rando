@@ -1,5 +1,9 @@
 # Checkpoint — 24 novembre 2026
 
+Le piédestal du Temple du Temps et la plateforme de la Chambre des
+Sages donnent accès à leur carte réciproque. Les checks sur ces
+repères restent sélectionnables dans le menu.
+
 Le suivi de Link au Temple de l’Eau affiche le premier étage sur la
 plateforme du coffre à l’est et le rez-de-chaussée dès l’accès à Morpha.
 

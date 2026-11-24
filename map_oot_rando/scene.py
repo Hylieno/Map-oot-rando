@@ -178,7 +178,7 @@ NEIGHBORS = {
     'SpiritTemple': {'DesertColossus': 'Vers le Colosse du désert'},
     'Market': {'HyruleField': 'Vers la plaine d’Hyrule', 'HyruleCastle': 'Vers le Château d’Hyrule',
                'GanonCastle': 'Vers le Château de Ganon', 'TempleOfTime': 'Vers le Temple du Temps'},
-    'TempleOfTime': {'Market': 'Sortie du temple', 'SageRoom': 'Chambre des Sages'},
+    'TempleOfTime': {'Market': 'Sortie du temple', 'SageRoom': 'Piédestal de l’épée'},
     'SageRoom': {'TempleOfTime': 'Temple du Temps'},
     'HyruleCastle': {'Market': 'Vers la Citadelle d’Hyrule'},
     'GanonCastle': {'Market': 'Vers la Citadelle d’Hyrule',
@@ -635,8 +635,11 @@ def projection_points(region, sources):
                     points.add((NEIGHBORS['TempleOfTime'][region], point))
             elif region == 'Market' and gyaml in TEMPLE_LANDMARKS:
                 label = TEMPLE_LANDMARKS[gyaml]
-            elif region == 'SageRoom' and gyaml == 'EftLoc_SageRoom_LightPillar_00':
-                label = 'Pilier de lumière'
+            elif region == 'SageRoom':
+                if gyaml == 'EftLoc_SageRoom_LightPillar_00':
+                    label = 'Pilier de lumière'
+                elif gyaml == 'StartPos' and not actor.get('Name'):
+                    label = NEIGHBORS[region]['TempleOfTime']
             elif region == 'DreamWorld':
                 if gyaml == 'StartPos' and actor.get('Name') == 'BossRush':
                     label = 'Arrivée du défi'

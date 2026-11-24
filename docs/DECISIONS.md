@@ -1,5 +1,8 @@
 # Décisions
 
+- Chambre des Sages. Le piédestal et le point de départ servent de
+  repères de navigation. Le retour ouvre la vue adulte du Temple du Temps.
+
 - Couverture du dessin. Le diagnostic relève les écarts avec le raster.
   La position et l’étage du check continuent de suivre les données du jeu.
 

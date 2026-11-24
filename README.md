@@ -147,7 +147,8 @@ de Morpha, au nord du rez-de-chaussée. Le suivi de Link affiche ce plan
 dès le couloir d’accès à Morpha.
 
 Le Temple du Temps se rejoint depuis la Citadelle aux deux âges.
-La Chambre des Sages s’ouvre depuis le temple via un bouton de navigation.
+Sur la carte du temple, le piédestal de l’épée ouvre la Chambre des
+Sages. Le repère au centre de la plateforme permet de revenir au temple.
 Dans la forêt Kokiri, le lit de Link mène à la carte du Monde des rêves.
 Au musée, le repère de l’organisateur ouvre la salle intermédiaire.
 Les dix coffres du défi partagent un point. Un clic sur le marqueur

@@ -1,5 +1,8 @@
 # Architecture et audit initial
 
+Entre le Temple du Temps et la Chambre des Sages, la navigation reprend
+le piédestal de l’épée et le point de départ sur la plateforme.
+
 Le diagnostic projette les coordonnées des marqueurs sur les fonds
 Field Atlas déjà chargés. Pour les marqueurs proches d’un bord, il examine
 le dessin dans un voisinage de quatre pixels. Les coordonnées d’un acteur

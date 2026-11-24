@@ -1,5 +1,9 @@
 # Validation
 
+Le test Tk extrait le repère du piédestal et celui de la plateforme.
+Il exerce l’aller-retour depuis le menu des marqueurs superposés et
+vérifie les anneaux d’arrivée et le retour au temple en vue adulte.
+
 Le test Tk vérifie les deux passages des mains du Colosse dans les deux
 sens et la position de l’anneau à chaque arrivée. Le test des raccourcis
 des Bois Perdus vérifie l’arrivée au Village Goron et à la rivière Zora

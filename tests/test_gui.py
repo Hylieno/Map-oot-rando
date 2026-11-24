@@ -1038,15 +1038,26 @@ class GuiTests(unittest.TestCase):
     def test_temple_of_time_follows_market_coordinates_and_sage_scene(self):
         from unittest.mock import patch
         from map_oot_rando.link_position import LinkPosition
-        from map_oot_rando.scene import NEIGHBORS, REGION_VIEWS, TEMPLE_BOUNDS
+        from map_oot_rando.scene import REGION_NAMES, REGION_VIEWS, extract_scenes
 
         app = self.app
         market, temple, sages = 'Market', 'TempleOfTime', 'SageRoom'
-        gate = TEMPLE_BOUNDS['Adult'][0][0], -34
         market_path = 'Banc/Market/Market_Adult_Static.bcett.byml.zs'
-        sage_path = 'Banc/SageRoom/SageRoom_Static.bcett.byml.zs'
+        sage_path = 'Banc/SageRoom/SageRoom_Dynamic.bcett.byml.zs'
         child_path = 'Banc/Market/Market_Child_Static.bcett.byml.zs'
-        child_gate = TEMPLE_BOUNDS['Child'][0][0], -34
+        pedestal = (137.67, 104.86, -34)
+        platform = (0.09, 100.16, 0)
+        market_scene = {'root': {'Actors': [
+            dict(Gyaml='LocationArea', Dynamic={'Location': 'TimeTemple'}, Translate=(105, 103, -34)),
+            dict(Gyaml='Obj_TimeTemple_MasterSwordBase_A_01', Translate=pedestal),
+        ]}}
+        sage_scene = {'root': {'Actors': [
+            dict(Gyaml='StartPos', Translate=platform),
+            dict(Gyaml='EftLoc_SageRoom_LightPillar_00', Translate=(21, 100, 12)),
+            dict(Gyaml='EftLoc_SageRoom_LightPillar_00', Translate=(-16, 100, -14)),
+        ]}}
+        scenes = extract_scenes({market_path: market_scene, child_path: market_scene,
+                                 sage_path: sage_scene}, lambda _: {})
         template = demo_document()
         doc = dict(template, provenance='ootrr-scan', regions=['KokiriForest', market, temple, sages],
                    locations=[
@@ -1054,12 +1065,7 @@ class GuiTests(unittest.TestCase):
                             region=market, position=(137.6, 106, -34)),
                        dict(template['locations'][0], id='pocket', resource=sage_path,
                             region=sages, position=(0, 100, 0)),
-                   ], scenes={
-                       market_path: {'rooms': [], 'points': [(NEIGHBORS[market][temple], gate),
-                                                             (NEIGHBORS[temple][market], gate)]},
-                       child_path: {'rooms': [], 'points': [(NEIGHBORS[market][temple], child_gate),
-                                                            (NEIGHBORS[temple][market], child_gate)]},
-                   })
+                   ], scenes=scenes)
         self.enterContext(patch.object(app, 'ensure_atlas'))
         app.load(doc)
         app.update_link(LinkPosition(market, 'Adult', 64, 103, -34, 0))
@@ -1073,10 +1079,22 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(app.resource.get(), REGION_VIEWS[temple]['Adult'])
         self.assertEqual([row.id for row in app.visible], ['sword'])
         self.assertIn(market, app.navigation_markers.values())
+
+        def click_portal(point, target):
+            x, y = app.viewport.screen((point[0], point[2]))
+            with patch.object(app, 'post_marker_menu') as popup:
+                app.press(SimpleNamespace(x=round(x), y=round(y), x_root=50, y_root=50))
+            popup.assert_called_once_with(50, 50)
+            self.assertEqual(app.marker_menu.entrycget(1, 'label'), REGION_NAMES[target])
+            app.marker_menu.invoke(1)
+            self.assertTrue(app.canvas.find_withtag('portal-arrival'))
+
+        click_portal(pedestal, sages)
+        self.assertEqual(app.resource.get(), REGION_VIEWS[sages][None])
         app.update_link(LinkPosition(sages, 'Adult', 0, 100, 0, 0))
         self.assertEqual(app.resource.get(), REGION_VIEWS[sages][None])
         self.assertEqual([row.id for row in app.visible], ['pocket'])
-        app.open_neighbor(temple)
+        click_portal(platform, temple)
         self.assertEqual(app.resource.get(), REGION_VIEWS[temple]['Adult'])
         app.update_link(LinkPosition(market, 'Child', 64, 103, -34, 0))
         self.assertEqual(app.resource.get(), REGION_VIEWS[temple]['Child'])
