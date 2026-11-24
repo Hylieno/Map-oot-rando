@@ -199,8 +199,9 @@ bascule entre le ranch et la plaine au franchissement du portail.
 Coche **Afficher la position de Link**. Cette option active **Mémoire du jeu**
 et réutilise la connexion OotrR de la seed. **Suivre Link entre les zones**
 ouvre sa nouvelle zone à chaque changement de scène ou d’âge. Tu peux
-décocher le suivi de zone en gardant le marqueur. Si le jeu s’arrête ou
-que la seed active est différente, le marqueur disparaît.
+décocher le suivi de zone en gardant le marqueur. L’application mémorise
+ce choix sur l’ordinateur. Si le jeu s’arrête ou que la seed active est
+différente, le marqueur disparaît.
 
 Clique sur **Choisir le dossier de sauvegardes…** et indique le dossier qui
 contient les sauvegardes de ton jeu. L’application cherche dans les sous-dossiers

@@ -1,5 +1,9 @@
 # Checkpoint — 24 novembre 2026
 
+Le choix de suivre Link entre les zones est conservé après la fermeture
+de l’application. Le marqueur reste utilisable avec le suivi de zone
+désactivé.
+
 Le lit de Link, le réveil à Kokiri et l’entrée du défi des boss
 indiquent leurs points d’arrivée dans le Monde des rêves et la forêt.
 Le passage entre le Temple du Temps et la Chambre des Sages affiche

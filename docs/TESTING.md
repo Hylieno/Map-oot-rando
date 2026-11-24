@@ -1,5 +1,10 @@
 # Validation
 
+Un test Tk ferme et rouvre l’application pour vérifier la mémorisation
+du suivi de zone. Il vérifie le marqueur sur la zone affichée, l’absence
+de bascule automatique après un changement de zone et la reprise
+immédiate du suivi lorsqu’il est réactivé.
+
 Les trois trajets du Monde des rêves ont été vérifiés dans Tk avec les
 scènes publiques. Le réveil a été vérifié aux deux âges. Le test
 vérifie aussi l’anneau d’arrivée dans la salle intermédiaire.

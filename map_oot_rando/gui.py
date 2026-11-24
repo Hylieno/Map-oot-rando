@@ -95,10 +95,10 @@ class MapApplication:
         self.use_live = Event()
         self.live_requested = tk.BooleanVar(value=False)
         self.show_link = tk.BooleanVar(value=False)
-        self.follow_link = tk.BooleanVar(value=True)
+        self.save_profiles = profiles if profiles is not None else SaveProfiles(local_tracker_dir() / 'profiles.json')
+        self.follow_link = tk.BooleanVar(value=self.save_profiles.follow_link_enabled())
         self.link_status = tk.StringVar()
         root.protocol('WM_DELETE_WINDOW', self.close_window)
-        self.save_profiles = profiles if profiles is not None else SaveProfiles(local_tracker_dir() / 'profiles.json')
         self.save_commands = None
         self.verified_save_source = None
         self.follow_age = tk.BooleanVar(value=True)
@@ -165,7 +165,7 @@ class MapApplication:
                                           variable=self.show_link, command=self.configure_link)
         self.link_check.pack(anchor='w')
         self.follow_link_check = ttk.Checkbutton(sidebar, text='Suivre Link entre les zones',
-                                                 variable=self.follow_link, command=self.resume_follow_link)
+                                                 variable=self.follow_link, command=self.configure_follow_link)
         self.follow_link_check.pack(anchor='w')
         ttk.Label(sidebar, textvariable=self.link_status, wraplength=270).pack(anchor='w')
         ttk.Label(sidebar, text='Catégorie').pack(anchor='w', pady=(10, 0))
@@ -429,6 +429,13 @@ class MapApplication:
         if self.store.connection == 'live':
             return 'Mémoire connectée · En attente de la position de Link'
         return 'En attente d’une partie en mémoire liée à cette seed.'
+
+    def configure_follow_link(self):
+        self.resume_follow_link()
+        try:
+            self.save_profiles.remember_follow_link(self.follow_link.get())
+        except OSError:
+            self.link_status.set('Le choix de suivi de Link n’a pas pu être mémorisé.')
 
     def link_region(self):
         scene = self.link.scene

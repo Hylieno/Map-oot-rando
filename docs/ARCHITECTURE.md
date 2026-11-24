@@ -94,6 +94,8 @@ publier la pose. Une lecture de position indisponible masque le marqueur.
 La navigation suivie réagit aux transitions de scène, d’âge et de
 vue calculée. Une brève interruption de la position garde la vue
 choisie et reprend le suivi à la prochaine transition.
+Le choix de suivre Link entre les zones est enregistré dans les réglages
+locaux de suivi, séparément des profils de sauvegarde et des cartes exportées.
 Le Temple du Temps utilise les limites de la zone `TimeTemple` propres
 à chaque âge dans la scène de la Citadelle. La Chambre des Sages utilise
 sa ressource distincte et un seul plan aux deux âges.

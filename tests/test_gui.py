@@ -1,9 +1,12 @@
 """Tk integration checks; require a desktop (or Xvfb on CI)."""
 import os
+from pathlib import Path
+from tempfile import TemporaryDirectory
 import tkinter as tk
 import unittest
 from types import SimpleNamespace
 from map_oot_rando.gui import MapApplication, COLORS
+from map_oot_rando.save_profiles import SaveProfiles
 from map_oot_rando.simulation import demo_document
 
 
@@ -17,7 +20,8 @@ class GuiTests(unittest.TestCase):
             self.skipTest(f'No Tk display: {error}')
         self.errors = []
         self.root.report_callback_exception = lambda *args: self.errors.append(args)
-        self.app = MapApplication(self.root)
+        self.profiles_path = Path(self.enterContext(TemporaryDirectory())) / 'profiles.json'
+        self.app = MapApplication(self.root, profiles=SaveProfiles(self.profiles_path))
         self.root.update()
 
     def tearDown(self):
@@ -430,6 +434,43 @@ class GuiTests(unittest.TestCase):
                 follow.assert_not_called()
                 app.load(dict(doc, seed_id='another-seed'))
                 follow.assert_not_called()
+
+    def test_reopen_map_keeps_follow_link_choice_separate_from_the_marker(self):
+        from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
+        from map_oot_rando.scene import REGION_VIEWS
+
+        forest, woods = 'KokiriForest', 'LostWood'
+        forest_view, woods_view = (REGION_VIEWS[region]['Child'] for region in (forest, woods))
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=[forest, woods], locations=[],
+                   scenes={view: {'rooms': [], 'points': []} for view in (forest_view, woods_view)})
+        self.enterContext(patch.object(MapApplication, 'ensure_atlas'))
+        app = self.app
+        app.load(doc)
+        app.link_check.invoke()
+        self.assertTrue(app.follow_link.get())
+        app.follow_link_check.invoke()
+        self.assertFalse(app.follow_link.get())
+        self.assertTrue(app.show_link.get())
+        self.assertFalse(self.profiles_path.exists())
+
+        app.close_window()
+        self.root = tk.Tk()
+        self.root.report_callback_exception = lambda *args: self.errors.append(args)
+        self.app = app = MapApplication(self.root, doc, profiles=SaveProfiles(self.profiles_path))
+        self.root.update()
+        self.assertFalse(app.follow_link.get())
+        app.link_check.invoke()
+        app.update_link(LinkPosition(forest, 'Child', 0, 100, 0, 0))
+        self.assertTrue(app.canvas.find_withtag('player-pin'))
+        app.update_link(LinkPosition(woods, 'Child', 0, 100, 0, 0))
+        self.assertEqual(app.resource.get(), forest_view)
+        self.assertTrue(app.use_live.is_set())
+        self.assertTrue(app.show_link.get())
+        app.follow_link_check.invoke()
+        self.assertEqual(app.resource.get(), woods_view)
+        self.assertTrue(app.canvas.find_withtag('player-pin'))
+        self.assertTrue(SaveProfiles(self.profiles_path).follow_link_enabled())
 
     def test_automatic_reconnect_keeps_snapshot_and_manual_choice_resets_it(self):
         from pathlib import Path
