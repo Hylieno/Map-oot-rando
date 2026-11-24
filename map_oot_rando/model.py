@@ -32,6 +32,7 @@ REGION_NAMES = {
     'InsideGanonCastle': 'Intérieur du Château de Ganon',
     'GerudoValley': 'Vallée Gerudo',
     'GerudoFortress': 'Forteresse Gerudo',
+    'GerudoTrainingGround': 'Centre d’entraînement Gerudo',
 }
 # These scenes have buried actor placements below their surface.
 SURFACE_MIN_Y = {'Graveyard': 92, 'DeathMountainTrail': 80, 'DeathMountainCrater': 90}

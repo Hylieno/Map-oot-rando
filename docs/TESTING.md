@@ -1,5 +1,13 @@
 # Validation
 
+Les deux scènes publiques du Centre d’entraînement Gerudo ont permis
+de positionner 20 checks. Les deux coffres de la passerelle sont visibles
+au-dessus du labyrinthe. Neuf entrées historiques du catalogue restent
+sans position vérifiée. Aucun fond Field Atlas n’est publié pour la zone.
+Les tests couvrent le passage depuis la forteresse, le suivi simulé de
+Link entre niveaux et le retour en vue adulte. Le scan du NUP complet
+reste à vérifier.
+
 Les deux scènes publiques de la Forteresse Gerudo et la cinématique
 de la carte Gerudo donnent une position à 26 des 30 checks du catalogue.
 Tous les marqueurs positionnés tombent sur le dessin à 650 pixels de

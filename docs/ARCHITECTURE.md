@@ -35,6 +35,10 @@ du check.
 À la Forteresse Gerudo, plusieurs coordonnées peuvent représenter le même
 événement dans une seule scène. La carte Gerudo partage un ID de suivi à
 tous ses points de remise.
+Le Centre d’entraînement réutilise les repères par niveau pour séparer
+les deux hauteurs du labyrinthe. Le numéro de salle de l’acteur et sa
+hauteur déterminent la vue des checks. Le suivi de Link utilise sa
+hauteur dans le périmètre du labyrinthe.
 Dans les zones Zora, à la Caverne de glace et au Temple du Feu, les identifiants typés du catalogue
 peuvent compléter le scan par correspondance du hash et du type d’acteur
 dans chaque scène, sans écraser un placement déjà produit pour cette vue.

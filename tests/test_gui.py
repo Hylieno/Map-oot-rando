@@ -688,6 +688,39 @@ class GuiTests(unittest.TestCase):
         app.open_neighbor(valley)
         self.assertEqual(app.resource.get(), REGION_VIEWS[valley]['Adult'])
 
+    def test_gerudo_training_ground_returns_to_the_adult_fortress(self):
+        from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
+        from map_oot_rando.scene import REGION_VIEWS, TRAINING_VIEWS
+
+        app = self.app
+        fortress, ground = 'GerudoFortress', 'GerudoTrainingGround'
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=['KokiriForest', fortress, ground],
+                   locations=[], scenes={
+                       'Banc/GerudoFortress/GerudoFortress_Adult_Static.bcett.byml.zs':
+                           {'rooms': [], 'points': [('Vers le centre d’entraînement', (5, 3))]},
+                       'Banc/GerudoTrainingGround/GerudoTrainingGround_Static.bcett.byml.zs':
+                           {'rooms': [], 'points': [('Vers la Forteresse Gerudo', (-1.75, 6.91))],
+                            'level_points': [(1, 'Passerelle nord', (-2.36, -55.67))]},
+                   })
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        app.resource.set(REGION_VIEWS[fortress]['Adult'])
+        app.resource_changed()
+        self.assertIn(ground, app.navigation_markers.values())
+        app.open_neighbor(ground)
+        self.assertEqual(app.resource.get(), TRAINING_VIEWS[0])
+        app.update_link(LinkPosition(ground, 'Adult', -1.5, 98, -48, 0))
+        app.update_link(LinkPosition(ground, 'Adult', -1.5, 105, -48, 0))
+        self.assertEqual(app.resource.get(), TRAINING_VIEWS[1])
+        self.assertNotIn(fortress, app.available_neighbors())
+        app.floor_picker.set('Salles et labyrinthe')
+        app.choose_floor(None)
+        app.choose_age('Child')
+        self.assertIn(fortress, app.navigation_markers.values())
+        app.open_neighbor(fortress)
+        self.assertEqual(app.resource.get(), REGION_VIEWS[fortress]['Adult'])
+
     def test_ganon_castle_switches_scene_without_mixing_coordinates(self):
         from unittest.mock import patch
         from map_oot_rando.link_position import LinkPosition

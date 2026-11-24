@@ -21,6 +21,10 @@
   deux scores du tir à l’arc partagent le repère de l’organisatrice.
   Les positions de la carte Gerudo viennent des quatre branches de la
   cinématique `Dm_Gerudo_0025`.
+- Centre d’entraînement Gerudo. Les centres de salle et la hauteur de
+  la passerelle sont lus dans la scène. Le retour vers la forteresse
+  utilise le passage du hall. Les entrées historiques du catalogue
+  conservent leur ID tant que leur acteur correspondant reste à vérifier.
 
 - La carte générale réutilise l’illustration Nintendúo et les positions
   géographiques publiées par Ocarina Atlas. Tous les fonds locaux publiés

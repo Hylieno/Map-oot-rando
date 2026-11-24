@@ -1,5 +1,11 @@
 # Checkpoint — 24 novembre 2026
 
+Le Centre d’entraînement est accessible depuis la forteresse adulte.
+Un schéma représente les salles et un deuxième affiche la passerelle
+du labyrinthe. Vingt checks ont été placés. Les neuf entrées historiques
+du catalogue restent dans la liste. Ce build réunit la Vallée Gerudo,
+la Forteresse et le Centre d’entraînement.
+
 La Forteresse Gerudo est reliée à la vallée adulte et charge son fond
 Field Atlas. Vingt-six checks ont été placés. Pour les quatre clés, les
 acteurs natifs sont localisés et le lien avec les noms des prisons dans

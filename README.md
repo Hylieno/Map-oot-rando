@@ -104,6 +104,9 @@ apparaissent à leur entrée, avec les coordonnées de l’objet dans les détai
 Depuis la vallée adulte, le passage ouest mène à la Forteresse Gerudo.
 Les deux récompenses du tir à l’arc sont associées à l’organisatrice et
 la carte Gerudo peut apparaître près de chaque cellule.
+Le Centre d’entraînement est accessible depuis la forteresse. Un schéma
+reprend les salles du jeu et le sélecteur permet d’afficher la passerelle
+au-dessus du labyrinthe.
 
 ## Suivre la partie
 

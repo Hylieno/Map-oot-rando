@@ -22,7 +22,7 @@ from .scene import (BURNT_VILLAGE, CASTLE_COURT, DUNGEON_ATLAS_KEYS, DUNGEON_FLO
                     FOUNTAIN_DUNGEON_AGES, GANON_DUNGEON_VIEWS, GANON_ESCAPE, MARKET_CASTLE_AGES,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS,
-                    NEIGHBORS, REGION_VIEWS, SHARED_DUNGEONS,
+                    NEIGHBORS, REGION_VIEWS, SHARED_DUNGEONS, TRAINING_VIEWS,
                     UNDERGROUND_LABELS, UNDERGROUND_VIEWS, VIEWS,
                     castle_view, field_atlas_scene, group_scenes, location_view, read_scenes, view_name)
 from .simulation import Simulation, demo_document
@@ -430,7 +430,7 @@ class MapApplication:
         area = (self.link_region(), position.age) if position else None
         if area and area[0] == 'HyruleCastle':
             area = (*area, castle_view(position.z))
-        if area and area[0] in {'GanonCastle', 'InsideGanonCastle'}:
+        if area and area[0] in {'GanonCastle', 'InsideGanonCastle', 'GerudoTrainingGround'}:
             area = (*area, self.link_view())
         if area is not None and area != self.link_area:
             self.link_area = area
@@ -804,6 +804,10 @@ class MapApplication:
             age = self.navigation_age
         if from_portal:
             origin = self.current_region()
+            if origin == 'GerudoTrainingGround' and region == 'GerudoFortress':
+                if self.resource.get() != TRAINING_VIEWS[0]:
+                    return None
+                age = 'Adult'
             if region == 'GerudoFortress' and age != 'Adult':
                 return None
             if origin == 'Market' and region in MARKET_CASTLE_AGES and age != MARKET_CASTLE_AGES[region]:

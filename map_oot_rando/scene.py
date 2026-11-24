@@ -32,6 +32,8 @@ SHADOW_VIEWS = tuple(f'{REGION_NAMES["ShadowTemple"]} · {level}' for level in S
 GANON_DUNGEON_LEVELS = ('Épreuves', 'Accès à la tour', 'Tour · 1er étage',
                         'Tour · 2e étage', 'Tour · 3e étage', 'Sommet')
 GANON_DUNGEON_VIEWS = tuple(f'{REGION_NAMES["InsideGanonCastle"]} · {level}' for level in GANON_DUNGEON_LEVELS)
+TRAINING_LEVELS = ('Salles et labyrinthe', 'Passerelle du labyrinthe')
+TRAINING_VIEWS = tuple(f'{REGION_NAMES["GerudoTrainingGround"]} · {level}' for level in TRAINING_LEVELS)
 DUNGEON_FLOORS = {
     'DodongoCavern': tuple(zip(DODONGO_LEVELS, DODONGO_VIEWS)),
     'FireTemple': tuple(zip(FIRE_LEVELS, FIRE_VIEWS)),
@@ -41,6 +43,7 @@ DUNGEON_FLOORS = {
     'BottomOfTheWell': tuple(zip(WELL_LEVELS, WELL_VIEWS)),
     'ShadowTemple': tuple(zip(SHADOW_LEVELS, SHADOW_VIEWS)),
     'InsideGanonCastle': tuple(zip(GANON_DUNGEON_LEVELS, GANON_DUNGEON_VIEWS)),
+    'GerudoTrainingGround': tuple(zip(TRAINING_LEVELS, TRAINING_VIEWS)),
 }
 DUNGEON_ATLAS_KEYS = {
     **dict(zip(DODONGO_VIEWS, ('1F', '2F'))),
@@ -122,7 +125,9 @@ NEIGHBORS = {
                     'KakarikoVillage': 'Vers Cocorico', 'ZoraRiver': 'Vers la Rivière Zora',
                     'Market': 'Porte de la Citadelle', 'GerudoValley': 'Vers la Vallée Gerudo'},
     'GerudoValley': {'HyruleField': 'Vers la plaine d’Hyrule', 'GerudoFortress': 'Vers la Forteresse Gerudo'},
-    'GerudoFortress': {'GerudoValley': 'Vers la Vallée Gerudo'},
+    'GerudoFortress': {'GerudoValley': 'Vers la Vallée Gerudo',
+                       'GerudoTrainingGround': 'Vers le centre d’entraînement'},
+    'GerudoTrainingGround': {'GerudoFortress': 'Vers la Forteresse Gerudo'},
     'Market': {'HyruleField': 'Vers la plaine d’Hyrule', 'HyruleCastle': 'Vers le Château d’Hyrule',
                'GanonCastle': 'Vers le Château de Ganon'},
     'HyruleCastle': {'Market': 'Vers la Citadelle d’Hyrule'},
@@ -288,6 +293,22 @@ GANON_ESCAPE_ANCHORS = {
     'BackEntrance': 'Sortie du château',
     **{f'RestartPos{i}': f'Passage {i}' for i in range(1, 8)},
 }
+TRAINING_ROOM_ANCHORS = {
+    3761826239942057234: 'Hall d’entrée',
+    327131091130935122: 'Salle des Stalfos',
+    9317343157379008028: 'Galerie ouest',
+    11763036527684746970: 'Salle des Loups',
+    7291217069696259205: 'Salle des Like Like',
+    9501065223924577612: 'Salle de la statue',
+    1504970528840633775: 'Salle du marteau',
+    12371614488659450539: 'Galerie est',
+    13258869565676702196: 'Salle du Beamos',
+    12866839950667688328: 'Bassin',
+    13588342684847587321: 'Labyrinthe',
+}
+TRAINING_WALKWAY_ANCHORS = {
+    11618577540114259236: 'Passerelle nord',
+}
 
 
 def ganon_dungeon_floor(position):
@@ -314,6 +335,19 @@ def ganon_tower_points(sources):
             if label and (floor := ganon_dungeon_floor(position)):
                 points.add((floor, label, (position[0], position[2])))
     return points
+
+
+def training_level_points(sources):
+    return {(1, TRAINING_WALKWAY_ANCHORS[actor['Hash']], (position[0], position[2]))
+            for source in sources.values() for actor in source['root'].get('Actors', ())
+            if actor.get('Gyaml') == 'DungeonRoomIdAnchor' and actor.get('Hash') in TRAINING_WALKWAY_ANCHORS
+            and (position := actor.get('Translate'))}
+
+
+LEVEL_POINT_EXTRACTORS = {
+    'InsideGanonCastle': ganon_tower_points,
+    'GerudoTrainingGround': training_level_points,
+}
 
 
 def projection_points(region, sources):
@@ -353,6 +387,16 @@ def projection_points(region, sources):
                     label = 'Barrière de la tour'
             elif region == 'GanonCastle' and gyaml == 'StartPos':
                 label = GANON_ESCAPE_ANCHORS.get(actor.get('Name'))
+            elif region == 'GerudoFortress' and gyaml == 'MapIconFacilityAnchor':
+                dynamic = actor.get('Dynamic')
+                if isinstance(dynamic, dict) and dynamic.get('MapIconFacilityIsOpen') == 'GerudoTrainingGround_MapIcon_Flag':
+                    label = NEIGHBORS[region]['GerudoTrainingGround']
+            elif region == 'GerudoTrainingGround' and gyaml == 'DungeonRoomCenterAnchor':
+                label = TRAINING_ROOM_ANCHORS.get(actor.get('Hash'))
+            elif region == 'GerudoTrainingGround' and gyaml == 'FieldAndDungeonEntranceEventRequestActor':
+                dynamic = actor.get('Dynamic')
+                if isinstance(dynamic, dict) and dynamic.get('NextStartPosName') == 'GerudoFortress_FromGerudoTrainingGround':
+                    label = NEIGHBORS[region]['GerudoFortress']
             elif gyaml == 'MapIconEntranceAnchor':
                 dynamic = actor.get('Dynamic')
                 if isinstance(dynamic, dict) and (region in {'GoronCity', 'DeathMountainCrater'}
@@ -411,7 +455,8 @@ def extract_scenes(maps, landmarks):
                   for name, position in marks.get('points', ())}
         if region != 'KokiriForest':
             points.update(projection_points(region, sources))
-        levels = ganon_tower_points(sources) if region == 'InsideGanonCastle' else ()
+        extract_levels = LEVEL_POINT_EXTRACTORS.get(region)
+        levels = extract_levels(sources) if extract_levels else ()
         if rooms or points or levels:
             scene = {'rooms': rooms, 'points': sorted(points)}
             if levels:
@@ -428,8 +473,9 @@ def read_scenes(document):
     for resource, scene in scenes.items():
         level_points = []
         for entry in scene.get('level_points', ()):
-            if (len(entry) != 3 or resource_region(resource) != 'InsideGanonCastle'
-                    or type(entry[0]) is not int or not 0 < entry[0] < len(GANON_DUNGEON_VIEWS)):
+            region = resource_region(resource)
+            if (len(entry) != 3 or region not in LEVEL_POINT_EXTRACTORS
+                    or type(entry[0]) is not int or not 0 < entry[0] < len(DUNGEON_FLOORS[region])):
                 raise ValueError('Niveau de carte invalide')
             level_points.append(entry[1:])
         for entries, size in ((scene['rooms'], 3), (scene['points'], 2), (level_points, 2)):
@@ -547,6 +593,11 @@ def location_view(row):
     if view == GANON_DUNGEON_VIEWS[0] and row.position is not None:
         floor = 4 if row.dungeon_room == 24 else ganon_dungeon_floor(row.position)
         return GANON_DUNGEON_VIEWS[floor]
+    if view == TRAINING_VIEWS[0] and row.position is not None:
+        x, y, z = row.position
+        if y >= 103 and (row.dungeon_room == 8 or (
+                row.dungeon_room is None and -25 <= x <= 24 and -67 <= z <= -33)):
+            return TRAINING_VIEWS[1]
     if view == DODONGO_VIEWS[0] and row.position is not None:
         y = row.position[1]
         if y < 82:
@@ -568,7 +619,8 @@ def group_scenes(scenes):
         view['rooms'].update((name, tuple(low), tuple(high)) for name, low, high in scene['rooms'])
         view['points'].update((name, tuple(point)) for name, point in scene['points'])
         for floor, name, point in scene.get('level_points', ()):
-            level = grouped.setdefault(GANON_DUNGEON_VIEWS[floor], {'rooms': set(), 'points': set()})
+            _, view_name_for_floor = DUNGEON_FLOORS[resource_region(resource)][floor]
+            level = grouped.setdefault(view_name_for_floor, {'rooms': set(), 'points': set()})
             level['points'].add((name, tuple(point)))
     return {key: {kind: sorted(rows) for kind, rows in scene.items()}
             for key, scene in grouped.items()}
