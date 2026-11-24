@@ -1325,7 +1325,7 @@ class MapApplication:
                                         width=3 if guide else 6, arrow='last' if guide else 'none',
                                         capstyle='round', joinstyle='round', tags='scene-route')
             for label, point in scene['points']:
-                if label in exits or label in PORTAL_START_NAMES:
+                if label in exits or label in PORTAL_START_NAMES.get(region, ()):
                     continue
                 x, y = self.viewport.screen(point)
                 self.canvas.create_polygon(x, y-5, x+5, y, x, y+5, x-5, y,

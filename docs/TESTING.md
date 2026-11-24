@@ -9,6 +9,7 @@ Les commandes d’import et de suivi ont aussi été contrôlées à 690 pixels.
 
 Les passages Kokiri–Bois Perdus–Bosquet sacré ont été vérifiés dans les
 deux sens et aux deux âges avec les fonds et les scènes publiques.
+Le même contrôle couvre l’entrée et la sortie de l’Arbre Mojo.
 
 L’audit a comparé les marqueurs à la table native `MapParam` par
 identifiant d’acteur. Les 95 coffres et les 41 Skulltulas repérés dans

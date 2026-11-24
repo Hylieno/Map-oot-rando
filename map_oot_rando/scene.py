@@ -241,8 +241,12 @@ PORTAL_ARRIVAL_STARTS = {
     ('LostWood', NEIGHBORS['LostWood']['KokiriForest']): ('LostWood_Entrance',),
     ('LostWood', NEIGHBORS['LostWood']['SacredForestMeadow']): ('LostWood_FrontOfSacredForestMeadow',),
     ('SacredForestMeadow', NEIGHBORS['SacredForestMeadow']['LostWood']): ('SacredForestMeadow_FrontOfLostWood',),
+    ('KokiriForest', NEIGHBORS['KokiriForest']['InsideTheDekuTree']): ('FrontDekuTree',),
+    ('InsideTheDekuTree', NEIGHBORS['InsideTheDekuTree']['KokiriForest']): ('Entrance',),
 }
-PORTAL_START_NAMES = frozenset(name for names in PORTAL_ARRIVAL_STARTS.values() for name in names)
+PORTAL_START_NAMES = {}
+for (zone, _), names in PORTAL_ARRIVAL_STARTS.items():
+    PORTAL_START_NAMES.setdefault(zone, set()).update(names)
 KAKARIKO_ENTRANCES = {
     'HyruleField': 'Vers la plaine d’Hyrule',
     'DeathMountainTrail': 'Vers le Mont du Péril',
@@ -577,8 +581,7 @@ def guide_routes(sources):
 
 def projection_points(region, sources):
     points = set()
-    arrivals = {start for (zone, _), starts in PORTAL_ARRIVAL_STARTS.items()
-                if zone == region and zone != 'SpiritTemple' for start in starts}
+    arrivals = PORTAL_START_NAMES.get(region, ()) if region != 'SpiritTemple' else ()
     for path, source in sources.items():
         for actor in source['root'].get('Actors', ()):
             position = actor.get('Translate')

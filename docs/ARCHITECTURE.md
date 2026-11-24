@@ -35,7 +35,7 @@ qu’elle touche. Un menu expose chaque action quand le clic est ambigu.
 Le symbole et le libellé d’un même passage partagent une action.
 Sur la carte de destination, l’anneau d’arrivée reprend l’ancre du
 passage de retour dans la vue sélectionnée. Les mains du Colosse et
-les passages des Bois Perdus utilisent les points d’apparition du
+les passages de Kokiri et des Bois Perdus utilisent les points d’apparition du
 jeu quand ils figurent dans les métadonnées. Au Village Goron, l’arrivée
 se dessine sur la galerie desservie par le raccourci.
 

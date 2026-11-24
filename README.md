@@ -74,6 +74,7 @@ Enfant, la Fontaine mène au ventre de Jabu-Jabu. Les trois niveaux ont
 leurs plans Field Atlas. Barinade, son cœur et les pots de sa salle ont une
 vue schématique dédiée. Depuis la forêt Kokiri, l’Arbre Mojo propose cinq
 plans, dont celui du hall d’entrée, et une vue dédiée à l’arène de Gohma.
+Le passage entre Kokiri et l’Arbre Mojo indique l’arrivée dans les deux sens.
 Depuis le Bosquet sacré, le Temple de la Forêt propose aussi cinq plans
 Field Atlas et l’arène de Ganon spectral. Depuis Cocorico, le Puits possède
 deux plans et conserve l’âge de la vue au retour vers le village.
