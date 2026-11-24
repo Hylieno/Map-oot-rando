@@ -28,6 +28,7 @@ REGION_NAMES = {
     'ShadowTemple': 'Temple de l’Ombre',
     'Market': 'Citadelle d’Hyrule',
     'HyruleCastle': 'Château d’Hyrule',
+    'GanonCastle': 'Château de Ganon',
 }
 # These scenes have buried actor placements below their surface.
 SURFACE_MIN_Y = {'Graveyard': 92, 'DeathMountainTrail': 80, 'DeathMountainCrater': 90}

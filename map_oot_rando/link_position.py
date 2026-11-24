@@ -13,6 +13,7 @@ class LinkPosition:
     y: float
     z: float
     yaw: float
+    scene_resource: str | None = None
 
 
 # Position and scene layout documented by Ocarina Atlas for this NSO.
@@ -84,7 +85,7 @@ def _read_player(read, main, slot, age):
     if age not in {'Child', 'Adult'}:
         return None
     yaw = degrees(atan2(dx, -dz)) % 360 if isfinite(dx) and isfinite(dz) and hypot(dx, dz) > 0.01 else 0
-    return LinkPosition(region, age, x, y, z, yaw)
+    return LinkPosition(region, age, x, y, z, yaw, resource[:suffix.start()])
 
 
 def _find_scene(read, player, scene_record):

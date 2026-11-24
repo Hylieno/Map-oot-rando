@@ -19,6 +19,9 @@ La navigation suivie réagit aux transitions de scène ou d’âge.
 Le Château d’Hyrule utilise la scène enfant. Les abords et la cour
 partagent les coordonnées natives, avec une vue distincte pour la cour
 située au-delà du plan publié. Le marqueur peut suivre ce passage.
+Au Château de Ganon, les abords et l’effondrement ont deux repères
+distincts. Le lecteur de position conserve le nom de la ressource
+de scène pour les différencier dans le même dossier Banc.
 Le champ facultatif `entrance` indique où accéder à un check souterrain
 sur une carte de surface. Le rendu projette cet accès et les détails
 conservent la position XYZ de l’acteur.

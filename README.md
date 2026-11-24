@@ -90,6 +90,9 @@ plan distinct. Les jeux, les boutiques et la maison du garde reprennent
 les positions du jeu. Enfant, la Citadelle mène au Château d’Hyrule.
 Un plan représente les abords. La lettre de Zelda et les caisses de la
 cour ont leur propre vue schématique.
+Adulte, la Citadelle mène aux abords du Château de Ganon. Le sélecteur
+du château donne aussi accès à la vue schématique de l’effondrement,
+où se trouvent les quatre pots du catalogue.
 
 ## Suivre la partie
 

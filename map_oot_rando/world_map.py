@@ -31,6 +31,7 @@ WORLD_PINS = {
     'BottomOfTheWell': (.6610, .3741),
     'Market': (.4333, .3850),
     'HyruleCastle': (.4259, .3128),
+    'GanonCastle': (.4259, .3128),
     'ShadowTemple': (.8012, .3182),
 }
 

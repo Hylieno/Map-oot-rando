@@ -6,6 +6,10 @@
 - Château d’Hyrule. La cour a sa propre vue schématique pour garder
   les coordonnées de la lettre et des caisses. L’accès depuis la
   Citadelle utilise le repère de la vue enfant.
+- Château de Ganon. Le trajet depuis la Citadelle utilise le passage
+  adulte. Les deux châteaux partagent un repère géographique sur la
+  carte générale, qui affiche le château de l’âge courant. L’effondrement
+  a sa propre vue et conserve les coordonnées natives des pots.
 
 - La carte générale réutilise l’illustration Nintendúo et les positions
   géographiques publiées par Ocarina Atlas. Tous les fonds locaux publiés

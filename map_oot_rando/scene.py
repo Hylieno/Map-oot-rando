@@ -81,11 +81,17 @@ REGION_VIEWS['IceCavern'] = {None: REGION_NAMES['IceCavern']}
 CASTLE_VIEWS = tuple(f'{REGION_NAMES["HyruleCastle"]} · {area}' for area in ('Abords', 'Cour'))
 CASTLE_OUTSKIRTS, CASTLE_COURT = CASTLE_VIEWS
 REGION_VIEWS['HyruleCastle'] = {'Child': CASTLE_OUTSKIRTS}
+GANON_AREAS = ('Abords', 'Effondrement')
+GANON_OUTSKIRTS, GANON_ESCAPE = (f'{REGION_NAMES["GanonCastle"]} · {area}' for area in GANON_AREAS)
+REGION_VIEWS['GanonCastle'] = {'Adult': GANON_OUTSKIRTS}
+MARKET_CASTLE_AGES = {'HyruleCastle': 'Child', 'GanonCastle': 'Adult'}
 SHARED_DUNGEONS = frozenset(region for region, views in REGION_VIEWS.items() if None in views)
 FLOOR_OPTIONS = {
     **{view: tuple(zip(GORON_LEVELS, views)) for views in GORON_VIEWS.values() for view in views},
     **{view: floors for floors in DUNGEON_FLOORS.values() for _, view in floors},
     **dict.fromkeys(CASTLE_VIEWS, tuple(zip(('Abords', 'Cour'), CASTLE_VIEWS))),
+    **dict.fromkeys((GANON_OUTSKIRTS, GANON_ESCAPE),
+                    tuple(zip(GANON_AREAS, (GANON_OUTSKIRTS, GANON_ESCAPE)))),
 }
 AGE_VIEWS = REGION_VIEWS['KokiriForest']
 VIEWS = {label: (region, age) for region, ages in REGION_VIEWS.items()
@@ -93,6 +99,7 @@ VIEWS = {label: (region, age) for region, ages in REGION_VIEWS.items()
 BURNT_VILLAGE = 'Cocorico · Après l’incendie'
 VIEWS[BURNT_VILLAGE] = ('KakarikoVillage', 'Adult')
 VIEWS[CASTLE_COURT] = ('HyruleCastle', 'Child')
+VIEWS[GANON_ESCAPE] = ('GanonCastle', 'Adult')
 UNDERGROUND_VIEWS = {region: {age: f'{view} · Souterrains' for age, view in REGION_VIEWS[region].items()}
                      for region in SURFACE_MIN_Y}
 UNDERGROUND_LABELS = {view for ages in UNDERGROUND_VIEWS.values() for view in ages.values()}
@@ -109,8 +116,10 @@ NEIGHBORS = {
     'HyruleField': {'KokiriForest': 'front_of_lost_wood_bridge_entrance',
                     'KakarikoVillage': 'Vers Cocorico', 'ZoraRiver': 'Vers la Rivière Zora',
                     'Market': 'Porte de la Citadelle'},
-    'Market': {'HyruleField': 'Vers la plaine d’Hyrule', 'HyruleCastle': 'Vers le Château d’Hyrule'},
+    'Market': {'HyruleField': 'Vers la plaine d’Hyrule', 'HyruleCastle': 'Vers le Château d’Hyrule',
+               'GanonCastle': 'Vers le Château de Ganon'},
     'HyruleCastle': {'Market': 'Vers la Citadelle d’Hyrule'},
+    'GanonCastle': {'Market': 'Vers la Citadelle d’Hyrule'},
     'SacredForestMeadow': {'LostWood': 'front_of_lost_wood_entrance',
                            'ForestTemple': 'outside_of_forest_temple_entrance'},
     'ForestTemple': {'SacredForestMeadow': 'Vers le Bosquet sacré'},
@@ -181,6 +190,7 @@ ENTRANCE_LABELS = {
     'HyruleField': HYRULE_ANCHORS,
     'Market': NEIGHBORS['Market'],
     'HyruleCastle': NEIGHBORS['HyruleCastle'],
+    'GanonCastle': NEIGHBORS['GanonCastle'],
     'ZoraRiver': {'ZoraDomain': NEIGHBORS['ZoraRiver']['ZoraDomain']},
     'ZoraDomain': NEIGHBORS['ZoraDomain'],
     'ZoraFountain': {'ZoraDomain': NEIGHBORS['ZoraFountain']['ZoraDomain']},
@@ -359,6 +369,10 @@ def view_name(resource):
     if region == 'HyruleCastle' and resource in (
             f'Banc/{region}/{region}_{layer}{MAP_SUFFIX}' for layer in ('Static', 'Dynamic')):
         return CASTLE_OUTSKIRTS
+    if region == 'GanonCastle':
+        for scene, view in (('GanonCastle', GANON_OUTSKIRTS), ('CrumblingGanonCastle', GANON_ESCAPE)):
+            if resource in (f'Banc/{region}/{scene}_{layer}{MAP_SUFFIX}' for layer in ('Static', 'Dynamic')):
+                return view
     if region in SHARED_DUNGEONS and resource in (
             f'Banc/{region}/{region}_{layer}{MAP_SUFFIX}' for layer in ('Static', 'Dynamic')):
         return REGION_VIEWS[region][None]

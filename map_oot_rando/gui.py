@@ -19,7 +19,7 @@ from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
 from .scene import (BURNT_VILLAGE, CASTLE_COURT, DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS, FIRE_VIEWS, FLOOR_OPTIONS,
-                    FOUNTAIN_DUNGEON_AGES,
+                    FOUNTAIN_DUNGEON_AGES, GANON_ESCAPE, MARKET_CASTLE_AGES,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS,
                     NEIGHBORS, REGION_VIEWS, SHARED_DUNGEONS,
@@ -40,7 +40,8 @@ LABELS = dict(available='Accessible', blocked='Bloqué', unknown='Inconnu', comp
 
 def background_spec(view):
     region, age = VIEWS.get(view, (None, None))
-    if view == CASTLE_COURT or view in UNDERGROUND_LABELS or GORON_FLOORS.get(view) == len(GORON_LEVELS) - 1:
+    if (view in (CASTLE_COURT, GANON_ESCAPE) or view in UNDERGROUND_LABELS
+            or GORON_FLOORS.get(view) == len(GORON_LEVELS) - 1):
         return None
     if region == 'KokiriForest':
         return 'field-atlas', CALIBRATION, None
@@ -401,6 +402,11 @@ class MapApplication:
         if region == 'HyruleCastle':
             subarea = castle_view(self.link.z)
             return subarea if subarea in self.views else view
+        if region == 'GanonCastle':
+            if self.link.scene_resource == 'CrumblingGanonCastle':
+                return GANON_ESCAPE if GANON_ESCAPE in self.views else None
+            if self.link.scene_resource == 'FinalBattleField':
+                return None
         if region in DUNGEON_FLOORS or region == 'GoronCity' or region in SURFACE_MIN_Y:
             suffix = 'Static' if region in DUNGEON_FLOORS else f'{age}_Static'
             path = f'Banc/{region}/{region}_{suffix}.bcett.byml.zs'
@@ -420,6 +426,8 @@ class MapApplication:
         area = (self.link_region(), position.age) if position else None
         if area and area[0] == 'HyruleCastle':
             area = (*area, castle_view(position.z))
+        if area and area[0] == 'GanonCastle':
+            area = (*area, self.link_view())
         if area is not None and area != self.link_area:
             self.link_area = area
             if self.follow_link.get() and self.resume_follow_link():
@@ -746,8 +754,8 @@ class MapApplication:
         region = self.current_region()
         if age not in REGION_VIEWS[region]:
             return None
-        if self.resource.get() == CASTLE_COURT:
-            return CASTLE_COURT
+        if self.resource.get() in (CASTLE_COURT, GANON_ESCAPE):
+            return self.resource.get()
         view = self.view_for_region(region, age=age, from_portal=False)
         if self.resource.get() in GORON_FLOORS:
             same_floor = GORON_VIEWS[age][GORON_FLOORS[self.resource.get()]]
@@ -792,7 +800,9 @@ class MapApplication:
             age = self.navigation_age
         if from_portal:
             origin = self.current_region()
-            if origin == 'Market' and region == 'HyruleCastle' and age != 'Child':
+            if origin == 'Market' and region in MARKET_CASTLE_AGES and age != MARKET_CASTLE_AGES[region]:
+                return None
+            if self.resource.get() == GANON_ESCAPE and region == 'Market':
                 return None
             if origin == 'ZoraFountain' and region in FOUNTAIN_DUNGEON_AGES and age != FOUNTAIN_DUNGEON_AGES[region]:
                 return None
@@ -822,7 +832,14 @@ class MapApplication:
         return view or next((label for label in self.views if VIEWS.get(label, (None, None))[0] == region), None)
 
     def world_targets(self):
-        return {region: view for region in WORLD_PINS if (view := self.browse_view(region))}
+        targets = {region: view for region in WORLD_PINS if (view := self.browse_view(region))}
+        if MARKET_CASTLE_AGES.keys() <= targets.keys():
+            _, view_age = VIEWS.get(self.resource.get(), (None, None))
+            age = (self.navigation_age if self.overview_open else view_age) or self.navigation_age or 'Child'
+            for region, castle_age in MARKET_CASTLE_AGES.items():
+                if castle_age != age:
+                    del targets[region]
+        return targets
 
     def available_neighbors(self):
         region = self.current_region()

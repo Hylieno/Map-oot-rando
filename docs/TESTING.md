@@ -1,5 +1,13 @@
 # Validation
 
+L’audit des quatre scènes publiques du Château de Ganon retrouve les
+six placements du catalogue. Deux utilisent le fond Field Atlas des abords.
+Le dessin s’arrête avant la position de la Grande Fée, qui reste affichée
+à ses coordonnées de jeu. Les quatre pots apparaissent dans le repère
+de l’effondrement. Les tests Tk couvrent le passage adulte dans les deux
+sens, le choix de la vue et le suivi de Link avec des positions simulées.
+Le scan du NUP et les transitions en jeu restent à vérifier.
+
 Les deux scènes publiques du Château d’Hyrule placent les 14 checks
 du catalogue. Le plan des abords contient onze positions, dont la
 Grande Fée. La cour garde les coordonnées de la lettre et des deux

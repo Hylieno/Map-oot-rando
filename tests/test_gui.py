@@ -621,6 +621,57 @@ class GuiTests(unittest.TestCase):
         app.open_neighbor('Market')
         self.assertEqual(app.resource.get(), REGION_VIEWS['Market']['Child'])
 
+    def test_ganon_castle_switches_scene_without_mixing_coordinates(self):
+        from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
+        from map_oot_rando.scene import GANON_ESCAPE, GANON_OUTSKIRTS, REGION_VIEWS
+
+        app = self.app
+        template = demo_document()
+        doc = dict(template, provenance='ootrr-scan',
+                   regions=['KokiriForest', 'Market', 'HyruleCastle', 'GanonCastle'])
+        market = 'Banc/Market/Market_{}_Static.bcett.byml.zs'
+        hyrule = 'Banc/HyruleCastle/HyruleCastle_Static.bcett.byml.zs'
+        ganon = 'Banc/GanonCastle/GanonCastle_Static.bcett.byml.zs'
+        escape = 'Banc/GanonCastle/CrumblingGanonCastle_Dynamic.bcett.byml.zs'
+        doc['locations'] = [
+            dict(template['locations'][0], id='exterior', resource=ganon, position=(78, 94, 328)),
+            dict(template['locations'][0], id='pot', resource=escape, position=(-4, 192, -22)),
+        ]
+        doc['scenes'] = {
+            market.format('Child'): {'rooms': [], 'points': [('Vers le Château d’Hyrule', (-2, -36))]},
+            market.format('Adult'): {'rooms': [], 'points': [('Vers le Château de Ganon', (-2, -36))]},
+            hyrule: {'rooms': [], 'points': []},
+            ganon: {'rooms': [], 'points': [('Vers la Citadelle d’Hyrule', (60, 369))]},
+        }
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        self.assertIn('HyruleCastle', app.world_targets())
+        self.assertNotIn('GanonCastle', app.world_targets())
+        app.age_buttons['Adult'].invoke()
+        self.assertNotIn('HyruleCastle', app.world_targets())
+        self.assertIn('GanonCastle', app.world_targets())
+        self.assertIn('GanonCastle', app.navigation_markers.values())
+        app.open_neighbor('GanonCastle')
+        self.assertEqual(app.resource.get(), GANON_OUTSKIRTS)
+        self.assertEqual([row.id for row in app.visible], ['exterior'])
+        app.open_neighbor('Market')
+        self.assertEqual(app.resource.get(), REGION_VIEWS['Market']['Adult'])
+        app.open_neighbor('GanonCastle')
+        app.floor_picker.set('Effondrement')
+        app.choose_floor(None)
+        app.save_age = 'Adult'
+        app.sync_age()
+        self.assertEqual(app.resource.get(), GANON_ESCAPE)
+        self.assertEqual([row.id for row in app.visible], ['pot'])
+        self.assertNotIn('Market', app.available_neighbors())
+        app.update_link(LinkPosition('GanonCastle', 'Adult', 78, 94, 328, 0, 'GanonCastle'))
+        self.assertEqual(app.resource.get(), GANON_OUTSKIRTS)
+        app.update_link(LinkPosition('GanonCastle', 'Adult', -4, 192, -22, 0, 'CrumblingGanonCastle'))
+        self.assertEqual(app.resource.get(), GANON_ESCAPE)
+        app.update_link(LinkPosition('GanonCastle', 'Adult', 30, 100, 20, 0, 'FinalBattleField'))
+        self.assertIsNone(app.link_view())
+
     def test_jabu_fountain_portal_and_room_selection(self):
         from unittest.mock import patch
         from map_oot_rando.scene import JABU_LEVELS, JABU_VIEWS, REGION_VIEWS

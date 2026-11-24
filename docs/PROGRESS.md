@@ -1,5 +1,10 @@
 # Checkpoint — 23 novembre 2026
 
+La Citadelle adulte mène aux abords du Château de Ganon, qui chargent
+un plan Field Atlas. Les six checks du catalogue ont été placés. Le
+suivi de Link et le sélecteur du château distinguent les abords et
+l’effondrement. L’intérieur du château reste à intégrer.
+
 La Citadelle est reliée à la plaine d’Hyrule et affiche les 61 checks du
 catalogue. Les vues enfant et adulte chargent les fonds et placements
 correspondants. Depuis la vue enfant, le Château d’Hyrule ajoute 14

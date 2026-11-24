@@ -104,6 +104,9 @@ FIELD_FRAMES['Market'] = {
 FIELD_FRAMES['HyruleCastle'] = {
     'Child': ((-52, -35, 954, 1390), (8.2959, 286.92, 8.5297, 1319.87)),
 }
+FIELD_FRAMES['GanonCastle'] = {
+    'Adult': ((15, -12, 844, 968), (5.4, 203, 5.49, -1154)),
+}
 for region, frame, viewboxes in (
     ('FireTemple', (3.965, 354.2, 3.9651, 218.31), FIRE_VIEWBOXES),
     ('InsideJabuJabuBelly', (7.6, 392, 7.6, 1580), JABU_VIEWBOXES),
@@ -169,6 +172,9 @@ REGION_MAPS['Market'] = {
 }
 REGION_MAPS['HyruleCastle'] = {
     'Child': ('field-atlas-hyrule-castle', 'f8d68c05a87801ca77933c810dd31f1ae032d770e2c866a77e99b29508ef036f'),
+}
+REGION_MAPS['GanonCastle'] = {
+    'Adult': ('field-atlas-ganon-castle', 'a30a638cbcac739ff725ad832e8d98e4eef85b979d38016f4b33291cc8c9c3c6'),
 }
 REGION_CALIBRATION = 1
 

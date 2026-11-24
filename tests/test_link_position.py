@@ -7,7 +7,7 @@ from map_oot_rando.link_position import read_link_position
 
 class PlayerMemory:
     """Small synthetic guest-memory image laid out at a relocated main base."""
-    def __init__(self, *, scene='KokiriForest_Child', x=23.5):
+    def __init__(self, *, scene='KokiriForest_Child', folder=None, x=23.5):
         self.main = 0x80634000
         self.slot = self.main + 0x04C7E180
         singleton, player, components, pose, scene_record = (
@@ -29,7 +29,8 @@ class PlayerMemory:
             player: header,
             components: table,
             pose: self.pose,
-            scene_record + 0x34: f'Work/Banc/Scene/{scene.split('_')[0]}/{scene}.bcett.json'.encode().ljust(0x80, b'\0'),
+            scene_record + 0x34: f'Work/Banc/Scene/{folder or scene.split("_")[0]}/{scene}.bcett.json'
+            .encode().ljust(0x80, b'\0'),
         }
 
     def read(self, address, count):
@@ -51,6 +52,12 @@ class LinkPositionTests(unittest.TestCase):
     def test_shared_scene_uses_verified_game_age(self):
         sample = read_link_position(PlayerMemory(scene='FireTemple'), 'Adult')
         self.assertEqual((sample.scene, sample.age), ('FireTemple', 'Adult'))
+
+    def test_escape_scene_preserves_the_resource_inside_the_shared_folder(self):
+        memory = PlayerMemory(scene='CrumblingGanonCastle_Dynamic', folder='GanonCastle')
+        sample = read_link_position(memory, 'Adult')
+        self.assertEqual((sample.scene, sample.age, sample.scene_resource),
+                         ('GanonCastle', 'Adult', 'CrumblingGanonCastle'))
 
     def test_rejects_wrong_game_layout_and_empty_pose(self):
         memory = PlayerMemory()
