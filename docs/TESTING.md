@@ -1,5 +1,11 @@
 # Validation
 
+L’audit a comparé les marqueurs à la table native `MapParam` par
+identifiant d’acteur. Les 95 coffres repérés dans cette table et
+affichés sur un plan Field Atlas se trouvent à l’étage attendu.
+Le contrôle porte sur l’étage. Les écarts au contour dessiné
+figurent dans le diagnostic des fonds chargés.
+
 Le test du Monde des rêves choisit les deux destinations de
 l’organisateur depuis le symbole et son libellé. L’aller-retour
 et l’accès aux dix coffres ont aussi été vérifiés aux deux âges
