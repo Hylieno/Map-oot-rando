@@ -6,13 +6,15 @@ from map_oot_rando.scene import extract_scenes, read_scenes
 
 class SceneTests(unittest.TestCase):
     def test_training_routes_require_both_centers_and_the_native_door(self):
-        from map_oot_rando.scene import TRAINING_VIEWS, group_scenes
+        from map_oot_rando.scene import (TRAINING_TO_STATUE, TRAINING_TO_WALKWAY, TRAINING_VIEWS,
+                                        TRAINING_WALKWAY_GATE, group_scenes)
 
         path = 'Banc/GerudoTrainingGround/GerudoTrainingGround_Static.bcett.byml.zs'
         actors = [
             dict(Hash=3761826239942057234, Gyaml='DungeonRoomCenterAnchor', Translate=(-1.83, 99.25, -6.09)),
             dict(Hash=327131091130935122, Gyaml='DungeonRoomCenterAnchor', Translate=(-47.05, 97.75, -5.13)),
             dict(Hash=17271596773795074407, Gyaml='Obj_Gerudo_SwitchShutter_A_04', Translate=(-28.39, 98, -5.39)),
+            dict(Hash=TRAINING_WALKWAY_GATE, Gyaml='Obj_Gerudo_SwitchShutter_A_04', Translate=(-2.34, 106, -58.92)),
         ]
         maps = {path: {'root': {'Actors': actors}}}
         document = {'scenes': extract_scenes(maps, lambda _: {})}
@@ -20,7 +22,9 @@ class SceneTests(unittest.TestCase):
         self.assertEqual(scenes[TRAINING_VIEWS[0]]['routes'], [
             ('Liaisons entre les salles', ((-1.83, -6.09), (-28.39, -5.39), (-47.05, -5.13))),
         ])
-        actors.append(dict(actors[-1], Translate=(-30, 98, -5.39)))
+        self.assertIn((TRAINING_TO_WALKWAY, (-2.34, -58.92)), scenes[TRAINING_VIEWS[0]]['points'])
+        self.assertIn((TRAINING_TO_STATUE, (-2.34, -58.92)), scenes[TRAINING_VIEWS[1]]['points'])
+        actors.append(dict(actors[2], Translate=(-30, 98, -5.39)))
         self.assertNotIn('routes', extract_scenes(maps, lambda _: {})[path])
 
     def test_water_temple_preserves_the_pool_and_its_submerged_rooms(self):

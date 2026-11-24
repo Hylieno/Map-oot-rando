@@ -38,6 +38,9 @@ GANON_DUNGEON_LEVELS = ('Épreuves', 'Accès à la tour', 'Tour · 1er étage',
 GANON_DUNGEON_VIEWS = tuple(f'{REGION_NAMES["InsideGanonCastle"]} · {level}' for level in GANON_DUNGEON_LEVELS)
 TRAINING_LEVELS = ('Salles et labyrinthe', 'Passerelle du labyrinthe')
 TRAINING_VIEWS = tuple(f'{REGION_NAMES["GerudoTrainingGround"]} · {level}' for level in TRAINING_LEVELS)
+TRAINING_WALKWAY_GATE = 18314542979296415492
+TRAINING_TO_WALKWAY = 'Vers la passerelle'
+TRAINING_TO_STATUE = 'Vers la salle de la statue'
 DUNGEON_FLOORS = {
     'DodongoCavern': tuple(zip(DODONGO_LEVELS, DODONGO_VIEWS)),
     'FireTemple': tuple(zip(FIRE_LEVELS, FIRE_VIEWS)),
@@ -208,6 +211,10 @@ NEIGHBORS = {
     'InsideTheDekuTree': {'KokiriForest': 'Vers la forêt Kokiri'},
 }
 SIDE_PORTALS = {
+    'GerudoTrainingGround': {
+        TRAINING_TO_WALKWAY: ('GerudoTrainingGround', TRAINING_VIEWS[1], 'Passerelle'),
+        TRAINING_TO_STATUE: ('GerudoTrainingGround', TRAINING_VIEWS[0], 'Salle de la statue'),
+    },
     'DreamWorld': {
         'Organisateur du défi': ('DreamWorld', DREAM_SCENE_VIEWS['BossRushIntervalRoom'], 'Défi des boss'),
     },
@@ -458,9 +465,11 @@ def ganon_tower_points(sources):
 
 
 def training_level_points(sources):
-    return {(1, TRAINING_WALKWAY_ANCHORS[actor['Hash']], (position[0], position[2]))
+    anchors = {('DungeonRoomIdAnchor', ident): label for ident, label in TRAINING_WALKWAY_ANCHORS.items()}
+    anchors['Obj_Gerudo_SwitchShutter_A_04', TRAINING_WALKWAY_GATE] = TRAINING_TO_STATUE
+    return {(1, anchors[key], (position[0], position[2]))
             for source in sources.values() for actor in source['root'].get('Actors', ())
-            if actor.get('Gyaml') == 'DungeonRoomIdAnchor' and actor.get('Hash') in TRAINING_WALKWAY_ANCHORS
+            if (key := (actor.get('Gyaml'), actor.get('Hash'))) in anchors
             and (position := actor.get('Translate'))}
 
 
@@ -592,6 +601,9 @@ def projection_points(region, sources):
                     label = NEIGHBORS[region]['GerudoTrainingGround']
             elif region == 'GerudoTrainingGround' and gyaml == 'DungeonRoomCenterAnchor':
                 label = TRAINING_ROOM_ANCHORS.get(actor.get('Hash'))
+            elif (region == 'GerudoTrainingGround' and gyaml == 'Obj_Gerudo_SwitchShutter_A_04'
+                  and actor.get('Hash') == TRAINING_WALKWAY_GATE):
+                label = TRAINING_TO_WALKWAY
             elif region == 'GerudoTrainingGround' and gyaml == 'FieldAndDungeonEntranceEventRequestActor':
                 dynamic = actor.get('Dynamic')
                 if isinstance(dynamic, dict) and dynamic.get('NextStartPosName') == 'GerudoFortress_FromGerudoTrainingGround':

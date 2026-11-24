@@ -1,7 +1,8 @@
 # Checkpoint — 24 novembre 2026
 
 Le plan du centre d’entraînement Gerudo trace les liaisons entre
-salles et passe par les portes du jeu.
+salles et passe par les portes du jeu. La porte de la salle de la
+statue permet d’ouvrir la vue de la passerelle et de revenir.
 Le build vérifie l’import complet d’un NUP synthétique, du décodage
 des deux couches jusqu’aux coordonnées dans la vue enfant.
 
