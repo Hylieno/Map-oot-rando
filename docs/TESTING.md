@@ -1,5 +1,11 @@
 # Validation
 
+Le test Tk réduit puis agrandit la fenêtre, contrôle le retour des
+boutons et ouvre un donjon depuis le menu compact. Il vérifie aussi
+la visibilité du menu et du sélecteur d’étage dans le donjon.
+L’audit des 112 vues des scènes publiques vérifie les commandes de
+navigation à 760, 900, 1 024 et 1 180 pixels de largeur.
+
 Les passages Kokiri–Bois Perdus–Bosquet sacré ont été vérifiés dans les
 deux sens et aux deux âges avec les fonds et les scènes publiques.
 

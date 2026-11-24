@@ -39,6 +39,8 @@ L’illustration générale est celle de Nintendúo, publiée par Field Atlas et
 utilisée par Ocarina Atlas. [Field Atlas](https://oot.gousse.cool/) · [Ocarina Atlas](https://github.com/antonioalvromero/Ocarina-Atlas)
 
 Sur la carte d’Hyrule, les repères avec une flèche ouvrent un menu.
+Quand la fenêtre est étroite, le menu **Zones voisines** regroupe les
+destinations qui figurent habituellement dans la barre de la carte.
 Kokiri donne accès au village, au pont et au Monde des rêves. La
 Citadelle donne accès au Temple du Temps et à la Chambre des Sages.
 Les boutons Enfant et Adulte permettent de choisir l’âge avant

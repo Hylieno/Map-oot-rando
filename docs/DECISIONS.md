@@ -1,5 +1,8 @@
 # Décisions
 
+- Navigation en fenêtre étroite. Les destinations passent dans un
+  menu et les commandes de carte et d’étage gardent leur place.
+
 - Étages des donjons. Pour les coffres et les Skulltulas, une
   association unique dans `MapParam` détermine le plan affiché.
   Les coordonnées viennent toujours de l’acteur de scène.

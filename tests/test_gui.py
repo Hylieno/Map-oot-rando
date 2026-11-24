@@ -61,6 +61,46 @@ class GuiTests(unittest.TestCase):
         self.assertIn('inconnues', app.details.get())
         self.assertFalse(app.markers)
 
+    def test_neighbor_menu_preserves_destinations_when_the_map_panel_narrows(self):
+        from unittest.mock import patch
+        from map_oot_rando.scene import NEIGHBORS, REGION_NAMES, REGION_VIEWS
+
+        app = self.app
+        forest = 'KokiriForest'
+        destinations = ('LostWood', 'KokiriBridge', 'HyruleField', 'InsideTheDekuTree')
+        scenes = {REGION_VIEWS[region].get('Child', REGION_VIEWS[region].get(None)):
+                  {'rooms': [], 'points': []} for region in (forest, *destinations)}
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=[forest, *destinations],
+                   locations=[], scenes=scenes)
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        self.root.update()
+        self.assertEqual(app.resource.get(), REGION_VIEWS[forest]['Child'])
+        self.assertTrue(all(app.neighbor_buttons[target].winfo_ismapped() for target in destinations))
+
+        self.root.geometry('690x700')
+        self.root.update()
+        self.assertTrue(app.overview_button.winfo_ismapped())
+        self.assertTrue(app.neighbor_menu_button.winfo_ismapped())
+        available = [region for region in NEIGHBORS[forest] if region in destinations]
+        labels = [app.neighbor_menu.entrycget(i, 'label') for i in range(len(available))]
+        self.assertEqual(labels, [REGION_NAMES[region] for region in available])
+
+        self.root.geometry('1180x760')
+        self.root.update()
+        self.assertFalse(app.neighbor_menu_button.winfo_ismapped())
+        self.assertTrue(all(app.neighbor_buttons[target].winfo_ismapped() for target in destinations))
+
+        self.root.geometry('690x700')
+        self.root.update()
+        app.neighbor_menu.invoke(labels.index(REGION_NAMES['InsideTheDekuTree']))
+        self.assertEqual(app.resource.get(), REGION_VIEWS['InsideTheDekuTree'][None])
+        self.root.geometry('760x700')
+        self.root.update()
+        for widget in (app.overview_button, app.floor_picker, app.neighbor_menu_button):
+            self.assertTrue(widget.winfo_ismapped())
+            self.assertGreaterEqual(widget.winfo_width(), widget.winfo_reqwidth())
+
     def test_pan_zoom_and_import_isolation(self):
         app = self.app
         app.query.set('aucun résultat')

@@ -1,5 +1,8 @@
 # Checkpoint — 24 novembre 2026
 
+Les zones voisines restent accessibles dans une fenêtre étroite.
+La barre affiche un menu quand les destinations ne tiennent plus.
+
 Le raccourci Goron indique les deux apparitions possibles dans la galerie.
 Le retour dans les Bois Perdus indique leur point commun.
 Les entrées de Kokiri et du Bosquet sacré indiquent aussi l’arrivée de Link.

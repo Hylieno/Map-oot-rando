@@ -1,5 +1,9 @@
 # Architecture et audit initial
 
+La barre de navigation mesure l’espace disponible après les commandes
+de carte et d’étage. Si les destinations ne tiennent plus, un menu
+reprend les mêmes actions. Il passe à la ligne quand la place l’exige.
+
 L’import lit la table facultative `MapParam` de la version effective du
 NUP. Les coffres et les Skulltulas sont associés à un étage par leur
 identifiant d’acteur. Le champ facultatif `dungeon_floor` indique le

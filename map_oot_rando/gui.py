@@ -188,13 +188,21 @@ class MapApplication:
                    command=self.toggle_connection).pack(fill='x')
         panel = ttk.Frame(body)
         body.add(panel, weight=1)
-        tools = ttk.Frame(panel)
+        tool_rows = ttk.Frame(panel)
+        tool_rows.pack(fill='x')
+        self.map_tools = tools = ttk.Frame(tool_rows)
         tools.pack(fill='x')
         ttk.Button(tools, text='Ajuster la vue', command=self.fit_detail).pack(side='left')
+        self.neighbor_bar = ttk.Frame(tool_rows)
         self.neighbor_buttons = {
-            region: ttk.Button(tools, text=name, command=lambda target=region: self.open_neighbor(target))
+            region: ttk.Button(self.neighbor_bar, text=name, command=lambda target=region: self.open_neighbor(target))
             for region, name in REGION_NAMES.items()
         }
+        self.neighbor_menu = tk.Menu(self.neighbor_bar, tearoff=False)
+        self.neighbor_menu_button = ttk.Menubutton(self.neighbor_bar, text='Zones voisines', menu=self.neighbor_menu)
+        self.neighbor_targets = ()
+        self.neighbor_layout = None
+        tools.bind('<Configure>', self.layout_neighbors)
         self.overview_button = ttk.Button(tools, text='Carte d’Hyrule', command=self.toggle_overview)
         self.floor_button = ttk.Button(tools, command=self.toggle_floor)
         self.floor_picker = ttk.Combobox(tools, state='readonly', width=27)
@@ -985,12 +993,8 @@ class MapApplication:
         self.refresh_age_buttons()
         self.banner.set('SIMULATION - noms et positions fictifs' if self.simulation else
                         f'{name} - seed importée')
-        neighbors = self.available_neighbors() if not self.simulation else []
-        for neighbor, button in self.neighbor_buttons.items():
-            if neighbor in neighbors:
-                button.pack(side='left', padx=5)
-            else:
-                button.pack_forget()
+        self.neighbor_bar.pack_forget()
+        self.neighbor_layout = None
         if not self.simulation and self.world_targets():
             self.overview_button.pack(side='left', padx=5)
         else:
@@ -1010,6 +1014,39 @@ class MapApplication:
             self.floor_picker.pack(side='left', padx=5)
         else:
             self.floor_picker.pack_forget()
+        self.neighbor_targets = tuple(self.available_neighbors()) if not self.simulation else ()
+        self.layout_neighbors()
+
+    def layout_neighbors(self, _event=None):
+        fixed_width = sum(widget.winfo_reqwidth() + 2 * int(widget.pack_info()['padx'])
+                          for widget in self.map_tools.pack_slaves() if widget is not self.neighbor_bar)
+        requested = sum(self.neighbor_buttons[target].winfo_reqwidth() + 8
+                        for target in self.neighbor_targets)
+        remaining_width = self.map_tools.winfo_width() - fixed_width
+        compact = requested > remaining_width
+        second_row = compact and self.neighbor_menu_button.winfo_reqwidth() + 8 > remaining_width
+        layout = self.neighbor_targets, compact, second_row
+        if layout == self.neighbor_layout:
+            return
+        self.neighbor_layout = layout
+        self.neighbor_bar.pack_forget()
+        for widget in self.neighbor_bar.pack_slaves():
+            widget.pack_forget()
+        if not self.neighbor_targets:
+            return
+        if compact:
+            self.neighbor_menu.delete(0, 'end')
+            for target in self.neighbor_targets:
+                self.neighbor_menu.add_command(label=REGION_NAMES[target],
+                                               command=lambda region=target: self.open_neighbor(region))
+            self.neighbor_menu_button.pack(side='left', padx=4)
+        else:
+            for target in self.neighbor_targets:
+                self.neighbor_buttons[target].pack(side='left', padx=4)
+        if second_row:
+            self.neighbor_bar.pack(side='top', anchor='w')
+        else:
+            self.neighbor_bar.pack(in_=self.map_tools, side='left')
 
     def resource_changed(self, *, manual=True, arrival=None):
         self.overview_open = False
