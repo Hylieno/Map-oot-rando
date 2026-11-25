@@ -1,5 +1,9 @@
 # Checkpoint — 25 novembre 2026
 
+Le joueur a approuvé l’interface pour la première release portable Windows.
+Le workflow produit un build vérifié sur `main`. Le développement se poursuit
+sur `dev`.
+
 Le démarrage affiche un accueil illustré qui attend les données de la seed.
 Le guide d’import explique le choix du NUP mis à jour et du catalogue
 `checks.json`. La carte, les filtres et le suivi utilisent un thème vert forêt

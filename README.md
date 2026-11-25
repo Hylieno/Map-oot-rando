@@ -6,6 +6,8 @@ Au lancement, l’accueil invite à importer le jeu et la seed, ou à ouvrir une
 enregistrée via le menu **Carte**. Le suivi lit les états d’OotrR depuis la mémoire
 du jeu ou une sauvegarde. Les checks sans position confirmée restent dans la liste.
 
+[Télécharger la version portable Windows x64](https://github.com/Hylieno/Map-oot-rando/releases/latest)
+
 ## Lancer localement
 
 Python avec Tkinter pour le lancement depuis les sources :
@@ -291,21 +293,17 @@ python -m unittest discover -s tests -v
 Sans écran, les tests Tk sont ignorés explicitement. Définir
 `MAP_REQUIRE_DISPLAY=1` pour exiger leur exécution (utilisé dans le workflow).
 
-Le workflow **Windows portable preview** exécute les tests pour chaque mise à
-jour pertinente de la PR. Un lancement manuel ou un commit de jalon dont le
-message se termine par `[preview]` construit aussi le dossier portable x64.
-Après une compilation réussie, télécharger l'artifact
-`Map-oot-rando-windows-x64-preview`, tout extraire et lancer `Map-oot-rando.exe`.
-Il s'exécute sur les modifications pertinentes de PR ou manuellement une fois
-le workflow disponible sur la branche par défaut. Aucune Release publiée.
-Un build réussi ne constitue pas une validation avec le jeu.
+Le développement se poursuit sur `dev`. Le workflow **Windows portable** lance
+les tests sur les PR qui touchent au code, aux tests ou au build. Sur `main`, il
+teste et construit automatiquement le dossier portable Windows x64. Un
+lancement manuel ou une PR dont le dernier commit se termine par `[preview]`
+produit aussi un build. Les versions distribuées sont publiées dans les Releases.
 
 Voir [architecture](docs/ARCHITECTURE.md), [progression](docs/PROGRESS.md),
 [décisions](docs/DECISIONS.md) et [tests](docs/TESTING.md).
 
-La [liste des builds Windows x64](https://github.com/Hylieno/Map-oot-rando/actions/workflows/windows.yml)
-donne accès aux artefacts des exécutions réussies. Connexion GitHub requise et
-rétention de 14 jours.
+Les artefacts de test restent disponibles 14 jours avec une connexion GitHub.
+[Voir les builds Windows x64](https://github.com/Hylieno/Map-oot-rando/actions/workflows/windows.yml)
 
 ## Importer sa seed dans la version portable Windows
 

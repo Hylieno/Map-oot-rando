@@ -1,6 +1,8 @@
-name: Windows portable preview
+name: Windows portable
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
   pull_request:
     paths:
       - 'map_oot_rando/**'
@@ -18,14 +20,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
-      - name: Decide whether to package a preview
-        id: preview
+      - name: Decide whether to package Windows
+        id: packaging
         shell: pwsh
         env:
           EVENT_NAME: ${{ github.event_name }}
           PR_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
-          $package = $env:EVENT_NAME -eq 'workflow_dispatch'
+          $package = $env:EVENT_NAME -in @('push', 'workflow_dispatch')
           if (-not $package -and $env:PR_HEAD) {
             $subject = git log -1 --format=%s $env:PR_HEAD
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -52,13 +54,13 @@ jobs:
           PYTHONPATH: upstream-ootrr/src
         run: python -m unittest discover -s tests -v
       - name: Install packager
-        if: steps.preview.outputs.package == 'true'
+        if: steps.packaging.outputs.package == 'true'
         run: python -m pip install pyinstaller==6.11.1
-      - name: Build portable preview
-        if: steps.preview.outputs.package == 'true'
+      - name: Build portable app
+        if: steps.packaging.outputs.package == 'true'
         run: python -m PyInstaller --noconfirm --clean --windowed --onedir --name Map-oot-rando --copy-metadata resvg-py --add-data "upstream-ootrr/src/oot_rando/logic/world:oot_rando/logic/world" --add-data "map_oot_rando/assets/welcome.jpg:map_oot_rando/assets" --paths . --paths upstream-ootrr/src packaging/launcher.py
       - name: Verify frozen scanner
-        if: steps.preview.outputs.package == 'true'
+        if: steps.packaging.outputs.package == 'true'
         shell: pwsh
         env:
           PYTHONPATH: upstream-ootrr/src
@@ -69,22 +71,22 @@ jobs:
           $app = Start-Process -FilePath dist/Map-oot-rando/Map-oot-rando.exe -ArgumentList '--check-bundled-import', 'scanner-fixture/synthetic.nup', 'scanner-fixture/checks.json' -Wait -PassThru
           if ($app.ExitCode -ne 0) { exit $app.ExitCode }
       - name: Verify frozen map window
-        if: steps.preview.outputs.package == 'true'
+        if: steps.packaging.outputs.package == 'true'
         shell: pwsh
         run: |
           $app = Start-Process -FilePath dist/Map-oot-rando/Map-oot-rando.exe -ArgumentList '--check-bundled-gui', 'scanner-fixture/synthetic.nup', 'scanner-fixture/checks.json' -Wait -PassThru
           if ($app.ExitCode -ne 0) { exit $app.ExitCode }
       - name: Include usage and limitations
-        if: steps.preview.outputs.package == 'true'
+        if: steps.packaging.outputs.package == 'true'
         shell: pwsh
         run: |
           Copy-Item upstream-ootrr/LICENSE dist/Map-oot-rando/OotrR-LICENSE.txt
           Copy-Item README.md dist/Map-oot-rando/
           Copy-Item docs/TESTING.md dist/Map-oot-rando/
       - uses: actions/upload-artifact@v4
-        if: steps.preview.outputs.package == 'true'
+        if: steps.packaging.outputs.package == 'true'
         with:
-          name: Map-oot-rando-windows-x64-preview
+          name: ${{ github.ref == 'refs/heads/main' && 'Map-oot-rando-windows-x64' || 'Map-oot-rando-windows-x64-preview' }}
           path: dist/Map-oot-rando/
           if-no-files-found: error
           retention-days: 14
