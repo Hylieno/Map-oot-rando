@@ -18,6 +18,9 @@ Les onze traits entre salles passent par les coordonnées des portes.
 Le tracé des six épreuves a été vérifié dans Tk sans afficher de checks.
 Les six accès du hall ont été comparés aux zones de la première salle
 de chaque épreuve. Leurs traits ont été ajoutés au contrôle Tk.
+Une carte exportée avec le build précédent a été rouverte pour
+vérifier les 17 liaisons. Un test vérifie qu’une barrière déplacée
+empêche de réutiliser le tracé du jeu pour cette épreuve.
 
 Les six traversées entre les vues de Jabu-Jabu ont été vérifiées dans
 Tk avec les scènes publiques et les fonds Field Atlas.

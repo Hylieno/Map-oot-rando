@@ -236,6 +236,23 @@ class SceneTests(unittest.TestCase):
                 row = Location('test', 'Chest', 'test', path, (-1.5, height, -48), region=region, dungeon_room=8)
                 self.assertEqual(location_view(row), TRAINING_VIEWS[floor])
 
+    def test_legacy_ganon_trials_restore_only_matching_stock_geometry(self):
+        from map_oot_rando.scene import GANON_TRIAL_ROOM_CENTER, GANON_TRIAL_VIEWS, group_scenes
+
+        path = 'Banc/InsideGanonCastle/InsideGanonCastle_Static.bcett.byml.zs'
+        points = [
+            ('Entrée · Feu', (-16.136, -49.862)), ('Épreuve · Feu', (-40.047, -78.928)),
+            ('Entrée · Eau', (33.032, -21.001)), ('Épreuve · Eau', (70, -26.799)),
+        ]
+        saved = {'rooms': [], 'points': points}
+        fire, water = GANON_TRIAL_VIEWS[3], GANON_TRIAL_VIEWS[1]
+        grouped = group_scenes(read_scenes({'scenes': {path: saved}}))
+        self.assertEqual({xy for label, xy in grouped[fire]['points'] if label == GANON_TRIAL_ROOM_CENTER},
+                         {(-30.464, -73.805), (-52.592, -103.921)})
+        self.assertEqual(len(grouped[fire]['routes']), 2)
+        self.assertNotIn('routes', grouped[water])
+        self.assertNotIn('routes', saved)
+
     def test_ganon_trial_tracking_switches_at_the_six_angled_doors(self):
         from map_oot_rando.scene import GANON_DUNGEON_VIEWS, GANON_TRIAL_VIEWS, ganon_trial_view
 

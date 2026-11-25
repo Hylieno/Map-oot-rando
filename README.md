@@ -143,8 +143,9 @@ du château donne aussi accès à la vue schématique de l’effondrement,
 où se trouvent les quatre pots du catalogue.
 L’entrée des abords ouvre l’intérieur. Le sélecteur d’étage permet de
 passer des six épreuves à la tour et à la salle de Ganondorf. Ces vues
-utilisent les repères du jeu sur des schémas. Réimporte le jeu et la seed
-pour ajouter ces vues à une carte enregistrée auparavant.
+utilisent les repères du jeu sur des schémas. Les tracés des épreuves
+s’affichent aussi dans une carte enregistrée qui contient les repères
+d’origine des portes et des barrières.
 Depuis la salle de Ganondorf, le passage ouvre l’effondrement et
 indique le point de départ de la fuite. Les flèches reprennent le trajet
 de Zelda. La sortie ouvre l’arène de Ganon sur son point d’arrivée.

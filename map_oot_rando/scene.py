@@ -1,5 +1,5 @@
 """Map symbols derived from OotrR landmarks in the active resource's coordinates."""
-from math import atan2, isfinite
+from math import atan2, dist, isfinite
 
 from .model import REGION_NAMES, SURFACE_MIN_Y, read_position, resource_region
 
@@ -179,6 +179,29 @@ GANON_TRIAL_ROOM_DOORS = {
     16623306469348177484: (16, 17), 9280501248130802789: (17, 18),
 }
 GANON_TRIAL_ROUTE_VIEWS = dict(zip(GANON_TRIAL_LEVELS, GANON_TRIAL_VIEWS))
+GANON_TRIAL_ROUTE_LABEL = 'Liaisons entre les salles'
+# Public stock scene, rounded to a thousandth of a game unit. Older exports
+# retained the entrances and barriers, but omitted the room and door geometry.
+GANON_TRIAL_REFERENCE_CENTERS = {
+    2: (23.035, 19.135), 3: (36.487, 42.180), 4: (47.520, 62.111),
+    5: (50.184, -21.000), 6: (78.361, -20.893), 7: (101.813, -20.995),
+    8: (38.586, -88.865), 9: (65.837, -135.912),
+    10: (-30.464, -73.805), 11: (-52.592, -103.921),
+    12: (-45.559, -21.041), 13: (-52.206, -21.056), 14: (-67.516, -21.015), 15: (-83.547, -20.999),
+    16: (-22.279, 18.590), 17: (-30.064, 37.419), 18: (-38.083, 51.368),
+}
+GANON_TRIAL_REFERENCE_DOORS = {
+    6697281885859015973: (29.724, 31.360), 16547757579712762477: (45.156, 58.115),
+    15757080952801548811: (64.719, -21.008), 9454360734666596216: (93.296, -21.000),
+    15970872372384393881: (62.325, -129.823), 8540530808124215779: (-49.493, -98.652),
+    17308395020688077841: (-47.998, -21.004), 2559901135200913892: (-56.462, -20.998),
+    18370141889105081871: (-75.461, -20.998),
+    16623306469348177484: (-33.067, 21.080), 9280501248130802789: (-34.640, 45.455),
+}
+GANON_TRIAL_REFERENCE_BARRIERS = (
+    (50.307, 66.097), (68.196, -26.799), (30.823, -75.315),
+    (-40.047, -78.928), (-92.910, -21.401), (-36.976, 45.590),
+)
 GANON_TOWER_CROSSINGS = (
     ((0, 'Barrière de la tour', 'Obj_GanonCastle_Barrier_A_01', 7855099293663223240),
      (1, 'Retour vers les épreuves', 'DungeonRoomArea', 4106367990015143384)),
@@ -1639,6 +1662,35 @@ def castle_view(z):
     return CASTLE_COURT if z < -170 else CASTLE_OUTSKIRTS
 
 
+def restore_legacy_trial_routes(grouped):
+    for (_, trial), view, (x, z, _, _), barrier in zip(
+            GANON_TRIALS.values(), GANON_TRIAL_VIEWS, GANON_TRIAL_DOOR_PLANES, GANON_TRIAL_REFERENCE_BARRIERS):
+        scene = grouped.get(view)
+        if not scene or scene.get('routes'):
+            continue
+        entry_points = {point for label, point in scene['points'] if label == f'Retour · {trial}'}
+        barrier_points = {point for label, point in scene['points'] if label == f'Épreuve · {trial}'}
+        if len(entry_points) != 1 or len(barrier_points) != 1:
+            continue
+        entry, = entry_points
+        stored_barrier, = barrier_points
+        if dist(entry, (x, z)) > 0.02 or dist(stored_barrier, barrier) > 0.02:
+            continue
+        centers = {room: point for room, point in GANON_TRIAL_REFERENCE_CENTERS.items()
+                   if GANON_TRIAL_ROOM_VIEWS[room] == view}
+        stored_centers = {point for label, point in scene['points'] if label == GANON_TRIAL_ROOM_CENTER}
+        if any(all(dist(point, expected) > 0.02 for expected in centers.values()) for point in stored_centers):
+            continue
+        # Reuse the coordinates saved in the map whenever a centre is present.
+        centers = {room: next((p for p in sorted(stored_centers) if dist(p, point) <= 0.02), point)
+                   for room, point in centers.items()}
+        scene['points'].update((GANON_TRIAL_ROOM_CENTER, point) for point in centers.values())
+        scene['routes'] = {(GANON_TRIAL_ROUTE_LABEL, (entry, centers[min(centers)]))}
+        scene['routes'].update(
+            (GANON_TRIAL_ROUTE_LABEL, (centers[start], GANON_TRIAL_REFERENCE_DOORS[door], centers[end]))
+            for door, (start, end) in GANON_TRIAL_ROOM_DOORS.items() if start in centers and end in centers)
+
+
 def group_scenes(scenes):
     grouped = {}
     for resource, scene in scenes.items():
@@ -1683,7 +1735,7 @@ def group_scenes(scenes):
                 route_view = grouped.setdefault(SHADOW_VIEWS[3], {'rooms': set(), 'points': set()})
             elif name == GANON_DUNGEON_VIEWS[0] and label in GANON_TRIAL_ROUTE_VIEWS:
                 route_view = grouped.setdefault(GANON_TRIAL_ROUTE_VIEWS[label], {'rooms': set(), 'points': set()})
-                label = 'Liaisons entre les salles'
+                label = GANON_TRIAL_ROUTE_LABEL
             else:
                 route_view = view
             route_view.setdefault('routes', set()).add((label, tuple(map(tuple, points))))
@@ -1691,6 +1743,7 @@ def group_scenes(scenes):
             _, view_name_for_floor = DUNGEON_FLOORS[resource_region(resource)][floor]
             level = grouped.setdefault(view_name_for_floor, {'rooms': set(), 'points': set()})
             level['points'].add((name, tuple(point)))
+    restore_legacy_trial_routes(grouped)
     return {key: {kind: sorted(rows) for kind, rows in scene.items()}
             for key, scene in grouped.items()}
 
