@@ -232,6 +232,8 @@ DODONGO_BOSS_EXIT = 'Portail du Roi Dodongo'
 JABU_BOSS_EXIT = 'Portail de Barinade'
 GANON_ESCAPE_TO_FINAL = 'Sortie vers l’arène de Ganon'
 GANON_FINAL_ARRIVAL = 'Arrivée dans l’arène de Ganon'
+GANONDORF_TO_ESCAPE = 'Début de l’effondrement'
+GANON_ESCAPE_ARRIVAL = 'Arrivée au début de la fuite'
 FIRE_KAKARIKO_ARRIVAL = 'Arrivée à Cocorico après Volvagia'
 FIRE_KAKARIKO_CONTINUE = 'Suite de la cinématique de Volvagia'
 FIRE_SAGE_SCENE = 'Sages · Volvagia'
@@ -245,6 +247,9 @@ ADULT_BOSS_RETURNS = {
 SIDE_PORTALS = {
     'GanonCastle': {
         GANON_ESCAPE_TO_FINAL: ('GanonCastle', GANON_FINAL, 'Arène de Ganon', GANON_FINAL_ARRIVAL),
+    },
+    'InsideGanonCastle': {
+        GANONDORF_TO_ESCAPE: ('GanonCastle', GANON_ESCAPE, 'Fuite du château', GANON_ESCAPE_ARRIVAL),
     },
     'GerudoTrainingGround': {
         TRAINING_TO_WALKWAY: ('GerudoTrainingGround', TRAINING_VIEWS[1], 'Passerelle', TRAINING_TO_STATUE),
@@ -306,6 +311,7 @@ PORTAL_ARRIVAL_STARTS = {
     ('DesertColossus', SPIRIT_COLOSSUS_ARRIVAL): ('SpiritRequiem',),
     ('SageRoom', SPIRIT_SAGE_CONTINUE): ('Arrivée après Twinrova',),
     ('GanonCastle', GANON_FINAL_ARRIVAL): ('FinalBattleField_Entrance',),
+    ('GanonCastle', GANON_ESCAPE_ARRIVAL): ('CrumblingGanonCastle_StartPos',),
     ('KakarikoVillage', FIRE_KAKARIKO_ARRIVAL): ('KakarikoVillage_Entrance',),
     ('KokiriForest', DEKU_BOSS_EXIT): ('WarpFromDekuTree', 'WarpFromDekuTree_2'),
     ('DeathMountainTrail', DODONGO_BOSS_EXIT): ('DodongoCavernFront',),
@@ -653,6 +659,8 @@ def ganon_tower_points(sources):
             if not position:
                 continue
             label = GANON_TOWER_ANCHORS.get(gyaml)
+            if gyaml == 'Enemy_DungeonBoss_Ganondorf' and actor.get('Hash') == 15798214583796164285:
+                label = GANONDORF_TO_ESCAPE
             if gyaml == 'DungeonRoomCenterAnchor' and 133 <= position[1] < 161:
                 x, _, z = position
                 if abs(x) > 12 or abs(z + 25) > 12:
@@ -707,6 +715,7 @@ BOSS_WARP_ANCHORS = {
 
 GUIDE_ROUTE = 'Trajet du guide'
 DAMPE_ROUTES = {'Playing': 'Première course', 'PlayingSecond': 'Seconde course'}
+GANON_ESCAPE_ROUTE = 'Trajet de Zelda'
 WASTELAND_PORTALS = {
     13756540388226076963: 'GerudoFortress',
     10151104999260881916: 'DesertColossus',
@@ -774,12 +783,12 @@ def guide_routes(sources, labels=None, *, references=None):
     return routes
 
 
-def dampe_routes(sources):
+def actor_guide_routes(sources, kind, labels):
     references = {link.get('Dst') for source in sources.values()
                   for actor in source['root'].get('Actors', ())
-                  if actor.get('Gyaml') == 'Npc_Hylia_Dampe_002'
+                  if actor.get('Gyaml') == kind
                   for link in actor.get('Rails', ()) if link.get('Dst') is not None}
-    return guide_routes(sources, DAMPE_ROUTES, references=references)
+    return guide_routes(sources, labels, references=references)
 
 
 def final_battle_routes(sources):
@@ -1048,11 +1057,16 @@ def extract_scenes(maps, landmarks):
         route_extractor = {
             'HountedWasteland': guide_routes,
             'GerudoTrainingGround': training_connections,
-            'Graveyard': dampe_routes,
         }.get(region)
         if frame == GANON_FINAL:
             route_extractor = final_battle_routes
         routes = route_extractor(sources) if route_extractor else ()
+        if region == 'Graveyard':
+            routes = actor_guide_routes(sources, 'Npc_Hylia_Dampe_002', DAMPE_ROUTES)
+        elif frame == GANON_ESCAPE:
+            # Step05 is a pause. Step13 starts beyond the door to FinalBattleField.
+            labels = {f'Step{i:02}': GANON_ESCAPE_ROUTE for i in range(1, 13) if i != 5}
+            routes = actor_guide_routes(sources, 'Npc_Hylia_Zelda_Adult', labels)
         if rooms or points or levels or routes:
             scene = {'rooms': rooms, 'points': sorted(points)}
             if levels:

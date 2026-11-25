@@ -1707,12 +1707,13 @@ class GuiTests(unittest.TestCase):
     def test_ganon_castle_switches_scene_without_mixing_coordinates(self):
         from unittest.mock import patch
         from map_oot_rando.link_position import LinkPosition
-        from map_oot_rando.scene import GANON_ESCAPE, GANON_FINAL, GANON_OUTSKIRTS, REGION_VIEWS, extract_scenes
+        from map_oot_rando.scene import (GANON_DUNGEON_VIEWS, GANON_ESCAPE, GANON_ESCAPE_ROUTE, GANON_FINAL,
+                                        GANON_OUTSKIRTS, REGION_VIEWS, extract_scenes)
 
         app = self.app
         template = demo_document()
         doc = dict(template, provenance='ootrr-scan',
-                   regions=['KokiriForest', 'Market', 'HyruleCastle', 'GanonCastle'])
+                   regions=['KokiriForest', 'Market', 'HyruleCastle', 'GanonCastle', 'InsideGanonCastle'])
         market = 'Banc/Market/Market_{}_Static.bcett.byml.zs'
         hyrule = 'Banc/HyruleCastle/HyruleCastle_Static.bcett.byml.zs'
         ganon = 'Banc/GanonCastle/GanonCastle_Static.bcett.byml.zs'
@@ -1728,14 +1729,29 @@ class GuiTests(unittest.TestCase):
             ganon: {'rooms': [], 'points': [('Vers la Citadelle d’Hyrule', (60, 369))]},
         }
         arena = 'Banc/GanonCastle/FinalBattleField_Static.bcett.byml.zs'
+        tower = 'Banc/InsideGanonCastle/InsideGanonCastle_Static.bcett.byml.zs'
         maps = {
-            escape: {'root': {'Actors': [
-                dict(Gyaml='FieldAndDungeonEntranceEventRequestActor', Translate=(-92, 178, 0),
-                     Dynamic={'NextBancParamNameAdult': 'FinalBattleField'}),
-            ]}},
+            escape: {'root': {
+                'Actors': [
+                    dict(Gyaml='StartPos', Name='CrumblingGanonCastle_StartPos', Translate=(-6.59, 230.3, 0)),
+                    dict(Gyaml='FieldAndDungeonEntranceEventRequestActor', Translate=(-92, 178, 0),
+                         Dynamic={'NextBancParamNameAdult': 'FinalBattleField'}),
+                    dict(Gyaml='Npc_Hylia_Zelda_Adult', Rails=[dict(Dst=1), dict(Dst=2)]),
+                ],
+                'Rails': [
+                    dict(Gyaml='Guide', Name=name, Hash=i, Points=[dict(Translate=point) for point in points])
+                    for i, name, points in (
+                        (1, 'Step01', ((-8, 230, 0), (12, 213, -2))),
+                        (2, 'Step13', ((-99, 166, 0), (-113, 165, 0))),
+                    )
+                ],
+            }},
             arena: {'root': {'Actors': [
                 dict(Gyaml='StartPos', Name='FinalBattleField_Entrance', Translate=(28.18, 99.98, -.81)),
                 dict(Gyaml='Enemy_DungeonBoss_Ganon_SecondHalfBattle', Translate=(-1.37, 99.98, -1.03)),
+            ]}},
+            tower: {'root': {'Actors': [
+                dict(Gyaml='Enemy_DungeonBoss_Ganondorf', Hash=15798214583796164285, Translate=(0, 174, -24.6)),
             ]}},
         }
         doc['scenes'].update(extract_scenes(maps, lambda _: {}))
@@ -1764,6 +1780,15 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(app.resource.get(), GANON_OUTSKIRTS)
         app.update_link(LinkPosition('GanonCastle', 'Adult', -4, 192, -22, 0, 'CrumblingGanonCastle'))
         self.assertEqual(app.resource.get(), GANON_ESCAPE)
+        app.resource.set(GANON_DUNGEON_VIEWS[-1])
+        app.resource_changed(manual=False)
+        portal, = app.canvas.find_withtag('zone-navigation')
+        l, t, r, b = app.canvas.bbox(portal)
+        app.press(SimpleNamespace(x=(l+r)//2, y=(t+b)//2))
+        self.assertEqual(app.resource.get(), GANON_ESCAPE)
+        self.assertTrue(app.canvas.find_withtag('portal-arrival'))
+        (name, route), = app.scenes[GANON_ESCAPE]['routes']
+        self.assertEqual((name, route[0], route[-1]), (GANON_ESCAPE_ROUTE, (-8, 0), (12, -2)))
         portal, = app.canvas.find_withtag('zone-navigation')
         l, t, r, b = app.canvas.bbox(portal)
         app.press(SimpleNamespace(x=(l+r)//2, y=(t+b)//2))

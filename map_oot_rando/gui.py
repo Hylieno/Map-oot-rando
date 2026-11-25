@@ -21,7 +21,8 @@ from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
 from .scene import (BURNT_VILLAGE, CASTLE_COURT, DAMPE_ROUTES, DREAM_SCENE_VIEWS, DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS,
                     FIRE_KAKARIKO_ARRIVAL, FIRE_KAKARIKO_CONTINUE, FIRE_VIEWS, FLOOR_OPTIONS,
-                    FOUNTAIN_DUNGEON_AGES, GANON_DUNGEON_VIEWS, GANON_ESCAPE, GANON_FINAL, MARKET_CASTLE_AGES,
+                    FOUNTAIN_DUNGEON_AGES, GANON_DUNGEON_VIEWS, GANON_ESCAPE, GANON_ESCAPE_ROUTE, GANON_FINAL,
+                    MARKET_CASTLE_AGES,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS, GUIDE_ROUTE, LOST_WOOD_RESET,
                     NEIGHBORS, PORTAL_ARRIVAL_STARTS, PORTAL_START_NAMES, REGION_VIEWS, SHARED_DUNGEONS,
@@ -1361,11 +1362,11 @@ class MapApplication:
             paths = [(title, [c for point in route for c in self.viewport.screen(point)])
                      for title, route in routes]
             for title, coordinates in paths:
-                guide = title == GUIDE_ROUTE or title in race_colors
+                guide = title in (GUIDE_ROUTE, GANON_ESCAPE_ROUTE) or title in race_colors
                 self.canvas.create_line(*coordinates, fill='#332d25' if guide else '#7bb6ce', width=8,
                                         capstyle='round', joinstyle='round', tags='scene-route')
             for title, coordinates in paths:
-                guide = title == GUIDE_ROUTE or title in race_colors
+                guide = title in (GUIDE_ROUTE, GANON_ESCAPE_ROUTE) or title in race_colors
                 self.canvas.create_line(*coordinates, fill=race_colors.get(title, '#ffe19b' if guide else '#1f5577'),
                                         width=3 if guide else 6, arrow='last' if guide else 'none',
                                         dash=(5, 3) if title == DAMPE_ROUTES['PlayingSecond'] else (),

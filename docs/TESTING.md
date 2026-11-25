@@ -7,6 +7,9 @@ Volvagia vérifie les trois étapes via Cocorico et la Chambre des Sages.
 La sortie de l’effondrement a été ouverte dans l’application à
 partir des scènes publiques. Le périmètre reprend dix repères, et
 une position simulée de Link s’affiche dans l’arène.
+Le parcours de la salle de Ganondorf à l’arène finale a été ouvert
+dans les deux étapes. Le test vérifie aussi qu’un rail situé au-delà
+de la sortie ne prolonge pas le trajet de fuite.
 
 Le portail de Twinrova a été sélectionné dans Tk avec les scènes
 publiques. Les deux parcours affichent le même point d’arrivée au

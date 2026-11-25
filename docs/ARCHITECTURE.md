@@ -120,6 +120,9 @@ des repères distincts. Le lecteur de position conserve le nom de la
 ressource de scène pour les différencier dans le même dossier Banc.
 L’arène projette les dix repères qui entourent le combat et le point
 de départ nommé par l’événement de sortie de l’effondrement.
+La scène d’effondrement projette les rails référencés par Zelda avant
+la sortie. La salle de Ganondorf ouvre le point de départ nommé par
+la cinématique de fuite.
 À l’intérieur, le champ facultatif `level_points` d’une scène associe
 chaque repère de la tour à un niveau. Les coordonnées X/Z se superposent
 entre étages. Le coffre de clé utilise son numéro de salle et le suivi

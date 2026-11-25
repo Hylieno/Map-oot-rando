@@ -5,6 +5,8 @@ indiquent les retours adultes et les étapes par la Chambre des Sages.
 Le retour de Volvagia inclut son passage par Cocorico.
 La sortie de l’effondrement ouvre l’arène de Ganon. La vue distincte
 affiche le périmètre, le point d’arrivée et la position de Link.
+La salle de Ganondorf ouvre le début de la fuite. Le schéma affiche
+neuf segments du trajet de Zelda jusqu’à la sortie.
 
 Le portail de Twinrova ouvre le Colosse du désert adulte, directement
 ou via la Chambre des Sages. Les deux trajets indiquent les points
