@@ -115,9 +115,11 @@ la transition n’a pas de portail de retour au même endroit.
 Le Château d’Hyrule utilise la scène enfant. Les abords et la cour
 partagent les coordonnées natives, avec une vue distincte pour la cour
 située au-delà du plan publié. Le marqueur peut suivre ce passage.
-Au Château de Ganon, les abords et l’effondrement ont deux repères
-distincts. Le lecteur de position conserve le nom de la ressource
-de scène pour les différencier dans le même dossier Banc.
+Au Château de Ganon, les abords, l’effondrement et l’arène finale ont
+des repères distincts. Le lecteur de position conserve le nom de la
+ressource de scène pour les différencier dans le même dossier Banc.
+L’arène projette les dix repères qui entourent le combat et le point
+de départ nommé par l’événement de sortie de l’effondrement.
 À l’intérieur, le champ facultatif `level_points` d’une scène associe
 chaque repère de la tour à un niveau. Les coordonnées X/Z se superposent
 entre étages. Le coffre de clé utilise son numéro de salle et le suivi

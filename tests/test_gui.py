@@ -1707,7 +1707,7 @@ class GuiTests(unittest.TestCase):
     def test_ganon_castle_switches_scene_without_mixing_coordinates(self):
         from unittest.mock import patch
         from map_oot_rando.link_position import LinkPosition
-        from map_oot_rando.scene import GANON_ESCAPE, GANON_OUTSKIRTS, REGION_VIEWS
+        from map_oot_rando.scene import GANON_ESCAPE, GANON_FINAL, GANON_OUTSKIRTS, REGION_VIEWS, extract_scenes
 
         app = self.app
         template = demo_document()
@@ -1727,6 +1727,18 @@ class GuiTests(unittest.TestCase):
             hyrule: {'rooms': [], 'points': []},
             ganon: {'rooms': [], 'points': [('Vers la Citadelle d’Hyrule', (60, 369))]},
         }
+        arena = 'Banc/GanonCastle/FinalBattleField_Static.bcett.byml.zs'
+        maps = {
+            escape: {'root': {'Actors': [
+                dict(Gyaml='FieldAndDungeonEntranceEventRequestActor', Translate=(-92, 178, 0),
+                     Dynamic={'NextBancParamNameAdult': 'FinalBattleField'}),
+            ]}},
+            arena: {'root': {'Actors': [
+                dict(Gyaml='StartPos', Name='FinalBattleField_Entrance', Translate=(28.18, 99.98, -.81)),
+                dict(Gyaml='Enemy_DungeonBoss_Ganon_SecondHalfBattle', Translate=(-1.37, 99.98, -1.03)),
+            ]}},
+        }
+        doc['scenes'].update(extract_scenes(maps, lambda _: {}))
         self.enterContext(patch.object(app, 'ensure_atlas'))
         app.load(doc)
         self.assertIn('HyruleCastle', app.world_targets())
@@ -1752,8 +1764,17 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(app.resource.get(), GANON_OUTSKIRTS)
         app.update_link(LinkPosition('GanonCastle', 'Adult', -4, 192, -22, 0, 'CrumblingGanonCastle'))
         self.assertEqual(app.resource.get(), GANON_ESCAPE)
+        portal, = app.canvas.find_withtag('zone-navigation')
+        l, t, r, b = app.canvas.bbox(portal)
+        app.press(SimpleNamespace(x=(l+r)//2, y=(t+b)//2))
+        self.assertEqual(app.resource.get(), GANON_FINAL)
+        self.assertTrue(app.canvas.find_withtag('portal-arrival'))
+        self.assertFalse(app.canvas.find_withtag('zone-navigation'))
+        app.update_link(LinkPosition('GanonCastle', 'Adult', -4, 192, -22, 0, 'CrumblingGanonCastle'))
+        self.assertEqual(app.resource.get(), GANON_FINAL)
         app.update_link(LinkPosition('GanonCastle', 'Adult', 30, 100, 20, 0, 'FinalBattleField'))
-        self.assertIsNone(app.link_view())
+        self.assertEqual(app.link_view(), GANON_FINAL)
+        self.assertTrue(app.canvas.find_withtag('player-pin'))
 
     def test_fire_temple_follow_tracks_floors_within_one_game_scene(self):
         from unittest.mock import patch

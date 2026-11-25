@@ -21,7 +21,7 @@ from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
 from .scene import (BURNT_VILLAGE, CASTLE_COURT, DAMPE_ROUTES, DREAM_SCENE_VIEWS, DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS,
                     FIRE_KAKARIKO_ARRIVAL, FIRE_KAKARIKO_CONTINUE, FIRE_VIEWS, FLOOR_OPTIONS,
-                    FOUNTAIN_DUNGEON_AGES, GANON_DUNGEON_VIEWS, GANON_ESCAPE, MARKET_CASTLE_AGES,
+                    FOUNTAIN_DUNGEON_AGES, GANON_DUNGEON_VIEWS, GANON_ESCAPE, GANON_FINAL, MARKET_CASTLE_AGES,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS, GUIDE_ROUTE, LOST_WOOD_RESET,
                     NEIGHBORS, PORTAL_ARRIVAL_STARTS, PORTAL_START_NAMES, REGION_VIEWS, SHARED_DUNGEONS,
@@ -44,7 +44,7 @@ LABELS = dict(available='Accessible', blocked='Bloqué', unknown='Inconnu', comp
 
 def background_spec(view):
     region, age = VIEWS.get(view, (None, None))
-    if (view in (CASTLE_COURT, GANON_ESCAPE) or view in UNDERGROUND_LABELS
+    if (view in (CASTLE_COURT, GANON_ESCAPE, GANON_FINAL) or view in UNDERGROUND_LABELS
             or GORON_FLOORS.get(view) == len(GORON_LEVELS) - 1):
         return None
     if region == 'KokiriForest':
@@ -472,7 +472,7 @@ class MapApplication:
             if self.link.scene_resource == 'CrumblingGanonCastle':
                 return GANON_ESCAPE if GANON_ESCAPE in self.views else None
             if self.link.scene_resource == 'FinalBattleField':
-                return None
+                return GANON_FINAL if GANON_FINAL in self.views else None
         if region == 'DreamWorld':
             scene_view = DREAM_SCENE_VIEWS.get(self.link.scene_resource)
             return scene_view if scene_view in self.views else None
@@ -872,7 +872,7 @@ class MapApplication:
         region = self.current_region()
         if age not in REGION_VIEWS[region]:
             return None
-        if self.resource.get() in (CASTLE_COURT, GANON_ESCAPE):
+        if self.resource.get() in (CASTLE_COURT, GANON_ESCAPE, GANON_FINAL):
             return self.resource.get()
         view = self.view_for_region(region, age=age, from_portal=False)
         if self.resource.get() in GORON_FLOORS:
@@ -938,7 +938,7 @@ class MapApplication:
                 return None
             if origin == 'Market' and region in MARKET_CASTLE_AGES and age != MARKET_CASTLE_AGES[region]:
                 return None
-            if self.resource.get() == GANON_ESCAPE:
+            if self.resource.get() in (GANON_ESCAPE, GANON_FINAL):
                 return None
             if origin == 'InsideGanonCastle' and region == 'GanonCastle' and self.resource.get() != GANON_DUNGEON_VIEWS[0]:
                 return None

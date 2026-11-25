@@ -142,6 +142,9 @@ L’entrée des abords ouvre l’intérieur. Le sélecteur d’étage permet de
 passer des six épreuves à la tour et à la salle de Ganondorf. Ces vues
 utilisent les repères du jeu sur des schémas. Réimporte le jeu et la seed
 pour ajouter ces vues à une carte enregistrée auparavant.
+À la sortie de l’effondrement, le passage ouvre l’arène de Ganon sur
+son point d’arrivée. Le schéma indique le périmètre du combat et le
+marqueur de Link suit le changement de scène.
 
 La plaine donne aussi accès à la Vallée Gerudo dans les deux âges. Le
 fond Field Atlas se charge automatiquement et les checks en grotte

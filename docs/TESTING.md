@@ -4,6 +4,9 @@ Les treize transitions des quatre temples adultes ont été vérifiées
 dans Tk avec les scènes publiques. Les anneaux coïncident avec les
 repères du jeu, à l’intérieur des fonds disponibles. Le test de
 Volvagia vérifie les trois étapes via Cocorico et la Chambre des Sages.
+La sortie de l’effondrement a été ouverte dans l’application à
+partir des scènes publiques. Le périmètre reprend dix repères, et
+une position simulée de Link s’affiche dans l’arène.
 
 Le portail de Twinrova a été sélectionné dans Tk avec les scènes
 publiques. Les deux parcours affichent le même point d’arrivée au

@@ -1,5 +1,5 @@
 """Map symbols derived from OotrR landmarks in the active resource's coordinates."""
-from math import isfinite
+from math import atan2, isfinite
 
 from .model import REGION_NAMES, SURFACE_MIN_Y, read_position, resource_region
 
@@ -121,8 +121,9 @@ REGION_VIEWS['DreamWorld'] = {None: DREAM_SCENE_VIEWS['EnemyMuseum']}
 CASTLE_VIEWS = tuple(f'{REGION_NAMES["HyruleCastle"]} · {area}' for area in ('Abords', 'Cour'))
 CASTLE_OUTSKIRTS, CASTLE_COURT = CASTLE_VIEWS
 REGION_VIEWS['HyruleCastle'] = {'Child': CASTLE_OUTSKIRTS}
-GANON_AREAS = ('Abords', 'Effondrement')
-GANON_OUTSKIRTS, GANON_ESCAPE = (f'{REGION_NAMES["GanonCastle"]} · {area}' for area in GANON_AREAS)
+GANON_AREAS = ('Abords', 'Effondrement', 'Arène de Ganon')
+GANON_VIEWS = tuple(f'{REGION_NAMES["GanonCastle"]} · {area}' for area in GANON_AREAS)
+GANON_OUTSKIRTS, GANON_ESCAPE, GANON_FINAL = GANON_VIEWS
 REGION_VIEWS['GanonCastle'] = {'Adult': GANON_OUTSKIRTS}
 del REGION_VIEWS['GerudoFortress']['Child']
 MARKET_CASTLE_AGES = {'HyruleCastle': 'Child', 'GanonCastle': 'Adult'}
@@ -131,8 +132,7 @@ FLOOR_OPTIONS = {
     **{view: tuple(zip(GORON_LEVELS, views)) for views in GORON_VIEWS.values() for view in views},
     **{view: floors for floors in DUNGEON_FLOORS.values() for _, view in floors},
     **dict.fromkeys(CASTLE_VIEWS, tuple(zip(('Abords', 'Cour'), CASTLE_VIEWS))),
-    **dict.fromkeys((GANON_OUTSKIRTS, GANON_ESCAPE),
-                    tuple(zip(GANON_AREAS, (GANON_OUTSKIRTS, GANON_ESCAPE)))),
+    **dict.fromkeys(GANON_VIEWS, tuple(zip(GANON_AREAS, GANON_VIEWS))),
     **dict.fromkeys(DREAM_SCENE_VIEWS.values(),
                     tuple(zip(('Musée', 'Salle intermédiaire'), DREAM_SCENE_VIEWS.values()))),
 }
@@ -142,7 +142,7 @@ VIEWS = {label: (region, age) for region, ages in REGION_VIEWS.items()
 BURNT_VILLAGE = 'Cocorico · Après l’incendie'
 VIEWS[BURNT_VILLAGE] = ('KakarikoVillage', 'Adult')
 VIEWS[CASTLE_COURT] = ('HyruleCastle', 'Child')
-VIEWS[GANON_ESCAPE] = ('GanonCastle', 'Adult')
+VIEWS.update(dict.fromkeys((GANON_ESCAPE, GANON_FINAL), ('GanonCastle', 'Adult')))
 VIEWS.update({view: ('DreamWorld', None) for view in DREAM_SCENE_VIEWS.values()})
 UNDERGROUND_VIEWS = {region: {age: f'{view} · Souterrains' for age, view in REGION_VIEWS[region].items()}
                      for region in SURFACE_MIN_Y}
@@ -230,6 +230,8 @@ SPIRIT_COLOSSUS_ARRIVAL = 'Arrivée au Requiem des Esprits'
 DEKU_BOSS_EXIT = 'Portail de Gohma'
 DODONGO_BOSS_EXIT = 'Portail du Roi Dodongo'
 JABU_BOSS_EXIT = 'Portail de Barinade'
+GANON_ESCAPE_TO_FINAL = 'Sortie vers l’arène de Ganon'
+GANON_FINAL_ARRIVAL = 'Arrivée dans l’arène de Ganon'
 FIRE_KAKARIKO_ARRIVAL = 'Arrivée à Cocorico après Volvagia'
 FIRE_KAKARIKO_CONTINUE = 'Suite de la cinématique de Volvagia'
 FIRE_SAGE_SCENE = 'Sages · Volvagia'
@@ -241,6 +243,9 @@ ADULT_BOSS_RETURNS = {
     'ShadowTemple': ('Bongo Bongo', 'Graveyard', 'ShadowNocturne'),
 }
 SIDE_PORTALS = {
+    'GanonCastle': {
+        GANON_ESCAPE_TO_FINAL: ('GanonCastle', GANON_FINAL, 'Arène de Ganon', GANON_FINAL_ARRIVAL),
+    },
     'GerudoTrainingGround': {
         TRAINING_TO_WALKWAY: ('GerudoTrainingGround', TRAINING_VIEWS[1], 'Passerelle', TRAINING_TO_STATUE),
         TRAINING_TO_STATUE: ('GerudoTrainingGround', TRAINING_VIEWS[0], 'Salle de la statue', TRAINING_TO_WALKWAY),
@@ -300,6 +305,7 @@ PORTAL_ARRIVAL_STARTS = {
     ('DesertColossus', 'spirit_temple_right_hand_entrance'): ('DesertColossus_FromSpiritTempleRightHand',),
     ('DesertColossus', SPIRIT_COLOSSUS_ARRIVAL): ('SpiritRequiem',),
     ('SageRoom', SPIRIT_SAGE_CONTINUE): ('Arrivée après Twinrova',),
+    ('GanonCastle', GANON_FINAL_ARRIVAL): ('FinalBattleField_Entrance',),
     ('KakarikoVillage', FIRE_KAKARIKO_ARRIVAL): ('KakarikoVillage_Entrance',),
     ('KokiriForest', DEKU_BOSS_EXIT): ('WarpFromDekuTree', 'WarpFromDekuTree_2'),
     ('DeathMountainTrail', DODONGO_BOSS_EXIT): ('DodongoCavernFront',),
@@ -574,8 +580,12 @@ GANON_TOWER_ANCHORS = {
 }
 GANON_ESCAPE_ANCHORS = {
     'CrumblingGanonCastle_StartPos': 'Début de la fuite',
-    'BackEntrance': 'Sortie du château',
     **{f'RestartPos{i}': f'Passage {i}' for i in range(1, 8)},
+}
+GANON_FINAL_LANDMARKS = {
+    'Enemy_DungeonBoss_Ganon_SecondHalfBattle': 'Ganon',
+    'Obj_GanonCastle_MasterSword_A_01': 'Épée de légende',
+    'EftLoc_FinalBattleField_ZeldaMagic_Start_00': 'Zelda',
 }
 TRAINING_ROOM_ANCHORS = {
     3761826239942057234: 'Hall d’entrée',
@@ -772,6 +782,17 @@ def dampe_routes(sources):
     return guide_routes(sources, DAMPE_ROUTES, references=references)
 
 
+def final_battle_routes(sources):
+    points = {(position[0], position[2]) for source in sources.values() for actor in source['root'].get('Actors', ())
+              if actor.get('Gyaml') == 'AirWallEnemy' and (position := actor.get('Translate'))}
+    if len(points) != 10:
+        return ()
+    x = sum(point[0] for point in points) / len(points)
+    z = sum(point[1] for point in points) / len(points)
+    ring = sorted(points, key=lambda point: atan2(point[1] - z, point[0] - x))
+    return [('Périmètre de l’arène', (*ring, ring[0]))]
+
+
 def projection_points(region, sources):
     points = set()
     arrivals = PORTAL_START_NAMES.get(region, set())
@@ -849,6 +870,13 @@ def projection_points(region, sources):
                     label = 'Barrière de la tour'
             elif region == 'GanonCastle' and gyaml == 'StartPos':
                 label = GANON_ESCAPE_ANCHORS.get(actor.get('Name'))
+            elif (region == 'GanonCastle' and gyaml == 'FieldAndDungeonEntranceEventRequestActor'
+                  and view_name(path) == GANON_ESCAPE):
+                dynamic = actor.get('Dynamic')
+                if isinstance(dynamic, dict) and dynamic.get('NextBancParamNameAdult') == 'FinalBattleField':
+                    label = GANON_ESCAPE_TO_FINAL
+            elif region == 'GanonCastle' and gyaml in GANON_FINAL_LANDMARKS and view_name(path) == GANON_FINAL:
+                label = GANON_FINAL_LANDMARKS[gyaml]
             elif region == 'GerudoFortress' and gyaml == 'MapIconFacilityAnchor':
                 dynamic = actor.get('Dynamic')
                 if isinstance(dynamic, dict) and dynamic.get('MapIconFacilityIsOpen') == 'GerudoTrainingGround_MapIcon_Flag':
@@ -1022,6 +1050,8 @@ def extract_scenes(maps, landmarks):
             'GerudoTrainingGround': training_connections,
             'Graveyard': dampe_routes,
         }.get(region)
+        if frame == GANON_FINAL:
+            route_extractor = final_battle_routes
         routes = route_extractor(sources) if route_extractor else ()
         if rooms or points or levels or routes:
             scene = {'rooms': rooms, 'points': sorted(points)}
@@ -1071,7 +1101,7 @@ def view_name(resource):
             f'Banc/{region}/{region}_{layer}{MAP_SUFFIX}' for layer in ('Static', 'Dynamic')):
         return CASTLE_OUTSKIRTS
     if region == 'GanonCastle':
-        for scene, view in (('GanonCastle', GANON_OUTSKIRTS), ('CrumblingGanonCastle', GANON_ESCAPE)):
+        for scene, view in zip(('GanonCastle', 'CrumblingGanonCastle', 'FinalBattleField'), GANON_VIEWS):
             if resource in (f'Banc/{region}/{scene}_{layer}{MAP_SUFFIX}' for layer in ('Static', 'Dynamic')):
                 return view
     if region in SHARED_DUNGEONS and resource in (

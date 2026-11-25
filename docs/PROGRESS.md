@@ -3,6 +3,8 @@
 Les portails de Ganon spectral, Volvagia, Morpha et Bongo Bongo
 indiquent les retours adultes et les étapes par la Chambre des Sages.
 Le retour de Volvagia inclut son passage par Cocorico.
+La sortie de l’effondrement ouvre l’arène de Ganon. La vue distincte
+affiche le périmètre, le point d’arrivée et la position de Link.
 
 Le portail de Twinrova ouvre le Colosse du désert adulte, directement
 ou via la Chambre des Sages. Les deux trajets indiquent les points
