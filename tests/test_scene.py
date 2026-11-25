@@ -92,6 +92,24 @@ class SceneTests(unittest.TestCase):
                 row = Location('test', 'Check', 'test', path, point, region='SpiritTemple', dungeon_room=7)
                 self.assertEqual(location_view(row), SPIRIT_VIEWS[floor])
 
+    def test_fire_hammer_pillar_has_its_own_anchor_on_each_floor(self):
+        from map_oot_rando.scene import FIRE_VIEWS, SIDE_PORTALS, group_scenes
+
+        path = 'Banc/FireTemple/FireTemple_Static.bcett.byml.zs'
+        actors = [
+            dict(Gyaml='Obj_FireTemple_HammerDropPillar_A_01', Hash=8177655486739024991,
+                 Translate=(-25.46, 145.95, 0.03)),
+            dict(Gyaml='Obj_FireTemple_HammerDropPillar_A_01', Hash=6957196851887297580,
+                 Translate=(-25.48, 105.19, 0.03)),
+        ]
+        scenes = extract_scenes({path: {'root': {'Actors': actors}}}, lambda _: {})
+        grouped = group_scenes(read_scenes({'scenes': scenes}))
+        down = 'Pilier du marteau · vers le rez-de-chaussée'
+        up = 'Pilier du marteau · voir le 2e étage'
+        self.assertEqual(dict(grouped[FIRE_VIEWS[2]]['points']), {down: (-25.46, 0.03)})
+        self.assertEqual(dict(grouped[FIRE_VIEWS[0]]['points']), {up: (-25.48, 0.03)})
+        self.assertEqual(SIDE_PORTALS['FireTemple'][down][1:], (FIRE_VIEWS[0], down, up))
+
     def test_forest_main_elevator_connects_the_hall_and_deep_basement(self):
         from map_oot_rando.scene import FOREST_VIEWS, SIDE_PORTALS, group_scenes
 

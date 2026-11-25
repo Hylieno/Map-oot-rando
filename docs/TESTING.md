@@ -1,5 +1,9 @@
 # Validation
 
+Les douze traversées sur les plans du Temple du Feu ont été ouvertes
+dans Tk. Les repères de salle, du pilier du marteau et du début
+du combat contre Volvagia ont été comparés aux scènes publiques.
+
 Les huit traversées du Temple de la Forêt ont été vérifiées dans Tk
 avec les fonds Field Atlas et les acteurs des scènes publiques.
 Le point d’arrivée de l’arène vient de l’événement de Ganon spectral.

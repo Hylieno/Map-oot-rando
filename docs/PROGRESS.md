@@ -4,6 +4,9 @@ Dans le Temple de la Forêt, les ascenseurs du hall et de l’ouest,
 le puits est et la porte de Ganon spectral relient cinq vues.
 Dans le Temple du Feu, la porte de Volvagia ouvre la vue de l’arène
 au point de départ de la cinématique.
+Les passages entre les cinq étages suivent les repères de l’ascenseur
+est, du labyrinthe et des salles supérieures. Le pilier du marteau
+relie le deuxième étage au rez-de-chaussée.
 
 Le Temple de l’Esprit relie ses étages par six passages cliquables.
 Le couloir entre la salle de la statue et l’arène de Twinrova a sa

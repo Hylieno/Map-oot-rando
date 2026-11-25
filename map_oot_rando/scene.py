@@ -23,6 +23,19 @@ FIRE_BOSS_CROSSING = (
     (0, 'Porte vers Volvagia', 'Obj_FireTemple_SwitchShutter_A_02', 7971893604208202501),
     (5, 'Voir l’accès à Volvagia', 'StartPos', 4368300544097029137),
 )
+FIRE_LEVEL_CROSSINGS = (
+    FIRE_BOSS_CROSSING,
+    ((0, 'Ascenseur est · vers le 1er étage', 'Obj_Gimmick_AnswerPosAnchor', 16087633202058987797),
+     (1, 'Ascenseur est · vers le rez-de-chaussée', 'DungeonRoomArea', 6331941358227428102)),
+    ((1, 'Passage vers le labyrinthe', 'DungeonRoomArea', 17572016124561474933),
+     (2, 'Passage vers le 1er étage', 'DungeonRoomArea', 10946843903591013285)),
+    ((2, 'Passage vers le 3e étage', 'DungeonRoomArea', 3166794335041927387),
+     (3, 'Passage vers le 2e étage', 'DungeonRoomArea', 1428609598790894168)),
+    ((3, 'Montée vers le 4e étage', 'DungeonRoomArea', 6017864338550927060),
+     (4, 'Descente vers le 3e étage', 'DungeonRoomArea', 4525650555869086110)),
+    ((2, 'Pilier du marteau · vers le rez-de-chaussée', 'Obj_FireTemple_HammerDropPillar_A_01', 8177655486739024991),
+     (0, 'Pilier du marteau · voir le 2e étage', 'Obj_FireTemple_HammerDropPillar_A_01', 6957196851887297580)),
+)
 JABU_LEVELS = ('Rez-de-chaussée', 'Sous-sol', 'Étage', 'Arène de Barinade')
 JABU_VIEWS = tuple(f'{REGION_NAMES["InsideJabuJabuBelly"]} · {level}' for level in JABU_LEVELS)
 DEKU_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', 'Sous-sol', 'Sous-sol profond', 'Arène de Gohma')
@@ -507,7 +520,8 @@ SIDE_PORTALS['FireTemple'][FIRE_SAGE_SCENE] = (
     'KakarikoVillage', REGION_VIEWS['KakarikoVillage']['Adult'], 'Cocorico · cinématique', FIRE_KAKARIKO_ARRIVAL)
 SIDE_PORTALS['FireTemple'].update({
     label: ('FireTemple', FIRE_VIEWS[destination], label, arrival)
-    for (_, label, _, _), (destination, arrival, _, _) in (FIRE_BOSS_CROSSING, FIRE_BOSS_CROSSING[::-1])
+    for ends in FIRE_LEVEL_CROSSINGS
+    for (_, label, _, _), (destination, arrival, _, _) in (ends, ends[::-1])
 })
 SIDE_PORTALS['ShadowTemple'].update({
     **{label: ('ShadowTemple', SHADOW_VIEWS[destination], label, arrival)
@@ -855,7 +869,7 @@ def crossing_level_points(sources, crossings):
 
 
 LEVEL_POINT_EXTRACTORS = {
-    'FireTemple': lambda sources: crossing_level_points(sources, (FIRE_BOSS_CROSSING,)),
+    'FireTemple': lambda sources: crossing_level_points(sources, FIRE_LEVEL_CROSSINGS),
     'ForestTemple': lambda sources: crossing_level_points(sources, FOREST_LEVEL_CROSSINGS),
     'InsideGanonCastle': ganon_tower_points,
     'GerudoTrainingGround': training_level_points,
