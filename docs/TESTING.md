@@ -4,6 +4,11 @@ La branche embarque OotrR 0.8.4 et conserve la logique 0.8.0 par
 empreinte de la seed. Les deux versions passent le test d’accessibilité
 avec une version d’application fictive plus récente. Un changement de
 commit OotrR hors du code du scanner est accepté par l’exporteur local.
+Les données de suivi réelles de la seed 0.8.0 ont été lues avec trois
+sauvegardes synthétiques, représentant un inventaire vide, partiel et
+avancé. Les 1 103 états coïncident pour les trois sauvegardes avec le
+lecteur 0.8.0. Le test couvre l’accès enfant au rebord de la maison
+d’Impa et vérifie que les nouvelles seeds conservent leur propre règle.
 Le test Windows lit un module AINB synthétique lors de l’import.
 Le scan des scènes publiques avec le catalogue historique retrouve
 1 100 des 1 103 positions, dont les douze acteurs écartés des nouveaux

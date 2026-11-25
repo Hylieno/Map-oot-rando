@@ -21,7 +21,7 @@ class VillageVariantTests(unittest.TestCase):
         self.assertTrue(kakariko_variant({4: True}, keys, 4, False))
 
 
-def write_seed(root, *, legacy_world=False, app_version=None):
+def write_seed(root, *, legacy_world=False, app_version=None, open_forest=False):
     from oot_rando.patching.randomize_kokiri import BUILD, TITLE
     from oot_rando.randomizer.randomizer_core import (
         ADAPTER_VERSION, GENERATOR_VERSION, Settings, settings_identity,
@@ -33,13 +33,14 @@ def write_seed(root, *, legacy_world=False, app_version=None):
     generator = '0.12.8' if legacy_world else GENERATOR_VERSION
     seed_id = settings_identity(settings, generator, ADAPTER_VERSION)
     chest = 'ap#KF Kokiri Sword Chest'
-    checks = [{'id': ident, 'name': ident, 'region': 'Kokiri Forest'} for ident in ('test', chest)]
+    impa = 'ap#Kak Impas House Freestanding PoH'
+    checks = [{'id': ident, 'name': ident, 'region': 'Kokiri Forest'} for ident in ('test', chest, impa)]
     tracking = dict(schema_version=1, seed_id=seed_id, seed_marker='100', inventory=[{'item': 'Bomb Bag', 'hash': '101'}],
                     logic_world_sha256=LEGACY_WORLD_FINGERPRINT if legacy_world else World().fingerprint(),
-                    logic={'settings': {}, 'exits': [], 'virtual': {},
+                    logic={'settings': {'open_forest': 'open'} if open_forest else {}, 'exits': [], 'virtual': {},
                            'locations': {'KF Kokiri Sword Chest': ['Bomb Bag']}},
                     known_bool64=['42'], checks={'test': {
-                        'collection': {'type': 'bool64', 'hash': '42'}, 'reward': 'Test item'}, chest: {}})
+                        'collection': {'type': 'bool64', 'hash': '42'}, 'reward': 'Test item'}, chest: {}, impa: {}})
     payload = json.dumps(tracking).encode()
     data = b'synthetic resource'
     manifest = dict(schema_version=1, title_id=TITLE, build_id=BUILD, seed_id=seed_id,
@@ -89,6 +90,21 @@ class SaveTrackingTests(unittest.TestCase):
                 write_save(save, bombs=True)
                 self.assertEqual(session.refresh().states[ident], 'available')
                 self.assertEqual(World().fingerprint(), runtime_fingerprint)
+
+    def test_legacy_seed_keeps_the_original_approach_to_impas_house(self):
+        from oot_rando.logic.world import World
+
+        ident = 'ap#Kak Impas House Freestanding PoH'
+        current = World().fingerprint() != LEGACY_WORLD_FINGERPRINT
+        for legacy in (True, False):
+            with self.subTest(legacy=legacy), tempfile.TemporaryDirectory() as directory:
+                folder = Path(directory)
+                save = folder / 'progress.sav'
+                store = StateStore(write_seed(folder, legacy_world=legacy, open_forest=True), [ident])
+                write_save(save, child=True)
+                session = SaveConnection(folder, save, store, manual_dir=folder / 'manual')
+                expected = 'unknown' if current and not legacy else 'available'
+                self.assertEqual(session.refresh().states[ident], expected)
 
     def test_real_tracker_collection_rollback_disconnect_and_seed_mismatch(self):
         with tempfile.TemporaryDirectory() as directory:

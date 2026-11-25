@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 import struct
+from types import FunctionType
 
 from .link_position import LinkPosition, read_link_position
 from .save_discovery import SaveDirectory
@@ -75,7 +76,18 @@ class SaveConnection:
                     if world.fingerprint() != LEGACY_WORLD_FINGERPRINT:
                         return super()._get_logic()
                     exits = {(a, b): set(items) for a, b, items in graph['exits']}
-                    logic = Logic(world, graph['settings'], exits, graph['locations'])
+                    # OotrR's constructor reads three module-level tables.
+                    # Give it this world's verified tables without changing
+                    # the rules used by other sessions.
+                    initialize = Logic.__init__
+                    tables = dict(initialize.__globals__,
+                                  REMAKE_EXIT_RULES=world.remake['exit_rules'],
+                                  REMAKE_LOCATION_RULES=world.remake['location_rules'],
+                                  REMAKE_LOCATION_REGIONS=world.remake['location_regions'])
+                    initialize_legacy = FunctionType(initialize.__code__, tables,
+                                                     argdefs=initialize.__defaults__)
+                    logic = Logic.__new__(Logic)
+                    initialize_legacy(logic, world, graph['settings'], exits, graph['locations'])
                     logic.virtual = graph['virtual']
                     self._logic = logic
                 except (OSError, ValueError, KeyError, ImportError) as error:
