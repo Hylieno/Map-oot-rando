@@ -25,6 +25,16 @@ DEKU_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', 'Sous-sol', 'Sous-
 DEKU_VIEWS = tuple(f'{REGION_NAMES["InsideTheDekuTree"]} · {level}' for level in DEKU_LEVELS)
 FOREST_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', 'Sous-sol', 'Sous-sol profond', 'Arène du boss')
 FOREST_VIEWS = tuple(f'{REGION_NAMES["ForestTemple"]} · {level}' for level in FOREST_LEVELS)
+FOREST_LEVEL_CROSSINGS = (
+    ((0, 'Ascenseur du hall', 'Obj_ForestTemple_Elevator_A_01', 9015988562326766070),
+     (4, 'Ascenseur vers le hall', 'Obj_ForestTemple_Elevator_A_01', 9015988562326766070)),
+    ((0, 'Puits de la cour est', 'Land_ForestTemple_Well_A_01', 11088284189308826273),
+     (3, 'Échelle vers la cour est', 'Obj_ForestTemple_Ladder_A_01', 6306446343189810327)),
+    ((0, 'Ascenseur ouest', 'Obj_ForestTemple_Elevator_A_01', 13316454886115529094),
+     (2, 'Ascenseur vers le rez-de-chaussée', 'Obj_ForestTemple_Elevator_A_01', 13316454886115529094)),
+    ((4, 'Porte vers Ganon spectral', 'Obj_ForestTemple_SwitchShutter_A_04', 11429592239509371885),
+     (5, 'Voir l’accès à l’arène', 'StartPos', 7330387629530333392)),
+)
 WELL_LEVELS = ('Sous-sol', 'Sous-sol profond')
 WELL_VIEWS = tuple(f'{REGION_NAMES["BottomOfTheWell"]} · {level}' for level in WELL_LEVELS)
 SHADOW_LEVELS = ('Sous-sol 1', 'Sous-sol 2', 'Sous-sol 3', 'Sous-sol 4', 'Arène de Bongo Bongo')
@@ -503,6 +513,11 @@ SIDE_PORTALS['WaterTemple'].update({
     for ends in WATER_LEVEL_CROSSINGS
     for (_, label, _, _), (destination, arrival, _, _) in (ends, ends[::-1])
 })
+SIDE_PORTALS['ForestTemple'].update({
+    label: ('ForestTemple', FOREST_VIEWS[destination], label, arrival)
+    for ends in FOREST_LEVEL_CROSSINGS
+    for (_, label, _, _), (destination, arrival, _, _) in (ends, ends[::-1])
+})
 GRAVE_TOMB_ANCHORS = {
     ('HidingHole_FieldEntranceGo', 14429999406297140688): GRAVE_TO_TOMB,
     ('HidingHole_FieldExitGo', 13508899304624178854): TOMB_TO_GRAVE,
@@ -819,7 +834,20 @@ def water_level_points(sources):
             and (position := actor.get('Translate'))}
 
 
+def forest_level_points(sources):
+    anchors = {}
+    for ends in FOREST_LEVEL_CROSSINGS:
+        for floor, label, kind, ident in ends:
+            anchors.setdefault((kind, ident), []).append((floor, label))
+    return {(floor, label, (position[0], position[2]))
+            for source in sources.values() for actor in source['root'].get('Actors', ())
+            if (key := (actor.get('Gyaml'), actor.get('Hash'))) in anchors
+            and (position := actor.get('Translate'))
+            for floor, label in anchors[key]}
+
+
 LEVEL_POINT_EXTRACTORS = {
+    'ForestTemple': forest_level_points,
     'InsideGanonCastle': ganon_tower_points,
     'GerudoTrainingGround': training_level_points,
     'ShadowTemple': shadow_level_points,
@@ -831,7 +859,7 @@ BOSS_WARP_ANCHORS = {
     'DodongoCavern': (13216581863777340373, 2, (DODONGO_BOSS_EXIT,)),
     'InsideJabuJabuBelly': (9190184471319613614, 3, (JABU_BOSS_EXIT,)),
     'SpiritTemple': (11243501154977749945, 4, (SPIRIT_BOSS_TO_COLOSSUS, SPIRIT_BOSS_TO_SAGES)),
-    'ForestTemple': (7322827475260825437, 5, tuple(SIDE_PORTALS['ForestTemple'])),
+    'ForestTemple': (7322827475260825437, 5, ('Retour après Ganon spectral', 'Sages · Ganon spectral')),
     'FireTemple': (14585775662663687502, 5, tuple(SIDE_PORTALS['FireTemple'])),
     'WaterTemple': (9109272685779005276, 2, ('Retour après Morpha', 'Sages · Morpha')),
     'ShadowTemple': (15240382889320952895, 4, ('Retour après Bongo Bongo', 'Sages · Bongo Bongo')),

@@ -1,5 +1,9 @@
 # Validation
 
+Les huit traversées du Temple de la Forêt ont été vérifiées dans Tk
+avec les fonds Field Atlas et les acteurs des scènes publiques.
+Le point d’arrivée de l’arène vient de l’événement de Ganon spectral.
+
 Les six liaisons du Temple de l’Esprit ont été ouvertes dans les deux
 sens dans Tk avec les acteurs des scènes publiques et les fonds
 Field Atlas. Les repères d’arrivée coïncident avec leurs portes ou

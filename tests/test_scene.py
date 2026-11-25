@@ -92,6 +92,23 @@ class SceneTests(unittest.TestCase):
                 row = Location('test', 'Check', 'test', path, point, region='SpiritTemple', dungeon_room=7)
                 self.assertEqual(location_view(row), SPIRIT_VIEWS[floor])
 
+    def test_forest_main_elevator_connects_the_hall_and_deep_basement(self):
+        from map_oot_rando.scene import FOREST_VIEWS, SIDE_PORTALS, group_scenes
+
+        path = 'Banc/ForestTemple/ForestTemple_Static.bcett.byml.zs'
+        actors = [
+            dict(Gyaml='Obj_ForestTemple_Elevator_A_01', Hash=9015988562326766070,
+                 Translate=(0, 100, -3.5)),
+            dict(Gyaml='Obj_WarpPoint_A_01', Hash=7322827475260825437, Translate=(0, 75, -62)),
+        ]
+        scenes = extract_scenes({path: {'root': {'Actors': actors}}}, lambda _: {})
+        grouped = group_scenes(read_scenes({'scenes': scenes}))
+        self.assertEqual(dict(grouped[FOREST_VIEWS[0]]['points'])['Ascenseur du hall'], (0, -3.5))
+        self.assertEqual(dict(grouped[FOREST_VIEWS[4]]['points'])['Ascenseur vers le hall'], (0, -3.5))
+        self.assertEqual(SIDE_PORTALS['ForestTemple']['Ascenseur du hall'][1], FOREST_VIEWS[4])
+        self.assertEqual(set(dict(grouped[FOREST_VIEWS[5]]['points'])),
+                         {'Retour après Ganon spectral', 'Sages · Ganon spectral'})
+
     def test_water_tablets_use_the_floor_where_they_can_be_reached(self):
         from map_oot_rando.scene import WATER_VIEWS, group_scenes
 

@@ -1,5 +1,8 @@
 # Checkpoint — 25 novembre 2026
 
+Dans le Temple de la Forêt, les ascenseurs du hall et de l’ouest,
+le puits est et la porte de Ganon spectral relient cinq vues.
+
 Le Temple de l’Esprit relie ses étages par six passages cliquables.
 Le couloir entre la salle de la statue et l’arène de Twinrova a sa
 propre vue. Le suivi de Link distingue le couloir et l’arène.
