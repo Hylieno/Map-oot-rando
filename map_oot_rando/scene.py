@@ -1,5 +1,5 @@
 """Map symbols derived from OotrR landmarks in the active resource's coordinates."""
-from math import atan2, cos, dist, isfinite, sin
+from math import atan2, cos, dist, isfinite, pi, sin
 
 from .model import REGION_NAMES, SURFACE_MIN_Y, read_position, resource_region
 
@@ -886,6 +886,30 @@ TRAINING_DOORS = {
     5885932930990178582: (12371614488659450539, 13588342684847587321),
     2788856171788874734: (13588342684847587321, 3761826239942057234),
 }
+# Stock lower maze, from Obj_Gerudo_SwitchShutter_A_06 and its paired locks.
+# Older exports store the room and passage landmarks but omit these actors.
+TRAINING_MAZE_LANDMARKS = {
+    'Labyrinthe': (-1.423255, -47.960190),
+    'Galerie est': (43.152065, -48.449051),
+    TRAINING_TO_WALKWAY: (-2.339319, -58.915771),
+    TRAINING_TO_CEILING: (-7.763999, -35.452011),
+}
+TRAINING_MAZE_LOCKS = (
+    (-18.600000, -57.599998, 0),
+    (-16.200001, -36.000000, pi / 2),
+    (-9.000000, -48.000000, 0),
+    (-6.600000, -40.849998, pi / 2),
+    (-1.800000, -55.200001, pi / 2),
+    (3.000000, -50.400002, pi / 2),
+    (3.000000, -40.870220, pi / 2),
+    (5.400000, -57.599998, 0),
+    (15.000000, -38.400002, 0),
+)
+
+
+def training_lock_route(x, z, yaw):
+    dx, dz = 1.2 * cos(yaw), -1.2 * sin(yaw)
+    return TRAINING_LOCKED_DOOR, ((x - dx, z - dz), (x + dx, z + dz))
 
 
 def training_connections(sources):
@@ -913,8 +937,7 @@ def training_connections(sources):
                 continue
             x, _, z = actor['Translate']
             yaw = actor.get('Rotate', (0, 0, 0))[1]
-            dx, dz = 1.2 * cos(yaw), -1.2 * sin(yaw)
-            routes.add((TRAINING_LOCKED_DOOR, ((x - dx, z - dz), (x + dx, z + dz))))
+            routes.add(training_lock_route(x, z, yaw))
     return routes
 
 
@@ -1464,6 +1487,8 @@ def extract_scenes(maps, landmarks):
             routes = actor_guide_routes(sources, 'Npc_Hylia_Zelda_Adult', labels)
         if rooms or points or levels or routes:
             scene = {'rooms': rooms, 'points': sorted(points)}
+            if region == 'GerudoTrainingGround':
+                scene['training_locks_scanned'] = True
             if levels:
                 scene['level_points'] = sorted(levels)
             if routes:
@@ -1478,6 +1503,8 @@ def read_scenes(document):
     if not isinstance(scenes, dict):
         raise ValueError('Fond de carte invalide')
     for resource, scene in scenes.items():
+        if 'training_locks_scanned' in scene and scene['training_locks_scanned'] is not True:
+            raise ValueError('Indicateur des portes du labyrinthe invalide')
         level_points = []
         for entry in scene.get('level_points', ()):
             region = resource_region(resource)
@@ -1736,10 +1763,26 @@ def restore_legacy_trial_routes(grouped):
         scene['routes'] = {entry_route, *((GANON_TRIAL_ROUTE_LABEL, points) for points in internal_routes)}
 
 
+def restore_legacy_training_locks(grouped):
+    scene = grouped.get(TRAINING_VIEWS[0])
+    if not scene or any(label == TRAINING_LOCKED_DOOR for label, _ in scene.get('routes', ())):
+        return
+    landmarks = {label: [] for label in TRAINING_MAZE_LANDMARKS}
+    for label, point in scene['points']:
+        if label in landmarks:
+            landmarks[label].append(point)
+    if all(len(points) == 1 and dist(points[0], TRAINING_MAZE_LANDMARKS[label]) <= 0.02
+           for label, points in landmarks.items()):
+        scene.setdefault('routes', set()).update(training_lock_route(*lock) for lock in TRAINING_MAZE_LOCKS)
+
+
 def group_scenes(scenes):
     grouped = {}
+    training_locks_scanned = False
     for resource, scene in scenes.items():
         name = view_name(resource)
+        if name == TRAINING_VIEWS[0] and scene.get('training_locks_scanned'):
+            training_locks_scanned = True
         view = grouped.setdefault(name, {'rooms': set(), 'points': set()})
         view['rooms'].update((name, tuple(low), tuple(high)) for name, low, high in scene['rooms'])
         for label, point in scene['points']:
@@ -1789,6 +1832,8 @@ def group_scenes(scenes):
             level = grouped.setdefault(view_name_for_floor, {'rooms': set(), 'points': set()})
             level['points'].add((name, tuple(point)))
     restore_legacy_trial_routes(grouped)
+    if not training_locks_scanned:
+        restore_legacy_training_locks(grouped)
     return {key: {kind: sorted(rows) for kind, rows in scene.items()}
             for key, scene in grouped.items()}
 

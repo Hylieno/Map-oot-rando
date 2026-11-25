@@ -2,7 +2,9 @@
 
 Le plan inférieur du centre d’entraînement Gerudo affiche les neuf
 portes à petite clé à la position et selon l’orientation de leurs
-acteurs. Les portes apparaissent après l’import du jeu.
+acteurs. Les cartes déjà enregistrées retrouvent les portes à
+l’ouverture lorsque leurs quatre repères du labyrinthe correspondent
+aux coordonnées du jeu.
 
 La résolution des checks par identifiant d’acteur couvre aussi les
 ruches. Les anciennes seeds conservent ainsi le placement de leurs

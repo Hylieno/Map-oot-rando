@@ -6,6 +6,11 @@ Le contrôle dans Tk vérifie les deux extrémités des neuf traits, avant
 et après un zoom, ainsi que leur absence sur la passerelle.
 Le test automatisé vérifie aussi l’exclusion d’une porte sans ses deux
 serrures et la conservation du tracé dans le JSON.
+Une carte exportée avant l’ajout des portes a été rouverte dans Tk.
+Les neuf traits correspondent au scan actuel et les douze liaisons
+précédentes sont conservées. Le fichier source est resté intact.
+Le test vérifie également les cartes aux repères incomplets ou déplacés,
+les portes déjà enregistrées et les nouveaux exports sans porte à clé.
 Avec le build Windows du 25 novembre, l’audit de la seed de référence
 couvre 1 289 placements sur 109 vues peuplées, variantes d’âge ou de
 scène comprises. Les 1 153 placements des 79 vues dotées d’un fond

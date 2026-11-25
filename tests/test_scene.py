@@ -67,6 +67,34 @@ class SceneTests(unittest.TestCase):
                          [(TRAINING_LOCKED_DOOR, ((3, -48.8), (3, -51.2)))])
         self.assertFalse(scenes[TRAINING_VIEWS[1]].get('routes'))
 
+    def test_training_maze_restores_key_doors_only_for_compatible_legacy_exports(self):
+        from map_oot_rando.scene import (TRAINING_LOCKED_DOOR, TRAINING_TO_CEILING, TRAINING_TO_WALKWAY,
+                                        TRAINING_VIEWS, group_scenes)
+
+        path = 'Banc/GerudoTrainingGround/GerudoTrainingGround_Static.bcett.byml.zs'
+        points = [('Labyrinthe', (-1.423255, -47.96019)), ('Galerie est', (43.152065, -48.449051)),
+                  (TRAINING_TO_WALKWAY, (-2.339319, -58.915771)),
+                  (TRAINING_TO_CEILING, (-7.763999, -35.452011))]
+        corridor = ('Liaisons entre les salles', ((43.15, -48.45), (29.3, -45.6), (-1.42, -47.96)))
+        old_scene = {'rooms': [], 'points': points, 'routes': [corridor]}
+
+        def stored_routes(scene):
+            document = json.loads(json.dumps({'scenes': {path: scene}}))
+            views = group_scenes(read_scenes(document))
+            return views[TRAINING_VIEWS[0]]['routes']
+
+        restored = stored_routes(old_scene)
+        self.assertIn(corridor, restored)
+        self.assertEqual(sum(label == TRAINING_LOCKED_DOOR for label, _ in restored), 9)
+        stored_door = (TRAINING_LOCKED_DOOR, ((2, -49), (2, -51)))
+        for scene, routes in (
+            (dict(old_scene, points=points[:-1]), [corridor]),
+            (dict(old_scene, points=points[:-1] + [(TRAINING_TO_CEILING, (-7.76, -32))]), [corridor]),
+            (dict(old_scene, training_locks_scanned=True), [corridor]),
+            (dict(old_scene, routes=[corridor, stored_door]), [corridor, stored_door]),
+        ):
+            self.assertEqual(stored_routes(scene), routes)
+
     def test_water_temple_preserves_the_pool_and_its_submerged_rooms(self):
         from map_oot_rando.model import Location
         from map_oot_rando.scene import WATER_VIEWS, location_view
