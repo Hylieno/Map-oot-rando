@@ -1,5 +1,11 @@
 # Validation
 
+Le test de l’exécutable Windows ouvre un dossier de sauvegardes avec
+le vrai lecteur OotrR. Il remplace la sauvegarde synthétique par une
+version où le coffre est récupéré et vérifie que son marqueur change
+de couleur sans recharger la carte. Le test confirme aussi que
+l’application conserve les octets de la sauvegarde suivie.
+
 Dans une scène partagée qui ne nomme pas l’âge, le lecteur de Link
 utilise le nom du modèle chargé si OotrR ne fournit pas l’âge.
 Le test avec le lecteur OotrR et la scène du Temple de l’Esprit

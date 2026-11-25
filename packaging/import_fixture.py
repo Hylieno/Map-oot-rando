@@ -8,6 +8,37 @@ import sys
 import zstandard
 
 from oot_rando.formats.byml_codec import build_sarc, dump
+from oot_rando.patching.randomize_kokiri import BUILD, TITLE
+from oot_rando.randomizer.randomizer_core import ADAPTER_VERSION, GENERATOR_VERSION, Settings, settings_identity
+from oot_rando.tracker.live_memory import SEQUENCE_IS_CHILDHOOD
+from oot_rando.tracker.save_reader import FORMAT_VERSION, MAGIC, PROGRESS_TYPE_HASH
+
+
+def write_tracker_fixture(directory, seed_id, settings):
+    tracking = {
+        'schema_version': 1, 'seed_id': seed_id, 'seed_marker': '100', 'known_bool64': ['42'],
+        'checks': {'KokiriForest#123': {'collection': {'type': 'bool64', 'hash': '42'}}},
+    }
+    payload = json.dumps(tracking).encode()
+    resource = b'synthetic resource'
+    manifest = {
+        'schema_version': 1, 'seed_id': seed_id, 'title_id': TITLE, 'build_id': BUILD,
+        'settings': settings.to_dict(), 'generator_version': GENERATOR_VERSION, 'adapter_version': ADAPTER_VERSION,
+        'tracking': {'sha256': sha256(payload).hexdigest()},
+        'files': {'fixture': {'size': len(resource), 'sha256': sha256(resource).hexdigest()}},
+    }
+    romfs = directory / 'romfs'
+    romfs.mkdir(exist_ok=True)
+    (romfs / 'fixture').write_bytes(resource)
+    (directory / 'tracking.json').write_bytes(payload)
+    (directory / 'manifest.json').write_text(json.dumps(manifest), encoding='utf-8')
+
+    table = pack('<IIIIII', 0, 0, 100, 1, SEQUENCE_IS_CHILDHOOD, 1)
+    table += b''.join(pack('<II', 0, section) for section in range(1, 33))
+    end = 32 + len(table) + 8
+    base = pack('<III20x', MAGIC, FORMAT_VERSION, end) + table + pack('<II', PROGRESS_TYPE_HASH, end)
+    (directory / 'before.sav').write_bytes(base + bytes(8))
+    (directory / 'after.sav').write_bytes(base + pack('<Q', 42) + bytes(8))
 
 
 def write_fixture(directory):
@@ -81,8 +112,14 @@ def write_fixture(directory):
               {'id': 'KokiriForest#pots#322', 'name': 'Fixture adult pot', 'category': 'full_pots'},
               {'id': 'WaterTemple#987', 'name': 'Fixture Water Temple chest', 'category': 'full_chests'},
               {'id': 'WaterTemple#gs#988', 'name': 'Fixture Skulltula', 'category': 'full_skulltula'}]
-    catalogue = {'schema_version': 1, 'seed_id': 'portable-test', 'checks': checks}
+    settings = Settings('Portable packaging test')
+    seed_id = settings_identity(settings)
+    region_names = {'KokiriForest': 'Kokiri Forest', 'WaterTemple': 'Water Temple'}
+    for check in checks:
+        check['region'] = region_names[check['id'].partition('#')[0]]
+    catalogue = {'schema_version': 1, 'seed_id': seed_id, 'checks': checks}
     (directory / 'checks.json').write_text(json.dumps(catalogue), encoding='utf-8')
+    write_tracker_fixture(directory, seed_id, settings)
 
 
 if __name__ == '__main__':
