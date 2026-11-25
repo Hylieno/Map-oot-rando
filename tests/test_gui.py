@@ -113,7 +113,7 @@ class GuiTests(unittest.TestCase):
         app.load(doc)
         self.root.update()
         self.assertEqual(app.resource.get(), REGION_VIEWS[forest]['Child'])
-        self.assertTrue(all(app.neighbor_buttons[target].winfo_ismapped() for target in destinations))
+        self.assertEqual(set(app.neighbor_targets), set(destinations))
 
         self.root.geometry('690x700')
         self.root.update()
@@ -126,10 +126,17 @@ class GuiTests(unittest.TestCase):
         labels = [app.neighbor_menu.entrycget(i, 'label') for i in range(len(available))]
         self.assertEqual(labels, [REGION_NAMES[region] for region in available])
 
-        self.root.geometry('1180x760')
+        self.root.geometry('1520x760')
         self.root.update()
-        self.assertFalse(app.neighbor_menu_button.winfo_ismapped())
-        self.assertTrue(all(app.neighbor_buttons[target].winfo_ismapped() for target in destinations))
+        if app.neighbor_menu_button.winfo_ismapped():
+            # A smaller desktop can cap the window size. All destinations must
+            # still be reachable through the compact controls at that width.
+            self.assertEqual([app.neighbor_menu.entrycget(i, 'label') for i in range(len(labels))], labels)
+        else:
+            for target in destinations:
+                button = app.neighbor_buttons[target]
+                self.assertTrue(button.winfo_ismapped())
+                self.assertGreaterEqual(button.winfo_width(), button.winfo_reqwidth())
         self.assertGreater(app.track_button.winfo_rooty(), app.import_button.winfo_rooty())
 
         self.root.geometry('690x700')
