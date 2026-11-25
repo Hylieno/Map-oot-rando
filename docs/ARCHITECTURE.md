@@ -103,6 +103,9 @@ Après Twinrova, l’acteur du portail ouvre la Chambre des Sages ou le
 Colosse adulte. Le Colosse utilise le point de départ nommé
 `SpiritRequiem`. La Chambre des Sages utilise la position explicite
 de la cinématique.
+Les autres temples adultes utilisent aussi les acteurs de leurs portails
+et les points de départ nommés à Kokiri, au cratère, au lac et au cimetière.
+La Chambre des Sages propose la suite de la cinématique sélectionnée.
 Le Monde des rêves distingue le musée et la salle intermédiaire par
 le nom de la ressource active. Les coffres du défi conservent leurs
 identifiants individuels quand ils partagent les mêmes coordonnées.

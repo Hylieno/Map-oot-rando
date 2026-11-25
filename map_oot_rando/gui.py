@@ -20,7 +20,7 @@ from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
 from .scene import (BURNT_VILLAGE, CASTLE_COURT, DAMPE_ROUTES, DREAM_SCENE_VIEWS, DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS,
-                    FIRE_VIEWS, FLOOR_OPTIONS,
+                    FIRE_KAKARIKO_ARRIVAL, FIRE_KAKARIKO_CONTINUE, FIRE_VIEWS, FLOOR_OPTIONS,
                     FOUNTAIN_DUNGEON_AGES, GANON_DUNGEON_VIEWS, GANON_ESCAPE, MARKET_CASTLE_AGES,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS, GUIDE_ROUTE, LOST_WOOD_RESET,
@@ -1330,6 +1330,10 @@ class MapApplication:
                     if portal == self.arrival:
                         arrival_scene = portal_scene
             for portal, (neighbor, floor, title, arrival) in SIDE_PORTALS.get(region, {}).items():
+                if portal == FIRE_KAKARIKO_CONTINUE and self.arrival != FIRE_KAKARIKO_ARRIVAL:
+                    continue
+                if region == 'SageRoom' and self.arrival in SIDE_PORTALS[region] and portal != self.arrival:
+                    continue
                 points = {tuple(p) for label, p in (scene or {}).get('points', ()) if label == portal}
                 destination = floor if floor is not None else self.view_for_region(neighbor)
                 if len(points) == 1 and destination in self.views:
@@ -1367,7 +1371,9 @@ class MapApplication:
                                         dash=(5, 3) if title == DAMPE_ROUTES['PlayingSecond'] else (),
                                         capstyle='round', joinstyle='round', tags='scene-route')
             for label, point in scene['points']:
-                if label in exits or label == LOST_WOOD_RESET or label in PORTAL_START_NAMES.get(region, ()):
+                sage_exit = region == 'SageRoom' and label in SIDE_PORTALS[region]
+                if (label in exits or sage_exit or label in (LOST_WOOD_RESET, FIRE_KAKARIKO_CONTINUE)
+                        or label in PORTAL_START_NAMES.get(region, ())):
                     continue
                 x, y = self.viewport.screen(point)
                 self.canvas.create_polygon(x, y-5, x+5, y, x, y+5, x-5, y,

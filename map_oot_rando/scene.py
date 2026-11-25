@@ -230,6 +230,16 @@ SPIRIT_COLOSSUS_ARRIVAL = 'Arrivée au Requiem des Esprits'
 DEKU_BOSS_EXIT = 'Portail de Gohma'
 DODONGO_BOSS_EXIT = 'Portail du Roi Dodongo'
 JABU_BOSS_EXIT = 'Portail de Barinade'
+FIRE_KAKARIKO_ARRIVAL = 'Arrivée à Cocorico après Volvagia'
+FIRE_KAKARIKO_CONTINUE = 'Suite de la cinématique de Volvagia'
+FIRE_SAGE_SCENE = 'Sages · Volvagia'
+# The fire cutscene passes through Kakariko before entering the Sage Room.
+ADULT_BOSS_RETURNS = {
+    'ForestTemple': ('Ganon spectral', 'KokiriForest', 'WarpFromForestTemple'),
+    'FireTemple': ('Volvagia', 'DeathMountainCrater', 'FireBolero'),
+    'WaterTemple': ('Morpha', 'LakeHylia', 'WaterSerenade'),
+    'ShadowTemple': ('Bongo Bongo', 'Graveyard', 'ShadowNocturne'),
+}
 SIDE_PORTALS = {
     'GerudoTrainingGround': {
         TRAINING_TO_WALKWAY: ('GerudoTrainingGround', TRAINING_VIEWS[1], 'Passerelle', TRAINING_TO_STATUE),
@@ -275,6 +285,7 @@ SIDE_PORTALS = {
     },
     'KakarikoVillage': {
         WINDMILL_TO_GRAVE: ('Graveyard', UNDERGROUND_VIEWS['Graveyard']['Adult'], 'Tombe de Dampé', GRAVE_TO_WINDMILL),
+        FIRE_KAKARIKO_CONTINUE: ('SageRoom', None, 'Chambre des Sages · cinématique de Volvagia', FIRE_SAGE_SCENE),
     },
     'Graveyard': {
         GRAVE_TO_WINDMILL: ('KakarikoVillage', None, 'Moulin de Cocorico', WINDMILL_TO_GRAVE),
@@ -289,6 +300,7 @@ PORTAL_ARRIVAL_STARTS = {
     ('DesertColossus', 'spirit_temple_right_hand_entrance'): ('DesertColossus_FromSpiritTempleRightHand',),
     ('DesertColossus', SPIRIT_COLOSSUS_ARRIVAL): ('SpiritRequiem',),
     ('SageRoom', SPIRIT_SAGE_CONTINUE): ('Arrivée après Twinrova',),
+    ('KakarikoVillage', FIRE_KAKARIKO_ARRIVAL): ('KakarikoVillage_Entrance',),
     ('KokiriForest', DEKU_BOSS_EXIT): ('WarpFromDekuTree', 'WarpFromDekuTree_2'),
     ('DeathMountainTrail', DODONGO_BOSS_EXIT): ('DodongoCavernFront',),
     ('ZoraFountain', JABU_BOSS_EXIT): ('ClearJabuJabu',),
@@ -374,6 +386,20 @@ PORTAL_ARRIVAL_STARTS = {
     ('Graveyard', GRAVE_TO_TOMB): ('HidingHole_HoleExit',),
     ('Graveyard', TOMB_TO_GRAVE): ('HidingHole_HoleEntrance',),
 }
+for temple, (boss, outside, start) in ADULT_BOSS_RETURNS.items():
+    arrival = f'Arrivée après {boss}'
+    return_portal = f'Retour après {boss}'
+    sage_portal = f'Sages · {boss}'
+    outside_view = REGION_VIEWS[outside]['Adult']
+    PORTAL_ARRIVAL_STARTS[outside, arrival] = (start,)
+    PORTAL_ARRIVAL_STARTS['SageRoom', sage_portal] = ('Plateforme des Sages',)
+    SIDE_PORTALS[temple] = {
+        return_portal: (outside, outside_view, REGION_NAMES[outside], arrival),
+        sage_portal: ('SageRoom', None, 'Chambre des Sages · cinématique', sage_portal),
+    }
+    SIDE_PORTALS['SageRoom'][sage_portal] = (outside, outside_view, f'{REGION_NAMES[outside]} · après {boss}', arrival)
+SIDE_PORTALS['FireTemple'][FIRE_SAGE_SCENE] = (
+    'KakarikoVillage', REGION_VIEWS['KakarikoVillage']['Adult'], 'Cocorico · cinématique', FIRE_KAKARIKO_ARRIVAL)
 GRAVE_TOMB_ANCHORS = {
     ('HidingHole_FieldEntranceGo', 14429999406297140688): GRAVE_TO_TOMB,
     ('HidingHole_FieldExitGo', 13508899304624178854): TOMB_TO_GRAVE,
@@ -663,6 +689,10 @@ BOSS_WARP_ANCHORS = {
     'DodongoCavern': (13216581863777340373, 2, (DODONGO_BOSS_EXIT,)),
     'InsideJabuJabuBelly': (9190184471319613614, 3, (JABU_BOSS_EXIT,)),
     'SpiritTemple': (11243501154977749945, 4, (SPIRIT_BOSS_TO_COLOSSUS, SPIRIT_BOSS_TO_SAGES)),
+    'ForestTemple': (7322827475260825437, 5, tuple(SIDE_PORTALS['ForestTemple'])),
+    'FireTemple': (14585775662663687502, 5, tuple(SIDE_PORTALS['FireTemple'])),
+    'WaterTemple': (9109272685779005276, 2, tuple(SIDE_PORTALS['WaterTemple'])),
+    'ShadowTemple': (15240382889320952895, 4, tuple(SIDE_PORTALS['ShadowTemple'])),
 }
 
 GUIDE_ROUTE = 'Trajet du guide'
@@ -763,7 +793,13 @@ def projection_points(region, sources):
                 continue
             label = None
             if gyaml == 'StartPos' and actor.get('Name') in arrivals:
-                points.add((actor['Name'], (position[0], position[2])))
+                # Two crater starts share this name and are less than 5 cm apart in X/Z.
+                if (region != 'DeathMountainCrater' or actor.get('Name') != 'FireBolero'
+                        or actor.get('Hash') == 9726922324643513629):
+                    points.add((actor['Name'], (position[0], position[2])))
+                if (region == 'KakarikoVillage' and actor.get('Name') == 'KakarikoVillage_Entrance'
+                        and view_name(path) == REGION_VIEWS[region]['Adult']):
+                    points.add((FIRE_KAKARIKO_CONTINUE, (position[0], position[2])))
             if region == 'KokiriForest':
                 if gyaml == 'Obj_Kokiri_Bed_A_01':
                     label = NEIGHBORS[region]['DreamWorld']
@@ -870,6 +906,9 @@ def projection_points(region, sources):
                     # Dm_Awake_Spirit places Link at the center of the platform.
                     points.add(('Arrivée après Twinrova', (0.0, 0.0)))
                     points.add((SPIRIT_SAGE_CONTINUE, (position[0], position[2])))
+                    points.add(('Plateforme des Sages', (0.0, 0.0)))
+                    points.update((f'Sages · {boss}', (position[0], position[2]))
+                                  for boss, _, _ in ADULT_BOSS_RETURNS.values())
             elif region == 'DreamWorld':
                 if gyaml == 'StartPos' and actor.get('Name') == 'BossRush':
                     label = DREAM_CHALLENGE_ARRIVAL

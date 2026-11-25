@@ -172,6 +172,10 @@ Le retour au Colosse adulte, direct ou via la Chambre des Sages, indique
 le point d’arrivée du Requiem des Esprits.
 Les portails de Gohma, du Roi Dodongo et de Barinade indiquent aussi leurs
 arrivées à Kokiri, au mont du Péril et à la Fontaine Zora.
+Les portails des temples adultes indiquent les retours de Ganon spectral,
+Volvagia, Morpha et Bongo Bongo. Le menu permet de suivre les étapes de
+leurs cinématiques, notamment le passage de Volvagia par Cocorico et la
+Chambre des Sages avant le cratère.
 
 Le lac Hylia possède son fond Field Atlas. On y accède depuis la
 plaine et la Vallée Gerudo aux deux âges, ou depuis le Domaine Zora

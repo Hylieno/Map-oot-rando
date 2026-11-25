@@ -1,5 +1,10 @@
 # Validation
 
+Les treize transitions des quatre temples adultes ont été vérifiées
+dans Tk avec les scènes publiques. Les anneaux coïncident avec les
+repères du jeu, à l’intérieur des fonds disponibles. Le test de
+Volvagia vérifie les trois étapes via Cocorico et la Chambre des Sages.
+
 Le portail de Twinrova a été sélectionné dans Tk avec les scènes
 publiques. Les deux parcours affichent le même point d’arrivée au
 Requiem. Un test vérifie aussi le retour au Colosse adulte après une

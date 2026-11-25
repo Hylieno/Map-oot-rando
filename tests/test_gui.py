@@ -1600,6 +1600,52 @@ class GuiTests(unittest.TestCase):
             self.assertEqual(app.resource.get(), colossus_view)
             arrival((requiem[0], requiem[2]))
 
+    def test_volvagia_cutscene_continues_from_kakariko_through_the_sages(self):
+        from unittest.mock import patch
+        from map_oot_rando.scene import FIRE_VIEWS, REGION_VIEWS, extract_scenes
+
+        app = self.app
+        village = REGION_VIEWS['KakarikoVillage']['Adult']
+        crater = REGION_VIEWS['DeathMountainCrater']['Adult']
+        sages = REGION_VIEWS['SageRoom'][None]
+        maps = {
+            'Banc/FireTemple/FireTemple_Static.bcett.byml.zs': {'root': {'Actors': [
+                dict(Gyaml='Obj_WarpPoint_A_01', Hash=14585775662663687502, Translate=(-80.25, 102.46, .08)),
+            ]}},
+            'Banc/KakarikoVillage/KakarikoVillage_Adult_Dynamic.bcett.byml.zs': {'root': {'Actors': [
+                dict(Gyaml='StartPos', Name='KakarikoVillage_Entrance', Translate=(-119.77, 96.63, 58.7)),
+            ]}},
+            'Banc/SageRoom/SageRoom_Dynamic.bcett.byml.zs': {'root': {'Actors': [
+                dict(Gyaml='StartPos', Translate=(.09, 100.16, 0)),
+            ]}},
+            'Banc/DeathMountainCrater/DeathMountainCrater_Adult_Dynamic.bcett.byml.zs': {'root': {'Actors': [
+                dict(Gyaml='StartPos', Name='FireBolero', Hash=9678098360451750149, Translate=(.39, 111.84, -8.63)),
+                dict(Gyaml='StartPos', Name='FireBolero', Hash=9726922324643513629, Translate=(.38, 111.69, -8.68)),
+            ]}},
+        }
+        doc = dict(demo_document(), provenance='ootrr-scan', locations=[], scenes=extract_scenes(maps, lambda _: {}),
+                   regions=['KokiriForest', 'FireTemple', 'KakarikoVillage', 'SageRoom', 'DeathMountainCrater'])
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        app.resource.set(village)
+        app.resource_changed(manual=False)
+        self.assertNotIn('SageRoom', app.navigation_markers.values())
+        app.resource.set(FIRE_VIEWS[-1])
+        app.resource_changed(manual=False)
+        for target, view in (('KakarikoVillage', village), ('SageRoom', sages), ('DeathMountainCrater', crater)):
+            marker, = [i for i in app.canvas.find_withtag('zone-navigation')
+                       if any(action[1] == target for action in app.local_portals[i])]
+            option, = [action[0] for action in app.local_portals[marker] if action[1] == target]
+            l, t, r, b = app.canvas.bbox(marker)
+            with patch.object(app, 'post_marker_menu') as popup:
+                app.press(SimpleNamespace(x=(l+r)//2, y=(t+b)//2, x_root=50, y_root=50))
+            if popup.called:
+                index, = [i for i in range(app.marker_menu.index('end') + 1)
+                          if app.marker_menu.entrycget(i, 'label') == option]
+                app.marker_menu.invoke(index)
+            self.assertEqual(app.resource.get(), view)
+            self.assertEqual(len(app.canvas.find_withtag('portal-arrival')), 1)
+
     def test_spirit_temple_hand_portal_opens_the_upper_floor(self):
         from unittest.mock import patch
         from map_oot_rando.link_position import LinkPosition
