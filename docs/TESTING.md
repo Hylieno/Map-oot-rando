@@ -2,6 +2,8 @@
 
 Les quatre traversées entre les deux plans du Puits ont été ouvertes
 dans Tk avec les scènes publiques et les fonds Field Atlas.
+Les deux sens entre le troisième étage de la tour de Ganon et le
+sommet ont été vérifiés dans Tk avec les repères de la scène.
 
 Les six traversées entre les vues de Jabu-Jabu ont été vérifiées dans
 Tk avec les scènes publiques et les fonds Field Atlas.

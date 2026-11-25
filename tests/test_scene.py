@@ -243,6 +243,8 @@ class SceneTests(unittest.TestCase):
         actors = [
             dict(Gyaml='Land_InsideGanonCastle_Room20_A_01', Translate=(0, 136.25, -24.65)),
             dict(Gyaml='Land_InsideGanonCastle_Room24_A_01', Translate=(0, 149.65, -24.65)),
+            dict(Gyaml='DungeonRoomArea', Hash=8255735152900358871, Translate=(0.05, 156.22, -6.29)),
+            dict(Gyaml='StartPos', Hash=11474052871889909221, Translate=(0.02, 171.05, -11.31)),
             dict(Gyaml='EventRequestActor', Translate=(-40, 141, -79),
                  Dynamic={'RequestEventName': 'InsideGanonCastle_Dungeon_BarrierRemove_Fire'}),
         ]
@@ -250,7 +252,11 @@ class SceneTests(unittest.TestCase):
         grouped = group_scenes(read_scenes(json.loads(json.dumps({'scenes': raw}))))
         self.assertEqual(grouped[GANON_DUNGEON_VIEWS[0]]['points'], [('Épreuve · Feu', (-40, -79))])
         self.assertEqual(grouped[GANON_DUNGEON_VIEWS[2]]['points'], [('Salle du premier étage', (0, -24.65))])
-        self.assertEqual(grouped[GANON_DUNGEON_VIEWS[4]]['points'], [('Salle du troisième étage', (0, -24.65))])
+        self.assertEqual(dict(grouped[GANON_DUNGEON_VIEWS[4]]['points']), {
+            'Salle du troisième étage': (0, -24.65), 'Escalier vers Ganondorf': (0.05, -6.29),
+        })
+        self.assertEqual(dict(grouped[GANON_DUNGEON_VIEWS[5]]['points']),
+                         {'Voir l’accès à la salle de Ganondorf': (0.02, -11.31)})
 
     def test_shadow_temple_keeps_raised_targets_on_their_room_floor(self):
         from map_oot_rando.model import Location

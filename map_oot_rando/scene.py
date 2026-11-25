@@ -135,6 +135,10 @@ WATER_LEVEL_CROSSINGS = (
 GANON_DUNGEON_LEVELS = ('Épreuves', 'Accès à la tour', 'Tour · 1er étage',
                         'Tour · 2e étage', 'Tour · 3e étage', 'Sommet')
 GANON_DUNGEON_VIEWS = tuple(f'{REGION_NAMES["InsideGanonCastle"]} · {level}' for level in GANON_DUNGEON_LEVELS)
+GANON_TOWER_SUMMIT_CROSSING = (
+    (4, 'Escalier vers Ganondorf', 'DungeonRoomArea', 8255735152900358871),
+    (5, 'Voir l’accès à la salle de Ganondorf', 'StartPos', 11474052871889909221),
+)
 TRAINING_LEVELS = ('Salles et labyrinthe', 'Passerelle du labyrinthe')
 TRAINING_VIEWS = tuple(f'{REGION_NAMES["GerudoTrainingGround"]} · {level}' for level in TRAINING_LEVELS)
 TRAINING_WALKWAY_GATE = 18314542979296415492
@@ -390,6 +394,9 @@ SIDE_PORTALS = {
     },
     'InsideGanonCastle': {
         GANONDORF_TO_ESCAPE: ('GanonCastle', GANON_ESCAPE, 'Fuite du château', GANON_ESCAPE_ARRIVAL),
+        **{label: ('InsideGanonCastle', GANON_DUNGEON_VIEWS[destination], label, arrival)
+           for (_, label, _, _), (destination, arrival, _, _) in
+           (GANON_TOWER_SUMMIT_CROSSING, GANON_TOWER_SUMMIT_CROSSING[::-1])},
     },
     'GerudoTrainingGround': {
         TRAINING_TO_WALKWAY: ('GerudoTrainingGround', TRAINING_VIEWS[1], 'Passerelle', TRAINING_TO_STATUE),
@@ -826,7 +833,7 @@ def ganon_dungeon_floor(position):
 
 
 def ganon_tower_points(sources):
-    points = set()
+    points = crossing_level_points(sources, (GANON_TOWER_SUMMIT_CROSSING,))
     for source in sources.values():
         for actor in source['root'].get('Actors', ()):
             position = actor.get('Translate')
