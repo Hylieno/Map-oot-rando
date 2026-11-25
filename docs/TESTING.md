@@ -1,5 +1,15 @@
 # Validation
 
+Les trois fichiers de la seed OotrR 0.8.4 fournis par le joueur ont la même
+identité. L’empreinte de `tracking.json` correspond au manifeste. Les 1 088
+états produits par l’application et par OotrR 0.8.4 coïncident sur chacune
+des trois sauvegardes synthétiques. Le scan du catalogue sur 160 couches de
+scènes publiques place les 1 025 checks randomisés. Les douze nouveaux
+marqueurs de chansons ont aussi été vérifiés dans leurs vues, y compris
+les variantes d’âge et de Cocorico. L’essai en jeu avec la 0.8.4 a été
+effectué par le joueur. Le NUP et le ROMFS n’étaient pas disponibles pour
+ce contrôle automatisé.
+
 La branche embarque OotrR 0.8.4 et conserve la logique 0.8.0 par
 empreinte de la seed. Les deux versions passent le test d’accessibilité
 avec une version d’application fictive plus récente. Un changement de
@@ -14,8 +24,6 @@ Le scan des scènes publiques avec le catalogue historique retrouve
 1 100 des 1 103 positions, dont les douze acteurs écartés des nouveaux
 tirages. Les anciennes seeds conservent leurs identifiants distincts
 pour les checks que 0.8.4 regroupe avant et après l’incendie de Cocorico.
-L’import complet d’une seed 0.8.4 avec les ressources du jeu reste
-à valider.
 
 Le suivi en jeu entre les zones et la collecte avant la prochaine
 sauvegarde ont été confirmés par le joueur sur le build Windows.

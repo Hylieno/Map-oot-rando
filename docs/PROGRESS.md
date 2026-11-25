@@ -1,5 +1,13 @@
 # Checkpoint — 25 novembre 2026
 
+Le joueur a confirmé le fonctionnement en jeu avec sa seed OotrR 0.8.4.
+Le catalogue fourni a révélé douze checks de chansons sans marqueur.
+Le scan les place désormais à partir des acteurs, des repères de scène et
+de la position de Link dans la cinématique de Cocorico. Les 1 025 checks
+randomisés de cette seed sont placés, pour 1 086 entrées sur 1 088 au total.
+Les deux entrées historiques non randomisées du centre d’entraînement Gerudo
+restent consultables dans leurs secteurs en l’absence de position confirmée.
+
 Le diagnostic de la carte indique l’état du fond et le nombre de
 placements par vue. Les fonds en attente ou indisponibles sont
 identifiables dans le même rapport que les contrôles de couverture.

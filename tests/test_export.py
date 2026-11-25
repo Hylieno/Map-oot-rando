@@ -12,6 +12,34 @@ from map_oot_rando.model import load_metadata, select
 
 
 class ExportTests(unittest.TestCase):
+    def test_song_events_keep_distinct_tracker_ids_and_native_placements(self):
+        ocarina = dict(Gyaml='Obj_Ocarina_Time_A_01', Translate=(15.5, 145.4, 43.1))
+        tomb = dict(Gyaml='DestinationAnchor', Name='Dm_MelodyGet_Sun_Child', Translate=(149, 98, 2))
+        village = dict(Gyaml='StartPos', Name='KakarikoVillage_Entrance', Translate=(-119, 96, 58))
+        colossus = dict(Gyaml='EventRequestActor', Dynamic={'RequestEventName': 'Dm_MelodyGet_Spilit'},
+                        Translate=(-156, 98, 10))
+        maps = {f'Banc/{region}/{region}_{layer}.bcett.byml.zs': {'root': {'Actors': actors}}
+                for region, layer, actors in (
+                    ('HyruleField', 'Child_Static', [ocarina]),
+                    ('Graveyard', 'Child_Dynamic', [tomb]),
+                    ('KakarikoVillage', 'Child_Static', [village]),
+                    ('KakarikoVillage', 'Adult_Alternative_Static', [village]),
+                    ('DesertColossus', 'Adult_Dynamic', [colossus, dict(colossus, Dynamic={})]),
+                )}
+        placements = event_check_rows(maps, lambda *_: True)
+        rows = {row['id']: row for row in placements}
+        self.assertEqual(len(placements), len(rows))
+        self.assertEqual(set(rows), {'quest#HF Ocarina of Time Item', 'song#Song from Ocarina of Time',
+                                    'song#Song from Royal Familys Tomb', 'song#Sheik in Kakariko',
+                                    'song#Sheik at Colossus'})
+        for ident in ('quest#HF Ocarina of Time Item', 'song#Song from Ocarina of Time'):
+            self.assertEqual(rows[ident]['position'], ocarina['Translate'])
+        self.assertTrue(rows['song#Song from Royal Familys Tomb']['underground'])
+        self.assertEqual(rows['song#Song from Royal Familys Tomb']['position'], tomb['Translate'])
+        self.assertEqual(rows['song#Sheik at Colossus']['position'], colossus['Translate'])
+        self.assertIn('_Adult_Alternative_', rows['song#Sheik in Kakariko']['resource'])
+        self.assertAlmostEqual(rows['song#Sheik in Kakariko']['position'][0], -51.1, places=5)
+
     def test_kakariko_combined_variant_keeps_distinct_ids_in_an_older_catalogue(self):
         region = 'KakarikoVillage'
         normal, burnt = (f'Banc/{region}/{region}_Adult_{layer}.bcett.byml.zs'

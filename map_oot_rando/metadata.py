@@ -25,6 +25,10 @@ LOST_WOOD_EVENT_ACTORS = {
 EVENT_ACTORS = {
     'KokiriForest': {('Npc_Kokiri_Saria_Child', 'KokiriForest_ArriveLostWood'): 'quest#LW Gift from Saria'},
     'LostWood': {actor: ident for ident, actor in LOST_WOOD_EVENT_ACTORS.items()},
+    'SacredForestMeadow': {
+        ('DestinationAnchor', 'Dm_MelodyGet_Saria_Start'): 'song#Song from Saria',
+        ('DestinationAnchor', 'Dm_MelodyGet_Forest_Position'): 'song#Sheik in Forest',
+    },
     'GoronCity': {
         ('Npc_Goron_Darunia_Child', None): 'npc#GC Darunias Joy',
         ('Npc_Goron_006_Child', None): 'npc#GC Rolling Goron as Child',
@@ -36,16 +40,20 @@ EVENT_ACTORS = {
         ('MapIconFacilityAnchor', 'KakarikoVillage_MiniGame_HitTarget_FirstTalk'): 'npc#Kak Shooting Gallery Reward',
         ('Npc_Hylia_049_Child', None): 'npc#Kak Anju as Child',
         ('Npc_Hylia_001_Adult', None): 'npc#Kak Man on Roof',
+        ('Npc_Hylia_009_Adult', None): 'song#Song from Windmill',
+        ('StartPos', 'KakarikoVillage_Entrance'): 'song#Sheik in Kakariko',
     },
     'Graveyard': {
         ('MapIconFacilityAnchor', 'MiniGame_DiggingHole_MinigameIconOn'): 'npc#Graveyard Dampe Gravedigging Tour',
+        ('DestinationAnchor', 'Dm_MelodyGet_Sun_Child'): 'song#Song from Royal Familys Tomb',
     },
     'DeathMountainTrail': {
         ('MapIconFacilityAnchor', 'HavePlayedEvent.Dm_FairyFountain_Din'): 'fairy#DMT Great Fairy Reward',
         ('Npc_Goron_Biggoron_Adult', None): 'quest#DMT Biggoron',
     },
     'HyruleField': {
-        ('Obj_Ocarina_Time_A_01', None): 'quest#HF Ocarina of Time Item',
+        ('Obj_Ocarina_Time_A_01', None): ('quest#HF Ocarina of Time Item', 'song#Song from Ocarina of Time'),
+        ('Npc_Hylia_Malon_Child', None): 'song#Song from Malon',
         ('Enemy_Scrub_Business', 'Enemy_Scrub_Business_Heart_01'): 'scrub#HF Deku Scrub Grotto',
         ('Npc_Hylia_Fishman_001_Child', None): 'npc#LH Child Fishing',
         ('Npc_Hylia_Fishman_001_Adult', None): 'npc#LH Adult Fishing',
@@ -62,6 +70,7 @@ EVENT_ACTORS = {
     },
     'DodongoCavern': {('Enemy_DungeonBoss_Dodongo', None): 'boss#King Dodongo'},
     'FireTemple': {('Enemy_DungeonBoss_Volvagia', None): 'boss#Volvagia'},
+    'IceCavern': {('Obj_TBox_A_02_NoBake', 'SageOfWater_MelodyGet_Water'): 'song#Sheik in Ice Cavern'},
     'InsideJabuJabuBelly': {('Enemy_DungeonBoss_Barinade', None): 'boss#Barinade'},
     'InsideTheDekuTree': {('Enemy_DungeonBoss_Gohma', None): 'boss#Queen Gohma'},
     'ForestTemple': {('Enemy_DungeonBoss_PhantomGanon', None): 'boss#Phantom Ganon'},
@@ -75,13 +84,14 @@ EVENT_ACTORS = {
         ('MapIconFacilityAnchor', 'HaveTalked_Special.Npc_Hylia_048_BottleShop_Talk_Event5'): 'npc#Market 10 Big Poes',
         ('HeartPieceAnchor', 'SubEvent_FindRichard_GetHeartPiece'): 'npc#Market Lost Dog',
         ('Obj_TimeTemple_MasterSword_A_01', None): 'master_sword#ToT Master Sword',
-        ('Npc_Hylia_Sheik_Adult', None): 'ap#Sheik at Temple',
+        ('Npc_Hylia_Sheik_Adult', None): ('ap#Sheik at Temple', 'song#Sheik at Temple'),
         ('Land_TempleOfTime_A_01', None): 'quest#ToT Light Arrows Cutscene',
     },
     'SageRoom': {('StartPos', None): 'boss#Links Pocket'},
     'HyruleCastle': {
         ('MapIconFacilityAnchor', 'HavePlayedEvent.Dm_FairyFountain_Power'): 'fairy#HC Great Fairy Reward',
         ('Npc_Hylia_Zelda_Child', None): 'quest#HC Zeldas Letter',
+        ('DestinationAnchor', 'DoorOfTime_MeetImpa_StartPos'): 'song#Song from Impa',
     },
     'GanonCastle': {
         ('MapIconFacilityAnchor', 'HavePlayedEvent.Dm_FairyFountain_Courage'): 'fairy#OGC Great Fairy Reward',
@@ -91,10 +101,12 @@ EVENT_ACTORS = {
     },
     'DesertColossus': {
         ('MapIconFacilityAnchor', 'HavePlayedEvent.Dm_FairyFountain_Nayru'): 'fairy#Colossus Great Fairy Reward',
+        ('EventRequestActor', 'Dm_MelodyGet_Spilit'): 'song#Sheik at Colossus',
     },
     'DeathMountainCrater': {
         ('MapIconFacilityAnchor', 'HavePlayedEvent.Dm_FairyFountain_Wisdom'): 'fairy#DMC Great Fairy Reward',
         ('Enemy_Scrub_Business', 'Enemy_Scrub_Business_Heart_02'): CRATER_SCRUB,
+        ('DestinationAnchor', 'Dm_MelodyGet_Fire_LinkPosition'): 'song#Sheik in Crater',
     },
 }
 DEKU_THEATER_CHECKS = ('npc#Deku Theater Skull Mask', 'npc#Deku Theater Mask of Truth')
@@ -151,6 +163,8 @@ EVENT_ACTOR_FIELDS = {
     'MapIconFacilityAnchor': 'MapIconFacilityIsOpen',
     'HeartPieceAnchor': 'HeartPieceAnchor_GameDataPath',
     'Npc_Goron_DaruniaJr_Adult': 'ActorDeleteSetGameDataBool',
+    'Obj_TBox_A_02_NoBake': 'GetEventName',
+    'EventRequestActor': 'RequestEventName',
 }
 # The original catalogue labels also exist as actor checks in the remake.
 # Match only encounters with an explicit chest trigger or a unique room reward.
@@ -379,6 +393,11 @@ def event_check_rows(maps, eligible):
             if ident == 'boss#Links Pocket':
                 # Dm_SageRoom_0005 moves Link to the center of the platform.
                 position = (0, 100.12000274658203, 0)
+            if ident == 'song#Sheik in Kakariko':
+                if '_Adult' not in age_frame:
+                    continue
+                # Dm_MelodyGet_Shadow places Link at the well during the cutscene.
+                position = (-51.099998474121094, 96.62000274658203, 44.290000915527344)
             if ident == 'quest#LW Gift from Saria':
                 # Goto_HyruleCastle places Saria on the bridge before Dm_Kokiri_0155.
                 position = (-120.1259994506836, 114.48249816894531, -36.88779830932617)
@@ -395,9 +414,11 @@ def event_check_rows(maps, eligible):
                 checks = ('gerudo_card#Hideout Gerudo Membership Card',)
             if position and checks and (child_crater or eligible(path, actor)):
                 for check in checks:
-                    candidates.setdefault((check, age_frame, variant), []).append(
-                        dict(id=check, name=check.partition('#')[2], category='event',
-                             resource=path, position=position))
+                    row = dict(id=check, name=check.partition('#')[2], category='event',
+                               resource=path, position=position)
+                    if check == 'song#Song from Royal Familys Tomb':
+                        row['underground'] = True
+                    candidates.setdefault((check, age_frame, variant), []).append(row)
     return [rows[0] for rows in candidates.values() if len(rows) == 1]
 
 
