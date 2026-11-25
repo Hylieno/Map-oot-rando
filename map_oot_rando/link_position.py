@@ -14,6 +14,7 @@ class LinkPosition:
     z: float
     yaw: float
     scene_resource: str | None = None
+    scene_alternative: bool | None = None
 
 
 # Position and scene layout documented by Ocarina Atlas for this NSO.
@@ -22,7 +23,7 @@ PLAYER_SINGLETONS = (0x04E6C7A8, 0x04E6C938)
 PLAYER_VTABLE = 0x04BA27C8
 POSITION_VTABLES = (0x04BA1818, 0x03EE4F8C)
 SCENE_PATH = re.compile(rb'Work/Banc/Scene/([A-Za-z0-9_]+)/([A-Za-z0-9_]+)\.bcett\b')
-SCENE_SUFFIX = re.compile(r'(?:_(Child|Adult)(?:_Alternative)?)?(?:_(?:Static|Dynamic))?$')
+SCENE_SUFFIX = re.compile(r'(?:_(Child|Adult)(_Alternative)?)?(?:_(?:Static|Dynamic))?$')
 
 
 def _pointer(blob, offset=0):
@@ -85,7 +86,8 @@ def _read_player(read, main, slot, age):
     if age not in {'Child', 'Adult'}:
         return None
     yaw = degrees(atan2(dx, -dz)) % 360 if isfinite(dx) and isfinite(dz) and hypot(dx, dz) > 0.01 else 0
-    return LinkPosition(region, age, x, y, z, yaw, resource[:suffix.start()])
+    alternative = bool(suffix[2]) if suffix[1] else None
+    return LinkPosition(region, age, x, y, z, yaw, resource[:suffix.start()], alternative)
 
 
 def _find_scene(read, player, scene_record):

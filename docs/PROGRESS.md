@@ -1,5 +1,10 @@
 # Checkpoint — 25 novembre 2026
 
+Le marqueur de Link utilise la variante adulte de Cocorico chargée
+en mémoire. Il ouvre la carte correspondante même si le suivi de
+l’âge est désactivé. Si le nom de la scène n’indique pas la
+variante, la carte utilise l’état transmis par OotrR.
+
 Après une coupure de la lecture mémoire, le suivi automatique revient
 sur la carte de Link à la reconnexion, même dans la zone qu’il occupait
 avant la coupure. Un bref chargement avec la mémoire connectée

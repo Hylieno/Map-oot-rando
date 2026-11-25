@@ -471,6 +471,12 @@ class MapApplication:
         age = self.link.age
         if region not in REGION_VIEWS:
             return None
+        if region == 'KakarikoVillage' and age == 'Adult':
+            burned = self.link.scene_alternative
+            if burned is None:
+                burned = self.kakariko_burned
+            view = BURNT_VILLAGE if burned else REGION_VIEWS[region][age]
+            return view if view in self.views else None
         view = self.view_for_region(region, age=age, from_portal=False)
         if region == 'HyruleCastle':
             subarea = castle_view(self.link.z)

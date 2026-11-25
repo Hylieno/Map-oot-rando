@@ -59,6 +59,15 @@ class LinkPositionTests(unittest.TestCase):
         self.assertEqual((sample.scene, sample.age, sample.scene_resource),
                          ('GanonCastle', 'Adult', 'CrumblingGanonCastle'))
 
+    def test_reads_the_loaded_kakariko_variant_when_the_scene_names_it(self):
+        for resource, alternative in (('KakarikoVillage_Adult_Alternative_Dynamic', True),
+                                      ('KakarikoVillage_Adult_Static', False),
+                                      ('KakarikoVillage_Dynamic', None)):
+            with self.subTest(resource=resource):
+                sample = read_link_position(PlayerMemory(scene=resource), 'Adult')
+                self.assertEqual((sample.scene, sample.age, sample.scene_resource, sample.scene_alternative),
+                                 ('KakarikoVillage', 'Adult', 'KakarikoVillage', alternative))
+
     def test_rejects_wrong_game_layout_and_empty_pose(self):
         memory = PlayerMemory()
         memory.blocks[memory.main] = bytes(8)

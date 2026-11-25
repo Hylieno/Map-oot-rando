@@ -611,6 +611,8 @@ class GuiTests(unittest.TestCase):
         self.assertTrue(app.canvas.find_withtag('player-pin'))
 
     def test_kakariko_story_variant_stays_separate_and_follows_snapshot(self):
+        from dataclasses import replace
+        from map_oot_rando.link_position import LinkPosition
         from map_oot_rando.scene import BURNT_VILLAGE, REGION_VIEWS
 
         app = self.app
@@ -630,7 +632,20 @@ class GuiTests(unittest.TestCase):
         self.assertEqual({r.id for r in app.visible}, {doc['locations'][1]['id']})
         app.kakariko_burned = False
         app.sync_age()
-        self.assertEqual(app.resource.get(), REGION_VIEWS['KakarikoVillage']['Adult'])
+        adult = REGION_VIEWS['KakarikoVillage']['Adult']
+        self.assertEqual(app.resource.get(), adult)
+
+        app.follow_age.set(False)
+        sample = LinkPosition('KakarikoVillage', 'Adult', -4, 88, 70, 0, 'KakarikoVillage')
+        app.update_link(replace(sample, scene_alternative=True))
+        self.assertEqual(app.resource.get(), BURNT_VILLAGE)
+        self.assertTrue(app.canvas.find_withtag('player-pin'))
+        app.kakariko_burned = True
+        app.update_link(replace(sample, scene_alternative=False))
+        self.assertEqual(app.resource.get(), adult)
+        app.update_link(sample)
+        self.assertEqual(app.resource.get(), BURNT_VILLAGE)
+        self.assertFalse(app.follow_age.get())
 
     def test_graveyard_floor_filters_checks_and_search_opens_the_right_floor(self):
         from map_oot_rando.scene import REGION_VIEWS, UNDERGROUND_VIEWS

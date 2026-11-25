@@ -1,5 +1,10 @@
 # Validation
 
+Les noms des ressources de Cocorico avant et après l’incendie ont
+été injectés dans le lecteur de position. Le test Tk vérifie que
+la scène chargée prime sur l’état de la sauvegarde, que le marqueur
+s’affiche et que le réglage de suivi d’âge est conservé.
+
 Le passage de la mémoire à la sauvegarde puis le retour en mémoire
 ont été simulés avec des données OotrR et dans Tk. La carte reprend
 le suivi même dans la même zone. Les tests couvrent aussi le suivi
