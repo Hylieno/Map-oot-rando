@@ -29,6 +29,7 @@ WELL_LEVELS = ('Sous-sol', 'Sous-sol profond')
 WELL_VIEWS = tuple(f'{REGION_NAMES["BottomOfTheWell"]} · {level}' for level in WELL_LEVELS)
 SHADOW_LEVELS = ('Sous-sol 1', 'Sous-sol 2', 'Sous-sol 3', 'Sous-sol 4', 'Arène de Bongo Bongo')
 SHADOW_VIEWS = tuple(f'{REGION_NAMES["ShadowTemple"]} · {level}' for level in SHADOW_LEVELS)
+SHADOW_SHIP_ROUTE = 'Trajet du bateau'
 SPIRIT_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', '3e étage', 'Arène de Twinrova', 'Couloir de Twinrova')
 SPIRIT_VIEWS = tuple(f'{REGION_NAMES["SpiritTemple"]} · {level}' for level in SPIRIT_LEVELS)
 # Each link pairs two map views with native actors at the crossing.
@@ -1138,6 +1139,8 @@ def extract_scenes(maps, landmarks):
         routes = route_extractor(sources) if route_extractor else ()
         if region == 'Graveyard':
             routes = actor_guide_routes(sources, 'Npc_Hylia_Dampe_002', DAMPE_ROUTES)
+        elif region == 'ShadowTemple':
+            routes = actor_guide_routes(sources, 'Obj_ShadowTemple_PaddleShip_A_01', {'Guide': SHADOW_SHIP_ROUTE})
         elif frame == GANON_ESCAPE:
             # Step05 is a pause. Step13 starts beyond the door to FinalBattleField.
             labels = {f'Step{i:02}': GANON_ESCAPE_ROUTE for i in range(1, 13) if i != 5}
@@ -1390,6 +1393,8 @@ def group_scenes(scenes):
             if name == REGION_VIEWS['Graveyard']['Adult'] and label in DAMPE_ROUTES.values():
                 underground = UNDERGROUND_VIEWS['Graveyard']['Adult']
                 route_view = grouped.setdefault(underground, {'rooms': set(), 'points': set()})
+            elif name == SHADOW_VIEWS[0] and label == SHADOW_SHIP_ROUTE:
+                route_view = grouped.setdefault(SHADOW_VIEWS[3], {'rooms': set(), 'points': set()})
             else:
                 route_view = view
             route_view.setdefault('routes', set()).add((label, tuple(map(tuple, points))))

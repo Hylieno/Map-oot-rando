@@ -6,6 +6,10 @@ Field Atlas. Les repères d’arrivée coïncident avec leurs portes ou
 leurs murs d’escalade. Le passage de Link entre la statue, le couloir
 et l’arène a été vérifié avec des positions simulées.
 
+Le rail du bateau du Temple de l’Ombre a été vérifié aux deux
+extrémités sur le fond Field Atlas. Une position simulée de Link
+s’affiche sur la vue du quatrième sous-sol pendant la traversée.
+
 La recherche dans Tk ouvre l’étage indiqué pour les deux checks Gerudo
 sans coordonnées. Le repère de l’épouvantail utilise l’acteur de la
 scène et les deux checks restent sans marqueur de collecte.

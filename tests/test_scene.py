@@ -92,6 +92,21 @@ class SceneTests(unittest.TestCase):
                 row = Location('test', 'Check', 'test', path, point, region='SpiritTemple', dungeon_room=7)
                 self.assertEqual(location_view(row), SPIRIT_VIEWS[floor])
 
+    def test_shadow_ship_uses_its_own_rail_on_the_fourth_basement(self):
+        from map_oot_rando.scene import SHADOW_SHIP_ROUTE, SHADOW_VIEWS, group_scenes
+
+        path = 'Banc/ShadowTemple/ShadowTemple_Static.bcett.byml.zs'
+        ship = dict(Gyaml='Obj_ShadowTemple_PaddleShip_A_01', Rails=[dict(Dst=1)])
+        rail = dict(Name='Guide', Gyaml='Guide', Hash=1, Points=[
+            dict(Translate=(136, 39, -62)), dict(Translate=(-135, 39, -62)),
+        ])
+        unrelated = dict(rail, Hash=2, Points=list(reversed(rail['Points'])))
+        scenes = extract_scenes({path: {'root': {'Actors': [ship], 'Rails': [rail, unrelated]}}}, lambda _: {})
+        grouped = group_scenes(read_scenes({'scenes': scenes}))
+        self.assertNotIn('routes', grouped[SHADOW_VIEWS[0]])
+        (label, points), = grouped[SHADOW_VIEWS[3]]['routes']
+        self.assertEqual((label, points[0], points[-1]), (SHADOW_SHIP_ROUTE, (136, -62), (-135, -62)))
+
     def test_wasteland_route_keeps_native_curve_and_deduplicates_scene_layers(self):
         from map_oot_rando.scene import GUIDE_ROUTE, REGION_VIEWS, group_scenes
 

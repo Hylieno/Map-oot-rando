@@ -28,7 +28,7 @@ from .scene import (BURNT_VILLAGE, CASTLE_COURT, DAMPE_ROUTES, DREAM_BATTLE_VIEW
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS, GUIDE_ROUTE, LOST_WOOD_RESET,
                     NEIGHBORS, PORTAL_ARRIVAL_STARTS, PORTAL_START_NAMES, REGION_VIEWS, SHARED_DUNGEONS,
-                    SIDE_PORTALS, TRAINING_VIEWS,
+                    SHADOW_SHIP_ROUTE, SIDE_PORTALS, TRAINING_VIEWS,
                     UNDERGROUND_LABELS, UNDERGROUND_VIEWS, UNPOSITIONED_CHECK_AREAS, VIEWS,
                     castle_view, field_area, field_atlas_scene, group_scenes, kokiri_bridge_position,
                     location_view, read_scenes, temple_position, view_name)
@@ -1353,6 +1353,14 @@ class MapApplication:
             attribution = {LOST_SOURCE: 'Itinéraire vers le Bosquet sacré',
                            BRIDGE_SOURCE: 'Repères du jeu (schéma)'}.get(aerial.source, 'Field Atlas')
             heading = f'{name} | {attribution}'
+            for label, points in (scene or {}).get('routes', ()):
+                if label == SHADOW_SHIP_ROUTE:
+                    coordinates = [coord for point in points for coord in self.viewport.screen(point)]
+                    self.canvas.create_line(*coordinates, fill='#332d25', width=6, tags='scene-route')
+                    self.canvas.create_line(*coordinates, fill='#ffe19b', width=3, dash=(5, 3),
+                                            arrow='last', tags='scene-route')
+                    x, y = self.viewport.screen(points[len(points) // 2])
+                    captions.append((label, x, y - 14))
         elif scene:
             self.canvas.configure(background=ATLAS_BACKGROUND)
             # The native floor actors are spaced three world units apart.
@@ -1374,11 +1382,11 @@ class MapApplication:
             paths = [(title, [c for point in route for c in self.viewport.screen(point)])
                      for title, route in routes]
             for title, coordinates in paths:
-                guide = title in (GUIDE_ROUTE, GANON_ESCAPE_ROUTE) or title in race_colors
+                guide = title in (GUIDE_ROUTE, GANON_ESCAPE_ROUTE, SHADOW_SHIP_ROUTE) or title in race_colors
                 self.canvas.create_line(*coordinates, fill='#332d25' if guide else '#7bb6ce', width=8,
                                         capstyle='round', joinstyle='round', tags='scene-route')
             for title, coordinates in paths:
-                guide = title in (GUIDE_ROUTE, GANON_ESCAPE_ROUTE) or title in race_colors
+                guide = title in (GUIDE_ROUTE, GANON_ESCAPE_ROUTE, SHADOW_SHIP_ROUTE) or title in race_colors
                 self.canvas.create_line(*coordinates, fill=race_colors.get(title, '#ffe19b' if guide else '#1f5577'),
                                         width=3 if guide else 6, arrow='last' if guide else 'none',
                                         dash=(5, 3) if title == DAMPE_ROUTES['PlayingSecond'] else (),
