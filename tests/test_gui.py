@@ -1045,8 +1045,12 @@ class GuiTests(unittest.TestCase):
         sample = LinkPosition('KokiriForest', 'Child', 0, 100, 0, 90)
         app.update_link(sample)
         self.assertTrue(app.canvas.find_withtag('player-pin'))
-        app.update_link(replace(sample, scene='LostWoods'))
+        app.update_link(replace(sample, scene='LostWoods', x=80, z=-45))
         self.assertEqual(app.resource.get(), REGION_VIEWS['LostWood']['Child'])
+        for item in app.canvas.find_withtag('player-pin'):
+            x0, y0, x1, y1 = app.canvas.bbox(item)
+            self.assertTrue(0 <= x0 < x1 <= app.canvas.winfo_width())
+            self.assertTrue(0 <= y0 < y1 <= app.canvas.winfo_height())
         app.follow_link.set(False)
         app.update_link(replace(sample, scene='HyruleField'))
         self.assertEqual(app.current_region(), 'LostWood')

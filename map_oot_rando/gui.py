@@ -1184,7 +1184,7 @@ class MapApplication:
         for _, low, high in scene.get('rooms', ()):
             points.extend((low, high))
         local_arena = self.resource.get() in DREAM_BATTLE_VIEWS or self.resource.get() in GANON_TRIAL_VIEWS
-        if local_arena and self.link and self.resource.get() == self.link_view():
+        if not aerial and self.link and self.resource.get() == self.link_view():
             points.append((self.link.x, self.link.z))
         width, height = self.canvas.winfo_width(), self.canvas.winfo_height()
         self.viewport.fit(points, width, height, min_extent=36 if local_arena else 1)
