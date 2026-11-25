@@ -6,6 +6,13 @@ Le contrôle dans Tk vérifie les deux extrémités des neuf traits, avant
 et après un zoom, ainsi que leur absence sur la passerelle.
 Le test automatisé vérifie aussi l’exclusion d’une porte sans ses deux
 serrures et la conservation du tracé dans le JSON.
+Avec le build Windows du 25 novembre, l’audit de la seed de référence
+couvre 1 289 placements sur 109 vues peuplées, variantes d’âge ou de
+scène comprises. Les 1 153 placements des 79 vues dotées d’un fond
+passent le contrôle de couverture. Les 136 autres figurent sur les
+schémas. Le catalogue compte 1 100 identifiants positionnés sur 1 103.
+Les 150 tests ainsi que l’importeur et la fenêtre empaquetés ont
+passé les vérifications Windows.
 
 L’audit comparatif d’OotrR 0.8.4 sur les 160 couches publiques
 utilise le même catalogue historique de 1 103 checks que l’audit

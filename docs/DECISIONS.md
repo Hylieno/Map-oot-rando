@@ -65,7 +65,9 @@
 - Temple du Temps et Chambre des Sages. Leurs schémas reprennent la zone
   du temple et les piliers de lumière des scènes du jeu. Links Pocket
   utilise la position de sa cinématique. Gift from Sages reste dans
-  la liste du temple, sans coordonnées confirmées.
+  la liste du temple pour les anciennes seeds, sans coordonnées
+  confirmées. OotrR 0.8.4 le retire de son nouveau catalogue, car le
+  remake ne fournit aucun indicateur de collecte exploitable par le tracker.
 - Monde des rêves. Le lit ouvre la carte du musée et le repère de
   l’organisateur ouvre la salle intermédiaire. Le contour de la salle
   reprend la zone de jeu. Les dix récompenses successives du défi
