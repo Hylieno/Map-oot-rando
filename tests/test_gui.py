@@ -1905,6 +1905,9 @@ class GuiTests(unittest.TestCase):
         app.query.set('aucun résultat')
         app.fit()
         self.assertFalse(app.canvas.find_withtag('check-pin'))
+        self.assertIn('Aucun check affiché sur cette vue.',
+                      {app.canvas.itemcget(item, 'text') for item in app.canvas.find_all()
+                       if app.canvas.type(item) == 'text'})
         markers = app.canvas.find_withtag('trial-room-center')
         self.assertEqual(len(markers), 2)
         for room in markers:

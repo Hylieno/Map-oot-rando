@@ -1536,7 +1536,7 @@ class MapApplication:
             self.draw_link_pin(x, y, self.link.yaw)
         if not self.markers and self.resource.get() not in DREAM_BATTLE_VIEWS:
             self.canvas.create_text(25, heading_height + 5, anchor='nw',
-                                    text='Aucun check positionné pour cette vue.', fill=heading_color)
+                                    text='Aucun check affiché sur cette vue.', fill=heading_color)
 
     def choose(self, row):
         self.selected = row
