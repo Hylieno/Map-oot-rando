@@ -1,5 +1,9 @@
 # Checkpoint — 25 novembre 2026
 
+Le Temple de l’Esprit relie ses étages par six passages cliquables.
+Le couloir entre la salle de la statue et l’arène de Twinrova a sa
+propre vue. Le suivi de Link distingue le couloir et l’arène.
+
 Les 25 arènes du Monde des rêves sont disponibles dans le sélecteur.
 Le marqueur de Link suit la ressource chargée, y compris lors du retour
 à la salle intermédiaire.

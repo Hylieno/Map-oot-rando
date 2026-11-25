@@ -29,8 +29,23 @@ WELL_LEVELS = ('Sous-sol', 'Sous-sol profond')
 WELL_VIEWS = tuple(f'{REGION_NAMES["BottomOfTheWell"]} · {level}' for level in WELL_LEVELS)
 SHADOW_LEVELS = ('Sous-sol 1', 'Sous-sol 2', 'Sous-sol 3', 'Sous-sol 4', 'Arène de Bongo Bongo')
 SHADOW_VIEWS = tuple(f'{REGION_NAMES["ShadowTemple"]} · {level}' for level in SHADOW_LEVELS)
-SPIRIT_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', '3e étage', 'Arène de Twinrova')
+SPIRIT_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', '3e étage', 'Arène de Twinrova', 'Couloir de Twinrova')
 SPIRIT_VIEWS = tuple(f'{REGION_NAMES["SpiritTemple"]} · {level}' for level in SPIRIT_LEVELS)
+# Each link pairs two map views with native actors at the crossing.
+SPIRIT_INTERIOR_LINKS = (
+    ((0, 'Montée ouest', 'Land_SpiritTemple_ClimbWall_A_01', 11669494390516371978),
+     (1, 'Descente ouest', 'Land_SpiritTemple_ClimbWall_A_01', 11669494390516371978)),
+    ((0, 'Montée est', 'Land_SpiritTemple_ClimbWall_A_05', 7986637982941605251),
+     (1, 'Descente est', 'Land_SpiritTemple_ClimbWall_A_05', 7986637982941605251)),
+    ((1, 'Mur vers le balcon', 'Land_SpiritTemple_ClimbWall_A_02', 14644254544870263426),
+     (2, 'Mur vers la salle de la statue', 'Land_SpiritTemple_ClimbWall_A_02', 14644254544870263426)),
+    ((2, 'Montée par les murs mobiles', 'Land_SpiritTemple_ClimbWall_A_06', 10843425050371611115),
+     (3, 'Porte des murs mobiles', 'Obj_SpiritTemple_SwitchShutter_A_01', 11229157323951127269)),
+    ((2, 'Porte derrière le visage de la statue', 'Obj_SpiritTemple_SwitchShutter_A_03', 16853997340662105473),
+     (5, 'Porte vers la salle de la statue', 'Obj_SwitchShutter_A_06', 11880473245622015774)),
+    ((5, 'Porte vers Twinrova', 'Obj_SpiritTemple_SwitchShutter_A_04', 8544696912463075599),
+     (4, 'Porte vers le couloir', 'Obj_SwitchShutter_A_06', 17726959485897113740)),
+)
 WATER_LEVELS = ('2e étage', '1er étage', 'Rez-de-chaussée', 'Sous-sol')
 WATER_VIEWS = tuple(f'{REGION_NAMES["WaterTemple"]} · {level}' for level in WATER_LEVELS)
 GANON_DUNGEON_LEVELS = ('Épreuves', 'Accès à la tour', 'Tour · 1er étage',
@@ -164,6 +179,7 @@ SHARED_DUNGEONS = frozenset(region for region, views in REGION_VIEWS.items() if 
 FLOOR_OPTIONS = {
     **{view: tuple(zip(GORON_LEVELS, views)) for views in GORON_VIEWS.values() for view in views},
     **{view: floors for floors in DUNGEON_FLOORS.values() for _, view in floors},
+    **dict.fromkeys(SPIRIT_VIEWS, (*DUNGEON_FLOORS['SpiritTemple'][:4], *DUNGEON_FLOORS['SpiritTemple'][4:][::-1])),
     **dict.fromkeys(CASTLE_VIEWS, tuple(zip(('Abords', 'Cour'), CASTLE_VIEWS))),
     **dict.fromkeys(GANON_VIEWS, tuple(zip(GANON_AREAS, GANON_VIEWS))),
     **dict.fromkeys(DREAM_SCENE_VIEWS.values(),
@@ -301,6 +317,9 @@ SIDE_PORTALS = {
         'spirit_temple_right_hand_entrance': ('SpiritTemple', SPIRIT_VIEWS[2], 'Temple · main droite', 'right_hand_entrance'),
     },
     'SpiritTemple': {
+        **{label: ('SpiritTemple', SPIRIT_VIEWS[destination], label, arrival)
+           for ends in SPIRIT_INTERIOR_LINKS
+           for (_, label, _, _), (destination, arrival, _, _) in (ends, ends[::-1])},
         'left_hand_entrance': ('DesertColossus', None, 'Colosse · main gauche', 'spirit_temple_left_hand_entrance'),
         'right_hand_entrance': ('DesertColossus', None, 'Colosse · main droite', 'spirit_temple_right_hand_entrance'),
         SPIRIT_BOSS_TO_COLOSSUS: ('DesertColossus', REGION_VIEWS['DesertColossus']['Adult'],
@@ -719,19 +738,25 @@ def training_level_points(sources):
 
 def spirit_level_points(sources):
     anchors = {
-        ('MapIconEntranceAnchor', 452821593555612172): (2, 'right_hand_entrance'),
-        ('MapIconEntranceAnchor', 17977111214894828225): (2, 'left_hand_entrance'),
-        ('DungeonRoomCenterAnchor', 8163808957952677095): (4, 'Arène de Twinrova'),
+        ('MapIconEntranceAnchor', 452821593555612172): [(2, 'right_hand_entrance')],
+        ('MapIconEntranceAnchor', 17977111214894828225): [(2, 'left_hand_entrance')],
+        ('DungeonRoomCenterAnchor', 8163808957952677095): [(4, 'Arène de Twinrova')],
+        ('DungeonRoomCenterAnchor', 2947018282879123924): [(5, 'Couloir derrière la statue')],
+        ('Obj_SpiritTemple_SwitchShutter_A_05', 7552959510754997355): [(5, 'Porte intermédiaire')],
     }
-    anchors.update({('StartPos', name): (2, name)
+    anchors.update({('StartPos', name): [(2, name)]
                     for (region, portal), names in PORTAL_ARRIVAL_STARTS.items()
                     if region == 'SpiritTemple' and portal in SIDE_PORTALS[region]
                     for name in names})
-    return {(*anchors[key], (position[0], position[2]))
+    for ends in SPIRIT_INTERIOR_LINKS:
+        for floor, label, kind, ident in ends:
+            anchors.setdefault((kind, ident), []).append((floor, label))
+    return {(floor, label, (position[0], position[2]))
             for source in sources.values() for actor in source['root'].get('Actors', ())
             if (kind := actor.get('Gyaml'))
             and (key := (kind, actor.get('Name') if kind == 'StartPos' else actor.get('Hash'))) in anchors
-            and (position := actor.get('Translate'))}
+            and (position := actor.get('Translate'))
+            for floor, label in anchors[key]}
 
 
 LEVEL_POINT_EXTRACTORS = {
@@ -1096,6 +1121,8 @@ def extract_scenes(maps, landmarks):
                 rooms.append((label, (x - dx, z - dz), (x + dx, z + dz)))
         extract_levels = LEVEL_POINT_EXTRACTORS.get(region)
         levels = extract_levels(sources) if extract_levels else set()
+        points.update((label, position) for floor, label, position in levels if floor == 0)
+        levels = {entry for entry in levels if entry[0] != 0}
         if region in BOSS_WARP_ANCHORS:
             actor_hash, floor, portals = BOSS_WARP_ANCHORS[region]
             levels.update((floor, portal, (position[0], position[2]))
@@ -1281,7 +1308,12 @@ def location_view(row):
         return GANON_DUNGEON_VIEWS[floor]
     if view == SPIRIT_VIEWS[0] and row.position is not None:
         x, y, z = row.position
-        if row.id == 'boss#Twinrova' or row.category == 'full_bossheart' or (abs(x) <= 36 and z < -125):
+        if row.id == 'boss#Twinrova' or row.category == 'full_bossheart':
+            return SPIRIT_VIEWS[4]
+        if (row.dungeon_room in (32, 33, None) and abs(x) <= 10
+                and 130 <= y <= 144 and -119.5 <= z < -76.7):
+            return SPIRIT_VIEWS[5]
+        if abs(x) <= 36 and z < -119.5:
             return SPIRIT_VIEWS[4]
         if row.dungeon_room == 7 and y >= 127:
             return SPIRIT_VIEWS[2]

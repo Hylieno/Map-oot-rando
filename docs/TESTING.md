@@ -1,5 +1,11 @@
 # Validation
 
+Les six liaisons du Temple de l’Esprit ont été ouvertes dans les deux
+sens dans Tk avec les acteurs des scènes publiques et les fonds
+Field Atlas. Les repères d’arrivée coïncident avec leurs portes ou
+leurs murs d’escalade. Le passage de Link entre la statue, le couloir
+et l’arène a été vérifié avec des positions simulées.
+
 La recherche dans Tk ouvre l’étage indiqué pour les deux checks Gerudo
 sans coordonnées. Le repère de l’épouvantail utilise l’acteur de la
 scène et les deux checks restent sans marqueur de collecte.

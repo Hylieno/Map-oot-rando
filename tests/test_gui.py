@@ -1617,7 +1617,7 @@ class GuiTests(unittest.TestCase):
             self.assertAlmostEqual((t+b)/2, y)
 
         for via_sages in (False, True):
-            app.resource.set(SPIRIT_VIEWS[-1])
+            app.resource.set(SPIRIT_VIEWS[4])
             app.resource_changed(manual=False)
             app.navigation_age = 'Child'
             marker, = app.canvas.find_withtag('zone-navigation')
@@ -1679,7 +1679,7 @@ class GuiTests(unittest.TestCase):
     def test_spirit_temple_hand_portal_opens_the_upper_floor(self):
         from unittest.mock import patch
         from map_oot_rando.link_position import LinkPosition
-        from map_oot_rando.scene import PORTAL_ARRIVAL_STARTS, REGION_VIEWS, SPIRIT_VIEWS
+        from map_oot_rando.scene import PORTAL_ARRIVAL_STARTS, REGION_VIEWS, SPIRIT_VIEWS, extract_scenes
 
         app = self.app
         outside, temple = 'DesertColossus', 'SpiritTemple'
@@ -1687,6 +1687,14 @@ class GuiTests(unittest.TestCase):
         interior = 'Banc/SpiritTemple/SpiritTemple_Dynamic.bcett.byml.zs'
         hands = {'left': ((-165, -16), (56, 44)), 'right': ((-164, 37), (-56, 44))}
         spawns = {'left': ((-165, -12), (56, 39)), 'right': ((-164, 33), (-56, 39))}
+        doors = {
+            'Porte derrière le visage de la statue': ('Obj_SpiritTemple_SwitchShutter_A_03', 16853997340662105473, -76.7),
+            'Porte vers la salle de la statue': ('Obj_SwitchShutter_A_06', 11880473245622015774, -77.05),
+            'Porte vers Twinrova': ('Obj_SpiritTemple_SwitchShutter_A_04', 8544696912463075599, -119.32),
+            'Porte vers le couloir': ('Obj_SwitchShutter_A_06', 17726959485897113740, -119.67),
+        }
+        actors = [dict(Gyaml=kind, Hash=ident, Translate=(0, 135, z)) for kind, ident, z in doors.values()]
+        native = extract_scenes({interior: {'root': {'Actors': actors}}}, lambda _: {})
         doc = dict(demo_document(), provenance='ootrr-scan', regions=['KokiriForest', outside, temple],
                    locations=[], scenes={
                        colossus: {'rooms': [], 'points': [
@@ -1698,6 +1706,7 @@ class GuiTests(unittest.TestCase):
                        ]},
                        interior: {'rooms': [], 'points': [('Vers le Colosse du désert', (0, 13))],
                                   'level_points': [
+                                      *native[interior]['level_points'],
                                       (4, 'Arène de Twinrova', (0, -158)),
                                       *((2, f'{hand}_hand_entrance', entry)
                                         for hand, (_, entry) in hands.items()),
@@ -1731,6 +1740,18 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(app.resource.get(), SPIRIT_VIEWS[0])
         self.assertFalse(app.canvas.find_withtag('portal-arrival'))
         app.update_link(LinkPosition(temple, 'Adult', 0, 100, 0, 0))
+        app.update_link(LinkPosition(temple, 'Adult', 0, 135, -70, 0))
+        for door, target, landing in (
+            ('Porte derrière le visage de la statue', 5, 'Porte vers la salle de la statue'),
+            ('Porte vers Twinrova', 4, 'Porte vers le couloir'),
+            ('Porte vers le couloir', 5, 'Porte vers Twinrova'),
+            ('Porte vers la salle de la statue', 2, 'Porte derrière le visage de la statue'),
+        ):
+            click((0, doors[door][2]))
+            self.assertEqual(app.resource.get(), SPIRIT_VIEWS[target])
+            check_arrival((0, doors[landing][2]))
+        app.update_link(LinkPosition(temple, 'Adult', 0, 135, -114, 0))
+        self.assertEqual(app.resource.get(), SPIRIT_VIEWS[5])
         app.update_link(LinkPosition(temple, 'Adult', 0, 145, -157, 0))
         self.assertEqual(app.resource.get(), SPIRIT_VIEWS[4])
 
