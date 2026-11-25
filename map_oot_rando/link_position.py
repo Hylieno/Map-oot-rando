@@ -83,6 +83,11 @@ def _read_player(read, main, slot, age):
     resource = scene[2].decode('ascii')
     suffix = SCENE_SUFFIX.search(resource)
     age = suffix[1] or age
+    if age not in {'Child', 'Adult'} and (appearance := _pointer(table, 23 * 8)):
+        # Some shared scene paths omit age. Atlas's player component names the
+        # loaded Link model even if the GameData age flag was unavailable.
+        name = read(appearance + 0x80, 0x80).partition(b'\0')[0]
+        age = {b'Link_Child': 'Child', b'Link_Adult': 'Adult'}.get(name)
     if age not in {'Child', 'Adult'}:
         return None
     yaw = degrees(atan2(dx, -dz)) % 360 if isfinite(dx) and isfinite(dz) and hypot(dx, dz) > 0.01 else 0

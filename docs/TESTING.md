@@ -1,5 +1,13 @@
 # Validation
 
+Dans une scène partagée qui ne nomme pas l’âge, le lecteur de Link
+utilise le nom du modèle chargé si OotrR ne fournit pas l’âge.
+Le test avec le lecteur OotrR et la scène du Temple de l’Esprit
+confirme que le marqueur peut recevoir une position dans ce cas.
+Les lecteurs de référence ne fournissent pas d’indice de salle
+confirmé pour le personnage. Les entrées de salle de MapParam
+peuvent se trouver à une hauteur commune à plusieurs plans.
+
 Dans le Temple de l’Eau, quatre positions simulées aux coordonnées
 de la salle 24 ont été vérifiées dans Tk. Le marqueur reste sur le
 plan du rez-de-chaussée près de la porte, de la Skulltula, de la

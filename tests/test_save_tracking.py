@@ -317,6 +317,13 @@ class SaveTrackingTests(unittest.TestCase):
             resumed = connection.refresh(live=True, show_link=True)
             self.assertEqual(resumed.mode, 'live')
             self.assertEqual(resumed.link, second)
+            write_save(save)
+            reader.snapshot.return_value = dict(bool={100: True}, sha256='no-age')
+            reader.memory = PlayerMemory(scene='SpiritTemple', appearance='Link_Adult')
+            without_age_flag = connection.refresh(live=True, show_link=True)
+            self.assertIsNone(without_age_flag.age)
+            self.assertEqual((without_age_flag.link.scene, without_age_flag.link.age),
+                             ('SpiritTemple', 'Adult'))
 
     def test_live_updates_before_save_and_falls_back_on_wrong_seed_or_disconnect(self):
         from unittest.mock import Mock

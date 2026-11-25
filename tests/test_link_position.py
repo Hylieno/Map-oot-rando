@@ -7,7 +7,7 @@ from map_oot_rando.link_position import read_link_position
 
 class PlayerMemory:
     """Small synthetic guest-memory image laid out at a relocated main base."""
-    def __init__(self, *, scene='KokiriForest_Child', folder=None, x=23.5):
+    def __init__(self, *, scene='KokiriForest_Child', folder=None, x=23.5, appearance=None):
         self.main = 0x80634000
         self.slot = self.main + 0x04C7E180
         singleton, player, components, pose, scene_record = (
@@ -32,6 +32,10 @@ class PlayerMemory:
             scene_record + 0x34: f'Work/Banc/Scene/{folder or scene.split("_")[0]}/{scene}.bcett.json'
             .encode().ljust(0x80, b'\0'),
         }
+        if appearance is not None:
+            appearance_address = 0x2010006000
+            struct.pack_into('<Q', table, 23 * 8, appearance_address)
+            self.blocks[appearance_address + 0x80] = appearance.encode().ljust(0x80, b'\0')
 
     def read(self, address, count):
         from oot_rando.tracker.live_memory import LiveUnavailable
@@ -52,6 +56,19 @@ class LinkPositionTests(unittest.TestCase):
     def test_shared_scene_uses_verified_game_age(self):
         sample = read_link_position(PlayerMemory(scene='FireTemple'), 'Adult')
         self.assertEqual((sample.scene, sample.age), ('FireTemple', 'Adult'))
+
+    def test_shared_scene_can_use_exact_link_model_when_the_age_flag_is_absent(self):
+        for age in ('Child', 'Adult'):
+            with self.subTest(age=age):
+                memory = PlayerMemory(scene='SpiritTemple', appearance=f'Link_{age}')
+                sample = read_link_position(memory, None)
+                self.assertEqual((sample.scene, sample.age), ('SpiritTemple', age))
+        memory = PlayerMemory(scene='SpiritTemple', appearance='Link_Child')
+        self.assertEqual(read_link_position(memory, 'Adult').age, 'Adult')
+        memory = PlayerMemory(scene='KokiriForest_Adult', appearance='Link_Child')
+        self.assertEqual(read_link_position(memory, None).age, 'Adult')
+        memory = PlayerMemory(scene='SpiritTemple', appearance='Npc_Link_Adult')
+        self.assertIsNone(read_link_position(memory, None))
 
     def test_escape_scene_preserves_the_resource_inside_the_shared_folder(self):
         memory = PlayerMemory(scene='CrumblingGanonCastle_Dynamic', folder='GanonCastle')
