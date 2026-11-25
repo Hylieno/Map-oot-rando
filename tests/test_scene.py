@@ -92,6 +92,22 @@ class SceneTests(unittest.TestCase):
                 row = Location('test', 'Check', 'test', path, point, region='SpiritTemple', dungeon_room=7)
                 self.assertEqual(location_view(row), SPIRIT_VIEWS[floor])
 
+    def test_deku_webs_connect_separate_levels_without_mixing_the_two_drops(self):
+        from map_oot_rando.scene import DEKU_VIEWS, group_scenes
+
+        path = 'Banc/InsideTheDekuTree/InsideTheDekuTree_Static.bcett.byml.zs'
+        actors = [
+            dict(Gyaml='Obj_InsideTheDekuTree_SpiderWeb_A_01', Hash=278772661473487189, Translate=(0, 100, 0)),
+            dict(Gyaml='Obj_InsideTheDekuTree_SpiderWeb_A_01', Hash=9217804728253310381, Translate=(-29, 80, 0)),
+        ]
+        scenes = extract_scenes({path: {'root': {'Actors': actors}}}, lambda _: {})
+        grouped = group_scenes(read_scenes({'scenes': scenes}))
+        self.assertEqual(dict(grouped[DEKU_VIEWS[0]]['points']), {'Toile du hall · vers le sous-sol': (0, 0)})
+        self.assertEqual(dict(grouped[DEKU_VIEWS[3]]['points']),
+                         {'Sous la toile · voir le hall': (0, 0),
+                          'Seconde toile · vers le sous-sol profond': (-29, 0)})
+        self.assertEqual(dict(grouped[DEKU_VIEWS[4]]['points']), {'Seconde toile · voir le sous-sol': (-29, 0)})
+
     def test_fire_hammer_pillar_has_its_own_anchor_on_each_floor(self):
         from map_oot_rando.scene import FIRE_VIEWS, SIDE_PORTALS, group_scenes
 

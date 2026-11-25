@@ -40,6 +40,18 @@ JABU_LEVELS = ('Rez-de-chaussée', 'Sous-sol', 'Étage', 'Arène de Barinade')
 JABU_VIEWS = tuple(f'{REGION_NAMES["InsideJabuJabuBelly"]} · {level}' for level in JABU_LEVELS)
 DEKU_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', 'Sous-sol', 'Sous-sol profond', 'Arène de Gohma')
 DEKU_VIEWS = tuple(f'{REGION_NAMES["InsideTheDekuTree"]} · {level}' for level in DEKU_LEVELS)
+DEKU_LEVEL_CROSSINGS = (
+    ((0, 'Lierre du hall · vers le 1er étage', 'Land_IvyClimbable_A_03', 18344093377455157970),
+     (1, 'Lierre du hall · vers le rez-de-chaussée', 'Land_IvyClimbable_A_02', 7917179443911583089)),
+    ((1, 'Mur de lierre · vers le 2e étage', 'Land_IvyClimbable_A_10', 10820675793917272290),
+     (2, 'Mur de lierre · vers le 1er étage', 'Land_IvyClimbable_A_10', 10820675793917272290)),
+    ((0, 'Toile du hall · vers le sous-sol', 'Obj_InsideTheDekuTree_SpiderWeb_A_01', 278772661473487189),
+     (3, 'Sous la toile · voir le hall', 'Obj_InsideTheDekuTree_SpiderWeb_A_01', 278772661473487189)),
+    ((3, 'Seconde toile · vers le sous-sol profond', 'Obj_InsideTheDekuTree_SpiderWeb_A_01', 9217804728253310381),
+     (4, 'Seconde toile · voir le sous-sol', 'Obj_InsideTheDekuTree_SpiderWeb_A_01', 9217804728253310381)),
+    ((4, 'Accès à Gohma', 'DestinationAnchor', 3293306439425436286),
+     (5, 'Voir l’accès à l’arène de Gohma', 'DestinationAnchor', 5506988010884496464)),
+)
 FOREST_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', 'Sous-sol', 'Sous-sol profond', 'Arène du boss')
 FOREST_VIEWS = tuple(f'{REGION_NAMES["ForestTemple"]} · {level}' for level in FOREST_LEVELS)
 FOREST_LEVEL_CROSSINGS = (
@@ -383,6 +395,9 @@ SIDE_PORTALS = {
                                'Colosse du désert · suite de la cinématique', SPIRIT_COLOSSUS_ARRIVAL),
     },
     'InsideTheDekuTree': {
+        **{label: ('InsideTheDekuTree', DEKU_VIEWS[destination], label, arrival)
+           for ends in DEKU_LEVEL_CROSSINGS
+           for (_, label, _, _), (destination, arrival, _, _) in (ends, ends[::-1])},
         DEKU_BOSS_EXIT: ('KokiriForest', REGION_VIEWS['KokiriForest']['Child'],
                          'Kokiri Forest · sortie de Gohma', DEKU_BOSS_EXIT),
     },
@@ -869,6 +884,7 @@ def crossing_level_points(sources, crossings):
 
 
 LEVEL_POINT_EXTRACTORS = {
+    'InsideTheDekuTree': lambda sources: crossing_level_points(sources, DEKU_LEVEL_CROSSINGS),
     'FireTemple': lambda sources: crossing_level_points(sources, FIRE_LEVEL_CROSSINGS),
     'ForestTemple': lambda sources: crossing_level_points(sources, FOREST_LEVEL_CROSSINGS),
     'InsideGanonCastle': ganon_tower_points,

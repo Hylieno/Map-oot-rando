@@ -1,5 +1,9 @@
 # Validation
 
+Les dix traversées entre les vues de l’Arbre Mojo ont été vérifiées
+dans Tk sur les fonds Field Atlas et le schéma de l’arène. Les deux
+toiles et l’arrivée de Gohma reprennent les repères des scènes publiques.
+
 Les douze traversées sur les plans du Temple du Feu ont été ouvertes
 dans Tk. Les repères de salle, du pilier du marteau et du début
 du combat contre Volvagia ont été comparés aux scènes publiques.

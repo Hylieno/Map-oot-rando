@@ -1,5 +1,9 @@
 # Checkpoint — 25 novembre 2026
 
+À l’intérieur de l’Arbre Mojo, les murs de lierre relient les étages
+supérieurs. Deux toiles marquent les descentes jusqu’au sous-sol
+profond, qui donne accès à l’arène de Gohma.
+
 Dans le Temple de la Forêt, les ascenseurs du hall et de l’ouest,
 le puits est et la porte de Ganon spectral relient cinq vues.
 Dans le Temple du Feu, la porte de Volvagia ouvre la vue de l’arène
