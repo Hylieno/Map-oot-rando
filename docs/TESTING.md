@@ -1,5 +1,17 @@
 # Validation
 
+L’audit comparatif d’OotrR 0.8.4 sur les 160 couches publiques
+utilise le même catalogue historique de 1 103 checks que l’audit
+0.8.0. Il retrouve les trois anciennes ruches de Cocorico par leur
+identifiant d’acteur, même si OotrR regroupe leurs variantes.
+Le résultat est de 1 088 checks placés sur 1 103, contre 1 100 avec
+la version 0.8.0 épinglée. L’écart correspond aux douze sources
+que la 0.8.4 retire du tirage. Les deux audits couvrent 145 vues.
+Les modules AINB de combat sont absents des scènes publiques.
+L’audit comparatif neutralise la lecture de ces modules dans le banc
+de test. L’import avec un NUP complet et une seed créée en 0.8.4
+reste à vérifier avant toute mise à jour du moteur embarqué.
+
 Les quatre traversées entre les deux plans du Puits ont été ouvertes
 dans Tk avec les scènes publiques et les fonds Field Atlas.
 Les cinq passages entre la barrière des épreuves et le sommet de

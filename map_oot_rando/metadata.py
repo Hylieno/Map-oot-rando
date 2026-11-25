@@ -142,6 +142,7 @@ CHECK_ACTOR_PATTERNS = {
     ('full_rocks', 'rocks'): ('Obj_BrokenRock_*', 'Obj_LiftRock_*'),
     ('full_bushes', 'bushes'): ('Obj_Plant_Grass_*',),
     ('full_trees', 'trees'): ('Obj_Tree_*',),
+    ('full_beehives', 'beehives'): ('Obj_Kokiri_Beehive_A_01',),
     ('full_freestanding', 'free'): ('Obj_Heart', 'Obj_Heart_Piece', 'Obj_Rupee_*'),
     ('full_skulltula', 'gs'): ('Enemy_Skulltula_Gold',),
     ('full_bossheart', 'heart'): ('Obj_Heart_Container',),

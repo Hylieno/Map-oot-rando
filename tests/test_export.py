@@ -199,6 +199,27 @@ class ExportTests(unittest.TestCase):
                 rows = list(placed_check_rows(maps, checks, existing, lambda *_: True))
                 self.assertEqual(rows, [dict(checks[0], resource=path, position=[3, 145, 2])])
 
+    def test_older_catalogue_keeps_exact_hive_id_after_upstream_merge(self):
+        region = 'KakarikoVillage'
+        prefix = f'Banc/{region}/{region}_Adult'
+        normal = f'{prefix}_Dynamic.bcett.byml.zs'
+        burnt = f'{prefix}_Alternative_Dynamic.bcett.byml.zs'
+        check = dict(id=f'{region}#beehives#22', category='full_beehives', name='Ruche')
+        canonical = f'{region}#beehives#11'
+        original, replacement = [1, 89, 70], [1.1, 89, 70]
+        existing = [dict(id=canonical, resource=normal, position=original),
+                    dict(id=canonical, resource=burnt, position=replacement)]
+        maps = {
+            normal: {'root': {'Actors': [dict(Hash=11, Gyaml='Obj_Kokiri_Beehive_A_01',
+                                              Translate=original)]}},
+            burnt: {'root': {'Actors': [dict(Hash=22, Gyaml='Obj_Kokiri_Beehive_A_01',
+                                             Translate=replacement)]}},
+        }
+        rows = list(placed_check_rows(maps, [check], existing, lambda *_: True))
+        self.assertEqual(rows, [dict(check, resource=burnt, position=replacement)])
+        self.assertEqual(list(placed_check_rows(maps, [dict(check, id=canonical)], existing,
+                                               lambda *_: True)), [])
+
     def test_colossus_chest_uses_its_surface_anchor_in_both_ages(self):
         region = 'DesertColossus'
         position, entrance = (-129, 76, -36), (-115, 94, -27)

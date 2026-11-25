@@ -1,5 +1,11 @@
 # Checkpoint — 25 novembre 2026
 
+La résolution des checks par identifiant d’acteur couvre aussi les
+ruches. Les anciennes seeds conservent ainsi le placement de leurs
+ruches distinctes après le regroupement des variantes de Cocorico
+introduit par OotrR 0.8.4. Le build embarque toujours OotrR 0.8.0
+en attendant la validation d’un import complet avec la 0.8.4.
+
 Dans le Puits de Cocorico, l’échelle ouest et le sol illusoire de
 la salle du Poigneur relient les deux sous-sols sur la carte.
 Dans la tour de Ganon, l’escalier du troisième étage ouvre le sommet
