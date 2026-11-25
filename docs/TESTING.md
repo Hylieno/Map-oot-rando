@@ -1,5 +1,17 @@
 # Validation
 
+Le parcours du Temple de l’Esprit à la Vallée Gerudo a été vérifié
+dans Tk. Le lecteur OotrR a traité 13 positions mémoire simulées
+aux repères des scènes publiques, du temple au Colosse, au Désert,
+à la Forteresse et à la Vallée, puis en sens inverse. Le test vérifie
+la vue active et le marqueur à chaque étape, le changement d’un
+état de collecte dans l’arène, puis le retour au suivi par sauvegarde
+après une coupure. La sauvegarde synthétique reste intacte.
+Les quatre passages entre ces cinq zones ont également été ouverts
+sur la carte dans les deux sens. Les huit anneaux d’arrivée coïncident
+avec les points de départ de leurs scènes. Ces contrôles utilisent
+les plans schématiques et les positions simulées.
+
 Le catalogue et les données de suivi de la seed de référence ont
 été comparés au dernier export de coordonnées. Les 1 001 checks
 randomisés de cette seed ont un placement. Sur les 102 entrées
