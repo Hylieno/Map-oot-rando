@@ -7,7 +7,7 @@ from map_oot_rando.link_position import read_link_position
 
 class PlayerMemory:
     """Small synthetic guest-memory image laid out at a relocated main base."""
-    def __init__(self, *, scene='KokiriForest_Child', folder=None, x=23.5, appearance=None):
+    def __init__(self, *, scene='KokiriForest_Child', folder=None, x=23.5, appearance=None, fallback_scenes=()):
         self.main = 0x80634000
         self.slot = self.main + 0x04C7E180
         singleton, player, components, pose, scene_record = (
@@ -36,6 +36,10 @@ class PlayerMemory:
             appearance_address = 0x2010006000
             struct.pack_into('<Q', table, 23 * 8, appearance_address)
             self.blocks[appearance_address + 0x80] = appearance.encode().ljust(0x80, b'\0')
+        if fallback_scenes:
+            scene_blob = '\0'.join(f'Work/Banc/Scene/{region}/{resource}.bcett.json'
+                                   for region, resource in fallback_scenes).encode()
+            self.blocks[player + 0x768] = scene_blob.ljust(0x480, b'\0')
 
     def read(self, address, count):
         from oot_rando.tracker.live_memory import LiveUnavailable
@@ -92,3 +96,19 @@ class LinkPositionTests(unittest.TestCase):
         memory = PlayerMemory()
         struct.pack_into('<3f', memory.pose, 0x1C, 0, 0, 0)
         self.assertIsNone(read_link_position(memory, 'Child'))
+
+    def test_fallback_requires_one_scene_after_combining_static_and_dynamic_layers(self):
+        kokiri = ('KokiriForest', 'KokiriForest_Child_Static')
+        woods = ('LostWood', 'LostWood_Child_Static')
+        memory = PlayerMemory(scene='', fallback_scenes=(kokiri, woods))
+        self.assertIsNone(read_link_position(memory, 'Child'))
+        variants = (('KakarikoVillage', 'KakarikoVillage_Adult_Static'),
+                    ('KakarikoVillage', 'KakarikoVillage_Adult_Alternative_Dynamic'))
+        self.assertIsNone(read_link_position(PlayerMemory(scene='', fallback_scenes=variants), 'Adult'))
+        memory = PlayerMemory(scene='', fallback_scenes=(kokiri, ('KokiriForest', 'KokiriForest_Child_Dynamic')))
+        sample = read_link_position(memory, 'Adult')
+        self.assertEqual((sample.scene, sample.scene_resource, sample.age),
+                         ('KokiriForest', 'KokiriForest', 'Child'))
+
+        memory = PlayerMemory(scene='LostWood_Child', fallback_scenes=(kokiri, woods))
+        self.assertEqual(read_link_position(memory, 'Child').scene, 'LostWood')

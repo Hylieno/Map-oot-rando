@@ -7,6 +7,10 @@ confirme que le marqueur peut recevoir une position dans ce cas.
 Les lecteurs de référence ne fournissent pas d’indice de salle
 confirmé pour le personnage. Les entrées de salle de MapParam
 peuvent se trouver à une hauteur commune à plusieurs plans.
+Le lecteur accepte la zone courante lorsqu’un seul nom de scène est
+identifiable dans le bloc de secours. Les tests couvrent les couches
+statique et dynamique d’une même scène, deux zones distinctes et
+les deux variantes adultes de Cocorico.
 
 Dans le Temple de l’Eau, quatre positions simulées aux coordonnées
 de la salle 24 ont été vérifiées dans Tk. Le marqueur reste sur le

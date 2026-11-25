@@ -106,4 +106,8 @@ def _find_scene(read, player, scene_record):
         else:
             if scene:
                 return scene
-    return SCENE_PATH.search(read(player + 0x768, 0x480))
+    # The wider fallback block can contain paths from different scenes. Keep
+    # the age and story variant, while treating static/dynamic as one scene.
+    scenes = {(match[1], match[2].removesuffix(b'_Static').removesuffix(b'_Dynamic')): match
+              for match in SCENE_PATH.finditer(read(player + 0x768, 0x480))}
+    return next(iter(scenes.values())) if len(scenes) == 1 else None
