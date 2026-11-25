@@ -15,6 +15,10 @@ L’accès à l’arène de Bongo Bongo a été vérifié depuis la porte du jeu
 L’anneau reprend le point de départ référencé par l’événement
 d’introduction. Le suivi simulé passe du quatrième sous-sol à l’arène.
 
+Les trois tablettes du Temple de l’Eau ont été comparées aux acteurs
+des scènes publiques. Leur position et leur affichage sur les deux
+étages concernés ont été vérifiés dans Tk avec les fonds Field Atlas.
+
 La recherche dans Tk ouvre l’étage indiqué pour les deux checks Gerudo
 sans coordonnées. Le repère de l’épouvantail utilise l’acteur de la
 scène et les deux checks restent sans marqueur de collecte.

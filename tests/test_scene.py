@@ -92,6 +92,23 @@ class SceneTests(unittest.TestCase):
                 row = Location('test', 'Check', 'test', path, point, region='SpiritTemple', dungeon_room=7)
                 self.assertEqual(location_view(row), SPIRIT_VIEWS[floor])
 
+    def test_water_tablets_use_the_floor_where_they_can_be_reached(self):
+        from map_oot_rando.scene import WATER_VIEWS, group_scenes
+
+        path = 'Banc/WaterTemple/WaterTemple_Static.bcett.byml.zs'
+        positions = [(39.9, 121.05, -4.5), (-26, 124.415, 5), (-7.567, 107.55, -4.5)]
+        actors = [dict(Gyaml=f'Obj_WaterTemple_StoneTablet_A_0{number}', Translate=point)
+                  for number, point in enumerate(positions, start=1)]
+        scenes = extract_scenes({path: {'root': {'Actors': actors}}}, lambda _: {})
+        grouped = group_scenes(read_scenes({'scenes': scenes}))
+        self.assertEqual(dict(grouped[WATER_VIEWS[0]]['points']), {
+            'Tablette · niveau bas': (39.9, -4.5),
+            'Tablette · niveau haut': (-26, 5),
+        })
+        self.assertEqual(dict(grouped[WATER_VIEWS[1]]['points']), {
+            'Tablette · niveau intermédiaire': (-7.567, -4.5),
+        })
+
     def test_shadow_ship_uses_its_own_rail_on_the_fourth_basement(self):
         from map_oot_rando.scene import SHADOW_SHIP_ROUTE, SHADOW_VIEWS, group_scenes
 

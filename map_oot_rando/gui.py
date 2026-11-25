@@ -29,7 +29,7 @@ from .scene import (BURNT_VILLAGE, CASTLE_COURT, DAMPE_ROUTES, DREAM_BATTLE_VIEW
                     GORON_LEVELS, GORON_VIEWS, GUIDE_ROUTE, LOST_WOOD_RESET,
                     NEIGHBORS, PORTAL_ARRIVAL_STARTS, PORTAL_START_NAMES, REGION_VIEWS, SHARED_DUNGEONS,
                     SHADOW_SHIP_ROUTE, SIDE_PORTALS, TRAINING_VIEWS,
-                    UNDERGROUND_LABELS, UNDERGROUND_VIEWS, UNPOSITIONED_CHECK_AREAS, VIEWS,
+                    UNDERGROUND_LABELS, UNDERGROUND_VIEWS, UNPOSITIONED_CHECK_AREAS, VIEWS, WATER_CONTROL_LABELS,
                     castle_view, field_area, field_atlas_scene, group_scenes, kokiri_bridge_position,
                     location_view, read_scenes, temple_position, view_name)
 from .simulation import Simulation, demo_document
@@ -1353,6 +1353,13 @@ class MapApplication:
             attribution = {LOST_SOURCE: 'Itinéraire vers le Bosquet sacré',
                            BRIDGE_SOURCE: 'Repères du jeu (schéma)'}.get(aerial.source, 'Field Atlas')
             heading = f'{name} | {attribution}'
+            if region == 'WaterTemple':
+                for label, point in (scene or {}).get('points', ()):
+                    if label in WATER_CONTROL_LABELS and aerial.covers(point):
+                        x, y = self.viewport.screen(point)
+                        self.canvas.create_polygon(x, y-6, x+6, y, x, y+6, x-6, y,
+                                                   fill='#8ce2ed', outline='#123d4b', tags='water-control')
+                        captions.append((label, x, y-14))
             for label, points in (scene or {}).get('routes', ()):
                 if label == SHADOW_SHIP_ROUTE:
                     coordinates = [coord for point in points for coord in self.viewport.screen(point)]

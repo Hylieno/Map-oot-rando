@@ -59,6 +59,12 @@ SPIRIT_INTERIOR_LINKS = (
 )
 WATER_LEVELS = ('2e étage', '1er étage', 'Rez-de-chaussée', 'Sous-sol')
 WATER_VIEWS = tuple(f'{REGION_NAMES["WaterTemple"]} · {level}' for level in WATER_LEVELS)
+WATER_CONTROLS = {
+    'Obj_WaterTemple_StoneTablet_A_01': (0, 'Tablette · niveau bas'),
+    'Obj_WaterTemple_StoneTablet_A_03': (1, 'Tablette · niveau intermédiaire'),
+    'Obj_WaterTemple_StoneTablet_A_02': (0, 'Tablette · niveau haut'),
+}
+WATER_CONTROL_LABELS = frozenset(label for _, label in WATER_CONTROLS.values())
 GANON_DUNGEON_LEVELS = ('Épreuves', 'Accès à la tour', 'Tour · 1er étage',
                         'Tour · 2e étage', 'Tour · 3e étage', 'Sommet')
 GANON_DUNGEON_VIEWS = tuple(f'{REGION_NAMES["InsideGanonCastle"]} · {level}' for level in GANON_DUNGEON_LEVELS)
@@ -791,11 +797,18 @@ def shadow_level_points(sources):
             and (position := actor.get('Translate'))}
 
 
+def water_level_points(sources):
+    return {(*WATER_CONTROLS[kind], (position[0], position[2]))
+            for source in sources.values() for actor in source['root'].get('Actors', ())
+            if (kind := actor.get('Gyaml')) in WATER_CONTROLS and (position := actor.get('Translate'))}
+
+
 LEVEL_POINT_EXTRACTORS = {
     'InsideGanonCastle': ganon_tower_points,
     'GerudoTrainingGround': training_level_points,
     'ShadowTemple': shadow_level_points,
     'SpiritTemple': spirit_level_points,
+    'WaterTemple': water_level_points,
 }
 BOSS_WARP_ANCHORS = {
     'InsideTheDekuTree': (18328422019320660370, 5, (DEKU_BOSS_EXIT,)),

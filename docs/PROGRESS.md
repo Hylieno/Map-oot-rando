@@ -10,6 +10,9 @@ Trois liaisons entre sous-sols relient l’entrée à la salle du bateau.
 La porte de Bongo Bongo ouvre l’arène et indique l’arrivée de la
 cinématique. Depuis l’arène, un repère permet de revoir l’accès supérieur.
 
+Le Temple de l’Eau indique les trois tablettes qui règlent le niveau
+de l’eau. Chaque tablette apparaît à son étage sur le fond Field Atlas.
+
 Les 25 arènes du Monde des rêves sont disponibles dans le sélecteur.
 Le marqueur de Link suit la ressource chargée, y compris lors du retour
 à la salle intermédiaire.
