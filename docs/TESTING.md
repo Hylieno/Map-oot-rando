@@ -1,5 +1,14 @@
 # Validation
 
+Le catalogue et les données de suivi de la seed de référence ont
+été comparés au dernier export de coordonnées. Les 1 001 checks
+randomisés de cette seed ont un placement. Sur les 102 entrées
+historiques, 99 ont un placement. Les trois autres sont déclarées
+vanilla dans le catalogue et n’ont pas d’indicateur de collecte dans
+les données de suivi de cette seed. Cet audit porte sur les données
+de placement. La collecte et les traversées en jeu restent à valider
+avec une partie active.
+
 Le rapport JSON a été testé avec un fond Field Atlas contrôlé, un
 fond en cours de chargement, un fond indisponible, un fond encore à
 charger, un plan local et un schéma. Les placements sont comptés
