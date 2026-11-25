@@ -12,6 +12,8 @@ cinématique. Depuis l’arène, un repère permet de revoir l’accès supérie
 
 Le Temple de l’Eau indique les trois tablettes qui règlent le niveau
 de l’eau. Chaque tablette apparaît à son étage sur le fond Field Atlas.
+Trois liaisons cliquables relient les quatre niveaux autour du pilier
+central, jusqu’au passage immergé du sous-sol.
 
 Les 25 arènes du Monde des rêves sont disponibles dans le sélecteur.
 Le marqueur de Link suit la ressource chargée, y compris lors du retour

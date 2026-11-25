@@ -65,6 +65,14 @@ WATER_CONTROLS = {
     'Obj_WaterTemple_StoneTablet_A_02': (0, 'Tablette · niveau haut'),
 }
 WATER_CONTROL_LABELS = frozenset(label for _, label in WATER_CONTROLS.values())
+WATER_LEVEL_CROSSINGS = (
+    ((0, 'Plateformes · vers le 1er étage', 'Obj_WaterTemple_FloatFloor_A_02', 9370949986696443983),
+     (1, 'Plateformes · vers le 2e étage', 'Obj_WaterTemple_FloatFloor_A_02', 3421458343789916518)),
+    ((1, 'Pilier central · vers le rez-de-chaussée', 'Obj_WaterTemple_SwitchShutter_A_01', 1311186950182408800),
+     (2, 'Pilier central · vers le 1er étage', 'Obj_WaterTemple_SwitchShutter_A_01', 15319553007255647544)),
+    ((2, 'Pilier central · vers le sous-sol', 'DungeonRoomArea', 8677578349467245137),
+     (3, 'Sous le pilier · vers le rez-de-chaussée', 'DungeonRoomArea', 3854827355659673893)),
+)
 GANON_DUNGEON_LEVELS = ('Épreuves', 'Accès à la tour', 'Tour · 1er étage',
                         'Tour · 2e étage', 'Tour · 3e étage', 'Sommet')
 GANON_DUNGEON_VIEWS = tuple(f'{REGION_NAMES["InsideGanonCastle"]} · {level}' for level in GANON_DUNGEON_LEVELS)
@@ -490,6 +498,11 @@ SIDE_PORTALS['ShadowTemple'].update({
     SHADOW_BOSS_DOOR: ('ShadowTemple', SHADOW_VIEWS[4], SHADOW_BOSS_DOOR, SHADOW_BOSS_LANDING),
     SHADOW_BOSS_LANDING: ('ShadowTemple', SHADOW_VIEWS[3], 'Voir l’accès supérieur', SHADOW_BOSS_DOOR),
 })
+SIDE_PORTALS['WaterTemple'].update({
+    label: ('WaterTemple', WATER_VIEWS[destination], label, arrival)
+    for ends in WATER_LEVEL_CROSSINGS
+    for (_, label, _, _), (destination, arrival, _, _) in (ends, ends[::-1])
+})
 GRAVE_TOMB_ANCHORS = {
     ('HidingHole_FieldEntranceGo', 14429999406297140688): GRAVE_TO_TOMB,
     ('HidingHole_FieldExitGo', 13508899304624178854): TOMB_TO_GRAVE,
@@ -798,9 +811,12 @@ def shadow_level_points(sources):
 
 
 def water_level_points(sources):
-    return {(*WATER_CONTROLS[kind], (position[0], position[2]))
+    crossings = {(kind, ident): (floor, label) for ends in WATER_LEVEL_CROSSINGS for floor, label, kind, ident in ends}
+    return {(*anchor, (position[0], position[2]))
             for source in sources.values() for actor in source['root'].get('Actors', ())
-            if (kind := actor.get('Gyaml')) in WATER_CONTROLS and (position := actor.get('Translate'))}
+            if (kind := actor.get('Gyaml'))
+            and (anchor := WATER_CONTROLS.get(kind) or crossings.get((kind, actor.get('Hash'))))
+            and (position := actor.get('Translate'))}
 
 
 LEVEL_POINT_EXTRACTORS = {
@@ -817,7 +833,7 @@ BOSS_WARP_ANCHORS = {
     'SpiritTemple': (11243501154977749945, 4, (SPIRIT_BOSS_TO_COLOSSUS, SPIRIT_BOSS_TO_SAGES)),
     'ForestTemple': (7322827475260825437, 5, tuple(SIDE_PORTALS['ForestTemple'])),
     'FireTemple': (14585775662663687502, 5, tuple(SIDE_PORTALS['FireTemple'])),
-    'WaterTemple': (9109272685779005276, 2, tuple(SIDE_PORTALS['WaterTemple'])),
+    'WaterTemple': (9109272685779005276, 2, ('Retour après Morpha', 'Sages · Morpha')),
     'ShadowTemple': (15240382889320952895, 4, ('Retour après Bongo Bongo', 'Sages · Bongo Bongo')),
 }
 

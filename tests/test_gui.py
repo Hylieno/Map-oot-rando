@@ -1536,17 +1536,24 @@ class GuiTests(unittest.TestCase):
     def test_water_temple_opens_from_the_adult_lake_at_the_top(self):
         from unittest.mock import patch
         from map_oot_rando.link_position import LinkPosition
-        from map_oot_rando.scene import REGION_VIEWS, WATER_VIEWS
+        from map_oot_rando.scene import REGION_VIEWS, WATER_LEVEL_CROSSINGS, WATER_VIEWS, extract_scenes
 
         app = self.app
         lake, temple = 'LakeHylia', 'WaterTemple'
+        interior = 'Banc/WaterTemple/WaterTemple_Static.bcett.byml.zs'
+        points = ((-4.5, 119.5, -11.56), (-1.55, 115.4, -4.5), (0.5, 111.41, -4.5),
+                  (-9.55, 100.76, -4.5), (-1.5, 99.5, -4.41), (-4, 95.5, -4.41))
+        ends = [end for crossing in WATER_LEVEL_CROSSINGS for end in crossing]
+        actors = [dict(Gyaml=kind, Hash=ident, Translate=point)
+                  for (_, _, kind, ident), point in zip(ends, points)]
+        scenes = extract_scenes({interior: {'root': {'Actors': actors}}}, lambda _: {})
+        scenes[interior]['points'].append(('Vers le Lac Hylia', (-4.5, 47)))
         doc = dict(demo_document(), provenance='ootrr-scan',
                    regions=['KokiriForest', 'HyruleField', lake, temple], locations=[], scenes={
                        **{f'Banc/HyruleField/HyruleField_{age}_Static.bcett.byml.zs':
                           {'rooms': [], 'points': [('Vers le Temple de l’Eau', (-186, 499))]}
                           for age in ('Adult', 'Child')},
-                       'Banc/WaterTemple/WaterTemple_Static.bcett.byml.zs':
-                           {'rooms': [], 'points': [('Vers le Lac Hylia', (-4.5, 47))]},
+                       **scenes,
                    })
         self.enterContext(patch.object(app, 'ensure_atlas'))
         app.load(doc)
@@ -1557,6 +1564,18 @@ class GuiTests(unittest.TestCase):
         self.assertIn(temple, app.navigation_markers.values())
         app.open_neighbor(temple)
         self.assertEqual(app.resource.get(), WATER_VIEWS[0])
+        for index in (0, 2, 4, 5, 3, 1):
+            title, floor = ends[index][1], ends[index ^ 1][0]
+            marker, = [i for i in app.canvas.find_withtag('zone-navigation')
+                       if any(t == title for t, *_ in app.local_portals[i])]
+            x0, y0, x1, y1 = app.canvas.bbox(marker)
+            app.press(SimpleNamespace(x=(x0+x1)//2, y=(y0+y1)//2))
+            self.assertEqual(app.resource.get(), WATER_VIEWS[floor])
+            ring, = app.canvas.find_withtag('portal-arrival')
+            x0, y0, x1, y1 = app.canvas.coords(ring)
+            x, _, z = points[index ^ 1]
+            self.assertAlmostEqual((x0+x1)/2, app.viewport.screen((x, z))[0])
+            self.assertAlmostEqual((y0+y1)/2, app.viewport.screen((x, z))[1])
         app.update_link(LinkPosition(temple, 'Adult', -4.5, 118.6, 43.61, 0))
         self.assertEqual(app.resource.get(), WATER_VIEWS[0])
         app.update_link(LinkPosition(temple, 'Adult', 56.87, 118.39, -28.12, 0))
