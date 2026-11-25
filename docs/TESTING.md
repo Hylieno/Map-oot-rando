@@ -1,5 +1,28 @@
 # Validation
 
+Le suivi en jeu entre les zones et la collecte avant la prochaine
+sauvegarde ont été confirmés par le joueur sur le build Windows.
+
+La seed de référence contient trois entrées historiques sans position
+confirmée. Elle n’associe aucun indicateur de collecte à ces entrées.
+Le coffre de l’épouvantail et la clé libre restent consultables dans
+leurs secteurs Gerudo. La scène contient le repère de l’épouvantail,
+un coffre distinct dans la salle de la statue au niveau inférieur et
+des clés dans des coffres. Elle ne permet pas d’identifier un coffre
+distinct au repère de l’épouvantail ou un acteur de clé libre.
+OotrR 0.8.4 exclut Gift from Sages des nouveaux catalogues.
+
+Le test ciblé de compatibilité utilise un manifeste synthétique du
+générateur 0.12.18 d’OotrR 0.8.4. Le moteur embarqué 0.8.0 peut
+importer le catalogue synthétique sur la carte. Le lecteur de suivi
+0.8.0 refuse ce manifeste, car il ne reconnaît pas cette version du
+générateur. Avec 0.8.4, l’import et le suivi par sauvegarde du même
+cas synthétique passent. Le moteur 0.8.4 accepte l’identité de la
+seed historique du joueur, mais sa table de logique a une empreinte
+différente. OotrR désactive alors les indications d’accessibilité de
+cette seed. Le moteur du build reste épinglé à 0.8.0.
+L’import complet d’une seed 0.8.4 avec le NUP du jeu reste à vérifier.
+
 Le test de l’exécutable Windows ouvre un dossier de sauvegardes avec
 le vrai lecteur OotrR. Il remplace la sauvegarde synthétique par une
 version où le coffre est récupéré et vérifie que son marqueur change
