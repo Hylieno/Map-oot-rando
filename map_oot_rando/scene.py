@@ -32,6 +32,14 @@ SHADOW_VIEWS = tuple(f'{REGION_NAMES["ShadowTemple"]} · {level}' for level in S
 SHADOW_SHIP_ROUTE = 'Trajet du bateau'
 SHADOW_BOSS_DOOR = 'Porte vers Bongo Bongo'
 SHADOW_BOSS_LANDING = 'Arrivée dans l’arène'
+SHADOW_LEVEL_CROSSINGS = (
+    ((0, 'Escalier vers le sous-sol 2', 13641591313020446364),
+     (1, 'Escalier vers le sous-sol 1', 6139920143353312087)),
+    ((1, 'Passage vers le sous-sol 3', 9500101214674922945),
+     (2, 'Passage vers le sous-sol 2', 13181701853631283711)),
+    ((2, 'Passage vers le bateau', 17002384234813722769),
+     (3, 'Passage vers le couloir des vents', 8392133095956232092)),
+)
 SPIRIT_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', '3e étage', 'Arène de Twinrova', 'Couloir de Twinrova')
 SPIRIT_VIEWS = tuple(f'{REGION_NAMES["SpiritTemple"]} · {level}' for level in SPIRIT_LEVELS)
 # Each link pairs two map views with native actors at the crossing.
@@ -470,6 +478,9 @@ for temple, (boss, outside, start) in ADULT_BOSS_RETURNS.items():
 SIDE_PORTALS['FireTemple'][FIRE_SAGE_SCENE] = (
     'KakarikoVillage', REGION_VIEWS['KakarikoVillage']['Adult'], 'Cocorico · cinématique', FIRE_KAKARIKO_ARRIVAL)
 SIDE_PORTALS['ShadowTemple'].update({
+    **{label: ('ShadowTemple', SHADOW_VIEWS[destination], label, arrival)
+       for ends in SHADOW_LEVEL_CROSSINGS
+       for (_, label, _), (destination, arrival, _) in (ends, ends[::-1])},
     SHADOW_BOSS_DOOR: ('ShadowTemple', SHADOW_VIEWS[4], SHADOW_BOSS_DOOR, SHADOW_BOSS_LANDING),
     SHADOW_BOSS_LANDING: ('ShadowTemple', SHADOW_VIEWS[3], 'Voir l’accès supérieur', SHADOW_BOSS_DOOR),
 })
@@ -767,8 +778,10 @@ def spirit_level_points(sources):
 
 
 def shadow_level_points(sources):
-    """Use the boss door and the StartPos referenced by the entrance event."""
+    """Use room areas at floor changes and the StartPos of the boss entrance event."""
     anchors = {
+        **{('DungeonRoomArea', ident): (floor, label)
+           for ends in SHADOW_LEVEL_CROSSINGS for floor, label, ident in ends},
         ('Obj_ShadowTemple_SwitchShutter_A_01', 12557339757091997106): (3, SHADOW_BOSS_DOOR),
         ('StartPos', 15657470794246498904): (4, SHADOW_BOSS_LANDING),
     }

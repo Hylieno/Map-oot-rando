@@ -1575,7 +1575,7 @@ class GuiTests(unittest.TestCase):
         app.open_neighbor(lake)
         self.assertEqual(app.resource.get(), REGION_VIEWS[lake]['Adult'])
 
-    def test_shadow_boss_door_opens_the_arena_at_the_cutscene_start(self):
+    def test_shadow_passages_connect_the_four_basements_and_boss_arena(self):
         from unittest.mock import patch
         from map_oot_rando.link_position import LinkPosition
         from map_oot_rando.scene import SHADOW_BOSS_DOOR, SHADOW_BOSS_LANDING, SHADOW_VIEWS, extract_scenes
@@ -1584,7 +1584,17 @@ class GuiTests(unittest.TestCase):
         region = 'ShadowTemple'
         path = f'Banc/{region}/{region}_Static.bcett.byml.zs'
         door, landing = (-138.51, 42, 19.05), (-138.33, -11.46, 22.02)
+        crossings = [
+            ('Escalier vers le sous-sol 2', 'Escalier vers le sous-sol 1',
+             (13641591313020446364, (61.4, 90.56, 1.3)), (6139920143353312087, (63.89, 90.43, 1.34))),
+            ('Passage vers le sous-sol 3', 'Passage vers le sous-sol 2',
+             (9500101214674922945, (94.66, 75.42, 47.19)), (13181701853631283711, (94.52, 72.77, 47.28))),
+            ('Passage vers le bateau', 'Passage vers le couloir des vents',
+             (17002384234813722769, (109.64, 52, -25.6)), (8392133095956232092, (109.7, 48.22, -37.07))),
+        ]
         actors = [
+            *(dict(Gyaml='DungeonRoomArea', Hash=ident, Translate=point)
+              for _, _, source, target in crossings for ident, point in (source, target)),
             dict(Gyaml='Obj_ShadowTemple_SwitchShutter_A_01', Hash=12557339757091997106, Translate=door),
             dict(Gyaml='StartPos', Hash=15657470794246498904, Translate=landing, Name='StartPos_SageOfShadow'),
             dict(Gyaml='StartPos', Hash=10000120391812373223, Translate=(-137, -11, 22), Name='StartPos_SageOfShadow'),
@@ -1594,9 +1604,7 @@ class GuiTests(unittest.TestCase):
         self.enterContext(patch.object(app, 'ensure_atlas'))
         app.load(dict(demo_document(), provenance='ootrr-scan', regions=['KokiriForest', region],
                       locations=[], scenes=scenes))
-        app.open_neighbor(region, view=SHADOW_VIEWS[3])
-        for title, view, position in ((SHADOW_BOSS_DOOR, SHADOW_VIEWS[4], landing),
-                                      ('Voir l’accès supérieur', SHADOW_VIEWS[3], door)):
+        def cross(title, view, position):
             marker, = [i for i in app.canvas.find_withtag('zone-navigation')
                        if any(t == title for t, *_ in app.local_portals[i])]
             x0, y0, x1, y1 = app.canvas.bbox(marker)
@@ -1605,6 +1613,15 @@ class GuiTests(unittest.TestCase):
             ring, = app.canvas.find_withtag('portal-arrival')
             x0, y0, x1, y1 = app.canvas.coords(ring)
             self.assertEqual(((x0+x1)/2, (y0+y1)/2), app.viewport.screen((position[0], position[2])))
+
+        app.open_neighbor(region, view=SHADOW_VIEWS[0])
+        for floor, (down, _, _, (_, point)) in enumerate(crossings, start=1):
+            cross(down, SHADOW_VIEWS[floor], point)
+        cross(SHADOW_BOSS_DOOR, SHADOW_VIEWS[4], landing)
+        cross('Voir l’accès supérieur', SHADOW_VIEWS[3], door)
+        for floor in reversed(range(len(crossings))):
+            _, up, (_, point), _ = crossings[floor]
+            cross(up, SHADOW_VIEWS[floor], point)
         self.assertEqual(dict(app.scenes[SHADOW_VIEWS[4]]['points'])[SHADOW_BOSS_LANDING],
                          (landing[0], landing[2]))
         app.update_link(LinkPosition(region, 'Adult', *door, 0))

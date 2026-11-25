@@ -6,6 +6,7 @@ propre vue. Le suivi de Link distingue le couloir et l’arène.
 
 Au quatrième sous-sol du Temple de l’Ombre, une flèche indique le
 trajet du bateau à partir du rail lié à son acteur.
+Trois liaisons entre sous-sols relient l’entrée à la salle du bateau.
 La porte de Bongo Bongo ouvre l’arène et indique l’arrivée de la
 cinématique. Depuis l’arène, un repère permet de revoir l’accès supérieur.
 
