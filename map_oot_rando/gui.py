@@ -19,7 +19,8 @@ from .model import Location, REGION_NAMES, SURFACE_MIN_Y, load_metadata, resourc
 from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
-from .scene import (BURNT_VILLAGE, CASTLE_COURT, DAMPE_ROUTES, DREAM_SCENE_VIEWS, DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS,
+from .scene import (BURNT_VILLAGE, CASTLE_COURT, DAMPE_ROUTES, DREAM_BATTLE_VIEWS, DREAM_SCENE_VIEWS,
+                    DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS,
                     FIRE_KAKARIKO_ARRIVAL, FIRE_KAKARIKO_CONTINUE, FIRE_VIEWS, FLOOR_OPTIONS,
                     FOUNTAIN_DUNGEON_AGES, GANON_DUNGEON_VIEWS, GANON_ESCAPE, GANON_ESCAPE_ROUTE, GANON_FINAL,
                     MARKET_CASTLE_AGES,
@@ -1177,8 +1178,11 @@ class MapApplication:
             points.extend(route)
         for _, low, high in scene.get('rooms', ()):
             points.extend((low, high))
+        dream_battle = self.resource.get() in DREAM_BATTLE_VIEWS
+        if dream_battle and self.link and self.resource.get() == self.link_view():
+            points.append((self.link.x, self.link.z))
         width, height = self.canvas.winfo_width(), self.canvas.winfo_height()
-        self.viewport.fit(points, width, height)
+        self.viewport.fit(points, width, height, min_extent=36 if dream_battle else 1)
         self.fitted_scale = self.viewport.scale
         if focus is not None:
             self.viewport.center(focus, width, height)
@@ -1496,9 +1500,9 @@ class MapApplication:
         if self.link and self.resource.get() == self.link_view():
             x, y = self.viewport.screen((self.link.x, self.link.z))
             self.draw_link_pin(x, y, self.link.yaw)
-        if not self.markers:
+        if not self.markers and self.resource.get() not in DREAM_BATTLE_VIEWS:
             self.canvas.create_text(25, heading_height + 5, anchor='nw',
-                                    text='Aucun marqueur positionné pour cette vue.', fill=heading_color)
+                                    text='Aucun check positionné pour cette vue.', fill=heading_color)
 
     def choose(self, row):
         self.selected = row

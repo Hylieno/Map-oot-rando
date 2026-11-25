@@ -21,14 +21,14 @@ class Viewport:
         self.x = anchor[0] - (anchor[0] - self.x) * self.scale / old
         self.y = anchor[1] - (anchor[1] - self.y) * self.scale / old
 
-    def fit(self, points, width, height):
+    def fit(self, points, width, height, *, min_extent=1):
         if not points:
             return
         low = tuple(min(p[i] for p in points) for i in (0, 1))
         high = tuple(max(p[i] for p in points) for i in (0, 1))
         self.scale = min(1000, max(0.001, min(
-            max(width - 80, 1) / max(high[0] - low[0], 1),
-            max(height - 80, 1) / max(high[1] - low[1], 1))))
+            max(width - 80, 1) / max(high[0] - low[0], min_extent),
+            max(height - 80, 1) / max(high[1] - low[1], min_extent))))
         self.center(tuple((low[i] + high[i]) / 2 for i in (0, 1)), width, height)
 
     def grid(self, width, height):

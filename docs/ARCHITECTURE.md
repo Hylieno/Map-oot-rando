@@ -112,6 +112,10 @@ identifiants individuels quand ils partagent les mêmes coordonnées.
 Ses arrivées utilisent les points de départ nommés dans la scène.
 L’anneau d’arrivée s’affiche aussi dans la salle intermédiaire, où
 la transition n’a pas de portail de retour au même endroit.
+Les 25 arènes du Monde des rêves utilisent leurs propres ressources
+et les points de départ du défi et des revanches. Les schémas utilisent
+les coordonnées du combat chargé. Les checks de la salle intermédiaire
+restent associés à sa propre ressource.
 Le Château d’Hyrule utilise la scène enfant. Les abords et la cour
 partagent les coordonnées natives, avec une vue distincte pour la cour
 située au-delà du plan publié. Le marqueur peut suivre ce passage.

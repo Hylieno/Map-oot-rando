@@ -1502,6 +1502,21 @@ class GuiTests(unittest.TestCase):
         self.assertEqual({row.id for row in choose.call_args.args[0]}, {row.id for row in app.visible})
         app.update_link(LinkPosition(region, 'Child', 4, 1, 5, 0, 'GohmaStage'))
         self.assertIsNone(app.link_view())
+        gohma = 'Banc/DreamWorld/GohmaStage_Dynamic.bcett.byml.zs'
+        maps[gohma] = {'root': {'Actors': [
+            dict(Gyaml='StartPos', Name='StartPos_SubEvent_AllBossBattle', Translate=(4.5, 47, 67.7)),
+            dict(Gyaml='Enemy_DungeonBoss_Gohma', Translate=(17.2, 47, 60.6)),
+        ]}}
+        app.load(dict(doc, scenes=extract_scenes(maps, lambda _: {})))
+        app.update_link(LinkPosition(region, 'Child', 4.5, 47, 67.7, 0, 'GohmaStage'))
+        self.assertEqual(app.resource.get(), DREAM_SCENE_VIEWS['GohmaStage'])
+        self.assertTrue(app.canvas.find_withtag('player-pin'))
+        self.assertEqual(app.visible, ())
+        self.assertIn('Gohma', app.floor_picker['values'])
+        self.assertEqual(dict(app.scenes[DREAM_SCENE_VIEWS['GohmaStage']]['points'])['Arrivée pendant le défi'],
+                         (4.5, 67.7))
+        app.update_link(LinkPosition(region, 'Child', 0, .2, 4.27, 0, interval))
+        self.assertEqual(len(app.visible), 10)
 
     def test_water_temple_opens_from_the_adult_lake_at_the_top(self):
         from unittest.mock import patch

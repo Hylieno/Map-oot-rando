@@ -1,5 +1,10 @@
 # Validation
 
+Les 25 arènes du Monde des rêves et les 50 points de départ du défi
+et des revanches ont été contrôlés dans Tk avec les scènes publiques.
+Le test simule la transition vers Gohma et le retour aux dix coffres
+de la salle intermédiaire.
+
 Les treize transitions des quatre temples adultes ont été vérifiées
 dans Tk avec les scènes publiques. Les anneaux coïncident avec les
 repères du jeu, à l’intérieur des fonds disponibles. Le test de

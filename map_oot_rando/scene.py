@@ -113,10 +113,37 @@ for region, floors in DUNGEON_FLOORS.items():
     REGION_VIEWS[region] = {None: floors[0][1]}
 REGION_VIEWS['IceCavern'] = {None: REGION_NAMES['IceCavern']}
 REGION_VIEWS['SageRoom'] = {None: REGION_NAMES['SageRoom']}
-DREAM_SCENE_VIEWS = {
-    'EnemyMuseum': 'Monde des rêves · Musée',
-    'BossRushIntervalRoom': 'Monde des rêves · Salle intermédiaire',
+DREAM_BATTLES = {
+    'GohmaStage': ('Gohma', 'Enemy_DungeonBoss_Gohma'),
+    'WolfosStage': ('Lobo', 'Enemy_Wolfos'),
+    'LizalfosStage': ('Lizalfos', 'Enemy_MiddleBoss_Lizalfos'),
+    'DodongoStage': ('Roi Dodongo', 'Enemy_DungeonBoss_Dodongo'),
+    'BigOctoStage': ('Bigocto', 'Enemy_MiddleBoss_BigOcto'),
+    'BarinadeStage': ('Barinade', 'Enemy_DungeonBoss_Barinade'),
+    'StalfosWeakStage': ('Stalfos du Temple de la Forêt', 'Enemy_Stalfos_Weak'),
+    'MegStage': ('Meg', 'Enemy_MiddleBoss_Poe_Meg'),
+    'PhantomGanonStage': ('Ganon spectral', 'Enemy_DungeonBoss_PhantomGanon'),
+    'FlareDancerStage': ('Danseur de feu', 'Enemy_MiddleBoss_FlareDancer'),
+    'VolvagiaStage': ('Volvagia', 'Enemy_DungeonBoss_Volvagia'),
+    'WolfosWhiteStage': ('Lobo blanc', 'Enemy_Wolfos_White'),
+    'DarkLinkStage': ('Link noir', 'Enemy_MiddleBoss_DarkLink'),
+    'MorphaStage': ('Morpha', 'Enemy_DungeonBoss_Morpha'),
+    'DeadHandStage': ('Poigneur', 'Enemy_DeadHand'),
+    'StalfosStage': ('Stalfos du Temple de l’Ombre', 'Enemy_Stalfos_AlwaysRespawn'),
+    'BongoBongoStage': ('Bongo Bongo', 'Enemy_DungeonBoss_BongoBongo'),
+    'GerudoThiefStage': ('Guerrière Gerudo', 'Enemy_MiddleBoss_GerudoThief'),
+    'IronKnuckleWhiteStage': ('Hache-viande blanc', 'Enemy_IronKnuckle_Silver'),
+    'NaboruStage': ('Nabooru', 'Enemy_MiddleBoss_IronKnuckle_Nabooru'),
+    'TwinrovaStage': ('Twinrova', 'Enemy_DungeonBoss_Twinrova'),
+    'DinolfosStage': ('Dinolfos', 'Enemy_Dinolfos'),
+    'IronKnuckleBlackStage': ('Hache-viande noir', 'Enemy_IronKnuckle_Black'),
+    'GanondorfStage': ('Ganondorf', 'Enemy_DungeonBoss_Ganondorf'),
+    'GanonStage': ('Ganon', 'Enemy_DungeonBoss_Ganon_SecondHalfBattle'),
 }
+DREAM_AREAS = {'EnemyMuseum': 'Musée', 'BossRushIntervalRoom': 'Salle intermédiaire',
+               **{scene: name for scene, (name, _) in DREAM_BATTLES.items()}}
+DREAM_SCENE_VIEWS = {scene: f'Monde des rêves · {area}' for scene, area in DREAM_AREAS.items()}
+DREAM_BATTLE_VIEWS = {DREAM_SCENE_VIEWS[scene] for scene in DREAM_BATTLES}
 REGION_VIEWS['DreamWorld'] = {None: DREAM_SCENE_VIEWS['EnemyMuseum']}
 CASTLE_VIEWS = tuple(f'{REGION_NAMES["HyruleCastle"]} · {area}' for area in ('Abords', 'Cour'))
 CASTLE_OUTSKIRTS, CASTLE_COURT = CASTLE_VIEWS
@@ -134,7 +161,7 @@ FLOOR_OPTIONS = {
     **dict.fromkeys(CASTLE_VIEWS, tuple(zip(('Abords', 'Cour'), CASTLE_VIEWS))),
     **dict.fromkeys(GANON_VIEWS, tuple(zip(GANON_AREAS, GANON_VIEWS))),
     **dict.fromkeys(DREAM_SCENE_VIEWS.values(),
-                    tuple(zip(('Musée', 'Salle intermédiaire'), DREAM_SCENE_VIEWS.values()))),
+                    tuple((area, DREAM_SCENE_VIEWS[scene]) for scene, area in DREAM_AREAS.items())),
 }
 AGE_VIEWS = REGION_VIEWS['KokiriForest']
 VIEWS = {label: (region, age) for region, ages in REGION_VIEWS.items()
@@ -812,6 +839,7 @@ def projection_points(region, sources):
     elif region == 'KokiriForest':
         arrivals = arrivals | PORTAL_START_NAMES['KokiriBridge']
     for path, source in sources.items():
+        dream_scene = path.rsplit('/', 1)[-1].split('_', 1)[0] if region == 'DreamWorld' else None
         for actor in source['root'].get('Actors', ()):
             position = actor.get('Translate')
             gyaml = actor.get('Gyaml')
@@ -946,6 +974,13 @@ def projection_points(region, sources):
                     points.add(('Plateforme des Sages', (0.0, 0.0)))
                     points.update((f'Sages · {boss}', (position[0], position[2]))
                                   for boss, _, _ in ADULT_BOSS_RETURNS.values())
+            elif dream_scene in DREAM_BATTLES:
+                boss, kind = DREAM_BATTLES[dream_scene]
+                if gyaml == kind:
+                    label = boss
+                elif gyaml == 'StartPos':
+                    label = {dream_scene: 'Arrivée en revanche',
+                             'StartPos_SubEvent_AllBossBattle': 'Arrivée pendant le défi'}.get(actor.get('Name'))
             elif region == 'DreamWorld':
                 if gyaml == 'StartPos' and actor.get('Name') == 'BossRush':
                     label = DREAM_CHALLENGE_ARRIVAL
@@ -1038,14 +1073,15 @@ def extract_scenes(maps, landmarks):
         if region == 'KokiriForest' and not has_dream_museum:
             projected = {point for point in projected if point[0] != NEIGHBORS[region]['DreamWorld']}
         points.update(projected)
-        if frame == DREAM_SCENE_VIEWS['BossRushIntervalRoom']:
+        if frame in (DREAM_SCENE_VIEWS['BossRushIntervalRoom'], DREAM_SCENE_VIEWS['VolvagiaStage']):
             room_areas = [actor for source in sources.values() for actor in source['root'].get('Actors', ())
                           if actor.get('Gyaml') == 'DungeonRoomArea'
                           and actor.get('Translate') and actor.get('Scale')]
             if len(room_areas) == 1:
                 x, _, z = room_areas[0]['Translate']
                 dx, _, dz = room_areas[0]['Scale']
-                rooms.append(('Salle intermédiaire', (x - dx, z - dz), (x + dx, z + dz)))
+                label = DREAM_AREAS['BossRushIntervalRoom'] if frame == DREAM_SCENE_VIEWS['BossRushIntervalRoom'] else 'Arène'
+                rooms.append((label, (x - dx, z - dz), (x + dx, z + dz)))
         extract_levels = LEVEL_POINT_EXTRACTORS.get(region)
         levels = extract_levels(sources) if extract_levels else set()
         if region in BOSS_WARP_ANCHORS:
@@ -1058,7 +1094,7 @@ def extract_scenes(maps, landmarks):
             'HountedWasteland': guide_routes,
             'GerudoTrainingGround': training_connections,
         }.get(region)
-        if frame == GANON_FINAL:
+        if frame in (GANON_FINAL, DREAM_SCENE_VIEWS['GanonStage']):
             route_extractor = final_battle_routes
         routes = route_extractor(sources) if route_extractor else ()
         if region == 'Graveyard':

@@ -1,5 +1,9 @@
 # Checkpoint — 25 novembre 2026
 
+Les 25 arènes du Monde des rêves sont disponibles dans le sélecteur.
+Le marqueur de Link suit la ressource chargée, y compris lors du retour
+à la salle intermédiaire.
+
 Les portails de Ganon spectral, Volvagia, Morpha et Bongo Bongo
 indiquent les retours adultes et les étapes par la Chambre des Sages.
 Le retour de Volvagia inclut son passage par Cocorico.

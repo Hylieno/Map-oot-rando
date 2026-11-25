@@ -205,6 +205,10 @@ Ces passages indiquent les points d’arrivée du jeu, y compris à
 l’entrée de la salle intermédiaire.
 Les dix coffres du défi partagent un point. Un clic sur le marqueur
 permet de choisir le coffre voulu.
+Le sélecteur du Monde des rêves ouvre les 25 arènes. Leurs schémas
+indiquent les arrivées du défi et des revanches. Le suivi de Link peut
+ouvrir l’arène chargée et afficher sa position. Réimporte le jeu et la
+seed pour ajouter ces vues à une carte enregistrée précédemment.
 
 Le ranch Lon Lon se rejoint depuis la plaine aux deux âges. Le jeu
 des poules de Talon apparaît dans la vue enfant. Le suivi de Link
