@@ -269,6 +269,8 @@ après l’incendie quand le suivi ne fournit pas cet état.
 seed. Pour les fonds Field Atlas déjà chargés, il indique quels marqueurs se
 projettent en dehors de l’image ou loin du trait. Le rapport exclut l’image,
 l’identifiant de seed et la sauvegarde.
+La liste des vues distingue les fonds contrôlés, en cours de chargement,
+encore à charger ou indisponibles, ainsi que les schémas et les plans locaux.
 
 ## Métadonnées locales
 

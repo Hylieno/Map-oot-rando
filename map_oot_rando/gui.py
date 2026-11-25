@@ -693,9 +693,13 @@ class MapApplication:
                            'checked': 0, 'outside': []}
                     for view, background in self.aerial.items()
                     if (background.source or '').startswith('field-atlas')}
+        placements = Counter()
         for row in self.locations:
+            if row.position is None:
+                continue
             view = location_view(row)
-            if row.position is None or view not in coverage:
+            placements[view] += 1
+            if view not in coverage:
                 continue
             report = coverage[view]
             background = self.aerial[view]
@@ -707,6 +711,22 @@ class MapApplication:
                                               pixel=tuple(round(value, 2) for value in pixel),
                                               reason=outcome))
         diagnostic['atlas_coverage'] = coverage
+        views = {}
+        for view in sorted(set(self.views) | placements.keys() | coverage.keys()):
+            spec = background_spec(view)
+            if view in coverage:
+                status = 'checked'
+            elif view in self.aerial:
+                status = 'local_plan'
+            elif view == self.atlas_loading:
+                status = 'loading'
+            elif view in self.atlas_failed:
+                status = 'unavailable'
+            else:
+                status = 'not_loaded' if spec else 'schematic'
+            source = self.aerial[view].source if view in self.aerial else (spec[0] if spec else None)
+            views[view] = {'source': source, 'status': status, 'placements': placements[view]}
+        diagnostic['map_views'] = views
         try:
             Path(path).write_text(json.dumps(diagnostic, ensure_ascii=False, indent=2), encoding='utf-8')
         except OSError as error:

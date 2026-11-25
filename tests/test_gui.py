@@ -301,6 +301,49 @@ class GuiTests(unittest.TestCase):
                          [('SIMULATED#1', [45, 45], 'outside_drawing'),
                           ('SIMULATED#2', [105, 50], 'outside_image')])
 
+    def test_diagnostic_distinguishes_untested_backgrounds_and_local_plans(self):
+        import json
+        from unittest.mock import patch
+        from PIL import Image
+        from map_oot_rando.aerial import AerialImage
+        from map_oot_rando.lost_woods import lost_woods_plan
+        from map_oot_rando.scene import REGION_VIEWS, TRAINING_VIEWS
+
+        app = self.app
+        frames = [('KokiriForest', 'Child'), ('KokiriForest', 'Adult'), ('HyruleField', 'Child'),
+                  ('HyruleField', 'Adult'), ('LostWood', 'Child'), ('GerudoTrainingGround', None)]
+        sources = [f'Banc/{region}/{region}{("_" + age) if age else ""}_Static.bcett.byml.zs'
+                   for region, age in frames]
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=list(dict.fromkeys(region for region, _ in frames)))
+        doc['locations'] = [dict(doc['locations'][0], id=f'check-{index}', resource=source, position=(12, 100, 12))
+                            for index, source in enumerate(sources)]
+        doc['scenes'] = {source: {'rooms': [], 'points': [('Centre', (12, 12))]} for source in sources}
+        with patch.object(app, 'ensure_atlas'):
+            app.load(doc)
+
+        forest, adult_forest, field, adult_field, woods = (REGION_VIEWS[region][age] for region, age in frames[:5])
+        points = ((0, 0), (100, 0), (0, 100))
+        app.aerial[forest] = AerialImage(Image.new('RGB', (100, 100), '#1f5577'), points, points,
+                                         source='field-atlas')
+        app.aerial[woods] = lost_woods_plan()
+        app.atlas_loading = adult_forest
+        app.atlas_failed.add(field)
+        app.query.set('filtered out')
+        self.assertFalse(app.visible)
+
+        path = self.profiles_path.with_name('diagnostic.json')
+        with patch('map_oot_rando.gui.filedialog.asksaveasfilename', return_value=path):
+            app.save_diagnostic()
+        diagnostic = json.loads(path.read_text(encoding='utf-8'))
+        self.assertEqual(set(diagnostic['atlas_coverage']), {forest})
+        expected = {forest: 'checked', adult_forest: 'loading', field: 'unavailable',
+                    adult_field: 'not_loaded', woods: 'local_plan', TRAINING_VIEWS[0]: 'schematic'}
+        views = diagnostic['map_views']
+        for view, status in expected.items():
+            with self.subTest(view=view):
+                self.assertEqual(views[view]['status'], status)
+                self.assertEqual(views[view]['placements'], 1)
+
     def test_kokiri_age_merges_layers_and_lists_uncovered_checks(self):
         from PIL import Image
         from map_oot_rando.aerial import AerialImage

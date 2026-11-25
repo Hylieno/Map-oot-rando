@@ -1,5 +1,9 @@
 # Checkpoint — 25 novembre 2026
 
+Le diagnostic de la carte indique l’état du fond et le nombre de
+placements par vue. Les fonds en attente ou indisponibles sont
+identifiables dans le même rapport que les contrôles de couverture.
+
 Le cadrage de la zone suivie garde le marqueur de Link visible
 lorsque le fond Field Atlas finit de charger, même si le personnage
 se trouve au-delà du bord du dessin.
