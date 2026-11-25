@@ -135,6 +135,15 @@ WATER_LEVEL_CROSSINGS = (
 GANON_DUNGEON_LEVELS = ('Épreuves', 'Accès à la tour', 'Tour · 1er étage',
                         'Tour · 2e étage', 'Tour · 3e étage', 'Sommet')
 GANON_DUNGEON_VIEWS = tuple(f'{REGION_NAMES["InsideGanonCastle"]} · {level}' for level in GANON_DUNGEON_LEVELS)
+GANON_TRIALS = {
+    'Forest': (2419854912261814384, 'Forêt'),
+    'Water': (7124800717538768497, 'Eau'),
+    'Shadow': (8495610940054253979, 'Ombre'),
+    'Fire': (399054663657392680, 'Feu'),
+    'Light': (936558425084482814, 'Lumière'),
+    'Spirit': (609021425778003787, 'Esprit'),
+}
+GANON_TRIAL_DOORS = {ident: f'Entrée · {trial}' for ident, trial in GANON_TRIALS.values()}
 GANON_TOWER_CROSSINGS = (
     ((0, 'Barrière de la tour', 'Obj_GanonCastle_Barrier_A_01', 7855099293663223240),
      (1, 'Retour vers les épreuves', 'DungeonRoomArea', 4106367990015143384)),
@@ -402,6 +411,12 @@ SIDE_PORTALS = {
     },
     'InsideGanonCastle': {
         GANONDORF_TO_ESCAPE: ('GanonCastle', GANON_ESCAPE, 'Fuite du château', GANON_ESCAPE_ARRIVAL),
+        **{source: ('InsideGanonCastle', GANON_DUNGEON_VIEWS[0], title, destination)
+           for _, trial in GANON_TRIALS.values()
+           for source, destination, title in (
+               (f'Entrée · {trial}', f'Épreuve · {trial}', f'{trial} · voir la barrière'),
+               (f'Épreuve · {trial}', f'Entrée · {trial}', f'{trial} · voir l’entrée'),
+           )},
         **{label: ('InsideGanonCastle', GANON_DUNGEON_VIEWS[destination], label, arrival)
            for ends in GANON_TOWER_CROSSINGS
            for (_, label, _, _), (destination, arrival, _, _) in (ends, ends[::-1])},
@@ -762,10 +777,6 @@ GROVE_STAIRS = {
     12781997514938194022: 'Escalier bas ouest', 7113370927714814423: 'Escalier bas ouest',
     16405524742880159804: 'Escalier bas est', 8098648085076932584: 'Escalier bas est',
 }
-GANON_TRIALS = {
-    'Forest': 'Forêt', 'Water': 'Eau', 'Shadow': 'Ombre',
-    'Fire': 'Feu', 'Light': 'Lumière', 'Spirit': 'Esprit',
-}
 GANON_TOWER_ANCHORS = {
     'Land_InsideGanonCastle_Room19_A_01': 'Pied de la tour',
     'Land_InsideGanonCastle_Room20_A_01': 'Salle du premier étage',
@@ -1115,7 +1126,9 @@ def projection_points(region, sources):
                     prefix = 'InsideGanonCastle_Dungeon_BarrierRemove_'
                     event = dynamic.get('RequestEventName', '')
                     if isinstance(event, str) and event.startswith(prefix) and (trial := GANON_TRIALS.get(event.removeprefix(prefix))):
-                        label = f'Épreuve · {trial}'
+                        label = f'Épreuve · {trial[1]}'
+                elif gyaml == 'Obj_InsideGanonCastle_SwitchShutter_A_01':
+                    label = GANON_TRIAL_DOORS.get(actor.get('Hash'))
                 elif gyaml == 'Obj_GanonCastle_Barrier_A_01':
                     label = 'Barrière de la tour'
             elif region == 'GanonCastle' and gyaml == 'StartPos':

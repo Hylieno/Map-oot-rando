@@ -6,6 +6,9 @@ Dans la tour de Ganon, l’escalier du troisième étage ouvre le sommet
 au repère d’entrée de la salle de Ganondorf.
 Les autres passages relient la barrière des épreuves à l’accès
 de la tour et aux trois étages.
+Dans la salle centrale du château de Ganon, les six portes des épreuves
+permettent de repérer leur barrière sur le même plan. Chaque barrière
+permet de retrouver sa porte.
 
 Dans le ventre de Jabu-Jabu, la salle des fosses, l’ascenseur d’Octo
 et la porte de Barinade relient les quatre vues du donjon.

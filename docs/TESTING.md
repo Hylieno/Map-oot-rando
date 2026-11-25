@@ -5,6 +5,9 @@ dans Tk avec les scènes publiques et les fonds Field Atlas.
 Les cinq passages entre la barrière des épreuves et le sommet de
 la tour de Ganon ont été vérifiés dans les deux sens dans Tk, avec
 les repères de la scène.
+Les six portes et leurs barrières ont été sélectionnées dans les deux
+sens. Le repère de destination correspond aux coordonnées des acteurs
+de la scène publique.
 
 Les six traversées entre les vues de Jabu-Jabu ont été vérifiées dans
 Tk avec les scènes publiques et les fonds Field Atlas.

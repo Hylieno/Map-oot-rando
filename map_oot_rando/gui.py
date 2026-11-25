@@ -1342,6 +1342,10 @@ class MapApplication:
                     continue
                 points = {tuple(p) for label, p in (scene or {}).get('points', ()) if label == portal}
                 destination = floor if floor is not None else self.view_for_region(neighbor)
+                if destination == self.resource.get():
+                    landing_points = {tuple(p) for label, p in (scene or {}).get('points', ()) if label == arrival}
+                    if len(landing_points) != 1:
+                        continue
                 if len(points) == 1 and destination in self.views:
                     exits[portal] = (neighbor, points.pop(), title, floor, arrival)
         heading_color = '#d2e1da'
