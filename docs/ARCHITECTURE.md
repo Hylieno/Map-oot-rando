@@ -128,6 +128,9 @@ conservent la position XYZ de l’acteur.
 Le pont côté plaine est une vue de la scène Kokiri, sélectionnée
 d’après les coordonnées de l’acteur ou de Link. La copie du coffre
 dans les Bois Perdus reste dans le repère de cette scène.
+Dans les Bois Perdus, l’entrée normale et les sorties qui renvoient à
+Kokiri utilisent les acteurs de transition de la scène. Le point de départ
+de Link est conservé séparément pour l’anneau d’arrivée.
 Le centre d’entraînement Gerudo trace ses liaisons entre les centres
 de salle et les portes natives. La passerelle garde sa vue distincte.
 En Vallée Gerudo, les scènes des deux âges utilisent le même fond et le

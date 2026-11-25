@@ -1,10 +1,12 @@
 """Original navigation plan of the Lost Woods in game X/Z coordinates."""
+from math import hypot
+
 from PIL import Image, ImageDraw
 
 from .aerial import AerialImage
 
 SOURCE = 'lost-woods-plan'
-CALIBRATION = 2
+CALIBRATION = 3
 BRIDGE_SOURCE = 'kokiri-bridge-plan'
 BRIDGE_CALIBRATION = 1
 # Ground-level junctions and crossings from the LostWood scene resources.
@@ -45,6 +47,14 @@ def lost_woods_plan():
     route = [pixel(point) for point in SAFE_ROUTE]
     draw.line(route, fill='#0c2631', width=11, joint='curve')
     draw.line(route, fill='#ffe388', width=5, joint='curve')
+    for (x1, y1), (x2, y2) in zip(route, route[1:]):
+        length = hypot(x2 - x1, y2 - y1)
+        if length < 18 * scale:
+            continue
+        dx, dy = (x2 - x1) / length, (y2 - y1) / length
+        x, y = (x1 + x2) / 2, (y1 + y2) / 2
+        draw.polygon(((x+10*dx, y+10*dy), (x-5*dx-7*dy, y-5*dy+7*dx),
+                      (x-5*dx+7*dy, y-5*dy-7*dx)), fill='#ffe388', outline='#0c2631', width=2)
     return AerialImage(image, [(0, 0), (size[0], 0), (0, size[1])],
                        [low, (high[0], low[1]), (low[0], high[1])], source=SOURCE,
                        calibration=CALIBRATION)

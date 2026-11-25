@@ -1,4 +1,8 @@
-# Checkpoint — 24 novembre 2026
+# Checkpoint — 25 novembre 2026
+
+Le tracé des Bois Perdus indique le sens du trajet vers le Bosquet
+sacré. Neuf croix signalent les sorties qui ramènent à Kokiri, et la
+porte principale a un point d’arrivée distinct.
 
 Le choix de suivre Link entre les zones est conservé après la fermeture
 de l’application. Le marqueur reste utilisable avec le suivi de zone

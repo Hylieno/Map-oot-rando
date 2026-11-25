@@ -53,7 +53,10 @@ même si la sauvegarde suivie est brièvement en cours d’écriture.
 La barre de suivi indique la date de la dernière synchronisation.
 
 Dans les Bois Perdus, le tracé doré indique le chemin normal de Kokiri au Bosquet
-sacré. Les passages de cette route indiquent où Link apparaît à chaque entrée.
+sacré. Les flèches indiquent le sens du trajet. Les croix signalent les
+neuf sorties qui ramènent à Kokiri. Réimporte le jeu et la seed pour
+ajouter ces croix à une carte enregistrée précédemment.
+Les passages de cette route indiquent où Link apparaît à chaque entrée.
 Le plan inclut aussi la branche ouest et ses checks près du pont.
 Depuis la plaine d’Hyrule, l’entrée de la forêt ouvre la vue du pont de
 Kokiri et indique le point d’arrivée de Link. Les liaisons de la plaine

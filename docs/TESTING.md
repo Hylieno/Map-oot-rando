@@ -1,5 +1,10 @@
 # Validation
 
+Les neuf retours à Kokiri et les trajets vers le Village Goron, la
+rivière Zora et le Bosquet sacré ont été vérifiés aux deux âges dans
+Tk avec les scènes publiques. Le test d’extraction distingue la porte
+principale, le point d’arrivée et les sorties de retour.
+
 Un test Tk ferme et rouvre l’application pour vérifier la mémorisation
 du suivi de zone. Il vérifie le marqueur sur la zone affichée, l’absence
 de bascule automatique après un changement de zone et la reprise

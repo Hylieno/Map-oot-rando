@@ -5,6 +5,27 @@ from map_oot_rando.scene import extract_scenes, read_scenes
 
 
 class SceneTests(unittest.TestCase):
+    def test_lost_woods_distinguishes_the_entrance_from_reset_paths(self):
+        from map_oot_rando.scene import LOST_WOOD_RESET, NEIGHBORS
+
+        path = 'Banc/LostWood/LostWood_Child_Static.bcett.byml.zs'
+        actors = [
+            dict(Gyaml='StartPos', Name='LostWood_Entrance', Translate=(0, 100, 5)),
+            dict(Gyaml='FieldAndDungeonEntranceEventRequestActor', Name='LostWood_Entrance',
+                 Translate=(0, 112, 7)),
+            dict(Gyaml='FieldAndDungeonEntranceEventRequestActor', Translate=(0, 112, -9.5),
+                 Dynamic={'FirstEventName': 'Dm_SY_BancChangeGo_LostWood',
+                          'NextStartPosName': 'KokiriForest_FrontOfLostWood'}),
+            dict(Gyaml='FieldAndDungeonEntranceEventRequestActor', Translate=(24, 110, -35.66),
+                 Dynamic={'FirstEventName': 'Dm_SY_BancChangeGo',
+                          'NextStartPosName': 'GoronCity_LostWoodSide_after'}),
+        ]
+        scene = extract_scenes({path: {'root': {'Actors': actors}}}, lambda _: {})[path]
+        self.assertEqual(dict(scene['points']), {
+            NEIGHBORS['LostWood']['KokiriForest']: (0, 7),
+            'LostWood_Entrance': (0, 5),
+            LOST_WOOD_RESET: (0, -9.5),
+        })
     def test_training_routes_require_both_centers_and_the_native_door(self):
         from map_oot_rando.scene import (TRAINING_TO_STATUE, TRAINING_TO_WALKWAY, TRAINING_VIEWS,
                                         TRAINING_WALKWAY_GATE, group_scenes)

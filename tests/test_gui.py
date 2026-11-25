@@ -861,7 +861,7 @@ class GuiTests(unittest.TestCase):
 
     def test_lost_woods_shortcuts_and_age_buttons(self):
         from unittest.mock import patch
-        from map_oot_rando.scene import GORON_LOST_WOODS_FLOOR, GORON_VIEWS, NEIGHBORS, REGION_VIEWS
+        from map_oot_rando.scene import GORON_LOST_WOODS_FLOOR, GORON_VIEWS, LOST_WOOD_RESET, NEIGHBORS, REGION_VIEWS
 
         app = self.app
         regions = ('KokiriForest', 'LostWood', 'GoronCity', 'ZoraRiver', 'HyruleField', 'ZoraDomain', 'ZoraFountain')
@@ -871,7 +871,9 @@ class GuiTests(unittest.TestCase):
 
         doc = dict(demo_document(), provenance='ootrr-scan', regions=list(regions), locations=[])
         points = {
+            'KokiriForest': [('front_of_lost_wood_entrance', (0, 0)), ('KokiriForest_FrontOfLostWood', (0, 5))],
             'LostWood': [('Vers le Village Goron', (24, -35.66)), ('Vers la Rivière Zora', (68.5, -25.6)),
+                         (LOST_WOOD_RESET, (0, -9.5)),
                          ('LostWood_ZoraRiverSide', (64.5, -25.6)),
                          ('LostWood_GoronCitySide_before', (24, -29.15)),
                          ('LostWood_GoronCitySide_after', (24, -29.15))],
@@ -888,6 +890,7 @@ class GuiTests(unittest.TestCase):
                          for region in points for age in ('Child', 'Adult')}
         self.enterContext(patch.object(app, 'ensure_atlas'))
         app.load(doc)
+        app.open_neighbor('LostWood')
         self.assertEqual(app.zones.get(), 'Bois Perdus')
         self.assertIn('Village Goron', app.zones['values'])
         self.assertFalse(any('Adulte' in label for label in app.zones['values']))
@@ -940,6 +943,12 @@ class GuiTests(unittest.TestCase):
                 check_spawns((64.5, -25.6))
             else:
                 check_spawns((24, -29.15))
+
+        reset, = app.canvas.find_withtag('lost-wood-reset')
+        x, y = app.canvas.coords(reset)
+        app.press(SimpleNamespace(x=round(x), y=round(y)))
+        self.assertEqual(app.resource.get(), REGION_VIEWS['KokiriForest']['Adult'])
+        check_spawns((0, 5))
 
     def test_kokiri_bridge_routes_field_and_link_to_the_right_scene_view(self):
         from unittest.mock import patch

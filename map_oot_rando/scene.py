@@ -385,6 +385,7 @@ LOST_WOOD_POINT_LABELS = {
     'goron_city_side_after_entrance': 'Vers le Village Goron',
     'zora_river_entrance': 'Vers la Rivière Zora',
 }
+LOST_WOOD_RESET = 'Retour à Kokiri'
 HYRULE_ANCHORS = {
     'Market': 'Porte de la Citadelle',
     'KakarikoVillage': 'Vers Cocorico',
@@ -731,8 +732,13 @@ def projection_points(region, sources):
                 if gyaml == 'Obj_Kokiri_Bed_A_01':
                     label = NEIGHBORS[region]['DreamWorld']
             elif region == 'LostWood':
-                if gyaml == 'StartPos' and actor.get('Name') == 'LostWood_Entrance':
-                    label = 'arrivee_de_kokiri'
+                if gyaml == 'FieldAndDungeonEntranceEventRequestActor':
+                    if actor.get('Name') == 'LostWood_Entrance':
+                        label = NEIGHBORS[region]['KokiriForest']
+                    dynamic = actor.get('Dynamic')
+                    if (isinstance(dynamic, dict) and dynamic.get('FirstEventName') == 'Dm_SY_BancChangeGo_LostWood'
+                            and dynamic.get('NextStartPosName') == 'KokiriForest_FrontOfLostWood'):
+                        label = LOST_WOOD_RESET
             elif region == 'ZoraRiver' and gyaml == 'FieldAndDungeonEntranceEventRequestActor':
                 label = ZORA_RIVER_EXITS.get(actor.get('Name'))
             elif (region == 'KakarikoVillage' and gyaml == 'FieldAndDungeonEntranceEventRequestActor'
@@ -877,6 +883,11 @@ def projection_points(region, sources):
                     # The passage has two story variants with indistinguishable anchors.
                     x, z = round(x, 4), round(z, 4)
                 points.add((label, (x, z)))
+    if region == 'LostWood':
+        portal = NEIGHBORS[region]['KokiriForest']
+        if not any(label == portal for label, _ in points):
+            starts = {point for label, point in points if label == 'LostWood_Entrance'}
+            points.update((portal, point) for point in starts)
     return points
 
 

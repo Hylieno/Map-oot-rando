@@ -23,7 +23,7 @@ from .scene import (BURNT_VILLAGE, CASTLE_COURT, DAMPE_ROUTES, DREAM_SCENE_VIEWS
                     FIRE_VIEWS, FLOOR_OPTIONS,
                     FOUNTAIN_DUNGEON_AGES, GANON_DUNGEON_VIEWS, GANON_ESCAPE, MARKET_CASTLE_AGES,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
-                    GORON_LEVELS, GORON_VIEWS, GUIDE_ROUTE,
+                    GORON_LEVELS, GORON_VIEWS, GUIDE_ROUTE, LOST_WOOD_RESET,
                     NEIGHBORS, PORTAL_ARRIVAL_STARTS, PORTAL_START_NAMES, REGION_VIEWS, SHARED_DUNGEONS,
                     SIDE_PORTALS, TRAINING_VIEWS,
                     UNDERGROUND_LABELS, UNDERGROUND_VIEWS, VIEWS,
@@ -1300,6 +1300,8 @@ class MapApplication:
         aerial = self.aerial.get(self.resource.get())
         region = self.current_region()
         name = REGION_NAMES[region]
+        reset_points = [point for label, point in (scene or {}).get('points', ())
+                        if region == 'LostWood' and label == LOST_WOOD_RESET]
         if self.resource.get() in GORON_FLOORS:
             name = f'{name} · {GORON_LEVELS[GORON_FLOORS[self.resource.get()]]}'
         elif self.resource.get() in FLOOR_OPTIONS:
@@ -1364,7 +1366,7 @@ class MapApplication:
                                         dash=(5, 3) if title == DAMPE_ROUTES['PlayingSecond'] else (),
                                         capstyle='round', joinstyle='round', tags='scene-route')
             for label, point in scene['points']:
-                if label in exits or label in PORTAL_START_NAMES.get(region, ()):
+                if label in exits or label == LOST_WOOD_RESET or label in PORTAL_START_NAMES.get(region, ()):
                     continue
                 x, y = self.viewport.screen(point)
                 self.canvas.create_polygon(x, y-5, x+5, y, x, y+5, x-5, y,
@@ -1396,6 +1398,8 @@ class MapApplication:
         if len(spawns) > 1:
             heading += ' · Deux arrivées possibles'
         self.canvas.create_text(12, 12, anchor='nw', fill=heading_color, text=heading)
+        if reset_points:
+            self.canvas.create_text(12, 30, anchor='nw', fill='#f5ad80', text=f'×  {LOST_WOOD_RESET}')
         exit_names = {}
         exit_bounds = []
         exits_by_point = {}
@@ -1428,6 +1432,18 @@ class MapApplication:
             title = ' · '.join(action[0] for action in actions) + ' ▾' if len(actions) > 1 else exit_name
             exit_names[title] = actions
             captions.append((title, x, y - 16))
+        kokiri = self.view_for_region('KokiriForest') if reset_points and not self.simulation else None
+        for point in reset_points:
+            x, y = self.viewport.screen(point)
+            marker = self.canvas.create_text(x, y, text='×', fill='#f5ad80',
+                                             font=('TkDefaultFont', 13, 'bold'), tags='lost-wood-reset')
+            exit_bounds.append(self.canvas.bbox(marker))
+            if kokiri:
+                self.navigation_markers[marker] = 'KokiriForest'
+                self.local_portals[marker] = (
+                    (LOST_WOOD_RESET, 'KokiriForest', kokiri, NEIGHBORS['KokiriForest']['LostWood']),
+                )
+                self.portal_views[marker] = kokiri
         rows = [row for row in self.visible if location_view(row) == self.resource.get()
                 and row.position is not None
                 and (self.show_outside.get() or row == self.selected or not self.outside(row))]
@@ -1446,7 +1462,7 @@ class MapApplication:
             labels.append((title, x + (12 if right else -12), y,
                            'w' if right else 'e', '#edf2f4', row))
         # Give the selected check first claim on label space, then the landmarks.
-        heading_height = 50 if self.canvas.find_withtag('race-legend') else 30
+        heading_height = 50 if reset_points or self.canvas.find_withtag('race-legend') else 30
         used = [(0, 0, width, heading_height)]
         foreground = [label for label in labels if label[-1] == self.selected]
         background = [label for label in labels if label[-1] != self.selected]
