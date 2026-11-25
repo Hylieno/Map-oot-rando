@@ -327,7 +327,7 @@ class GuiTests(unittest.TestCase):
                                          source='field-atlas')
         app.aerial[woods] = lost_woods_plan()
         app.atlas_loading = adult_forest
-        app.atlas_failed.add(field)
+        app.atlas_failed[field] = 'asset_unavailable'
         app.query.set('filtered out')
         self.assertFalse(app.visible)
 
@@ -343,6 +343,46 @@ class GuiTests(unittest.TestCase):
             with self.subTest(view=view):
                 self.assertEqual(views[view]['status'], status)
                 self.assertEqual(views[view]['placements'], 1)
+        self.assertEqual(views[field]['reason'], 'asset_unavailable')
+
+    def test_atlas_reports_distinct_failures_and_keeps_the_schematic(self):
+        from unittest.mock import patch
+        from PIL import Image
+
+        app = self.app
+        path = 'Banc/KokiriForest/KokiriForest_Child_Static.bcett.byml.zs'
+        doc = dict(demo_document(), provenance='ootrr-scan', locations=[])
+        image = Image.new('RGB', (100, 100))
+        cases = (
+            ([(0, 0)], None, 'missing_reference_points', 'Repères d’alignement'),
+            ([(0, 0), (100, 0), (0, 100)], OSError('/local/path'), 'asset_unavailable', 'inaccessible'),
+            ([(0, 0), (100, 0), (0, 100)], ValueError('bad file'), 'asset_invalid', 'invalide'),
+            ([(0, 0), (100, 0), (0, 100)], None, 'alignment_failed', 'alignée'),
+        )
+
+        def wait_for_failure():
+            if app.atlas_failed:
+                self.root.quit()
+            else:
+                self.root.after(20, wait_for_failure)
+
+        for points, error, reason, message in cases:
+            with (
+                self.subTest(reason=reason),
+                patch('map_oot_rando.gui.load_kokiri_image', return_value=image, side_effect=error),
+                patch('map_oot_rando.gui.align_kokiri_image', side_effect=ValueError('bad fit')),
+            ):
+                doc['scenes'] = {path: {'rooms': [], 'points': [(str(i), p) for i, p in enumerate(points)]}}
+                app.atlas_images.clear()
+                app.load(doc)
+                self.root.after(20, wait_for_failure)
+                deadline = self.root.after(2000, self.root.quit)
+                self.root.mainloop()
+                self.root.after_cancel(deadline)
+                self.assertEqual(app.atlas_failed.get(app.resource.get()), reason)
+                self.assertFalse(app.canvas.find_withtag('aerial'))
+                self.assertIn(message, app.import_status.get())
+                self.assertNotIn('/local/path', app.import_status.get())
 
     def test_kokiri_age_merges_layers_and_lists_uncovered_checks(self):
         from PIL import Image

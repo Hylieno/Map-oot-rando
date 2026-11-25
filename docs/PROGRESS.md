@@ -3,6 +3,8 @@
 Le diagnostic de la carte indique l’état du fond et le nombre de
 placements par vue. Les fonds en attente ou indisponibles sont
 identifiables dans le même rapport que les contrôles de couverture.
+Un fond indisponible signale la cause dans la fenêtre et dans le
+diagnostic. La vue schématique reste utilisable.
 
 Le cadrage de la zone suivie garde le marqueur de Link visible
 lorsque le fond Field Atlas finit de charger, même si le personnage

@@ -4,6 +4,9 @@ Le rapport JSON a été testé avec un fond Field Atlas contrôlé, un
 fond en cours de chargement, un fond indisponible, un fond encore à
 charger, un plan local et un schéma. Les placements sont comptés
 même lorsqu’une recherche les masque.
+Quatre causes d’échec ont été simulées dans Tk. Le schéma reste
+affiché, la cause apparaît dans le bandeau et le rapport JSON
+indique un code sans chemin local.
 
 Le test Tk retarde le chargement du fond pendant un changement de
 zone. Il vérifie que le marqueur de Link reste entièrement visible

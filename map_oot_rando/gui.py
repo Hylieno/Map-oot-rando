@@ -37,6 +37,12 @@ from .view import Viewport
 from .world_map import WORLD_PIN_PARENTS, WORLD_PINS, WORLD_SIZE, load_world_map
 
 ATLAS_BACKGROUND = '#0d1f2e'
+ATLAS_FAILURE_DETAILS = {
+    'missing_reference_points': 'Repères d’alignement insuffisants.',
+    'asset_unavailable': 'Image Field Atlas inaccessible.',
+    'asset_invalid': 'Image Field Atlas invalide ou modifiée.',
+    'alignment_failed': 'L’image Field Atlas n’a pas pu être alignée.',
+}
 WORLD_BACKGROUND = '#47351c'
 OVERVIEW_SCALE = 0.42
 AGE_LABELS = {'Child': 'Enfant', 'Adult': 'Adulte'}
@@ -263,7 +269,7 @@ class MapApplication:
             if synthetic or spec and (row.get('source'), row.get('calibration')) == spec[:2]:
                 aerial[view] = AerialImage.from_document(row)
         self.aerial = aerial
-        self.atlas_failed = set()
+        self.atlas_failed = {}
         self.atlas_loading = None
         self.atlas_generation += 1
         if self.atlas_callback is not None:
@@ -726,6 +732,8 @@ class MapApplication:
                 status = 'not_loaded' if spec else 'schematic'
             source = self.aerial[view].source if view in self.aerial else (spec[0] if spec else None)
             views[view] = {'source': source, 'status': status, 'placements': placements[view]}
+            if status == 'unavailable':
+                views[view]['reason'] = self.atlas_failed[view]
         diagnostic['map_views'] = views
         try:
             Path(path).write_text(json.dumps(diagnostic, ensure_ascii=False, indent=2), encoding='utf-8')
@@ -754,6 +762,11 @@ class MapApplication:
             references.append((label, ((low[0] + high[0])/2, (low[1] + high[1])/2)))
         return references
 
+    def note_atlas_failure(self, view, reason):
+        self.atlas_failed[view] = reason
+        if self.resource.get() == view:
+            self.import_status.set(f'{ATLAS_FAILURE_DETAILS[reason]} Vue schématique affichée.')
+
     def ensure_atlas(self):
         view = self.resource.get()
         if self.simulation or view in self.aerial or view in self.atlas_failed:
@@ -773,6 +786,7 @@ class MapApplication:
         atlas_key = DUNGEON_ATLAS_KEYS.get(view, age)
         references = self.aerial_references(view)
         if region not in FIELD_FRAMES and len({point for _, point in references}) < 3:
+            self.note_atlas_failure(view, 'missing_reference_points')
             return
         details = [(row.name, row.project()) for row in self.locations
                    if location_view(row) == view and row.position is not None]
@@ -783,29 +797,42 @@ class MapApplication:
 
         def load():
             try:
-                if region == 'KokiriForest':
-                    image = cached if cached is not None else load_kokiri_image()
-                    background = align_kokiri_image(image, references, details)
-                else:
-                    width = 700 if view in DUNGEON_ATLAS_KEYS else 650
-                    image = cached if cached is not None else load_atlas_image(digest, width=width)
-                    background = align_region_image(image, references, region, atlas_key)
-                result.put((image, background))
-            except (OSError, ValueError):
-                result.put((None, None))
+                image = cached
+                if image is None:
+                    if region == 'KokiriForest':
+                        image = load_kokiri_image()
+                    else:
+                        width = 700 if view in DUNGEON_ATLAS_KEYS else 650
+                        image = load_atlas_image(digest, width=width)
+            except (ValueError, Image.DecompressionBombError):
+                result.put((None, None, 'asset_invalid'))
+                return
+            except OSError:
+                result.put((None, None, 'asset_unavailable'))
+                return
+            try:
+                background = (align_kokiri_image(image, references, details) if region == 'KokiriForest'
+                              else align_region_image(image, references, region, atlas_key))
+            except ValueError:
+                result.put((image, None, 'alignment_failed'))
+            else:
+                result.put((image, background, None))
 
         def finish():
             self.atlas_callback = None
             if generation != self.atlas_generation:
                 return
             try:
-                image, background = result.get_nowait()
+                image, background, failure = result.get_nowait()
             except Empty:
                 self.atlas_callback = self.root.after(100, finish)
                 return
             self.atlas_loading = None
-            if background:
+            if image is not None:
                 self.atlas_images[source] = image
+            if failure:
+                self.note_atlas_failure(view, failure)
+            else:
                 self.aerial[view] = background
                 if self.resource.get() == view:
                     self.import_status.set('')
@@ -814,10 +841,6 @@ class MapApplication:
                     focus = (selected.project() if selected and selected.position is not None
                              and location_view(selected) == view else None)
                     self.fit(focus=focus, preserve_viewport=self.viewport_adjusted)
-            else:
-                self.atlas_failed.add(view)
-                if self.resource.get() == view:
-                    self.import_status.set('Fond indisponible. Vue schématique affichée.')
             if self.resource.get() != view:
                 self.ensure_atlas()
 
@@ -1145,7 +1168,7 @@ class MapApplication:
         self.import_status.set('')
         self.render()
         self.fit()
-        self.atlas_failed.discard(self.resource.get())
+        self.atlas_failed.pop(self.resource.get(), None)
         self.ensure_atlas()
 
     def outside(self, row):

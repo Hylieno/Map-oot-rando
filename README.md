@@ -271,6 +271,8 @@ projettent en dehors de l’image ou loin du trait. Le rapport exclut l’image,
 l’identifiant de seed et la sauvegarde.
 La liste des vues distingue les fonds contrôlés, en cours de chargement,
 encore à charger ou indisponibles, ainsi que les schémas et les plans locaux.
+Pour un fond indisponible, le rapport précise si l’image est inaccessible
+ou invalide, si les repères manquent ou si l’alignement a échoué.
 
 ## Métadonnées locales
 
