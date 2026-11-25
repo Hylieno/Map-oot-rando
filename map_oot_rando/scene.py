@@ -261,6 +261,8 @@ GANON_ESCAPE_TO_FINAL = 'Sortie vers l’arène de Ganon'
 GANON_FINAL_ARRIVAL = 'Arrivée dans l’arène de Ganon'
 GANONDORF_TO_ESCAPE = 'Début de l’effondrement'
 GANON_ESCAPE_ARRIVAL = 'Arrivée au début de la fuite'
+GANONDORF_TILE = 'Dalle de Ganondorf'
+GANONDORF_TILE_ACTOR = 'Obj_InsideGanonCastle_BrokenFloor_A_01'
 FIRE_KAKARIKO_ARRIVAL = 'Arrivée à Cocorico après Volvagia'
 FIRE_KAKARIKO_CONTINUE = 'Suite de la cinématique de Volvagia'
 FIRE_SAGE_SCENE = 'Sages · Volvagia'
@@ -610,6 +612,7 @@ GANON_TOWER_ANCHORS = {
     'Land_InsideGanonCastle_Room22_A_01': 'Salle du deuxième étage',
     'Land_InsideGanonCastle_Room24_A_01': 'Salle du troisième étage',
     'Land_InsideGanonCastle_Room26_A_01': 'Salle de Ganondorf',
+    GANONDORF_TILE_ACTOR: GANONDORF_TILE,
 }
 GANON_ESCAPE_ANCHORS = {
     'CrumblingGanonCastle_StartPos': 'Début de la fuite',
@@ -978,6 +981,8 @@ def projection_points(region, sources):
                 boss, kind = DREAM_BATTLES[dream_scene]
                 if gyaml == kind:
                     label = boss
+                elif dream_scene == 'GanondorfStage' and gyaml == GANONDORF_TILE_ACTOR:
+                    label = GANONDORF_TILE
                 elif gyaml == 'StartPos':
                     label = {dream_scene: 'Arrivée en revanche',
                              'StartPos_SubEvent_AllBossBattle': 'Arrivée pendant le défi'}.get(actor.get('Name'))

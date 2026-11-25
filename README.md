@@ -209,6 +209,8 @@ Le sélecteur du Monde des rêves ouvre les 25 arènes. Leurs schémas
 indiquent les arrivées du défi et des revanches. Le suivi de Link peut
 ouvrir l’arène chargée et afficher sa position. Réimporte le jeu et la
 seed pour ajouter ces vues à une carte enregistrée précédemment.
+Le plan de la salle de Ganondorf et celui de sa revanche montrent les
+80 dalles de la disposition d’origine.
 
 Le ranch Lon Lon se rejoint depuis la plaine aux deux âges. Le jeu
 des poules de Talon apparaît dans la vue enfant. Le suivi de Link

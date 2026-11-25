@@ -1767,6 +1767,7 @@ class GuiTests(unittest.TestCase):
             ]}},
             tower: {'root': {'Actors': [
                 dict(Gyaml='Enemy_DungeonBoss_Ganondorf', Hash=15798214583796164285, Translate=(0, 174, -24.6)),
+                dict(Gyaml='Obj_InsideGanonCastle_BrokenFloor_A_01', Translate=(3, 171, -25)),
             ]}},
         }
         doc['scenes'].update(extract_scenes(maps, lambda _: {}))
@@ -1797,6 +1798,10 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(app.resource.get(), GANON_ESCAPE)
         app.resource.set(GANON_DUNGEON_VIEWS[-1])
         app.resource_changed(manual=False)
+        tile, = app.canvas.find_withtag('ganondorf-tile')
+        x1, y1, x2, y2 = app.canvas.coords(tile)
+        self.assertAlmostEqual(x2-x1, 3*app.viewport.scale)
+        self.assertAlmostEqual(y2-y1, 3*app.viewport.scale)
         portal, = app.canvas.find_withtag('zone-navigation')
         l, t, r, b = app.canvas.bbox(portal)
         app.press(SimpleNamespace(x=(l+r)//2, y=(t+b)//2))

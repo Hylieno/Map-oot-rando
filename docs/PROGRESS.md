@@ -3,6 +3,8 @@
 Les 25 arènes du Monde des rêves sont disponibles dans le sélecteur.
 Le marqueur de Link suit la ressource chargée, y compris lors du retour
 à la salle intermédiaire.
+La salle de Ganondorf et sa revanche affichent les 80 dalles d’origine
+aux coordonnées de leurs acteurs.
 
 Les portails de Ganon spectral, Volvagia, Morpha et Bongo Bongo
 indiquent les retours adultes et les étapes par la Chambre des Sages.

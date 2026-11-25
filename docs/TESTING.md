@@ -4,6 +4,8 @@ Les 25 arènes du Monde des rêves et les 50 points de départ du défi
 et des revanches ont été contrôlés dans Tk avec les scènes publiques.
 Le test simule la transition vers Gohma et le retour aux dix coffres
 de la salle intermédiaire.
+Les 80 dalles de Ganondorf ont été comparées aux coordonnées des deux
+scènes publiques et vérifiées sur les deux vues.
 
 Les treize transitions des quatre temples adultes ont été vérifiées
 dans Tk avec les scènes publiques. Les anneaux coïncident avec les

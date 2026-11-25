@@ -23,6 +23,7 @@ from .scene import (BURNT_VILLAGE, CASTLE_COURT, DAMPE_ROUTES, DREAM_BATTLE_VIEW
                     DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS,
                     FIRE_KAKARIKO_ARRIVAL, FIRE_KAKARIKO_CONTINUE, FIRE_VIEWS, FLOOR_OPTIONS,
                     FOUNTAIN_DUNGEON_AGES, GANON_DUNGEON_VIEWS, GANON_ESCAPE, GANON_ESCAPE_ROUTE, GANON_FINAL,
+                    GANONDORF_TILE,
                     MARKET_CASTLE_AGES,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS, GUIDE_ROUTE, LOST_WOOD_RESET,
@@ -1354,6 +1355,13 @@ class MapApplication:
             heading = f'{name} | {attribution}'
         elif scene:
             self.canvas.configure(background=ATLAS_BACKGROUND)
+            # The native floor actors are spaced three world units apart.
+            tile_radius = self.viewport.scale * 1.5
+            for label, point in scene['points']:
+                if label == GANONDORF_TILE:
+                    x, y = self.viewport.screen(point)
+                    self.canvas.create_rectangle(x-tile_radius, y-tile_radius, x+tile_radius, y+tile_radius,
+                                                 fill='#1f5577', outline='#527f98', tags='ganondorf-tile')
             for label, low, high in scene['rooms']:
                 x1, y1 = self.viewport.screen(low)
                 x2, y2 = self.viewport.screen(high)
@@ -1377,7 +1385,7 @@ class MapApplication:
                                         capstyle='round', joinstyle='round', tags='scene-route')
             for label, point in scene['points']:
                 sage_exit = region == 'SageRoom' and label in SIDE_PORTALS[region]
-                if (label in exits or sage_exit or label in (LOST_WOOD_RESET, FIRE_KAKARIKO_CONTINUE)
+                if (label in exits or sage_exit or label in (GANONDORF_TILE, LOST_WOOD_RESET, FIRE_KAKARIKO_CONTINUE)
                         or label in PORTAL_START_NAMES.get(region, ())):
                     continue
                 x, y = self.viewport.screen(point)
