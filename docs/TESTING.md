@@ -1,5 +1,8 @@
 # Validation
 
+Les six traversées entre les vues de Jabu-Jabu ont été vérifiées dans
+Tk avec les scènes publiques et les fonds Field Atlas.
+
 Les dix traversées entre les vues de l’Arbre Mojo ont été vérifiées
 dans Tk sur les fonds Field Atlas et le schéma de l’arène. Les deux
 toiles et l’arrivée de Gohma reprennent les repères des scènes publiques.

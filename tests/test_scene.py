@@ -92,6 +92,25 @@ class SceneTests(unittest.TestCase):
                 row = Location('test', 'Check', 'test', path, point, region='SpiritTemple', dungeon_room=7)
                 self.assertEqual(location_view(row), SPIRIT_VIEWS[floor])
 
+    def test_jabu_lift_connects_the_basement_and_upper_floor(self):
+        from map_oot_rando.scene import JABU_VIEWS, SIDE_PORTALS, group_scenes
+
+        region = 'InsideJabuJabuBelly'
+        path = f'Banc/{region}/{region}_Static.bcett.byml.zs'
+        actors = [
+            dict(Gyaml='Obj_InsideJabu_Jabu_ElevatorLift_A_02', Hash=5914032013565537495,
+                 Translate=(-32.36, 81.75, -93.31)),
+            dict(Gyaml='Obj_InsideJabu_Jabu_ElevatorLift_A_01', Hash=5186749243682591245,
+                 Translate=(-32.36, 83, -93.31)),
+        ]
+        scenes = extract_scenes({path: {'root': {'Actors': actors}}}, lambda _: {})
+        grouped = group_scenes(read_scenes({'scenes': scenes}))
+        lower = 'Ascenseur d’Octo · vers l’étage'
+        upper = 'Ascenseur d’Octo · voir le sous-sol'
+        self.assertEqual(dict(grouped[JABU_VIEWS[1]]['points']), {lower: (-32.36, -93.31)})
+        self.assertEqual(dict(grouped[JABU_VIEWS[2]]['points']), {upper: (-32.36, -93.31)})
+        self.assertEqual(SIDE_PORTALS[region][lower][1:], (JABU_VIEWS[2], lower, upper))
+
     def test_deku_webs_connect_separate_levels_without_mixing_the_two_drops(self):
         from map_oot_rando.scene import DEKU_VIEWS, group_scenes
 

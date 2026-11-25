@@ -1,5 +1,8 @@
 # Checkpoint — 25 novembre 2026
 
+Dans le ventre de Jabu-Jabu, la salle des fosses, l’ascenseur d’Octo
+et la porte de Barinade relient les quatre vues du donjon.
+
 À l’intérieur de l’Arbre Mojo, les murs de lierre relient les étages
 supérieurs. Deux toiles marquent les descentes jusqu’au sous-sol
 profond, qui donne accès à l’arène de Gohma.

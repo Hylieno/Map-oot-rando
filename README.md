@@ -80,7 +80,8 @@ Ses deux passages se choisissent depuis la carte, avec un point
 d’arrivée distinct pour chacun.
 Enfant, la Fontaine mène au ventre de Jabu-Jabu. Les trois niveaux ont
 leurs plans Field Atlas. Barinade, son cœur et les pots de sa salle ont une
-vue schématique dédiée. Depuis la forêt Kokiri, l’Arbre Mojo propose cinq
+vue schématique dédiée. Les repères des fosses, de l’ascenseur d’Octo et
+de la porte de Barinade relient les quatre vues. Depuis la forêt Kokiri, l’Arbre Mojo propose cinq
 plans, dont celui du hall d’entrée, et une vue dédiée à l’arène de Gohma.
 Le passage entre Kokiri et l’Arbre Mojo indique l’arrivée dans les deux sens.
 Depuis le Bosquet sacré, le Temple de la Forêt propose aussi cinq plans

@@ -44,6 +44,14 @@ FIRE_LEVEL_CROSSINGS = (
 )
 JABU_LEVELS = ('Rez-de-chaussée', 'Sous-sol', 'Étage', 'Arène de Barinade')
 JABU_VIEWS = tuple(f'{REGION_NAMES["InsideJabuJabuBelly"]} · {level}' for level in JABU_LEVELS)
+JABU_LEVEL_CROSSINGS = (
+    ((0, 'Salle des fosses · vers le sous-sol', 'DungeonRoomCenterAnchor', 15514577878712490971),
+     (1, 'Sous les fosses · voir le rez-de-chaussée', 'DungeonRoomCenterAnchor', 4161188942676563767)),
+    ((1, 'Ascenseur d’Octo · vers l’étage', 'Obj_InsideJabu_Jabu_ElevatorLift_A_02', 5914032013565537495),
+     (2, 'Ascenseur d’Octo · voir le sous-sol', 'Obj_InsideJabu_Jabu_ElevatorLift_A_01', 5186749243682591245)),
+    ((2, 'Porte vers Barinade', 'Obj_InsideJabu_Jabu_SwitchShutter_A_01', 8015922362823848795),
+     (3, 'Voir l’accès à l’arène de Barinade', 'StartPos', 7558908200776400959)),
+)
 DEKU_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', 'Sous-sol', 'Sous-sol profond', 'Arène de Gohma')
 DEKU_VIEWS = tuple(f'{REGION_NAMES["InsideTheDekuTree"]} · {level}' for level in DEKU_LEVELS)
 DEKU_LEVEL_CROSSINGS = (
@@ -414,6 +422,9 @@ SIDE_PORTALS = {
         DODONGO_BOSS_EXIT: ('DeathMountainTrail', None, 'Mont du Péril · sortie du boss', DODONGO_BOSS_EXIT),
     },
     'InsideJabuJabuBelly': {
+        **{label: ('InsideJabuJabuBelly', JABU_VIEWS[destination], label, arrival)
+           for ends in JABU_LEVEL_CROSSINGS
+           for (_, label, _, _), (destination, arrival, _, _) in (ends, ends[::-1])},
         JABU_BOSS_EXIT: ('ZoraFountain', REGION_VIEWS['ZoraFountain']['Child'],
                          'Fontaine Zora · sortie de Barinade', JABU_BOSS_EXIT),
     },
@@ -893,6 +904,7 @@ def crossing_level_points(sources, crossings):
 
 
 LEVEL_POINT_EXTRACTORS = {
+    'InsideJabuJabuBelly': lambda sources: crossing_level_points(sources, JABU_LEVEL_CROSSINGS),
     'DodongoCavern': lambda sources: crossing_level_points(sources, DODONGO_LEVEL_CROSSINGS),
     'InsideTheDekuTree': lambda sources: crossing_level_points(sources, DEKU_LEVEL_CROSSINGS),
     'FireTemple': lambda sources: crossing_level_points(sources, FIRE_LEVEL_CROSSINGS),
