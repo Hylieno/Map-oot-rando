@@ -99,6 +99,10 @@ locaux de suivi, séparément des profils de sauvegarde et des cartes exportées
 Le Temple du Temps utilise les limites de la zone `TimeTemple` propres
 à chaque âge dans la scène de la Citadelle. La Chambre des Sages utilise
 sa ressource distincte et un seul plan aux deux âges.
+Après Twinrova, l’acteur du portail ouvre la Chambre des Sages ou le
+Colosse adulte. Le Colosse utilise le point de départ nommé
+`SpiritRequiem`. La Chambre des Sages utilise la position explicite
+de la cinématique.
 Le Monde des rêves distingue le musée et la salle intermédiaire par
 le nom de la ressource active. Les coffres du défi conservent leurs
 identifiants individuels quand ils partagent les mêmes coordonnées.

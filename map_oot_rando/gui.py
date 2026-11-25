@@ -1331,7 +1331,8 @@ class MapApplication:
                         arrival_scene = portal_scene
             for portal, (neighbor, floor, title, arrival) in SIDE_PORTALS.get(region, {}).items():
                 points = {tuple(p) for label, p in (scene or {}).get('points', ()) if label == portal}
-                if len(points) == 1 and self.view_for_region(neighbor) and (floor is None or floor in self.views):
+                destination = floor if floor is not None else self.view_for_region(neighbor)
+                if len(points) == 1 and destination in self.views:
                     exits[portal] = (neighbor, points.pop(), title, floor, arrival)
         heading_color = '#d2e1da'
         if aerial:

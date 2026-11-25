@@ -1,5 +1,9 @@
 # Checkpoint — 25 novembre 2026
 
+Le portail de Twinrova ouvre le Colosse du désert adulte, directement
+ou via la Chambre des Sages. Les deux trajets indiquent les points
+d’arrivée de la cinématique.
+
 Le tracé des Bois Perdus indique le sens du trajet vers le Bosquet
 sacré. Neuf croix signalent les sorties qui ramènent à Kokiri, et la
 porte principale a un point d’arrivée distinct.

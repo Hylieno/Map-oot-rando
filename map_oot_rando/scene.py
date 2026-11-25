@@ -223,6 +223,10 @@ TOMB_TO_GRAVE = 'Remontée vers le cimetière'
 DREAM_CHALLENGE_ARRIVAL = 'Arrivée du défi'
 SAGE_ROOM_ARRIVAL = 'Arrivée dans la Chambre des Sages'
 TEMPLE_SAGE_RETURN = 'Retour de la Chambre des Sages'
+SPIRIT_BOSS_TO_COLOSSUS = 'Sortie de Twinrova vers le Colosse'
+SPIRIT_BOSS_TO_SAGES = 'Sortie de Twinrova vers les Sages'
+SPIRIT_SAGE_CONTINUE = 'Suite de la cinématique de Twinrova'
+SPIRIT_COLOSSUS_ARRIVAL = 'Arrivée au Requiem des Esprits'
 SIDE_PORTALS = {
     'GerudoTrainingGround': {
         TRAINING_TO_WALKWAY: ('GerudoTrainingGround', TRAINING_VIEWS[1], 'Passerelle', TRAINING_TO_STATUE),
@@ -241,6 +245,13 @@ SIDE_PORTALS = {
     'SpiritTemple': {
         'left_hand_entrance': ('DesertColossus', None, 'Colosse · main gauche', 'spirit_temple_left_hand_entrance'),
         'right_hand_entrance': ('DesertColossus', None, 'Colosse · main droite', 'spirit_temple_right_hand_entrance'),
+        SPIRIT_BOSS_TO_COLOSSUS: ('DesertColossus', REGION_VIEWS['DesertColossus']['Adult'],
+                                  'Colosse du désert', SPIRIT_COLOSSUS_ARRIVAL),
+        SPIRIT_BOSS_TO_SAGES: ('SageRoom', None, 'Chambre des Sages · cinématique', SPIRIT_SAGE_CONTINUE),
+    },
+    'SageRoom': {
+        SPIRIT_SAGE_CONTINUE: ('DesertColossus', REGION_VIEWS['DesertColossus']['Adult'],
+                               'Colosse du désert · suite de la cinématique', SPIRIT_COLOSSUS_ARRIVAL),
     },
     'ZoraFountain': {
         FOUNTAIN_ICE_BACKDOOR: ('IceCavern', None, 'Caverne de glace · passage secondaire', ICE_CAVERN_BACKDOOR),
@@ -262,6 +273,8 @@ PORTAL_ARRIVAL_STARTS = {
     ('SpiritTemple', 'right_hand_entrance'): ('SpiritTemple_FromRightHand',),
     ('DesertColossus', 'spirit_temple_left_hand_entrance'): ('DesertColossus_FromSpiritTempleLeftHand',),
     ('DesertColossus', 'spirit_temple_right_hand_entrance'): ('DesertColossus_FromSpiritTempleRightHand',),
+    ('DesertColossus', SPIRIT_COLOSSUS_ARRIVAL): ('SpiritRequiem',),
+    ('SageRoom', SPIRIT_SAGE_CONTINUE): ('Arrivée après Twinrova',),
     ('LostWood', NEIGHBORS['LostWood']['ZoraRiver']): ('LostWood_ZoraRiverSide',),
     ('ZoraRiver', NEIGHBORS['ZoraRiver']['LostWood']): ('ZoraRiver_LostWoodSide',),
     ('LostWood', NEIGHBORS['LostWood']['GoronCity']): ('LostWood_GoronCitySide_before', 'LostWood_GoronCitySide_after'),
@@ -611,16 +624,19 @@ def spirit_level_points(sources):
         ('MapIconEntranceAnchor', 452821593555612172): (2, 'right_hand_entrance'),
         ('MapIconEntranceAnchor', 17977111214894828225): (2, 'left_hand_entrance'),
         ('DungeonRoomCenterAnchor', 8163808957952677095): (4, 'Arène de Twinrova'),
+        ('Obj_WarpPoint_A_01', 11243501154977749945): (4, SPIRIT_BOSS_TO_COLOSSUS),
     }
     anchors.update({('StartPos', name): (2, name)
                     for (region, portal), names in PORTAL_ARRIVAL_STARTS.items()
                     if region == 'SpiritTemple' and portal in SIDE_PORTALS[region]
                     for name in names})
-    return {(*anchors[key], (position[0], position[2]))
-            for source in sources.values() for actor in source['root'].get('Actors', ())
-            if (kind := actor.get('Gyaml'))
-            and (key := (kind, actor.get('Name') if kind == 'StartPos' else actor.get('Hash'))) in anchors
-            and (position := actor.get('Translate'))}
+    points = {(*anchors[key], (position[0], position[2]))
+              for source in sources.values() for actor in source['root'].get('Actors', ())
+              if (kind := actor.get('Gyaml'))
+              and (key := (kind, actor.get('Name') if kind == 'StartPos' else actor.get('Hash'))) in anchors
+              and (position := actor.get('Translate'))}
+    return points | {(floor, SPIRIT_BOSS_TO_SAGES, point)
+                     for floor, label, point in points if label == SPIRIT_BOSS_TO_COLOSSUS}
 
 
 LEVEL_POINT_EXTRACTORS = {
@@ -831,6 +847,9 @@ def projection_points(region, sources):
                     label = NEIGHBORS[region]['TempleOfTime']
                     # DoorOfTime_Draw has an explicit arrival, without a named StartPos.
                     points.add((SAGE_ROOM_ARRIVAL, (-0.029999999329447746, 0.0)))
+                    # Dm_Awake_Spirit places Link at the center of the platform.
+                    points.add(('Arrivée après Twinrova', (0.0, 0.0)))
+                    points.add((SPIRIT_SAGE_CONTINUE, (position[0], position[2])))
             elif region == 'DreamWorld':
                 if gyaml == 'StartPos' and actor.get('Name') == 'BossRush':
                     label = DREAM_CHALLENGE_ARRIVAL

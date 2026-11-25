@@ -1545,6 +1545,61 @@ class GuiTests(unittest.TestCase):
         app.open_neighbor(lake)
         self.assertEqual(app.resource.get(), REGION_VIEWS[lake]['Adult'])
 
+    def test_twinrova_warp_opens_the_adult_colossus_directly_or_via_the_sages(self):
+        from unittest.mock import patch
+        from map_oot_rando.scene import REGION_VIEWS, SPIRIT_VIEWS, extract_scenes
+
+        app = self.app
+        sage_view = REGION_VIEWS['SageRoom'][None]
+        colossus_view = REGION_VIEWS['DesertColossus']['Adult']
+        warp, requiem = (0.012, 142.16, -157.86), (-125.95, 94.36, 10.47)
+        maps = {
+            'Banc/SpiritTemple/SpiritTemple_Static.bcett.byml.zs': {'root': {'Actors': [
+                dict(Gyaml='Obj_WarpPoint_A_01', Hash=11243501154977749945, Translate=warp),
+            ]}},
+            'Banc/SageRoom/SageRoom_Dynamic.bcett.byml.zs': {'root': {'Actors': [
+                dict(Gyaml='StartPos', Translate=(0.09, 100.16, 0)),
+            ]}},
+            'Banc/DesertColossus/DesertColossus_Adult_Dynamic.bcett.byml.zs': {'root': {'Actors': [
+                dict(Gyaml='StartPos', Name='SpiritRequiem', Translate=requiem),
+            ]}},
+        }
+        doc = dict(demo_document(), provenance='ootrr-scan',
+                   regions=['KokiriForest', 'SpiritTemple', 'SageRoom', 'DesertColossus'],
+                   scenes=extract_scenes(maps, lambda _: {}), locations=[])
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+
+        def choose(marker, title):
+            l, t, r, b = app.canvas.bbox(marker)
+            with patch.object(app, 'post_marker_menu') as popup:
+                app.press(SimpleNamespace(x=(l+r)//2, y=(t+b)//2, x_root=50, y_root=50))
+            if popup.called:
+                index, = [i for i in range(app.marker_menu.index('end') + 1)
+                          if app.marker_menu.entrycget(i, 'label') == title]
+                app.marker_menu.invoke(index)
+
+        def arrival(point):
+            ring, = app.canvas.find_withtag('portal-arrival')
+            l, t, r, b = app.canvas.coords(ring)
+            x, y = app.viewport.screen(point)
+            self.assertAlmostEqual((l+r)/2, x)
+            self.assertAlmostEqual((t+b)/2, y)
+
+        for via_sages in (False, True):
+            app.resource.set(SPIRIT_VIEWS[-1])
+            app.resource_changed(manual=False)
+            app.navigation_age = 'Child'
+            marker, = app.canvas.find_withtag('zone-navigation')
+            choose(marker, 'Chambre des Sages · cinématique' if via_sages else 'Colosse du désert')
+            if via_sages:
+                self.assertEqual(app.resource.get(), sage_view)
+                arrival((0, 0))
+                marker, = app.canvas.find_withtag('zone-navigation')
+                choose(marker, 'Colosse du désert · suite de la cinématique')
+            self.assertEqual(app.resource.get(), colossus_view)
+            arrival((requiem[0], requiem[2]))
+
     def test_spirit_temple_hand_portal_opens_the_upper_floor(self):
         from unittest.mock import patch
         from map_oot_rando.link_position import LinkPosition

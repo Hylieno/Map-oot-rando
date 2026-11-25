@@ -1,5 +1,10 @@
 # Validation
 
+Le portail de Twinrova a été sélectionné dans Tk avec les scènes
+publiques. Les deux parcours affichent le même point d’arrivée au
+Requiem. Un test vérifie aussi le retour au Colosse adulte après une
+navigation en vue enfant.
+
 Les neuf retours à Kokiri et les trajets vers le Village Goron, la
 rivière Zora et le Bosquet sacré ont été vérifiés aux deux âges dans
 Tk avec les scènes publiques. Le test d’extraction distingue la porte
