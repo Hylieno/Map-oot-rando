@@ -263,6 +263,22 @@ class SceneTests(unittest.TestCase):
         grouped = group_scenes(read_scenes({'scenes': {path: customized}}))
         self.assertEqual([xy for _, xy in grouped[fire]['routes']], [moved_door])
 
+    def test_early_ganon_maps_require_all_barriers_to_restore_the_six_entrances(self):
+        from map_oot_rando.scene import (GANON_DUNGEON_VIEWS, GANON_TRIAL_LEVELS, GANON_TRIAL_REFERENCE_BARRIERS,
+                                        GANON_TRIAL_VIEWS, group_scenes)
+
+        path = 'Banc/InsideGanonCastle/InsideGanonCastle_Static.bcett.byml.zs'
+        barriers = list(zip(GANON_TRIAL_LEVELS, GANON_TRIAL_REFERENCE_BARRIERS))
+        saved = {'rooms': [], 'points': [('Barrière de la tour', (0, -21.02)), *barriers]}
+        grouped = group_scenes(read_scenes({'scenes': {path: saved}}))
+        hall = grouped[GANON_DUNGEON_VIEWS[0]]
+        self.assertEqual(sum(label.startswith('Entrée · ') for label, _ in hall['points']), 6)
+        self.assertEqual(sum(len(grouped[view]['routes']) for view in GANON_TRIAL_VIEWS), 17)
+
+        incomplete = dict(saved, points=saved['points'][:-1])
+        grouped = group_scenes(read_scenes({'scenes': {path: incomplete}}))
+        self.assertFalse(any(label.startswith('Entrée · ') for label, _ in grouped[GANON_DUNGEON_VIEWS[0]]['points']))
+
     def test_ganon_trial_tracking_switches_at_the_six_angled_doors(self):
         from map_oot_rando.scene import GANON_DUNGEON_VIEWS, GANON_TRIAL_VIEWS, ganon_trial_view
 

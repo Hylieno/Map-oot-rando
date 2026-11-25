@@ -1662,7 +1662,25 @@ def castle_view(z):
     return CASTLE_COURT if z < -170 else CASTLE_OUTSKIRTS
 
 
+def restore_legacy_trial_entrances(grouped):
+    hall = grouped.get(GANON_DUNGEON_VIEWS[0])
+    if not hall or any(label.startswith('Entrée · ') for label, _ in hall['points']):
+        return
+    # Early exports had only the six barrier events and the tower barrier.
+    # Require all seven anchors before supplying the stock door coordinates.
+    references = dict(zip(GANON_TRIAL_LEVELS, GANON_TRIAL_REFERENCE_BARRIERS))
+    references['Barrière de la tour'] = (0, -21.02)
+    for label, expected in references.items():
+        points = {point for name, point in hall['points'] if name == label}
+        if len(points) != 1 or dist(next(iter(points)), expected) > 0.02:
+            return
+    for (_, trial), view, (x, z, _, _) in zip(GANON_TRIALS.values(), GANON_TRIAL_VIEWS, GANON_TRIAL_DOOR_PLANES):
+        hall['points'].add((f'Entrée · {trial}', (x, z)))
+        grouped[view]['points'].add((f'Retour · {trial}', (x, z)))
+
+
 def restore_legacy_trial_routes(grouped):
+    restore_legacy_trial_entrances(grouped)
     for (_, trial), view, (x, z, _, _), barrier in zip(
             GANON_TRIALS.values(), GANON_TRIAL_VIEWS, GANON_TRIAL_DOOR_PLANES, GANON_TRIAL_REFERENCE_BARRIERS):
         scene = grouped.get(view)

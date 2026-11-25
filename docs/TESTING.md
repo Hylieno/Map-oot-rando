@@ -24,6 +24,9 @@ empêche de réutiliser le tracé du jeu pour cette épreuve.
 Une carte intermédiaire contenant les onze liaisons intérieures a
 également été rouverte. Les six traits du hall sont apparus et
 les coordonnées enregistrées des liaisons intérieures ont été conservées.
+Une carte plus ancienne contenant uniquement les repères des barrières
+retrouve les six portes et les 17 liaisons. Le test couvre aussi le cas
+où une barrière manque.
 
 Les six traversées entre les vues de Jabu-Jabu ont été vérifiées dans
 Tk avec les scènes publiques et les fonds Field Atlas.

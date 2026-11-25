@@ -145,7 +145,9 @@ L’entrée des abords ouvre l’intérieur. Le sélecteur d’étage permet de
 passer des six épreuves à la tour et à la salle de Ganondorf. Ces vues
 utilisent les repères du jeu sur des schémas. Les tracés des épreuves
 s’affichent aussi dans une carte enregistrée qui contient les repères
-d’origine des portes et des barrières.
+d’origine des portes et des barrières. Pour les exports antérieurs
+aux portes, les six barrières d’épreuve et celle de la tour suffisent
+si leurs coordonnées correspondent au jeu.
 Depuis la salle de Ganondorf, le passage ouvre l’effondrement et
 indique le point de départ de la fuite. Les flèches reprennent le trajet
 de Zelda. La sortie ouvre l’arène de Ganon sur son point d’arrivée.
