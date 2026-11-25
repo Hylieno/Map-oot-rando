@@ -167,6 +167,17 @@ GANON_TRIAL_ROOM_VIEWS = {
                                                         range(12, 16), range(16, 19)))
     for room in rooms
 }
+# Native shutter IDs between rooms. Linked shutter halves or room areas
+# on either side of the door identify the room pair.
+GANON_TRIAL_ROOM_DOORS = {
+    6697281885859015973: (2, 3), 16547757579712762477: (3, 4),
+    15757080952801548811: (5, 6), 9454360734666596216: (6, 7),
+    15970872372384393881: (8, 9), 8540530808124215779: (10, 11),
+    17308395020688077841: (12, 13), 2559901135200913892: (13, 14),
+    18370141889105081871: (14, 15),
+    16623306469348177484: (16, 17), 9280501248130802789: (17, 18),
+}
+GANON_TRIAL_ROUTE_VIEWS = dict(zip(GANON_TRIAL_LEVELS, GANON_TRIAL_VIEWS))
 GANON_TOWER_CROSSINGS = (
     ((0, 'Barrière de la tour', 'Obj_GanonCastle_Barrier_A_01', 7855099293663223240),
      (1, 'Retour vers les épreuves', 'DungeonRoomArea', 4106367990015143384)),
@@ -889,10 +900,10 @@ def ganon_trial_view(position):
 def ganon_tower_points(sources):
     points = crossing_level_points(sources, GANON_TOWER_CROSSINGS)
     trial_indices = {view: index for index, view in enumerate(GANON_TRIAL_VIEWS, start=len(GANON_DUNGEON_VIEWS))}
+    for room, center in ganon_trial_room_centers(sources):
+        points.add((trial_indices[GANON_TRIAL_ROOM_VIEWS[room]], GANON_TRIAL_ROOM_CENTER, center))
     for source in sources.values():
-        root = source['root']
-        room_centers = {}
-        for actor in root.get('Actors', ()):
+        for actor in source['root'].get('Actors', ()):
             position = actor.get('Translate')
             gyaml = actor.get('Gyaml')
             if not position:
@@ -904,22 +915,41 @@ def ganon_tower_points(sources):
                 x, _, z = position
                 if abs(x) > 12 or abs(z + 25) > 12:
                     label = 'Passage de la tour'
-            if gyaml == 'DungeonRoomCenterAnchor':
-                room_centers[actor.get('Hash')] = (position[0], position[2])
             if label and (floor := ganon_dungeon_floor(position)):
                 points.add((floor, label, (position[0], position[2])))
+    return points
+
+
+def ganon_trial_room_centers(sources):
+    for source in sources.values():
+        root = source['root']
+        room_centers = {actor['Hash']: (p[0], p[2]) for actor in root.get('Actors', ())
+                        if actor.get('Gyaml') == 'DungeonRoomCenterAnchor' and actor.get('Hash') is not None
+                        and (p := actor.get('Translate'))}
         for group in root.get('AiGroups', ()):
             dynamic = group.get('Dynamic')
-            if not isinstance(dynamic, dict):
-                continue
-            view = GANON_TRIAL_ROOM_VIEWS.get(dynamic.get('DungeonRoomID'))
-            if view is None:
+            if not isinstance(dynamic, dict) or (room := dynamic.get('DungeonRoomID')) not in GANON_TRIAL_ROOM_VIEWS:
                 continue
             for ref in group.get('References', ()):
-                ident = ref.get('Reference')
-                if ident is not None and (point := room_centers.get(ident)) is not None:
-                    points.add((trial_indices[view], GANON_TRIAL_ROOM_CENTER, point))
-    return points
+                if (center := room_centers.get(ref.get('Reference'))) is not None:
+                    yield room, center
+
+
+def ganon_trial_connections(sources):
+    centers, doors = {}, {}
+    for room, point in ganon_trial_room_centers(sources):
+        centers.setdefault(room, set()).add(point)
+    for source in sources.values():
+        for actor in source['root'].get('Actors', ()):
+            if (actor.get('Gyaml') == 'Obj_InsideGanonCastle_SwitchShutter_A_01'
+                    and (ident := actor.get('Hash')) in GANON_TRIAL_ROOM_DOORS
+                    and (point := actor.get('Translate'))):
+                doors.setdefault(ident, set()).add((point[0], point[2]))
+    labels = {view: label for label, view in GANON_TRIAL_ROUTE_VIEWS.items()}
+    for ident, (start, end) in GANON_TRIAL_ROOM_DOORS.items():
+        anchors = (centers.get(start, ()), doors.get(ident, ()), centers.get(end, ()))
+        if all(len(points) == 1 for points in anchors):
+            yield labels[GANON_TRIAL_ROOM_VIEWS[start]], tuple(next(iter(points)) for points in anchors)
 
 
 def training_level_points(sources):
@@ -1374,10 +1404,11 @@ def extract_scenes(maps, landmarks):
         route_extractor = {
             'HountedWasteland': guide_routes,
             'GerudoTrainingGround': training_connections,
+            'InsideGanonCastle': ganon_trial_connections,
         }.get(region)
         if frame in (GANON_FINAL, DREAM_SCENE_VIEWS['GanonStage']):
             route_extractor = final_battle_routes
-        routes = route_extractor(sources) if route_extractor else ()
+        routes = tuple(route_extractor(sources)) if route_extractor else ()
         if region == 'Graveyard':
             routes = actor_guide_routes(sources, 'Npc_Hylia_Dampe_002', DAMPE_ROUTES)
         elif region == 'ShadowTemple':
@@ -1644,6 +1675,9 @@ def group_scenes(scenes):
                 route_view = grouped.setdefault(underground, {'rooms': set(), 'points': set()})
             elif name == SHADOW_VIEWS[0] and label == SHADOW_SHIP_ROUTE:
                 route_view = grouped.setdefault(SHADOW_VIEWS[3], {'rooms': set(), 'points': set()})
+            elif name == GANON_DUNGEON_VIEWS[0] and label in GANON_TRIAL_ROUTE_VIEWS:
+                route_view = grouped.setdefault(GANON_TRIAL_ROUTE_VIEWS[label], {'rooms': set(), 'points': set()})
+                label = 'Liaisons entre les salles'
             else:
                 route_view = view
             route_view.setdefault('routes', set()).add((label, tuple(map(tuple, points))))

@@ -14,6 +14,8 @@ Les positions de part et d’autre de chaque porte ont été vérifiées
 avec le passage d’entrée du château.
 Les six vues ont aussi été ouvertes sans aucun check. Les 17 repères
 de salle sont restés visibles et concordent avec les scènes publiques.
+Les onze traits entre salles passent par les coordonnées des portes.
+Le tracé des six épreuves a été vérifié dans Tk sans afficher de checks.
 
 Les six traversées entre les vues de Jabu-Jabu ont été vérifiées dans
 Tk avec les scènes publiques et les fonds Field Atlas.

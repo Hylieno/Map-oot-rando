@@ -13,6 +13,8 @@ de Link change de vue lorsqu’il entre dans une aile du château.
 La transition utilise la position et l’orientation des six portes.
 Les centres des 17 salles servent de repères et cadrent les vues
 locales, même lorsqu’aucun check n’est affiché.
+Les schémas relient les salles par les onze portes intérieures
+identifiées dans les scènes du jeu.
 Le cadrage d’une vue schématique inclut la position courante de Link.
 
 Dans le ventre de Jabu-Jabu, la salle des fosses, l’ascenseur d’Octo

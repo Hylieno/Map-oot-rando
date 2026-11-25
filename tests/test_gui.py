@@ -1869,8 +1869,13 @@ class GuiTests(unittest.TestCase):
                  Dynamic={'RequestEventName': 'InsideGanonCastle_Dungeon_BarrierRemove_Water'}),
             dict(Gyaml='DungeonRoomCenterAnchor', Hash=1609019248426066512,
                  Translate=(-52.6, 104, -103.9)),
+            dict(Gyaml='DungeonRoomCenterAnchor', Hash=4554693927054471884,
+                 Translate=(-30.5, 103.7, -73.8)),
+            dict(Gyaml='Obj_InsideGanonCastle_SwitchShutter_A_01', Hash=8540530808124215779,
+                 Translate=(-49.49, 103.95, -98.65)),
         ]
-        groups = [dict(Dynamic={'DungeonRoomID': 11}, References=[{'Reference': 1609019248426066512}])]
+        groups = [dict(Dynamic={'DungeonRoomID': room}, References=[{'Reference': ident}])
+                  for room, ident in ((10, 4554693927054471884), (11, 1609019248426066512))]
         scenes = extract_scenes({path: {'root': {'Actors': actors, 'AiGroups': groups}}}, lambda _: {})
         locations = [dict(resource=path, id='trial-pot', name='Pot', category='pot',
                           position=(-44, 104, -88), dungeon_room=10)]
@@ -1900,10 +1905,14 @@ class GuiTests(unittest.TestCase):
         app.query.set('aucun résultat')
         app.fit()
         self.assertFalse(app.canvas.find_withtag('check-pin'))
-        room, = app.canvas.find_withtag('trial-room-center')
-        x0, y0, x1, y1 = app.canvas.bbox(room)
-        self.assertTrue(0 <= x0 < x1 <= app.canvas.winfo_width())
-        self.assertTrue(0 <= y0 < y1 <= app.canvas.winfo_height())
+        markers = app.canvas.find_withtag('trial-room-center')
+        self.assertEqual(len(markers), 2)
+        for room in markers:
+            x0, y0, x1, y1 = app.canvas.bbox(room)
+            self.assertTrue(0 <= x0 < x1 <= app.canvas.winfo_width())
+            self.assertTrue(0 <= y0 < y1 <= app.canvas.winfo_height())
+        _, stroke = app.canvas.find_withtag('scene-route')
+        self.assertEqual(tuple(app.canvas.coords(stroke)[2:4]), app.viewport.screen((-49.49, -98.65)))
 
     def test_ganon_castle_switches_scene_without_mixing_coordinates(self):
         from unittest.mock import patch
