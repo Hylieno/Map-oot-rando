@@ -30,6 +30,8 @@ WELL_VIEWS = tuple(f'{REGION_NAMES["BottomOfTheWell"]} · {level}' for level in 
 SHADOW_LEVELS = ('Sous-sol 1', 'Sous-sol 2', 'Sous-sol 3', 'Sous-sol 4', 'Arène de Bongo Bongo')
 SHADOW_VIEWS = tuple(f'{REGION_NAMES["ShadowTemple"]} · {level}' for level in SHADOW_LEVELS)
 SHADOW_SHIP_ROUTE = 'Trajet du bateau'
+SHADOW_BOSS_DOOR = 'Porte vers Bongo Bongo'
+SHADOW_BOSS_LANDING = 'Arrivée dans l’arène'
 SPIRIT_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', '3e étage', 'Arène de Twinrova', 'Couloir de Twinrova')
 SPIRIT_VIEWS = tuple(f'{REGION_NAMES["SpiritTemple"]} · {level}' for level in SPIRIT_LEVELS)
 # Each link pairs two map views with native actors at the crossing.
@@ -467,6 +469,10 @@ for temple, (boss, outside, start) in ADULT_BOSS_RETURNS.items():
     SIDE_PORTALS['SageRoom'][sage_portal] = (outside, outside_view, f'{REGION_NAMES[outside]} · après {boss}', arrival)
 SIDE_PORTALS['FireTemple'][FIRE_SAGE_SCENE] = (
     'KakarikoVillage', REGION_VIEWS['KakarikoVillage']['Adult'], 'Cocorico · cinématique', FIRE_KAKARIKO_ARRIVAL)
+SIDE_PORTALS['ShadowTemple'].update({
+    SHADOW_BOSS_DOOR: ('ShadowTemple', SHADOW_VIEWS[4], SHADOW_BOSS_DOOR, SHADOW_BOSS_LANDING),
+    SHADOW_BOSS_LANDING: ('ShadowTemple', SHADOW_VIEWS[3], 'Voir l’accès supérieur', SHADOW_BOSS_DOOR),
+})
 GRAVE_TOMB_ANCHORS = {
     ('HidingHole_FieldEntranceGo', 14429999406297140688): GRAVE_TO_TOMB,
     ('HidingHole_FieldExitGo', 13508899304624178854): TOMB_TO_GRAVE,
@@ -760,9 +766,22 @@ def spirit_level_points(sources):
             for floor, label in anchors[key]}
 
 
+def shadow_level_points(sources):
+    """Use the boss door and the StartPos referenced by the entrance event."""
+    anchors = {
+        ('Obj_ShadowTemple_SwitchShutter_A_01', 12557339757091997106): (3, SHADOW_BOSS_DOOR),
+        ('StartPos', 15657470794246498904): (4, SHADOW_BOSS_LANDING),
+    }
+    return {(*anchors[key], (position[0], position[2]))
+            for source in sources.values() for actor in source['root'].get('Actors', ())
+            if (key := (actor.get('Gyaml'), actor.get('Hash'))) in anchors
+            and (position := actor.get('Translate'))}
+
+
 LEVEL_POINT_EXTRACTORS = {
     'InsideGanonCastle': ganon_tower_points,
     'GerudoTrainingGround': training_level_points,
+    'ShadowTemple': shadow_level_points,
     'SpiritTemple': spirit_level_points,
 }
 BOSS_WARP_ANCHORS = {
@@ -773,7 +792,7 @@ BOSS_WARP_ANCHORS = {
     'ForestTemple': (7322827475260825437, 5, tuple(SIDE_PORTALS['ForestTemple'])),
     'FireTemple': (14585775662663687502, 5, tuple(SIDE_PORTALS['FireTemple'])),
     'WaterTemple': (9109272685779005276, 2, tuple(SIDE_PORTALS['WaterTemple'])),
-    'ShadowTemple': (15240382889320952895, 4, tuple(SIDE_PORTALS['ShadowTemple'])),
+    'ShadowTemple': (15240382889320952895, 4, ('Retour après Bongo Bongo', 'Sages · Bongo Bongo')),
 }
 
 GUIDE_ROUTE = 'Trajet du guide'

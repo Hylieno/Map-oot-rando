@@ -1575,6 +1575,44 @@ class GuiTests(unittest.TestCase):
         app.open_neighbor(lake)
         self.assertEqual(app.resource.get(), REGION_VIEWS[lake]['Adult'])
 
+    def test_shadow_boss_door_opens_the_arena_at_the_cutscene_start(self):
+        from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
+        from map_oot_rando.scene import SHADOW_BOSS_DOOR, SHADOW_BOSS_LANDING, SHADOW_VIEWS, extract_scenes
+
+        app = self.app
+        region = 'ShadowTemple'
+        path = f'Banc/{region}/{region}_Static.bcett.byml.zs'
+        door, landing = (-138.51, 42, 19.05), (-138.33, -11.46, 22.02)
+        actors = [
+            dict(Gyaml='Obj_ShadowTemple_SwitchShutter_A_01', Hash=12557339757091997106, Translate=door),
+            dict(Gyaml='StartPos', Hash=15657470794246498904, Translate=landing, Name='StartPos_SageOfShadow'),
+            dict(Gyaml='StartPos', Hash=10000120391812373223, Translate=(-137, -11, 22), Name='StartPos_SageOfShadow'),
+            dict(Gyaml='Obj_WarpPoint_A_01', Hash=15240382889320952895, Translate=(-138, -11, 30)),
+        ]
+        scenes = extract_scenes({path: {'root': {'Actors': actors}}}, lambda _: {})
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(dict(demo_document(), provenance='ootrr-scan', regions=['KokiriForest', region],
+                      locations=[], scenes=scenes))
+        app.open_neighbor(region, view=SHADOW_VIEWS[3])
+        for title, view, position in ((SHADOW_BOSS_DOOR, SHADOW_VIEWS[4], landing),
+                                      ('Voir l’accès supérieur', SHADOW_VIEWS[3], door)):
+            marker, = [i for i in app.canvas.find_withtag('zone-navigation')
+                       if any(t == title for t, *_ in app.local_portals[i])]
+            x0, y0, x1, y1 = app.canvas.bbox(marker)
+            app.press(SimpleNamespace(x=(x0+x1)//2, y=(y0+y1)//2))
+            self.assertEqual(app.resource.get(), view)
+            ring, = app.canvas.find_withtag('portal-arrival')
+            x0, y0, x1, y1 = app.canvas.coords(ring)
+            self.assertEqual(((x0+x1)/2, (y0+y1)/2), app.viewport.screen((position[0], position[2])))
+        self.assertEqual(dict(app.scenes[SHADOW_VIEWS[4]]['points'])[SHADOW_BOSS_LANDING],
+                         (landing[0], landing[2]))
+        app.update_link(LinkPosition(region, 'Adult', *door, 0))
+        self.assertEqual(app.resource.get(), SHADOW_VIEWS[3])
+        app.update_link(LinkPosition(region, 'Adult', *landing, 0))
+        self.assertEqual(app.resource.get(), SHADOW_VIEWS[4])
+        self.assertTrue(app.canvas.find_withtag('player-pin'))
+
     def test_twinrova_warp_opens_the_adult_colossus_directly_or_via_the_sages(self):
         from unittest.mock import patch
         from map_oot_rando.scene import REGION_VIEWS, SPIRIT_VIEWS, extract_scenes

@@ -9,6 +9,9 @@ et l’arène a été vérifié avec des positions simulées.
 Le rail du bateau du Temple de l’Ombre a été vérifié aux deux
 extrémités sur le fond Field Atlas. Une position simulée de Link
 s’affiche sur la vue du quatrième sous-sol pendant la traversée.
+L’accès à l’arène de Bongo Bongo a été vérifié depuis la porte du jeu.
+L’anneau reprend le point de départ référencé par l’événement
+d’introduction. Le suivi simulé passe du quatrième sous-sol à l’arène.
 
 La recherche dans Tk ouvre l’étage indiqué pour les deux checks Gerudo
 sans coordonnées. Le repère de l’épouvantail utilise l’acteur de la

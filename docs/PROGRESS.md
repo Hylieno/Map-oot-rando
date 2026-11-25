@@ -6,6 +6,8 @@ propre vue. Le suivi de Link distingue le couloir et l’arène.
 
 Au quatrième sous-sol du Temple de l’Ombre, une flèche indique le
 trajet du bateau à partir du rail lié à son acteur.
+La porte de Bongo Bongo ouvre l’arène et indique l’arrivée de la
+cinématique. Depuis l’arène, un repère permet de revoir l’accès supérieur.
 
 Les 25 arènes du Monde des rêves sont disponibles dans le sélecteur.
 Le marqueur de Link suit la ressource chargée, y compris lors du retour
