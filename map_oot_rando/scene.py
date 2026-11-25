@@ -144,6 +144,19 @@ GANON_TRIALS = {
     'Spirit': (609021425778003787, 'Esprit'),
 }
 GANON_TRIAL_DOORS = {ident: f'Entrée · {trial}' for ident, trial in GANON_TRIALS.values()}
+GANON_TRIAL_LEVELS = tuple(f'Épreuve · {trial}' for _, trial in GANON_TRIALS.values())
+GANON_TRIAL_VIEWS = tuple(f'{REGION_NAMES["InsideGanonCastle"]} · {level}' for level in GANON_TRIAL_LEVELS)
+GANON_TRIAL_VIEW_POINTS = {
+    label: (view, detail)
+    for (_, trial), view in zip(GANON_TRIALS.values(), GANON_TRIAL_VIEWS)
+    for label, detail in ((f'Entrée · {trial}', f'Retour · {trial}'),
+                          (f'Épreuve · {trial}', f'Épreuve · {trial}'))
+}
+GANON_TRIAL_ROOM_VIEWS = {
+    room: view for view, rooms in zip(GANON_TRIAL_VIEWS, (range(2, 5), range(5, 8), (8, 9), (10, 11),
+                                                        range(12, 16), range(16, 19)))
+    for room in rooms
+}
 GANON_TOWER_CROSSINGS = (
     ((0, 'Barrière de la tour', 'Obj_GanonCastle_Barrier_A_01', 7855099293663223240),
      (1, 'Retour vers les épreuves', 'DungeonRoomArea', 4106367990015143384)),
@@ -180,7 +193,8 @@ DUNGEON_FLOORS = {
     'ShadowTemple': tuple(zip(SHADOW_LEVELS, SHADOW_VIEWS)),
     'SpiritTemple': tuple(zip(SPIRIT_LEVELS, SPIRIT_VIEWS)),
     'WaterTemple': tuple(zip(WATER_LEVELS, WATER_VIEWS)),
-    'InsideGanonCastle': tuple(zip(GANON_DUNGEON_LEVELS, GANON_DUNGEON_VIEWS)),
+    'InsideGanonCastle': tuple(zip((*GANON_DUNGEON_LEVELS, *GANON_TRIAL_LEVELS),
+                                  (*GANON_DUNGEON_VIEWS, *GANON_TRIAL_VIEWS))),
     'GerudoTrainingGround': tuple(zip(TRAINING_LEVELS, TRAINING_VIEWS)),
 }
 DUNGEON_ATLAS_KEYS = {
@@ -411,11 +425,11 @@ SIDE_PORTALS = {
     },
     'InsideGanonCastle': {
         GANONDORF_TO_ESCAPE: ('GanonCastle', GANON_ESCAPE, 'Fuite du château', GANON_ESCAPE_ARRIVAL),
-        **{source: ('InsideGanonCastle', GANON_DUNGEON_VIEWS[0], title, destination)
-           for _, trial in GANON_TRIALS.values()
-           for source, destination, title in (
-               (f'Entrée · {trial}', f'Épreuve · {trial}', f'{trial} · voir la barrière'),
-               (f'Épreuve · {trial}', f'Entrée · {trial}', f'{trial} · voir l’entrée'),
+        **{source: ('InsideGanonCastle', destination, title, arrival)
+           for (_, trial), view in zip(GANON_TRIALS.values(), GANON_TRIAL_VIEWS)
+           for source, destination, title, arrival in (
+               (f'Entrée · {trial}', view, f'Épreuve · {trial}', f'Retour · {trial}'),
+               (f'Retour · {trial}', GANON_DUNGEON_VIEWS[0], 'Salle des épreuves', f'Entrée · {trial}'),
            )},
         **{label: ('InsideGanonCastle', GANON_DUNGEON_VIEWS[destination], label, arrival)
            for ends in GANON_TOWER_CROSSINGS
@@ -849,6 +863,26 @@ def ganon_dungeon_floor(position):
     if abs(x) > 32 or not -59 <= z <= 28:
         return 0
     return sum(y >= boundary for boundary in (126, 133, 140, 147, 161))
+
+
+def ganon_trial_view(position):
+    """Choose the wing beyond a hall door when a live position has no room ID."""
+    x, _, z = position
+    if z < -49.8:
+        if x >= 12:
+            return GANON_TRIAL_VIEWS[2]
+        if x <= -12:
+            return GANON_TRIAL_VIEWS[3]
+    elif z > 7.8:
+        if x >= 12:
+            return GANON_TRIAL_VIEWS[0]
+        if x <= -12:
+            return GANON_TRIAL_VIEWS[5]
+    elif x >= 33:
+        return GANON_TRIAL_VIEWS[1]
+    elif x <= -33:
+        return GANON_TRIAL_VIEWS[4]
+    return GANON_DUNGEON_VIEWS[0]
 
 
 def ganon_tower_points(sources):
@@ -1497,7 +1531,11 @@ def location_view(row):
         if y < 87 or (y < 89 and x > 55):
             return SHADOW_VIEWS[1]
     if view == GANON_DUNGEON_VIEWS[0] and row.position is not None:
+        if row.dungeon_room in GANON_TRIAL_ROOM_VIEWS:
+            return GANON_TRIAL_ROOM_VIEWS[row.dungeon_room]
         floor = 4 if row.dungeon_room == 24 else ganon_dungeon_floor(row.position)
+        if floor == 0 and row.dungeon_room is None:
+            return ganon_trial_view(row.position)
         return GANON_DUNGEON_VIEWS[floor]
     if view == SPIRIT_VIEWS[0] and row.position is not None:
         x, y, z = row.position
@@ -1555,6 +1593,10 @@ def group_scenes(scenes):
         view['rooms'].update((name, tuple(low), tuple(high)) for name, low, high in scene['rooms'])
         for label, point in scene['points']:
             target = view
+            if name == GANON_DUNGEON_VIEWS[0] and label in GANON_TRIAL_VIEW_POINTS:
+                trial_view, detail_label = GANON_TRIAL_VIEW_POINTS[label]
+                detail = grouped.setdefault(trial_view, {'rooms': set(), 'points': set()})
+                detail['points'].add((detail_label, tuple(point)))
             if (name in KOKIRI_VIEW_AGES
                     and (label == NEIGHBORS['KokiriBridge']['HyruleField'] or label in PORTAL_START_NAMES['KokiriBridge'])
                     and kokiri_bridge_position(point)):

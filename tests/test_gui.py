@@ -1848,9 +1848,10 @@ class GuiTests(unittest.TestCase):
         app.update_link(LinkPosition(temple, 'Adult', 0, 145, -157, 0))
         self.assertEqual(app.resource.get(), SPIRIT_VIEWS[4])
 
-    def test_ganon_trial_door_and_barrier_link_within_the_same_map(self):
+    def test_ganon_trial_opens_its_map_and_tracks_link_from_the_hall(self):
         from unittest.mock import patch
-        from map_oot_rando.scene import GANON_DUNGEON_VIEWS, extract_scenes
+        from map_oot_rando.link_position import LinkPosition
+        from map_oot_rando.scene import GANON_DUNGEON_VIEWS, GANON_TRIAL_VIEWS, extract_scenes
 
         app = self.app
         region = 'InsideGanonCastle'
@@ -1864,14 +1865,16 @@ class GuiTests(unittest.TestCase):
                  Dynamic={'RequestEventName': 'InsideGanonCastle_Dungeon_BarrierRemove_Water'}),
         ]
         scenes = extract_scenes({path: {'root': {'Actors': actors}}}, lambda _: {})
+        locations = [dict(resource=path, id='trial-pot', name='Pot', category='pot',
+                          position=(-44, 104, -88), dungeon_room=10)]
         self.enterContext(patch.object(app, 'ensure_atlas'))
         app.load(dict(demo_document(), provenance='ootrr-scan', regions=['KokiriForest', region],
-                      locations=[], scenes=scenes))
-        view = GANON_DUNGEON_VIEWS[0]
-        app.open_neighbor(region, view=view)
-        self.assertEqual(len(app.canvas.find_withtag('zone-navigation')), 2)
-        for title, point in (('Feu · voir la barrière', (-40.05, -78.93)),
-                             ('Feu · voir l’entrée', (-16.14, -49.86))):
+                      locations=locations, scenes=scenes))
+        hall, fire = GANON_DUNGEON_VIEWS[0], GANON_TRIAL_VIEWS[3]
+        app.open_neighbor(region, view=hall)
+        self.assertEqual(len(app.canvas.find_withtag('zone-navigation')), 1)
+        self.assertEqual([row.id for row in app.visible], ['trial-pot'])
+        for title, view in (('Épreuve · Feu', fire), ('Salle des épreuves', hall)):
             marker, = [item for item in app.canvas.find_withtag('zone-navigation')
                        if any(action[0] == title for action in app.local_portals[item])]
             x0, y0, x1, y1 = app.canvas.bbox(marker)
@@ -1879,9 +1882,14 @@ class GuiTests(unittest.TestCase):
             self.assertEqual(app.resource.get(), view)
             ring, = app.canvas.find_withtag('portal-arrival')
             x0, y0, x1, y1 = app.canvas.coords(ring)
-            x, y = app.viewport.screen(point)
+            x, y = app.viewport.screen((-16.14, -49.86))
             self.assertAlmostEqual((x0+x1)/2, x)
             self.assertAlmostEqual((y0+y1)/2, y)
+        app.update_link(LinkPosition(region, 'Adult', 0, 105, -22, 0))
+        app.update_link(LinkPosition(region, 'Adult', -30, 104, -74, 0))
+        self.assertEqual(app.resource.get(), fire)
+        self.assertEqual([row.id for row in app.visible], ['trial-pot'])
+        self.assertTrue(app.canvas.find_withtag('player-pin'))
 
     def test_ganon_castle_switches_scene_without_mixing_coordinates(self):
         from unittest.mock import patch

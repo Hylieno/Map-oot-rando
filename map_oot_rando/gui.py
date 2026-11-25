@@ -23,7 +23,7 @@ from .scene import (BURNT_VILLAGE, CASTLE_COURT, DAMPE_ROUTES, DREAM_BATTLE_VIEW
                     DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS,
                     FIRE_KAKARIKO_ARRIVAL, FIRE_KAKARIKO_CONTINUE, FIRE_VIEWS, FLOOR_OPTIONS,
                     FOUNTAIN_DUNGEON_AGES, GANON_DUNGEON_VIEWS, GANON_ESCAPE, GANON_ESCAPE_ROUTE, GANON_FINAL,
-                    GANONDORF_TILE,
+                    GANONDORF_TILE, GANON_TRIAL_VIEWS,
                     MARKET_CASTLE_AGES,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS, GUIDE_ROUTE, LOST_WOOD_RESET,
@@ -43,6 +43,10 @@ AGE_LABELS = {'Child': 'Enfant', 'Adult': 'Adulte'}
 
 COLORS = dict(available='#37b76b', blocked='#e45c5c', unknown='#e6c548', completed='#929ba5', partial='#ed9f57')
 LABELS = dict(available='Accessible', blocked='Bloqué', unknown='Inconnu', completed='Récupéré', partial='Partiellement accessible')
+
+
+def view_contains(view, local_view):
+    return view == local_view or (view == GANON_DUNGEON_VIEWS[0] and local_view in GANON_TRIAL_VIEWS)
 
 
 def background_spec(view):
@@ -808,7 +812,7 @@ class MapApplication:
         region = self.current_region()
         searching = bool(self.query.get().strip())
         rows = [row for row in self.locations
-                if searching or location_view(row) == view
+                if searching or view_contains(view, location_view(row))
                 or (row.position is None and row.region == region)]
         unique = {(row.id, row.region, location_view(row), row.position, row.entrance): row for row in rows}
         self.visible = select(unique.values(), self.store.states, self.query.get(),
@@ -1168,7 +1172,7 @@ class MapApplication:
         self.fit_pending = self.canvas.winfo_width() <= 1 or self.canvas.winfo_height() <= 1
         if self.fit_pending:
             return
-        points = [r.project() for r in self.visible if location_view(r) == self.resource.get() and r.position is not None
+        points = [r.project() for r in self.visible if view_contains(self.resource.get(), location_view(r)) and r.position is not None
                   and (self.show_outside.get() or not self.outside(r))]
         aerial = self.aerial.get(self.resource.get())
         scene = self.scenes.get(self.resource.get(), {}) if not aerial else {}
@@ -1179,11 +1183,11 @@ class MapApplication:
             points.extend(route)
         for _, low, high in scene.get('rooms', ()):
             points.extend((low, high))
-        dream_battle = self.resource.get() in DREAM_BATTLE_VIEWS
-        if dream_battle and self.link and self.resource.get() == self.link_view():
+        local_arena = self.resource.get() in DREAM_BATTLE_VIEWS or self.resource.get() in GANON_TRIAL_VIEWS
+        if local_arena and self.link and self.resource.get() == self.link_view():
             points.append((self.link.x, self.link.z))
         width, height = self.canvas.winfo_width(), self.canvas.winfo_height()
-        self.viewport.fit(points, width, height, min_extent=36 if dream_battle else 1)
+        self.viewport.fit(points, width, height, min_extent=36 if local_arena else 1)
         self.fitted_scale = self.viewport.scale
         if focus is not None:
             self.viewport.center(focus, width, height)
@@ -1483,7 +1487,7 @@ class MapApplication:
                     (LOST_WOOD_RESET, 'KokiriForest', kokiri, NEIGHBORS['KokiriForest']['LostWood']),
                 )
                 self.portal_views[marker] = kokiri
-        rows = [row for row in self.visible if location_view(row) == self.resource.get()
+        rows = [row for row in self.visible if view_contains(self.resource.get(), location_view(row))
                 and row.position is not None
                 and (self.show_outside.get() or row == self.selected or not self.outside(row))]
         rows.sort(key=lambda row: row == self.selected)
@@ -1524,7 +1528,7 @@ class MapApplication:
                 self.local_portals[label] = exit_names[name]
                 if floor:
                     self.portal_views[label] = floor
-        if self.link and self.resource.get() == self.link_view():
+        if self.link and view_contains(self.resource.get(), self.link_view()):
             x, y = self.viewport.screen((self.link.x, self.link.z))
             self.draw_link_pin(x, y, self.link.yaw)
         if not self.markers and self.resource.get() not in DREAM_BATTLE_VIEWS:
