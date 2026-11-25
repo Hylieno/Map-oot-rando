@@ -236,6 +236,23 @@ class SceneTests(unittest.TestCase):
                 row = Location('test', 'Chest', 'test', path, (-1.5, height, -48), region=region, dungeon_room=8)
                 self.assertEqual(location_view(row), TRAINING_VIEWS[floor])
 
+    def test_ganon_trial_tracking_switches_at_the_six_angled_doors(self):
+        from map_oot_rando.scene import GANON_DUNGEON_VIEWS, GANON_TRIAL_VIEWS, ganon_trial_view
+
+        door_steps = (
+            ((16.45, 104, 7.25), (17.4, 104, 7.45)),
+            ((32.5, 100, -21), (33.6, 100, -21)),
+            ((16.45, 104, -49.25), (17.4, 104, -49.45)),
+            ((-16.45, 104, -49.25), (-17.4, 104, -49.45)),
+            ((-32.5, 100, -21), (-33.6, 100, -21)),
+            ((-16.45, 104, 7.25), (-17.4, 104, 7.45)),
+        )
+        for view, (hall_side, trial_side) in zip(GANON_TRIAL_VIEWS, door_steps):
+            with self.subTest(view=view):
+                self.assertEqual(ganon_trial_view(hall_side), GANON_DUNGEON_VIEWS[0])
+                self.assertEqual(ganon_trial_view(trial_side), view)
+        self.assertEqual(ganon_trial_view((0, 104, 30)), GANON_DUNGEON_VIEWS[0])
+
     def test_ganon_tower_preserves_separate_landmarks_at_the_same_xz(self):
         from map_oot_rando.scene import GANON_DUNGEON_VIEWS, group_scenes
 

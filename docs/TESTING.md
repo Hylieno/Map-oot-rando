@@ -10,6 +10,8 @@ par numéro de salle dans le catalogue de référence. Les douze clics
 entre le plan général et les vues locales ont été contrôlés. Le suivi
 de Link a été vérifié avec des positions simulées aux 17 centres de
 salle, puis dans le hall.
+Les positions de part et d’autre de chaque porte ont été vérifiées
+avec le passage d’entrée du château.
 
 Les six traversées entre les vues de Jabu-Jabu ont été vérifiées dans
 Tk avec les scènes publiques et les fonds Field Atlas.

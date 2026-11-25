@@ -146,6 +146,15 @@ GANON_TRIALS = {
 GANON_TRIAL_DOORS = {ident: f'Entrée · {trial}' for ident, trial in GANON_TRIALS.values()}
 GANON_TRIAL_LEVELS = tuple(f'Épreuve · {trial}' for _, trial in GANON_TRIALS.values())
 GANON_TRIAL_VIEWS = tuple(f'{REGION_NAMES["InsideGanonCastle"]} · {level}' for level in GANON_TRIAL_LEVELS)
+# Door centres in X/Z and outward unit normals from their native rotations.
+GANON_TRIAL_DOOR_PLANES = (
+    (16.120, 7.842, 0.499, 0.867),
+    (33.032, -21.001, 1.0, 0.0),
+    (16.111, -49.841, 0.496, -0.869),
+    (-16.136, -49.862, -0.513, -0.858),
+    (-33.050, -21.004, -1.0, 0.0),
+    (-16.099, 7.805, -0.501, 0.866),
+)
 GANON_TRIAL_VIEW_POINTS = {
     label: (view, detail)
     for (_, trial), view in zip(GANON_TRIALS.values(), GANON_TRIAL_VIEWS)
@@ -868,21 +877,12 @@ def ganon_dungeon_floor(position):
 def ganon_trial_view(position):
     """Choose the wing beyond a hall door when a live position has no room ID."""
     x, _, z = position
-    if z < -49.8:
-        if x >= 12:
-            return GANON_TRIAL_VIEWS[2]
-        if x <= -12:
-            return GANON_TRIAL_VIEWS[3]
-    elif z > 7.8:
-        if x >= 12:
-            return GANON_TRIAL_VIEWS[0]
-        if x <= -12:
-            return GANON_TRIAL_VIEWS[5]
-    elif x >= 33:
-        return GANON_TRIAL_VIEWS[1]
-    elif x <= -33:
-        return GANON_TRIAL_VIEWS[4]
-    return GANON_DUNGEON_VIEWS[0]
+    # The castle entrance is south of the hall, between the two southern wings.
+    if z > 7.8 and abs(x) < 12:
+        return GANON_DUNGEON_VIEWS[0]
+    distances = [(x - door_x) * dx + (z - door_z) * dz for door_x, door_z, dx, dz in GANON_TRIAL_DOOR_PLANES]
+    trial = max(range(len(distances)), key=distances.__getitem__)
+    return GANON_TRIAL_VIEWS[trial] if distances[trial] > 0.2 else GANON_DUNGEON_VIEWS[0]
 
 
 def ganon_tower_points(sources):
