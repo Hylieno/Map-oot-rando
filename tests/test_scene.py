@@ -268,6 +268,22 @@ class SceneTests(unittest.TestCase):
                 row = Location('test', 'Check', 'test', path, point, region=region, dungeon_room=room)
                 self.assertEqual(location_view(row), SHADOW_VIEWS[floor])
 
+    def test_well_places_the_illusory_floor_and_landing_on_distinct_views(self):
+        from map_oot_rando.scene import WELL_VIEWS, group_scenes
+
+        path = 'Banc/BottomOfTheWell/BottomOfTheWell_Static.bcett.byml.zs'
+        actors = [
+            dict(Gyaml='Obj_Well_GlassTruth_A_30', Hash=4334615211939361328,
+                 Translate=(-0.01, 102.17, -97.56)),
+            dict(Gyaml='StartPos', Hash=2376828317386419701, Translate=(3.61, 92.37, -97.19)),
+        ]
+        scenes = extract_scenes({path: {'root': {'Actors': actors}}}, lambda _: {})
+        grouped = group_scenes(read_scenes({'scenes': scenes}))
+        self.assertEqual(dict(grouped[WELL_VIEWS[0]]['points']),
+                         {'Sol illusoire · vers la salle du Poigneur': (-0.01, -97.56)})
+        self.assertEqual(dict(grouped[WELL_VIEWS[1]]['points']),
+                         {'Voir le sol illusoire au-dessus': (3.61, -97.19)})
+
     def test_well_uses_the_native_room_before_the_height_cutoff(self):
         from map_oot_rando.model import Location
         from map_oot_rando.scene import WELL_VIEWS, location_view

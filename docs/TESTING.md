@@ -1,5 +1,8 @@
 # Validation
 
+Les quatre traversées entre les deux plans du Puits ont été ouvertes
+dans Tk avec les scènes publiques et les fonds Field Atlas.
+
 Les six traversées entre les vues de Jabu-Jabu ont été vérifiées dans
 Tk avec les scènes publiques et les fonds Field Atlas.
 

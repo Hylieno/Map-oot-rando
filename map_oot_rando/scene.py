@@ -80,6 +80,12 @@ FOREST_LEVEL_CROSSINGS = (
 )
 WELL_LEVELS = ('Sous-sol', 'Sous-sol profond')
 WELL_VIEWS = tuple(f'{REGION_NAMES["BottomOfTheWell"]} · {level}' for level in WELL_LEVELS)
+WELL_LEVEL_CROSSINGS = (
+    ((0, 'Échelle ouest · vers le sous-sol profond', 'Land_Well_Ladder_A_05', 12953344658999400023),
+     (1, 'Échelle ouest · vers le sous-sol', 'Land_Well_Ladder_A_05', 12953344658999400023)),
+    ((0, 'Sol illusoire · vers la salle du Poigneur', 'Obj_Well_GlassTruth_A_30', 4334615211939361328),
+     (1, 'Voir le sol illusoire au-dessus', 'StartPos', 2376828317386419701)),
+)
 SHADOW_LEVELS = ('Sous-sol 1', 'Sous-sol 2', 'Sous-sol 3', 'Sous-sol 4', 'Arène de Bongo Bongo')
 SHADOW_VIEWS = tuple(f'{REGION_NAMES["ShadowTemple"]} · {level}' for level in SHADOW_LEVELS)
 SHADOW_SHIP_ROUTE = 'Trajet du bateau'
@@ -374,6 +380,11 @@ ADULT_BOSS_RETURNS = {
     'ShadowTemple': ('Bongo Bongo', 'Graveyard', 'ShadowNocturne'),
 }
 SIDE_PORTALS = {
+    'BottomOfTheWell': {
+        label: ('BottomOfTheWell', WELL_VIEWS[destination], label, arrival)
+        for ends in WELL_LEVEL_CROSSINGS
+        for (_, label, _, _), (destination, arrival, _, _) in (ends, ends[::-1])
+    },
     'GanonCastle': {
         GANON_ESCAPE_TO_FINAL: ('GanonCastle', GANON_FINAL, 'Arène de Ganon', GANON_FINAL_ARRIVAL),
     },
@@ -904,6 +915,7 @@ def crossing_level_points(sources, crossings):
 
 
 LEVEL_POINT_EXTRACTORS = {
+    'BottomOfTheWell': lambda sources: crossing_level_points(sources, WELL_LEVEL_CROSSINGS),
     'InsideJabuJabuBelly': lambda sources: crossing_level_points(sources, JABU_LEVEL_CROSSINGS),
     'DodongoCavern': lambda sources: crossing_level_points(sources, DODONGO_LEVEL_CROSSINGS),
     'InsideTheDekuTree': lambda sources: crossing_level_points(sources, DEKU_LEVEL_CROSSINGS),
