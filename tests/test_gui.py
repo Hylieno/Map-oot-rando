@@ -380,6 +380,61 @@ class GuiTests(unittest.TestCase):
             self.assertEqual(app.results.curselection(), (0,))
             download.assert_called_once()
 
+    def test_link_stays_in_frame_when_the_followed_zone_loads_its_atlas(self):
+        from threading import Event
+        from unittest.mock import patch
+        from PIL import Image
+        from map_oot_rando.aerial import AerialImage
+        from map_oot_rando.link_position import LinkPosition
+        from map_oot_rando.scene import REGION_VIEWS
+
+        app = self.app
+        forest, woods = 'KokiriForest', 'LostWood'
+        points = ((0, 0), (100, 0), (0, 100))
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=[forest, woods], locations=[])
+        doc['scenes'] = {f'Banc/{region}/{region}_Child_Static.bcett.byml.zs':
+                         {'rooms': [], 'points': [(str(index), point) for index, point in enumerate(points)]}
+                         for region in (forest, woods)}
+        image = Image.new('RGB', (100, 100), '#1f5577')
+        background = AerialImage(image, points, points, source='field-atlas')
+        release = Event()
+        self.addCleanup(release.set)
+
+        def load_image():
+            if not release.wait(2):
+                raise OSError('Test did not release the atlas')
+            return image
+
+        def wait_for_background():
+            if app.canvas.find_withtag('aerial'):
+                self.root.quit()
+            else:
+                self.root.after(20, wait_for_background)
+
+        def assert_link_visible():
+            pins = app.canvas.find_withtag('player-pin')
+            self.assertTrue(pins)
+            x0, y0, x1, y1 = app.canvas.bbox('player-pin')
+            self.assertTrue(0 <= x0 < x1 <= app.canvas.winfo_width())
+            self.assertTrue(0 <= y0 < y1 <= app.canvas.winfo_height())
+
+        with (patch('map_oot_rando.gui.load_kokiri_image', side_effect=load_image),
+              patch('map_oot_rando.gui.align_kokiri_image', return_value=background)):
+            app.load(doc)
+            app.open_neighbor(woods)
+            sample = LinkPosition(forest, 'Child', 125, 100, -25, 90)
+            app.update_link(sample)
+            self.assertEqual(app.resource.get(), REGION_VIEWS[forest]['Child'])
+            self.assertFalse(app.canvas.find_withtag('aerial'))
+            assert_link_visible()
+            release.set()
+            self.root.after(20, wait_for_background)
+            deadline = self.root.after(2000, self.root.quit)
+            self.root.mainloop()
+            self.root.after_cancel(deadline)
+            self.assertTrue(app.canvas.find_withtag('aerial'))
+            assert_link_visible()
+
     def test_atlas_uses_world_coordinates_and_a_uniform_canvas(self):
         from PIL import Image
         from map_oot_rando.aerial import AerialImage

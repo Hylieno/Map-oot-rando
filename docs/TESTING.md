@@ -1,5 +1,10 @@
 # Validation
 
+Le test Tk retarde le chargement du fond pendant un changement de
+zone. Il vérifie que le marqueur de Link reste entièrement visible
+sur le schéma, puis sur le fond chargé, avec une position située au
+bord de la zone et en dehors des limites dessinées.
+
 Les noms des ressources de Cocorico avant et après l’incendie ont
 été injectés dans le lecteur de position. Le test Tk vérifie que
 la scène chargée prime sur l’état de la sauvegarde, que le marqueur
