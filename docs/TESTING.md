@@ -1,5 +1,11 @@
 # Validation
 
+Dans le Temple de l’Eau, quatre positions simulées aux coordonnées
+de la salle 24 ont été vérifiées dans Tk. Le marqueur reste sur le
+plan du rez-de-chaussée près de la porte, de la Skulltula, de la
+cascade et du rocher roulant. Le test distingue aussi une position
+à la même hauteur située hors du passage.
+
 À l’ouest de l’Arbre Mojo, les deux étages ont été vérifiés dans Tk
 avec des positions simulées aux coordonnées des acteurs des salles
 2 et 3. Le coffre de la plateforme haute et le marqueur de Link

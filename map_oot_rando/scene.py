@@ -1682,6 +1682,10 @@ def location_view(row):
         # The high walkway into Morpha's room and its basin share the same plan.
         if y >= 119 and -18 <= x <= 9 and -107 <= z <= -69:
             return WATER_VIEWS[2]
+        # Room 24 rises along the waterfall. Its door, Skulltula and
+        # rolling-rock path share the ground plan even above Y=106.5.
+        if row.dungeon_room is None and 5.5 <= x <= 38 and -77 <= z <= -64 and 106.5 <= y < 114:
+            return WATER_VIEWS[WATER_ROOM_FLOORS[24]]
         # The eastern chest has native FloorNumber 1 even though its raised
         # platform is above the usual height boundary for that floor.
         if 116 <= y <= 120 and 31 <= x <= 60 and -30 <= z <= -17:

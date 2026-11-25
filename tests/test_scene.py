@@ -105,6 +105,9 @@ class SceneTests(unittest.TestCase):
                                    ((-4.5, 124.36, -88.05), 23, 2),
                                    ((-4.5, 125, -88), None, 2),
                                    ((12, 92.71, -4.5), 2, 3),
+                                   ((18.65, 107.5, -65.66), None, 2),
+                                   ((23, 113.5, -65.66), None, 2),
+                                   ((18.65, 107.5, -63.5), None, 1),
                                    ((-54.54, 114.01, -59.25), 21, 1)):
             with self.subTest(point=point):
                 row = Location('test', 'Check', 'test', path, point, region=region, dungeon_room=room)
