@@ -1,5 +1,9 @@
 # Checkpoint — 25 novembre 2026
 
+Le plan inférieur du centre d’entraînement Gerudo affiche les neuf
+portes à petite clé à la position et selon l’orientation de leurs
+acteurs. Les portes apparaissent après l’import du jeu.
+
 La résolution des checks par identifiant d’acteur couvre aussi les
 ruches. Les anciennes seeds conservent ainsi le placement de leurs
 ruches distinctes après le regroupement des variantes de Cocorico

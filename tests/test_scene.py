@@ -48,6 +48,25 @@ class SceneTests(unittest.TestCase):
         actors.append(dict(actors[2], Translate=(-30, 98, -5.39)))
         self.assertNotIn('routes', extract_scenes(maps, lambda _: {})[path])
 
+    def test_training_maze_draws_only_confirmed_key_doors_on_the_lower_plan(self):
+        from math import pi
+        from map_oot_rando.scene import TRAINING_LOCKED_DOOR, TRAINING_VIEWS, TRAINING_WALKWAY_GATE, group_scenes
+
+        path = 'Banc/GerudoTrainingGround/GerudoTrainingGround_Static.bcett.byml.zs'
+        door = dict(Gyaml='Obj_Gerudo_SwitchShutter_A_06', Translate=(3, 98, -50),
+                    Rotate=(0, pi / 2, 0), Links=[{'Dst': 1}, {'Dst': 2}])
+        actors = [
+            door, dict(door, Translate=(7, 98, -40), Links=[{'Dst': 1}, {'Dst': 3}]),
+            dict(Hash=1, Gyaml='Obj_DoorChainLock_A_01'), dict(Hash=2, Gyaml='Obj_DoorChainLock_A_01'),
+            dict(Hash=3, Gyaml='Obj_SwitchShutter_A_02'),
+            dict(Hash=TRAINING_WALKWAY_GATE, Gyaml='Obj_Gerudo_SwitchShutter_A_04', Translate=(-2, 106, -59)),
+        ]
+        document = {'scenes': extract_scenes({path: {'root': {'Actors': actors}}}, lambda _: {})}
+        scenes = group_scenes(read_scenes(json.loads(json.dumps(document))))
+        self.assertEqual(scenes[TRAINING_VIEWS[0]]['routes'],
+                         [(TRAINING_LOCKED_DOOR, ((3, -48.8), (3, -51.2)))])
+        self.assertFalse(scenes[TRAINING_VIEWS[1]].get('routes'))
+
     def test_water_temple_preserves_the_pool_and_its_submerged_rooms(self):
         from map_oot_rando.model import Location
         from map_oot_rando.scene import WATER_VIEWS, location_view

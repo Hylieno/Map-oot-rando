@@ -28,7 +28,7 @@ from .scene import (BURNT_VILLAGE, CASTLE_COURT, DAMPE_ROUTES, DREAM_BATTLE_VIEW
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS, GUIDE_ROUTE, LOST_WOOD_RESET,
                     NEIGHBORS, PORTAL_ARRIVAL_STARTS, PORTAL_START_NAMES, REGION_VIEWS, SHARED_DUNGEONS,
-                    SHADOW_SHIP_ROUTE, SIDE_PORTALS, TRAINING_VIEWS,
+                    SHADOW_SHIP_ROUTE, SIDE_PORTALS, TRAINING_LOCKED_DOOR, TRAINING_VIEWS,
                     UNDERGROUND_LABELS, UNDERGROUND_VIEWS, UNPOSITIONED_CHECK_AREAS, VIEWS, WATER_CONTROL_LABELS,
                     castle_view, field_area, field_atlas_scene, group_scenes, kokiri_bridge_position,
                     location_view, read_scenes, temple_position, view_name)
@@ -1396,6 +1396,8 @@ class MapApplication:
             race_tracks = [(title, race_colors[title]) for title, _ in routes if title in race_colors]
             paths = [(title, [c for point in route for c in self.viewport.screen(point)])
                      for title, route in routes]
+            locks = [coordinates for title, coordinates in paths if title == TRAINING_LOCKED_DOOR]
+            paths = [(title, coordinates) for title, coordinates in paths if title != TRAINING_LOCKED_DOOR]
             for title, coordinates in paths:
                 guide = title in (GUIDE_ROUTE, GANON_ESCAPE_ROUTE, SHADOW_SHIP_ROUTE) or title in race_colors
                 self.canvas.create_line(*coordinates, fill='#332d25' if guide else '#7bb6ce', width=8,
@@ -1406,6 +1408,11 @@ class MapApplication:
                                         width=3 if guide else 6, arrow='last' if guide else 'none',
                                         dash=(5, 3) if title == DAMPE_ROUTES['PlayingSecond'] else (),
                                         capstyle='round', joinstyle='round', tags='scene-route')
+            for coordinates in locks:
+                self.canvas.create_line(*coordinates, fill='#0d1f2e', width=7, tags='maze-door-outline')
+                self.canvas.create_line(*coordinates, fill='#f5ad80', width=3, tags='maze-door')
+            if locks:
+                self.canvas.create_text(12, 30, anchor='nw', fill='#f5ad80', text=f'━  {TRAINING_LOCKED_DOOR}')
             for label, point in scene['points']:
                 sage_exit = region == 'SageRoom' and label in SIDE_PORTALS[region]
                 if (label in exits or sage_exit or label in (GANONDORF_TILE, LOST_WOOD_RESET, FIRE_KAKARIKO_CONTINUE)
@@ -1418,7 +1425,7 @@ class MapApplication:
                 self.canvas.create_polygon(x, y-5, x+5, y, x, y+5, x-5, y,
                                            fill='#b4dec0', tags='scene')
                 captions.append((label, x, y - 13))
-            topic = routes[0][0] if routes else 'Repères du jeu'
+            topic = paths[0][0] if paths else 'Repères du jeu'
             if race_tracks:
                 topic = 'Course de Dampé'
             heading = f'{name} | {topic} (schéma)'

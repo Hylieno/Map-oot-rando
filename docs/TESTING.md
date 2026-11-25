@@ -1,5 +1,12 @@
 # Validation
 
+Les neuf portes à petite clé du centre d’entraînement Gerudo ont été
+comparées aux acteurs reliés aux serrures dans les scènes publiques.
+Le contrôle dans Tk vérifie les deux extrémités des neuf traits, avant
+et après un zoom, ainsi que leur absence sur la passerelle.
+Le test automatisé vérifie aussi l’exclusion d’une porte sans ses deux
+serrures et la conservation du tracé dans le JSON.
+
 L’audit comparatif d’OotrR 0.8.4 sur les 160 couches publiques
 utilise le même catalogue historique de 1 103 checks que l’audit
 0.8.0. Il retrouve les trois anciennes ruches de Cocorico par leur

@@ -1,5 +1,5 @@
 """Map symbols derived from OotrR landmarks in the active resource's coordinates."""
-from math import atan2, dist, isfinite
+from math import atan2, cos, dist, isfinite, sin
 
 from .model import REGION_NAMES, SURFACE_MIN_Y, read_position, resource_region
 
@@ -223,6 +223,7 @@ TRAINING_TO_STATUE = 'Vers la salle de la statue'
 TRAINING_TO_CEILING = 'Vers l’alcôve du plafond'
 TRAINING_TO_MAZE = 'Vers le labyrinthe inférieur'
 TRAINING_SCARECROW = 'Épouvantail'
+TRAINING_LOCKED_DOOR = 'Porte à petite clé'
 UNPOSITIONED_CHECK_AREAS = {
     'ap#Gerudo Training Ground Near Scarecrow Chest': (TRAINING_VIEWS[1], 'Salle de la statue · niveau supérieur'),
     'ap#Gerudo Training Ground Freestanding Key': (TRAINING_VIEWS[0], 'Labyrinthe central · côté droit'),
@@ -898,8 +899,23 @@ def training_connections(sources):
                 if position := actor.get('Translate'):
                     anchors.setdefault(ident, set()).add((position[0], position[2]))
     unique = {ident: next(iter(points)) for ident, points in anchors.items() if len(points) == 1}
-    return {('Liaisons entre les salles', (unique[start], unique[door], unique[end]))
-            for door, (start, end) in TRAINING_DOORS.items() if {start, door, end} <= unique.keys()}
+    routes = {('Liaisons entre les salles', (unique[start], unique[door], unique[end]))
+              for door, (start, end) in TRAINING_DOORS.items() if {start, door, end} <= unique.keys()}
+    for source in sources.values():
+        actors = source['root'].get('Actors', ())
+        locks = {actor['Hash'] for actor in actors if actor.get('Gyaml') == 'Obj_DoorChainLock_A_01'
+                 and type(actor.get('Hash')) is int}
+        for actor in actors:
+            if actor.get('Gyaml') != 'Obj_Gerudo_SwitchShutter_A_06' or not actor.get('Translate'):
+                continue
+            linked_locks = {link.get('Dst') for link in actor.get('Links', ())} & locks
+            if len(linked_locks) != 2:
+                continue
+            x, _, z = actor['Translate']
+            yaw = actor.get('Rotate', (0, 0, 0))[1]
+            dx, dz = 1.2 * cos(yaw), -1.2 * sin(yaw)
+            routes.add((TRAINING_LOCKED_DOOR, ((x - dx, z - dz), (x + dx, z + dz))))
+    return routes
 
 
 def ganon_dungeon_floor(position):
