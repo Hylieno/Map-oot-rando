@@ -1062,6 +1062,51 @@ class GuiTests(unittest.TestCase):
         self.assertFalse(app.canvas.find_withtag('player-pin'))
         self.assertIn('dossier de sauvegardes', app.link_status.get())
 
+    def test_link_follow_resumes_after_save_fallback_even_in_the_same_zone(self):
+        from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
+        from map_oot_rando.save_tracking import SaveUpdate, apply_save_update
+        from map_oot_rando.scene import REGION_VIEWS
+
+        app = self.app
+        regions = ('KokiriForest', 'LostWood')
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=list(regions), locations=[])
+        doc['scenes'] = {f'Banc/{region}/{region}_Child_Static.bcett.byml.zs':
+                         {'rooms': [], 'points': [('Centre', (0, 0))]} for region in regions}
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        app.show_link.set(True)
+        app.configure_link()
+        forest, woods = (REGION_VIEWS[region]['Child'] for region in regions)
+        sample = LinkPosition('KokiriForest', 'Child', 0, 100, 0, 90)
+
+        def publish(mode, link=None):
+            update = SaveUpdate(mode, timestamp='2026-11-25T00:00:00Z', states={}, mode=mode, link=link)
+            apply_save_update(app.store, update)
+            app.update_link(update.link)
+
+        publish('live', sample)
+        self.assertEqual(app.resource.get(), forest)
+        self.assertTrue(app.canvas.find_withtag('player-pin'))
+        app.open_neighbor('LostWood')
+        publish('live')  # The player object can be unavailable briefly while memory is connected.
+        publish('live', sample)
+        self.assertEqual(app.resource.get(), woods)
+
+        publish('save')
+        self.assertIsNone(app.link)
+        self.assertFalse(app.canvas.find_withtag('player-pin'))
+        publish('live', sample)
+        self.assertEqual(app.resource.get(), forest)
+        self.assertTrue(app.canvas.find_withtag('player-pin'))
+
+        publish('save')
+        app.follow_link.set(False)
+        app.open_neighbor('LostWood')
+        publish('live', sample)
+        self.assertEqual(app.resource.get(), woods)
+        self.assertFalse(app.canvas.find_withtag('player-pin'))
+
     def test_ice_cavern_has_one_view_and_uses_adult_fountain_portal(self):
         from unittest.mock import patch
         from map_oot_rando.scene import (FOUNTAIN_ICE_BACKDOOR, ICE_CAVERN_BACKDOOR,
@@ -2040,6 +2085,7 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(app.resource.get(), FIRE_VIEWS[2])
         app.resource.set(FIRE_VIEWS[1])
         app.resource_changed()
+        app.store.publish(app.store.seed_id, {}, mode='live', timestamp='2026-11-25T00:00:00Z')
         app.update_link(None)
         app.update_link(LinkPosition(region, 'Adult', 12, 145, 0, 0))
         self.assertEqual(app.resource.get(), FIRE_VIEWS[1])

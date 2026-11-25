@@ -310,7 +310,13 @@ class SaveTrackingTests(unittest.TestCase):
             second = connection.refresh(live=True, show_link=True).link
             self.assertEqual((second.scene, second.x), ('LostWood', 14))
             reader.snapshot.return_value = dict(bool={100: False}, sha256='other-seed')
-            self.assertIsNone(connection.refresh(live=True, show_link=True).link)
+            fallback = connection.refresh(live=True, show_link=True)
+            self.assertEqual(fallback.mode, 'save')
+            self.assertIsNone(fallback.link)
+            reader.snapshot.return_value = live_flags
+            resumed = connection.refresh(live=True, show_link=True)
+            self.assertEqual(resumed.mode, 'live')
+            self.assertEqual(resumed.link, second)
 
     def test_live_updates_before_save_and_falls_back_on_wrong_seed_or_disconnect(self):
         from unittest.mock import Mock

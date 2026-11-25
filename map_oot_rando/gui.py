@@ -499,6 +499,9 @@ class MapApplication:
     def update_link(self, position):
         changed = self.link != position
         self.link = position
+        if position is None and self.store.connection != 'live':
+            # Reacquire the map after a real disconnect, even in the same area.
+            self.link_area = None
         view = self.link_view() if position else None
         if view:
             self.link_status.set(f'Link · {view}')

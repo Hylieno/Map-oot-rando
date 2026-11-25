@@ -1,5 +1,11 @@
 # Validation
 
+Le passage de la mémoire à la sauvegarde puis le retour en mémoire
+ont été simulés avec des données OotrR et dans Tk. La carte reprend
+le suivi même dans la même zone. Les tests couvrent aussi le suivi
+désactivé et une absence provisoire de position avec la mémoire
+toujours connectée.
+
 Les neuf portes à petite clé du centre d’entraînement Gerudo ont été
 comparées aux acteurs reliés aux serrures dans les scènes publiques.
 Le contrôle dans Tk vérifie les deux extrémités des neuf traits, avant

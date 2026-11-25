@@ -1,5 +1,10 @@
 # Checkpoint — 25 novembre 2026
 
+Après une coupure de la lecture mémoire, le suivi automatique revient
+sur la carte de Link à la reconnexion, même dans la zone qu’il occupait
+avant la coupure. Un bref chargement avec la mémoire connectée
+laisse la carte consultée à l’écran.
+
 Le plan inférieur du centre d’entraînement Gerudo affiche les neuf
 portes à petite clé à la position et selon l’orientation de leurs
 acteurs. Les cartes déjà enregistrées retrouvent les portes à
