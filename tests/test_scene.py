@@ -129,6 +129,18 @@ class SceneTests(unittest.TestCase):
         self.assertEqual(scenes[REGION_VIEWS['HyruleField']['Adult']]['points'], [])
         self.assertEqual(scenes[WATER_VIEWS[0]]['points'], [('WaterTemple_FromLakeHylia', (-4.5, 43.61))])
 
+    def test_deku_western_raised_platform_stays_on_its_floor_for_live_positions(self):
+        from map_oot_rando.model import Location
+        from map_oot_rando.scene import DEKU_VIEWS, location_view
+
+        path = 'Banc/InsideTheDekuTree/InsideTheDekuTree_Static.bcett.byml.zs'
+        for point, floor in (((-42.92, 116.2, 19.35), 1),
+                             ((-24.33, 117.29, 3.73), 2),
+                             ((-14.01, 119.29, 0), 2)):
+            with self.subTest(point=point):
+                row = Location('', '', '', path, point, region='InsideTheDekuTree')
+                self.assertEqual(location_view(row), DEKU_VIEWS[floor])
+
     def test_spirit_temple_separates_the_statue_balcony_from_the_lower_room(self):
         from map_oot_rando.model import Location
         from map_oot_rando.scene import SPIRIT_VIEWS, location_view

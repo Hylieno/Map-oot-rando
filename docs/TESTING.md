@@ -1,5 +1,11 @@
 # Validation
 
+À l’ouest de l’Arbre Mojo, les deux étages ont été vérifiés dans Tk
+avec des positions simulées aux coordonnées des acteurs des salles
+2 et 3. Le coffre de la plateforme haute et le marqueur de Link
+apparaissent ensemble sur la vue du premier étage. La salle supérieure
+ouvre toujours la vue du deuxième étage.
+
 Le parcours du Temple de l’Esprit à la Vallée Gerudo a été vérifié
 dans Tk. Le lecteur OotrR a traité 13 positions mémoire simulées
 aux repères des scènes publiques, du temple au Colosse, au Désert,

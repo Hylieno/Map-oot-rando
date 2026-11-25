@@ -1615,7 +1615,9 @@ def location_view(row):
             return DEKU_VIEWS[4]
         if y < 90:
             return DEKU_VIEWS[3]
-        if y >= 115:
+        # Beyond the west doorway at X=-14, room 2's raised chest platform
+        # reaches Y=116.2 and the first floor actor in room 3 is at Y=117.29.
+        if y >= (117 if x <= -14 else 115):
             return DEKU_VIEWS[2]
         if y >= 104:
             return DEKU_VIEWS[1]
