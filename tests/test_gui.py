@@ -1911,8 +1911,11 @@ class GuiTests(unittest.TestCase):
             x0, y0, x1, y1 = app.canvas.bbox(room)
             self.assertTrue(0 <= x0 < x1 <= app.canvas.winfo_width())
             self.assertTrue(0 <= y0 < y1 <= app.canvas.winfo_height())
-        _, stroke = app.canvas.find_withtag('scene-route')
-        self.assertEqual(tuple(app.canvas.coords(stroke)[2:4]), app.viewport.screen((-49.49, -98.65)))
+        strokes = {tuple(app.canvas.coords(item)) for item in app.canvas.find_withtag('scene-route')}
+        entry, first, door, last = (app.viewport.screen(p) for p in (
+            (-16.14, -49.86), (-30.5, -73.8), (-49.49, -98.65), (-52.6, -103.9),
+        ))
+        self.assertEqual(strokes, {entry + first, first + door + last})
 
     def test_ganon_castle_switches_scene_without_mixing_coordinates(self):
         from unittest.mock import patch

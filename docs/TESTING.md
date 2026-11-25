@@ -16,6 +16,8 @@ Les six vues ont aussi été ouvertes sans aucun check. Les 17 repères
 de salle sont restés visibles et concordent avec les scènes publiques.
 Les onze traits entre salles passent par les coordonnées des portes.
 Le tracé des six épreuves a été vérifié dans Tk sans afficher de checks.
+Les six accès du hall ont été comparés aux zones de la première salle
+de chaque épreuve. Leurs traits ont été ajoutés au contrôle Tk.
 
 Les six traversées entre les vues de Jabu-Jabu ont été vérifiées dans
 Tk avec les scènes publiques et les fonds Field Atlas.

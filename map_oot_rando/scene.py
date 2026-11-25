@@ -144,6 +144,7 @@ GANON_TRIALS = {
     'Spirit': (609021425778003787, 'Esprit'),
 }
 GANON_TRIAL_DOORS = {ident: f'Entrée · {trial}' for ident, trial in GANON_TRIALS.values()}
+GANON_TRIAL_ENTRANCE_ROOMS = dict(zip(GANON_TRIAL_DOORS, (2, 5, 8, 10, 12, 16)))
 GANON_TRIAL_LEVELS = tuple(f'Épreuve · {trial}' for _, trial in GANON_TRIALS.values())
 GANON_TRIAL_VIEWS = tuple(f'{REGION_NAMES["InsideGanonCastle"]} · {level}' for level in GANON_TRIAL_LEVELS)
 GANON_TRIAL_ROOM_CENTER = 'Centre de salle'
@@ -939,13 +940,18 @@ def ganon_trial_connections(sources):
     centers, doors = {}, {}
     for room, point in ganon_trial_room_centers(sources):
         centers.setdefault(room, set()).add(point)
+    shutter_ids = GANON_TRIAL_ROOM_DOORS.keys() | GANON_TRIAL_ENTRANCE_ROOMS.keys()
     for source in sources.values():
         for actor in source['root'].get('Actors', ()):
             if (actor.get('Gyaml') == 'Obj_InsideGanonCastle_SwitchShutter_A_01'
-                    and (ident := actor.get('Hash')) in GANON_TRIAL_ROOM_DOORS
+                    and (ident := actor.get('Hash')) in shutter_ids
                     and (point := actor.get('Translate'))):
                 doors.setdefault(ident, set()).add((point[0], point[2]))
     labels = {view: label for label, view in GANON_TRIAL_ROUTE_VIEWS.items()}
+    for ident, room in GANON_TRIAL_ENTRANCE_ROOMS.items():
+        anchors = (doors.get(ident, ()), centers.get(room, ()))
+        if all(len(points) == 1 for points in anchors):
+            yield labels[GANON_TRIAL_ROOM_VIEWS[room]], tuple(next(iter(points)) for points in anchors)
     for ident, (start, end) in GANON_TRIAL_ROOM_DOORS.items():
         anchors = (centers.get(start, ()), doors.get(ident, ()), centers.get(end, ()))
         if all(len(points) == 1 for points in anchors):
