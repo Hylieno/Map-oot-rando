@@ -253,6 +253,16 @@ class SceneTests(unittest.TestCase):
         self.assertNotIn('routes', grouped[water])
         self.assertNotIn('routes', saved)
 
+        internal = ((-30.464, -73.805), (-49.4931, -98.6521), (-52.592, -103.921))
+        intermediate = dict(saved, routes=[('Épreuve · Feu', internal)])
+        grouped = group_scenes(read_scenes({'scenes': {path: intermediate}}))
+        self.assertEqual({xy for _, xy in grouped[fire]['routes']},
+                         {internal, ((-16.136, -49.862), (-30.464, -73.805))})
+        moved_door = (internal[0], (-48, -98.6521), internal[2])
+        customized = dict(saved, routes=[('Épreuve · Feu', moved_door)])
+        grouped = group_scenes(read_scenes({'scenes': {path: customized}}))
+        self.assertEqual([xy for _, xy in grouped[fire]['routes']], [moved_door])
+
     def test_ganon_trial_tracking_switches_at_the_six_angled_doors(self):
         from map_oot_rando.scene import GANON_DUNGEON_VIEWS, GANON_TRIAL_VIEWS, ganon_trial_view
 

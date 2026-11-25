@@ -19,6 +19,8 @@ Les six accès depuis le hall rejoignent la première salle de leur
 épreuve sur le schéma.
 Les cartes enregistrées avec les repères d’origine des portes et des
 barrières affichent désormais ces tracés à l’ouverture.
+Les cartes contenant déjà les liaisons intérieures retrouvent aussi
+les traits du hall lorsque leurs coordonnées correspondent au jeu.
 Le cadrage d’une vue schématique inclut la position courante de Link.
 
 Dans le ventre de Jabu-Jabu, la salle des fosses, l’ascenseur d’Octo

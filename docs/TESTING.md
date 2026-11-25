@@ -21,6 +21,9 @@ de chaque épreuve. Leurs traits ont été ajoutés au contrôle Tk.
 Une carte exportée avec le build précédent a été rouverte pour
 vérifier les 17 liaisons. Un test vérifie qu’une barrière déplacée
 empêche de réutiliser le tracé du jeu pour cette épreuve.
+Une carte intermédiaire contenant les onze liaisons intérieures a
+également été rouverte. Les six traits du hall sont apparus et
+les coordonnées enregistrées des liaisons intérieures ont été conservées.
 
 Les six traversées entre les vues de Jabu-Jabu ont été vérifiées dans
 Tk avec les scènes publiques et les fonds Field Atlas.

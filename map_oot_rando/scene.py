@@ -1666,7 +1666,7 @@ def restore_legacy_trial_routes(grouped):
     for (_, trial), view, (x, z, _, _), barrier in zip(
             GANON_TRIALS.values(), GANON_TRIAL_VIEWS, GANON_TRIAL_DOOR_PLANES, GANON_TRIAL_REFERENCE_BARRIERS):
         scene = grouped.get(view)
-        if not scene or scene.get('routes'):
+        if not scene:
             continue
         entry_points = {point for label, point in scene['points'] if label == f'Retour · {trial}'}
         barrier_points = {point for label, point in scene['points'] if label == f'Épreuve · {trial}'}
@@ -1684,11 +1684,22 @@ def restore_legacy_trial_routes(grouped):
         # Reuse the coordinates saved in the map whenever a centre is present.
         centers = {room: next((p for p in sorted(stored_centers) if dist(p, point) <= 0.02), point)
                    for room, point in centers.items()}
+        entry_route = (GANON_TRIAL_ROUTE_LABEL, (entry, centers[min(centers)]))
+        internal_routes = [(centers[start], GANON_TRIAL_REFERENCE_DOORS[door], centers[end])
+                           for door, (start, end) in GANON_TRIAL_ROOM_DOORS.items()
+                           if start in centers and end in centers]
+        routes = scene.get('routes')
+        if routes:
+            # Intermediate exports already have the internal routes. Preserve
+            # their coordinates and add the entry only for the stock layout.
+            if all(label == GANON_TRIAL_ROUTE_LABEL and len(points) == 3
+                   and any(all(dist(a, b) <= 0.02 for a, b in zip(points, reference))
+                           for reference in internal_routes)
+                   for label, points in routes):
+                routes.add(entry_route)
+            continue
         scene['points'].update((GANON_TRIAL_ROOM_CENTER, point) for point in centers.values())
-        scene['routes'] = {(GANON_TRIAL_ROUTE_LABEL, (entry, centers[min(centers)]))}
-        scene['routes'].update(
-            (GANON_TRIAL_ROUTE_LABEL, (centers[start], GANON_TRIAL_REFERENCE_DOORS[door], centers[end]))
-            for door, (start, end) in GANON_TRIAL_ROOM_DOORS.items() if start in centers and end in centers)
+        scene['routes'] = {entry_route, *((GANON_TRIAL_ROUTE_LABEL, points) for points in internal_routes)}
 
 
 def group_scenes(scenes):
