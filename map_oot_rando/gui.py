@@ -23,7 +23,7 @@ from .scene import (BURNT_VILLAGE, CASTLE_COURT, DAMPE_ROUTES, DREAM_BATTLE_VIEW
                     DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS,
                     FIRE_KAKARIKO_ARRIVAL, FIRE_KAKARIKO_CONTINUE, FIRE_VIEWS, FLOOR_OPTIONS,
                     FOUNTAIN_DUNGEON_AGES, GANON_DUNGEON_VIEWS, GANON_ESCAPE, GANON_ESCAPE_ROUTE, GANON_FINAL,
-                    GANONDORF_TILE, GANON_TRIAL_VIEWS,
+                    GANONDORF_TILE, GANON_TRIAL_ROOM_CENTER, GANON_TRIAL_VIEWS,
                     MARKET_CASTLE_AGES,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS, GUIDE_ROUTE, LOST_WOOD_RESET,
@@ -1412,6 +1412,9 @@ class MapApplication:
                         or label in PORTAL_START_NAMES.get(region, ())):
                     continue
                 x, y = self.viewport.screen(point)
+                if label == GANON_TRIAL_ROOM_CENTER:
+                    self.canvas.create_oval(x-4, y-4, x+4, y+4, outline='#7bb6ce', width=2, tags='trial-room-center')
+                    continue
                 self.canvas.create_polygon(x, y-5, x+5, y, x, y+5, x-5, y,
                                            fill='#b4dec0', tags='scene')
                 captions.append((label, x, y - 13))

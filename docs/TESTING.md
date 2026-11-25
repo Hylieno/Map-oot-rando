@@ -12,6 +12,8 @@ de Link a été vérifié avec des positions simulées aux 17 centres de
 salle, puis dans le hall.
 Les positions de part et d’autre de chaque porte ont été vérifiées
 avec le passage d’entrée du château.
+Les six vues ont aussi été ouvertes sans aucun check. Les 17 repères
+de salle sont restés visibles et concordent avec les scènes publiques.
 
 Les six traversées entre les vues de Jabu-Jabu ont été vérifiées dans
 Tk avec les scènes publiques et les fonds Field Atlas.

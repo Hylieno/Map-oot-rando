@@ -146,6 +146,7 @@ GANON_TRIALS = {
 GANON_TRIAL_DOORS = {ident: f'Entrée · {trial}' for ident, trial in GANON_TRIALS.values()}
 GANON_TRIAL_LEVELS = tuple(f'Épreuve · {trial}' for _, trial in GANON_TRIALS.values())
 GANON_TRIAL_VIEWS = tuple(f'{REGION_NAMES["InsideGanonCastle"]} · {level}' for level in GANON_TRIAL_LEVELS)
+GANON_TRIAL_ROOM_CENTER = 'Centre de salle'
 # Door centres in X/Z and outward unit normals from their native rotations.
 GANON_TRIAL_DOOR_PLANES = (
     (16.120, 7.842, 0.499, 0.867),
@@ -887,8 +888,11 @@ def ganon_trial_view(position):
 
 def ganon_tower_points(sources):
     points = crossing_level_points(sources, GANON_TOWER_CROSSINGS)
+    trial_indices = {view: index for index, view in enumerate(GANON_TRIAL_VIEWS, start=len(GANON_DUNGEON_VIEWS))}
     for source in sources.values():
-        for actor in source['root'].get('Actors', ()):
+        root = source['root']
+        room_centers = {}
+        for actor in root.get('Actors', ()):
             position = actor.get('Translate')
             gyaml = actor.get('Gyaml')
             if not position:
@@ -900,8 +904,21 @@ def ganon_tower_points(sources):
                 x, _, z = position
                 if abs(x) > 12 or abs(z + 25) > 12:
                     label = 'Passage de la tour'
+            if gyaml == 'DungeonRoomCenterAnchor':
+                room_centers[actor.get('Hash')] = (position[0], position[2])
             if label and (floor := ganon_dungeon_floor(position)):
                 points.add((floor, label, (position[0], position[2])))
+        for group in root.get('AiGroups', ()):
+            dynamic = group.get('Dynamic')
+            if not isinstance(dynamic, dict):
+                continue
+            view = GANON_TRIAL_ROOM_VIEWS.get(dynamic.get('DungeonRoomID'))
+            if view is None:
+                continue
+            for ref in group.get('References', ()):
+                ident = ref.get('Reference')
+                if ident is not None and (point := room_centers.get(ident)) is not None:
+                    points.add((trial_indices[view], GANON_TRIAL_ROOM_CENTER, point))
     return points
 
 
