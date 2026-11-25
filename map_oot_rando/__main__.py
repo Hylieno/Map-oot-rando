@@ -7,7 +7,7 @@ from .model import load_metadata
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Carte locale — simulation par défaut')
+    parser = argparse.ArgumentParser(description='Carte locale pour Ocarina of Time Remake')
     parser.add_argument('metadata', nargs='?', help='Métadonnées de carte v1')
     args = parser.parse_args()
     document = None

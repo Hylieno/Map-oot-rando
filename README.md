@@ -2,9 +2,9 @@
 
 Compagnon de carte local pour OotrR avec Kokiri Forest, les Bois Perdus, le Bosquet sacré, la plaine d’Hyrule, Cocorico, le cimetière, le mont du Péril, le Village Goron, la caverne Dodongo, le cratère du Péril et le Temple du Feu.
 
-La simulation utilise des positions fictives.
-L’import local lit les coordonnées de la seed et le suivi lit les états d’OotrR
-depuis une sauvegarde. Les checks sans correspondance certaine restent dans la liste.
+Au lancement, l’accueil invite à importer le jeu et la seed, ou à ouvrir une carte
+enregistrée via le menu **Carte**. Le suivi lit les états d’OotrR depuis la mémoire
+du jeu ou une sauvegarde. Les checks sans position confirmée restent dans la liste.
 
 ## Lancer localement
 
@@ -15,8 +15,8 @@ python -m pip install -r requirements.txt
 python -m map_oot_rando
 ```
 
-Sur Windows x64, installer Python avec Tcl/Tk, ouvrir un terminal dans le dépôt
-et exécuter cette commande. La validation locale a été faite sous Linux, pas Windows.
+Pour lancer depuis les sources sous Windows x64, installer Python avec Tcl/Tk et
+exécuter ces commandes dans le dépôt.
 
 - Molette : zoom ; glisser sur le fond : déplacement ; « Ajuster la vue » : cadrage.
 - Recherche par nom ou ID, puis Entrée ou sélection dans la liste pour centrer.
@@ -26,9 +26,6 @@ et exécuter cette commande. La validation locale a été faite sous Linux, pas 
   Les repères de passage relient directement les cartes locales.
 - Réimporte le NUP et le `checks.json` si une ancienne carte enregistrée ne contient pas les nouveaux passages.
 - Filtres de catégorie/statut ; décocher « Récupéré » pour masquer les checks gris.
-- En simulation, sélectionner un check puis changer son statut ou la connexion.
-  En déconnexion, l'affichage conserve le dernier état ; la reconnexion publie les
-  changements simulés en attente.
 
 ## Fonds de carte
 
@@ -265,7 +262,7 @@ manuel d’une vue suspend le changement.
 la sauvegarde ou la mémoire. Le menu de zone permet de choisir la variante
 après l’incendie quand le suivi ne fournit pas cet état.
 
-**Diagnostic de la carte…** exporte les IDs et les coordonnées pour vérifier une
+**Carte → Exporter le diagnostic…** exporte les IDs et les coordonnées pour vérifier une
 seed. Pour les fonds Field Atlas déjà chargés, il indique quels marqueurs se
 projettent en dehors de l’image ou loin du trait. Le rapport exclut l’image,
 l’identifiant de seed et la sauvegarde.
@@ -276,10 +273,9 @@ ou invalide, si les repères manquent ou si l’alignement a échoué.
 
 ## Métadonnées locales
 
-Le bouton « Ouvrir métadonnées » ou `python -m map_oot_rando carte.json` charge
-le format v1 validé par `model.load_metadata`. Les positions absentes restent
-recherchables sans marqueur. Les données `ootrr-scan` s'ouvrent déconnectées,
-avec des statuts inconnus ; les commandes de simulation sont masquées.
+**Carte → Ouvrir une carte enregistrée…** ou `python -m map_oot_rando carte.json`
+charge le format v1 validé par `model.load_metadata`. Les positions absentes
+restent recherchables. Les statuts proviennent du suivi lorsqu’il est connecté.
 
 `metadata.export_scan` consomme les groupes de coffres et sources supplémentaires
 déjà étiquetés par `oot_rando.game.extra_sources.scan_world`. Il ne lit pas directement
@@ -313,11 +309,15 @@ rétention de 14 jours.
 
 ## Importer sa seed dans la version portable Windows
 
-Extraire le ZIP et ouvrir `Map-oot-rando.exe`. Cliquer sur **Importer mon jeu et ma seed…**,
-puis choisir le NUP du jeu mis à jour et le `checks.json` du dossier de la seed OotrR.
-La carte se charge à la fin du scan local. **Enregistrer la carte…** permet de
-garder un JSON réutilisable via **Ouvrir métadonnées…**. Python et le scanner
-OotrR sont inclus dans le build portable.
+Extraire le ZIP et ouvrir `Map-oot-rando.exe`. **Importer mon jeu et ma seed…**
+ouvre un guide qui demande le fichier `.nup` du jeu contenant sa mise à jour, puis
+le `checks.json` du dossier de la seed OotrR. Garder `manifest.json` et
+`tracking.json` à côté de ce fichier pour le suivi. Cliquer sur **Importer la carte**
+lance le scan local. Python et le scanner OotrR sont inclus dans le build portable.
+
+**Carte → Enregistrer la carte…** permet de rouvrir ce résultat plus tard sans
+recommencer le scan. L’illustration d’accueil est une création originale générée
+pour Map-oot-rando.
 
 ## Exporter les points d'une seed OotrR en ligne de commande
 

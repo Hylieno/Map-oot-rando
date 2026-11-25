@@ -21,7 +21,7 @@ class GuiTests(unittest.TestCase):
         self.errors = []
         self.root.report_callback_exception = lambda *args: self.errors.append(args)
         self.profiles_path = Path(self.enterContext(TemporaryDirectory())) / 'profiles.json'
-        self.app = MapApplication(self.root, profiles=SaveProfiles(self.profiles_path))
+        self.app = MapApplication(self.root, demo_document(), profiles=SaveProfiles(self.profiles_path))
         self.root.update()
 
     def tearDown(self):
@@ -130,7 +130,7 @@ class GuiTests(unittest.TestCase):
         self.root.update()
         self.assertFalse(app.neighbor_menu_button.winfo_ismapped())
         self.assertTrue(all(app.neighbor_buttons[target].winfo_ismapped() for target in destinations))
-        self.assertGreater(app.track_button.winfo_rootx(), app.import_button.winfo_rootx())
+        self.assertGreater(app.track_button.winfo_rooty(), app.import_button.winfo_rooty())
 
         self.root.geometry('690x700')
         self.root.update()
@@ -185,9 +185,16 @@ class GuiTests(unittest.TestCase):
                 finished.set()
 
         with (patch.object(app.import_events, 'put', side_effect=signal_result),
-              patch('map_oot_rando.gui.filedialog.askopenfilename', side_effect=['game.nup', 'checks.json']),
+              patch('map_oot_rando.import_dialog.filedialog.askopenfilename',
+                    side_effect=['game.nup', '', 'checks.json']),
               patch('map_oot_rando.gui.import_seed', side_effect=fake_import) as importer):
-            app.choose_seed()
+            dialog = app.choose_seed()
+            self.assertTrue(dialog.start_button.instate(['disabled']))
+            dialog.pick('nup')
+            dialog.pick('checks')
+            self.assertTrue(dialog.start_button.instate(['disabled']))
+            dialog.pick('checks')
+            dialog.start_button.invoke()
             self.assertTrue(finished.wait(3))
             self.assertIsNotNone(app.import_callback)
             app.poll_import()
@@ -197,6 +204,16 @@ class GuiTests(unittest.TestCase):
         self.assertIsNone(app.simulation)
         self.assertIn('Carte chargée', app.import_status.get())
         self.assertFalse(app.import_button.instate(['disabled']))
+
+        saved_map = self.profiles_path.with_name('carte.json')
+        with (patch('map_oot_rando.gui.filedialog.asksaveasfilename', return_value=str(saved_map)),
+              patch('map_oot_rando.gui.filedialog.askopenfilename', return_value=str(saved_map)),
+              patch('map_oot_rando.gui.import_seed') as importer):
+            app.file_menu.invoke('Enregistrer la carte...')
+            app.load(demo_document())
+            app.file_menu.invoke('Ouvrir une carte enregistrée...')
+            importer.assert_not_called()
+        self.assertEqual(app.store.seed_id, 'test-seed')
 
     def test_reimport_keeps_same_seed_view_manual_age_and_last_snapshot(self):
         from unittest.mock import patch

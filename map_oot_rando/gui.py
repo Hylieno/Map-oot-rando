@@ -15,6 +15,7 @@ from .field_atlas import (CALIBRATION, FIELD_FRAMES, REGION_CALIBRATION, REGION_
 from .lost_woods import (BRIDGE_CALIBRATION, BRIDGE_SOURCE, CALIBRATION as LOST_CALIBRATION,
                          SOURCE as LOST_SOURCE, kokiri_bridge_plan, lost_woods_plan)
 from .export import import_seed
+from .import_dialog import ImportDialog
 from .model import Location, REGION_NAMES, SURFACE_MIN_Y, load_metadata, resource_region, select
 from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
@@ -32,8 +33,10 @@ from .scene import (BURNT_VILLAGE, CASTLE_COURT, DAMPE_ROUTES, DREAM_BATTLE_VIEW
                     UNDERGROUND_LABELS, UNDERGROUND_VIEWS, UNPOSITIONED_CHECK_AREAS, VIEWS, WATER_CONTROL_LABELS,
                     castle_view, field_area, field_atlas_scene, group_scenes, kokiri_bridge_position,
                     location_view, read_scenes, temple_position, view_name)
-from .simulation import Simulation, demo_document
+from .simulation import Simulation
+from . import theme
 from .view import Viewport
+from .welcome import Welcome
 from .world_map import WORLD_PIN_PARENTS, WORLD_PINS, WORLD_SIZE, load_world_map
 
 ATLAS_BACKGROUND = '#0d1f2e'
@@ -76,7 +79,9 @@ class MapApplication:
     def __init__(self, root, document=None, *, profiles=None):
         self.root = root
         root.title('Map-oot-rando')
-        root.geometry('1180x760')
+        root.geometry('1200x800')
+        root.minsize(780, 660)
+        theme.install(root)
         self.viewport = Viewport()
         self.viewport_adjusted = False
         self.overview_open = False
@@ -122,54 +127,62 @@ class MapApplication:
         self.connection = tk.StringVar()
         self.details = tk.StringVar(value='Sélectionnez un emplacement.')
         self.count = tk.StringVar()
-        top = ttk.Frame(root, padding=10)
-        top.pack(fill='x')
-        ttk.Label(top, textvariable=self.banner).pack(side='left')
-        ttk.Button(top, text='Ouvrir métadonnées...', command=self.open_metadata).pack(side='right')
-        ttk.Button(top, text='Simulation', command=lambda: self.load(demo_document())).pack(side='right')
-        self.report_button = ttk.Button(top, text='Diagnostic de la carte…', command=self.save_diagnostic)
-        self.report_button.pack(side='right', padx=(0, 8))
-        self.import_bar = import_bar = ttk.Frame(root, padding=(10, 0, 10, 0))
-        import_bar.pack(fill='x')
-        self.import_actions = ttk.Frame(import_bar)
-        self.tracking_actions = ttk.Frame(import_bar)
-        self.import_button = ttk.Button(self.import_actions, text='Importer mon jeu et ma seed…',
+        header = ttk.Frame(root, padding=(20, 12))
+        header.pack(fill='x')
+        emblem = tk.Canvas(header, width=38, height=42, background=theme.PANEL, highlightthickness=0)
+        emblem.create_polygon(19, 3, 36, 21, 19, 39, 2, 21, outline=theme.GOLD, fill=theme.FIELD)
+        emblem.create_polygon(19, 9, 22, 18, 30, 21, 22, 24, 19, 33, 16, 24, 8, 21, 16, 18,
+                              fill=theme.GOLD)
+        emblem.create_oval(17, 19, 21, 23, fill=theme.FIELD, outline='')
+        emblem.pack(side='left', padx=(0, 12))
+        brand = ttk.Frame(header)
+        brand.pack(side='left')
+        ttk.Label(brand, text='Map-oot-rando', style='Title.TLabel').pack(anchor='w')
+        ttk.Label(brand, textvariable=self.banner, style='Muted.TLabel').pack(anchor='w')
+
+        tools_button = ttk.Menubutton(header, text='Carte')
+        tools_button.pack(side='right', padx=(8, 0))
+        self.file_menu = theme.menu(tools_button)
+        tools_button.configure(menu=self.file_menu)
+        self.file_menu.add_command(label='Ouvrir une carte enregistrée...', command=self.open_metadata)
+        self.file_menu.add_command(label='Enregistrer la carte...', command=self.save_map, state='disabled')
+        self.file_menu.add_separator()
+        self.file_menu.add_command(label='Exporter le diagnostic...', command=self.save_diagnostic, state='disabled')
+        self.import_button = ttk.Button(header, text='Importer mon jeu et ma seed...', style='Accent.TButton',
                                         command=self.choose_seed)
-        self.import_button.pack(side='left')
-        self.save_button = ttk.Button(self.import_actions, text='Enregistrer la carte…',
-                                      command=self.save_map)
-        self.save_button.pack(side='left', padx=8)
-        self.track_button = ttk.Button(self.tracking_actions, text='Choisir le dossier de sauvegardes…',
-                                       command=self.choose_save)
+        ttk.Frame(root, style='Divider.TFrame', height=1).pack(fill='x')
+
+        self.tracking_strip = ttk.Frame(root, padding=(20, 7))
+        self.track_button = ttk.Button(self.tracking_strip, text='Dossier de sauvegardes...', command=self.choose_save)
         self.track_button.pack(side='left')
-        self.stop_track_button = ttk.Button(self.tracking_actions, text='Arrêter le suivi', command=self.stop_tracking)
+        self.stop_track_button = ttk.Button(self.tracking_strip, text='Arrêter le suivi', command=self.stop_tracking)
         self.stop_track_button.pack(side='left', padx=(6, 0))
-        self.live_check = ttk.Checkbutton(self.tracking_actions, text='Mémoire du jeu',
-                                           variable=self.live_requested, command=self.configure_live)
-        self.live_check.pack(side='left', padx=(6, 0))
-        ttk.Label(self.tracking_actions, textvariable=self.import_status).pack(side='left', padx=8)
-        self.import_actions.pack(side='left')
-        self.tracking_actions.pack(side='left')
-        self.import_layout_stacked = False
-        import_bar.bind('<Configure>', self.layout_import_actions)
-        ttk.Label(root, textvariable=self.connection, padding=8).pack(fill='x')
-        body = ttk.Panedwindow(root, orient='horizontal')
-        body.pack(fill='both', expand=True)
-        sidebar = ttk.Frame(body, padding=10)
+        self.live_check = ttk.Checkbutton(self.tracking_strip, text='Mémoire du jeu',
+                                          variable=self.live_requested, command=self.configure_live)
+        self.live_check.pack(side='left', padx=(12, 15))
+        connection_label = ttk.Label(self.tracking_strip, textvariable=self.connection, style='Muted.TLabel')
+        connection_label.pack(side='left', fill='x', expand=True)
+        connection_label.bind('<Configure>', lambda e: connection_label.configure(wraplength=max(1, e.width)))
+
+        self.workspace = ttk.Frame(root, style='Shell.TFrame', padding=(14, 12, 14, 0))
+        self.workspace.pack(fill='both', expand=True)
+        self.welcome = Welcome(self.workspace, self.choose_seed, self.import_status)
+        self.body = body = ttk.Panedwindow(self.workspace, orient='horizontal')
+        sidebar = ttk.Frame(body, padding=(12, 10))
         body.add(sidebar, weight=0)
-        ttk.Label(sidebar, text='Recherche : nom ou identifiant').pack(anchor='w')
-        search = ttk.Entry(sidebar, textvariable=self.query, width=38)
+        ttk.Label(sidebar, text='Rechercher un check', style='Section.TLabel').pack(anchor='w')
+        search = ttk.Entry(sidebar, textvariable=self.query, width=32)
         search.pack(fill='x')
         search.bind('<Return>', lambda e: self.choose_first())
-        ttk.Label(sidebar, text='Zone').pack(anchor='w', pady=(10, 0))
-        self.zones = ttk.Combobox(sidebar, state='readonly', width=33)
+        ttk.Label(sidebar, text='Zone', style='Section.TLabel').pack(anchor='w', pady=(9, 2))
+        self.zones = ttk.Combobox(sidebar, state='readonly', width=29)
         self.zones.pack(fill='x')
         self.zones.bind('<<ComboboxSelected>>', self.choose_zone)
         ages = ttk.Frame(sidebar)
         ages.pack(fill='x', pady=(4, 2))
         self.age_buttons = {}
         for age, label in AGE_LABELS.items():
-            button = ttk.Button(ages, text=label, command=lambda value=age: self.choose_age(value))
+            button = ttk.Button(ages, text=label, style='Age.TButton', command=lambda value=age: self.choose_age(value))
             button.pack(side='left', padx=(0, 5))
             self.age_buttons[age] = button
         self.follow_age_check = ttk.Checkbutton(sidebar, text='Suivre l’âge sauvegardé',
@@ -183,38 +196,61 @@ class MapApplication:
         self.follow_link_check.pack(anchor='w')
         link_panel = ttk.Frame(sidebar)
         link_panel.pack(fill='x')
-        self.link_status_label = ttk.Label(link_panel, textvariable=self.link_status, wraplength=270)
-        self.link_status_label.pack(anchor='w')
+        self.link_status_label = ttk.Label(link_panel, textvariable=self.link_status, wraplength=245,
+                                           style='Muted.TLabel')
         self.link_zone_button = tk.Button(link_panel, textvariable=self.link_status, wraplength=252,
-                                          justify='left', anchor='w', cursor='hand2', command=self.show_link_zone)
-        ttk.Label(sidebar, text='Catégorie').pack(anchor='w', pady=(10, 0))
+                                          justify='left', anchor='w', cursor='hand2', bg=theme.FIELD, fg=theme.GOLD,
+                                          activebackground=theme.SELECTION, activeforeground=theme.CREAM,
+                                          highlightbackground=theme.PANEL, relief='flat', command=self.show_link_zone)
+        ttk.Label(sidebar, text='Filtres', style='Section.TLabel').pack(anchor='w', pady=(8, 2))
         self.categories = ttk.Combobox(sidebar, textvariable=self.category, state='readonly')
         self.categories.pack(fill='x')
         self.categories.bind('<<ComboboxSelected>>', lambda e: self.render())
-        for key in COLORS:
-            ttk.Checkbutton(sidebar, text=LABELS[key], variable=self.status_vars[key],
-                            command=self.render).pack(anchor='w')
+        statuses = ttk.Frame(sidebar)
+        statuses.pack(fill='x', pady=(3, 0))
+        for index, (key, color) in enumerate(COLORS.items()):
+            label = 'Accès partiel' if key == 'partial' else LABELS[key]
+            status_style = f'{key}.TCheckbutton'
+            ttk.Style(root).configure(status_style, foreground=color)
+            ttk.Checkbutton(statuses, text=label, style=status_style, variable=self.status_vars[key],
+                            command=self.render).grid(row=index // 2, column=index % 2, sticky='w', padx=(0, 10))
         ttk.Checkbutton(sidebar, text='Afficher les checks hors du fond',
                         variable=self.show_outside, command=self.render).pack(anchor='w')
+        detail_panel = ttk.Frame(sidebar)
+        detail_panel.pack(side='bottom', fill='x')
+        detail_scroll = ttk.Scrollbar(detail_panel, orient='vertical')
+        detail_text = tk.Text(detail_panel, height=3, width=28, wrap='word', font='TkDefaultFont',
+                              padx=7, pady=5, background=theme.FIELD, foreground=theme.CREAM,
+                              highlightthickness=0, borderwidth=0, yscrollcommand=detail_scroll.set)
+        detail_scroll.configure(command=detail_text.yview)
+        detail_scroll.pack(side='right', fill='y')
+        detail_text.pack(side='left', fill='x', expand=True)
+
+        def update_details(*_):
+            value = self.details.get()
+            if detail_text.get('1.0', 'end-1c') == value:
+                return
+            detail_text.configure(state='normal')
+            detail_text.replace('1.0', 'end', value)
+            detail_text.configure(state='disabled')
+
+        self.details.trace_add('write', update_details)
+        self.manual_button = ttk.Button(sidebar, text='Cocher manuellement', command=self.toggle_manual)
         results_panel = ttk.Frame(sidebar)
-        results_panel.pack(fill='both', expand=True, pady=8)
-        self.results = tk.Listbox(results_panel, height=10, exportselection=False)
-        scrollbar = ttk.Scrollbar(results_panel, orient='vertical', command=self.results.yview)
-        self.results.configure(yscrollcommand=scrollbar.set)
+        results_panel.pack(fill='both', expand=True, pady=(6, 4))
+        scrollbar = ttk.Scrollbar(results_panel, orient='vertical')
+        self.results = tk.Listbox(results_panel, height=1, exportselection=False, background=theme.FIELD,
+                                  foreground=theme.CREAM, selectbackground=theme.SELECTION,
+                                  selectforeground=theme.CREAM, highlightcolor=theme.GOLD,
+                                  highlightbackground=theme.EDGE, highlightthickness=1, borderwidth=0,
+                                  activestyle='none', font='TkDefaultFont', yscrollcommand=scrollbar.set)
+        scrollbar.configure(command=self.results.yview)
         scrollbar.pack(side='right', fill='y')
         self.results.pack(side='left', fill='both', expand=True)
         self.results.bind('<<ListboxSelect>>', self.choose_list)
-        ttk.Label(sidebar, textvariable=self.details, wraplength=300, justify='left').pack(fill='x')
-        self.manual_button = ttk.Button(sidebar, text='Cocher manuellement', command=self.toggle_manual)
-        self.sim_controls = ttk.LabelFrame(sidebar, text='Actions simulées', padding=6)
-        for key in COLORS:
-            ttk.Button(self.sim_controls, text=LABELS[key],
-                       command=lambda s=key: self.simulate(s)).pack(fill='x')
-        ttk.Button(self.sim_controls, text='Déconnecter / reconnecter',
-                   command=self.toggle_connection).pack(fill='x')
         panel = ttk.Frame(body)
         body.add(panel, weight=1)
-        tool_rows = ttk.Frame(panel)
+        tool_rows = ttk.Frame(panel, padding=(8, 6))
         tool_rows.pack(fill='x')
         self.map_tools = tools = ttk.Frame(tool_rows)
         tools.pack(fill='x')
@@ -224,7 +260,7 @@ class MapApplication:
             region: ttk.Button(self.neighbor_bar, text=name, command=lambda target=region: self.open_neighbor(target))
             for region, name in REGION_NAMES.items()
         }
-        self.neighbor_menu = tk.Menu(self.neighbor_bar, tearoff=False)
+        self.neighbor_menu = theme.menu(self.neighbor_bar)
         self.neighbor_menu_button = ttk.Menubutton(self.neighbor_bar, text='Zones voisines', menu=self.neighbor_menu)
         self.neighbor_targets = ()
         self.neighbor_layout = None
@@ -234,6 +270,7 @@ class MapApplication:
         self.floor_picker = ttk.Combobox(tools, state='readonly', width=27)
         self.floor_picker.bind('<<ComboboxSelected>>', self.choose_floor)
         self.canvas = tk.Canvas(panel, background='#18252b', highlightthickness=0)
+        self.canvas_size = None
         self.canvas.pack(fill='both', expand=True)
         self.canvas.bind('<Configure>', self.resized)
         self.canvas.bind('<ButtonPress-1>', self.press)
@@ -243,11 +280,18 @@ class MapApplication:
         self.canvas.bind('<MouseWheel>', lambda e: self.zoom(1.2 if e.delta > 0 else 1 / 1.2, e.x, e.y))
         self.canvas.bind('<Button-4>', lambda e: self.zoom(1.2, e.x, e.y))
         self.canvas.bind('<Button-5>', lambda e: self.zoom(1 / 1.2, e.x, e.y))
-        self.marker_menu = tk.Menu(self.canvas, tearoff=False)
-        ttk.Label(root, textvariable=self.count, padding=8).pack(fill='x')
+        self.marker_menu = theme.menu(self.canvas)
+        self.footer = ttk.Frame(root, padding=(20, 6))
+        ttk.Label(self.footer, textvariable=self.count, style='Muted.TLabel').pack(side='left')
+        ttk.Label(self.footer, textvariable=self.import_status, style='Muted.TLabel').pack(side='right')
         self.query.trace_add('write', lambda *args: self.render())
-        self.load(document if document is not None else demo_document())
-        root.after_idle(self.fit)
+        self.document = None
+        self.visible = ()
+        self.banner.set('Compagnon Ocarina of Time Remake')
+        if document is None:
+            self.welcome.pack(fill='both', expand=True, pady=(0, 12))
+        else:
+            self.load(document)
 
     def load(self, document, *, seed_folder=None):
         locations = load_metadata(document)  # Validate before replacing current state.
@@ -295,11 +339,12 @@ class MapApplication:
         if self.simulation:
             self.show_link.set(False)
         self.link_check.state(['disabled' if self.simulation else '!disabled'])
-        self.save_button.state(['disabled' if self.simulation else '!disabled'])
+        document_state = 'disabled' if synthetic else 'normal'
+        self.file_menu.entryconfigure('Enregistrer la carte...', state=document_state)
+        self.file_menu.entryconfigure('Exporter le diagnostic...', state=document_state)
         track_state = 'disabled' if self.simulation or not document.get('seed_id') else '!disabled'
         self.track_button.state([track_state])
         self.live_check.state([track_state])
-        self.report_button.state(['disabled' if self.simulation else '!disabled'])
         self.store = self.simulation.store if self.simulation else StateStore(seed_id, [r.id for r in locations])
         if resume_snapshot:
             self.store.states.update((ident, old_store.states[ident])
@@ -332,10 +377,11 @@ class MapApplication:
         self.resource.set(previous_view if previous_view in views else initial_view)
         self.categories['values'] = ['Toutes'] + sorted({r.category for r in locations})
         self.category.set('Toutes')
-        if self.simulation:
-            self.sim_controls.pack(fill='x', pady=8)
-        else:
-            self.sim_controls.pack_forget()
+        self.welcome.pack_forget()
+        self.import_button.pack(side='right')
+        self.tracking_strip.pack(fill='x', before=self.workspace)
+        self.body.pack(fill='both', expand=True)
+        self.footer.pack(side='bottom', fill='x', before=self.workspace)
         self.query.set('')
         self.resource_changed(manual=False)
         self.configure_link()
@@ -353,15 +399,12 @@ class MapApplication:
                     self.render()
 
     def choose_seed(self):
-        nup = filedialog.askopenfilename(parent=self.root, title='Choisir le fichier NUP du jeu',
-                                         filetypes=[('Jeu NUP', '*.nup')])
-        if not nup:
-            return
-        checks = filedialog.askopenfilename(parent=self.root, title='Choisir le checks.json de la seed OotrR',
-                                            filetypes=[('Catalogue JSON', '*.json')])
-        if not checks:
-            return
+        return ImportDialog(self.root, self.start_import)
+
+    def start_import(self, nup, checks):
         self.import_button.state(['disabled'])
+        self.welcome.import_button.state(['disabled'])
+        self.file_menu.entryconfigure('Ouvrir une carte enregistrée...', state='disabled')
         self.import_status.set('Analyse locale du jeu en cours…')
 
         def scan():
@@ -385,11 +428,13 @@ class MapApplication:
                     self.import_status.set(value)
                     continue
                 self.import_button.state(['!disabled'])
+                self.welcome.import_button.state(['!disabled'])
+                self.file_menu.entryconfigure('Ouvrir une carte enregistrée...', state='normal')
                 if event == 'done':
                     document, folder = value
                     self.load(document, seed_folder=folder)
-                    missing = len(document['diagnostics'])
-                    self.import_status.set(f'Carte chargée. {missing} check(s) sans position.')
+                    if not self.import_status.get():
+                        self.import_status.set('Carte chargée.')
                 else:
                     self.import_status.set('Import interrompu.')
                     messagebox.showerror('Import impossible', value, parent=self.root)
@@ -523,9 +568,11 @@ class MapApplication:
                 self.link_zone_button.pack(fill='x')
         else:
             self.link_status.set('Zone de Link hors carte' if position else self.link_message())
-            if self.link_zone_button.winfo_manager():
-                self.link_zone_button.pack_forget()
+            self.link_zone_button.pack_forget()
+            if self.link_status.get():
                 self.link_status_label.pack(anchor='w')
+            else:
+                self.link_status_label.pack_forget()
         area = (position.scene, position.age, view) if position else None
         if area is not None and area != self.link_area:
             self.link_area = area
@@ -849,7 +896,8 @@ class MapApplication:
         self.atlas_callback = self.root.after(100, finish)
 
     def open_metadata(self):
-        path = filedialog.askopenfilename(filetypes=[('Métadonnées JSON', '*.json')])
+        path = filedialog.askopenfilename(parent=self.root, title='Ouvrir une carte enregistrée',
+                                          filetypes=[('Carte JSON', '*.json')])
         if not path:
             return
         try:
@@ -857,7 +905,7 @@ class MapApplication:
                 document = json.load(stream)
             self.load(document)
         except (OSError, ValueError, KeyError, TypeError, AttributeError, Image.DecompressionBombError) as error:
-            messagebox.showerror('Métadonnées invalides', str(error))
+            messagebox.showerror('Carte invalide', str(error), parent=self.root)
 
     def render(self):
         if not hasattr(self, 'locations'):
@@ -897,8 +945,12 @@ class MapApplication:
         self.results.yview_moveto(list_position)
         missing = sum(r.position is None for r in self.visible)
         outside = sum(self.outside(row) for row in self.visible)
-        self.count.set(f'{len(self.visible)} résultat(s) | {missing} sans coordonnées | {outside} hors du fond | '
-                       'Molette : zoom ; glisser le fond : déplacer ; Entrée : premier résultat')
+        counters = [f'{len(self.visible)} résultat(s)']
+        if missing:
+            counters.append(f'{missing} sans coordonnées')
+        if outside:
+            counters.append(f'{outside} hors du fond')
+        self.count.set('   ·   '.join(counters))
         mode = {'simulation': 'SIMULATION connectée', 'disconnected': 'Déconnecté - dernier état conservé',
                 'save': 'Sauvegarde uniquement', 'live': 'Mémoire du jeu'}[self.store.connection]
         self.connection.set(f'{mode} | Dernière synchronisation (UTC) : {self.store.last_success or "aucune"}'
@@ -1075,7 +1127,7 @@ class MapApplication:
         for choice, button in self.age_buttons.items():
             supported = self.overview_open or region in SHARED_DUNGEONS or self.view_for_age(choice)
             active = choice == self.navigation_age
-            button.configure(text=AGE_LABELS[choice] + (' ✓' if active else ''))
+            button.configure(style='Current.Age.TButton' if active else 'Age.TButton')
             button.state(['disabled' if self.simulation or active or not supported else '!disabled'])
 
     def refresh_navigation(self):
@@ -1085,7 +1137,7 @@ class MapApplication:
         self.zones.set(view if view == BURNT_VILLAGE or view not in VIEWS else name)
         self.refresh_age_buttons()
         self.banner.set('SIMULATION - noms et positions fictifs' if self.simulation else
-                        f'{name} - seed importée')
+                        f'{name}  ·  Carte chargée')
         self.neighbor_bar.pack_forget()
         self.neighbor_layout = None
         if not self.simulation and self.world_targets():
@@ -1141,22 +1193,6 @@ class MapApplication:
         else:
             self.neighbor_bar.pack(in_=self.map_tools, side='left')
 
-    def layout_import_actions(self, event):
-        tracking_controls = (self.track_button, self.stop_track_button, self.live_check)
-        tracking_width = sum(widget.winfo_reqwidth() for widget in tracking_controls) + 12
-        stacked = self.import_actions.winfo_reqwidth() + tracking_width + 20 > event.width
-        if stacked == self.import_layout_stacked:
-            return
-        self.import_layout_stacked = stacked
-        self.import_actions.pack_forget()
-        self.tracking_actions.pack_forget()
-        if stacked:
-            self.import_actions.pack(anchor='w')
-            self.tracking_actions.pack(anchor='w')
-        else:
-            self.import_actions.pack(side='left')
-            self.tracking_actions.pack(side='left')
-
     def resource_changed(self, *, manual=True, arrival=None):
         self.overview_open = False
         self.arrival = arrival
@@ -1177,9 +1213,14 @@ class MapApplication:
         return bool(background and row.position is not None and not background.covers(row.project()))
 
     def resized(self, event):
+        previous = self.canvas_size
+        self.canvas_size = (event.width, event.height)
         if getattr(self, 'fit_pending', False):
             self.fit()
         else:
+            if previous and not self.overview_open:
+                self.viewport.x += (event.width - previous[0]) / 2
+                self.viewport.y += (event.height - previous[1]) / 2
             self.draw()
 
     def fit_detail(self):
@@ -1223,6 +1264,8 @@ class MapApplication:
         self.world_callback = self.root.after(100, finish)
 
     def fit(self, *, focus=None, preserve_viewport=False):
+        if self.document is None:
+            return
         self.fit_pending = self.canvas.winfo_width() <= 1 or self.canvas.winfo_height() <= 1
         if self.fit_pending:
             return
@@ -1635,16 +1678,16 @@ class MapApplication:
             self.manual_button.configure(text=('Annuler le marquage manuel' if tracker.get('source') == 'manual'
                                                else 'Marquer comme récupéré'))
             self.manual_button.state(['!disabled'])
-            self.manual_button.pack(fill='x', pady=(5, 0))
+            self.manual_button.pack(side='bottom', fill='x', pady=(4, 0))
         else:
             self.manual_button.pack_forget()
         view = location_view(row)
         if row.position is None and view not in self.views:
             view = REGION_NAMES.get(row.region, view)
         area = UNPOSITIONED_CHECK_AREAS.get(row.id) if row.position is None else None
-        self.details.set(f'{row.name}\nID : {row.id}\n{row.category}\n{view}\n'
-                         f'XYZ : {row.position if row.position is not None else "inconnues"}\n'
-                         f'État : {LABELS[self.store.states.get(row.id, "unknown")]}'
+        self.details.set(f'{row.name}\nÉtat : {LABELS[self.store.states.get(row.id, "unknown")]}\n'
+                         f'{view}\n{row.category}\nID : {row.id}\n'
+                         f'XYZ : {row.position if row.position is not None else "inconnues"}'
                          + (f'\nSecteur indiqué par OotrR : {area[1]}' if area else '')
                          + (f'\nEntrée affichée (XYZ) : {row.entrance}' if row.entrance else '')
                          + ('\nHors du fond de carte' if self.outside(row) else '')

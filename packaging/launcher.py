@@ -38,15 +38,17 @@ if __name__ == '__main__':
         try:
             app = MapApplication(root, profiles=SaveProfiles(folder / 'profiles.json'))
             root.update()
-            app.query.set('SIMULATED#0')
-            app.choose_first()
-            app.simulate('completed')
-            if (app.selected is None or app.store.states.get(app.selected.id) != 'completed'
-                    or not app.markers or callback_errors):
+            if app.document is not None or app.visible or not app.welcome.winfo_ismapped() or callback_errors:
                 sys.exit(1)
+            dialog = app.choose_seed()
+            if not dialog.start_button.instate(['disabled']):
+                sys.exit(1)
+            dialog.destroy()
 
             app.load(import_seed(Path(sys.argv[2]), Path(sys.argv[3])))
             root.update()
+            if app.welcome.winfo_ismapped() or not app.body.winfo_ismapped():
+                sys.exit(1)
             child_markers = {app.markers[item].id: app.markers[item].position
                              for item in app.canvas.find_withtag('check-pin')}
             if child_markers != {'KokiriForest#123': (18, 107, -7.5), 'KokiriForest#pots#321': (14, 106, -3)}:

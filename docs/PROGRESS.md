@@ -1,5 +1,11 @@
 # Checkpoint — 25 novembre 2026
 
+Le démarrage affiche un accueil illustré qui attend les données de la seed.
+Le guide d’import explique le choix du NUP mis à jour et du catalogue
+`checks.json`. La carte, les filtres et le suivi utilisent un thème vert forêt
+et or. L’enregistrement, l’ouverture et le diagnostic passent par le menu
+Carte. La simulation est accessible aux tests par leurs fixtures.
+
 Le joueur a confirmé le fonctionnement en jeu avec sa seed OotrR 0.8.4.
 Le catalogue fourni a révélé douze checks de chansons sans marqueur.
 Le scan les place désormais à partir des acteurs, des repères de scène et

@@ -1,5 +1,10 @@
 # Validation
 
+L’import guidé est exercé avec les deux sélecteurs, l’annulation d’un
+choix et le chargement du résultat. Le test rouvre aussi une carte
+enregistrée depuis le menu sans appeler le scanner. Le test du build
+portable vérifie l’accueil vide, le guide et la transition vers la carte.
+
 Les trois fichiers de la seed OotrR 0.8.4 fournis par le joueur ont la même
 identité. L’empreinte de `tracking.json` correspond au manifeste. Les 1 088
 états produits par l’application et par OotrR 0.8.4 coïncident sur chacune
