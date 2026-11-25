@@ -227,6 +227,9 @@ SPIRIT_BOSS_TO_COLOSSUS = 'Sortie de Twinrova vers le Colosse'
 SPIRIT_BOSS_TO_SAGES = 'Sortie de Twinrova vers les Sages'
 SPIRIT_SAGE_CONTINUE = 'Suite de la cinématique de Twinrova'
 SPIRIT_COLOSSUS_ARRIVAL = 'Arrivée au Requiem des Esprits'
+DEKU_BOSS_EXIT = 'Portail de Gohma'
+DODONGO_BOSS_EXIT = 'Portail du Roi Dodongo'
+JABU_BOSS_EXIT = 'Portail de Barinade'
 SIDE_PORTALS = {
     'GerudoTrainingGround': {
         TRAINING_TO_WALKWAY: ('GerudoTrainingGround', TRAINING_VIEWS[1], 'Passerelle', TRAINING_TO_STATUE),
@@ -253,6 +256,17 @@ SIDE_PORTALS = {
         SPIRIT_SAGE_CONTINUE: ('DesertColossus', REGION_VIEWS['DesertColossus']['Adult'],
                                'Colosse du désert · suite de la cinématique', SPIRIT_COLOSSUS_ARRIVAL),
     },
+    'InsideTheDekuTree': {
+        DEKU_BOSS_EXIT: ('KokiriForest', REGION_VIEWS['KokiriForest']['Child'],
+                         'Kokiri Forest · sortie de Gohma', DEKU_BOSS_EXIT),
+    },
+    'DodongoCavern': {
+        DODONGO_BOSS_EXIT: ('DeathMountainTrail', None, 'Mont du Péril · sortie du boss', DODONGO_BOSS_EXIT),
+    },
+    'InsideJabuJabuBelly': {
+        JABU_BOSS_EXIT: ('ZoraFountain', REGION_VIEWS['ZoraFountain']['Child'],
+                         'Fontaine Zora · sortie de Barinade', JABU_BOSS_EXIT),
+    },
     'ZoraFountain': {
         FOUNTAIN_ICE_BACKDOOR: ('IceCavern', None, 'Caverne de glace · passage secondaire', ICE_CAVERN_BACKDOOR),
     },
@@ -275,6 +289,9 @@ PORTAL_ARRIVAL_STARTS = {
     ('DesertColossus', 'spirit_temple_right_hand_entrance'): ('DesertColossus_FromSpiritTempleRightHand',),
     ('DesertColossus', SPIRIT_COLOSSUS_ARRIVAL): ('SpiritRequiem',),
     ('SageRoom', SPIRIT_SAGE_CONTINUE): ('Arrivée après Twinrova',),
+    ('KokiriForest', DEKU_BOSS_EXIT): ('WarpFromDekuTree', 'WarpFromDekuTree_2'),
+    ('DeathMountainTrail', DODONGO_BOSS_EXIT): ('DodongoCavernFront',),
+    ('ZoraFountain', JABU_BOSS_EXIT): ('ClearJabuJabu',),
     ('LostWood', NEIGHBORS['LostWood']['ZoraRiver']): ('LostWood_ZoraRiverSide',),
     ('ZoraRiver', NEIGHBORS['ZoraRiver']['LostWood']): ('ZoraRiver_LostWoodSide',),
     ('LostWood', NEIGHBORS['LostWood']['GoronCity']): ('LostWood_GoronCitySide_before', 'LostWood_GoronCitySide_after'),
@@ -624,25 +641,28 @@ def spirit_level_points(sources):
         ('MapIconEntranceAnchor', 452821593555612172): (2, 'right_hand_entrance'),
         ('MapIconEntranceAnchor', 17977111214894828225): (2, 'left_hand_entrance'),
         ('DungeonRoomCenterAnchor', 8163808957952677095): (4, 'Arène de Twinrova'),
-        ('Obj_WarpPoint_A_01', 11243501154977749945): (4, SPIRIT_BOSS_TO_COLOSSUS),
     }
     anchors.update({('StartPos', name): (2, name)
                     for (region, portal), names in PORTAL_ARRIVAL_STARTS.items()
                     if region == 'SpiritTemple' and portal in SIDE_PORTALS[region]
                     for name in names})
-    points = {(*anchors[key], (position[0], position[2]))
-              for source in sources.values() for actor in source['root'].get('Actors', ())
-              if (kind := actor.get('Gyaml'))
-              and (key := (kind, actor.get('Name') if kind == 'StartPos' else actor.get('Hash'))) in anchors
-              and (position := actor.get('Translate'))}
-    return points | {(floor, SPIRIT_BOSS_TO_SAGES, point)
-                     for floor, label, point in points if label == SPIRIT_BOSS_TO_COLOSSUS}
+    return {(*anchors[key], (position[0], position[2]))
+            for source in sources.values() for actor in source['root'].get('Actors', ())
+            if (kind := actor.get('Gyaml'))
+            and (key := (kind, actor.get('Name') if kind == 'StartPos' else actor.get('Hash'))) in anchors
+            and (position := actor.get('Translate'))}
 
 
 LEVEL_POINT_EXTRACTORS = {
     'InsideGanonCastle': ganon_tower_points,
     'GerudoTrainingGround': training_level_points,
     'SpiritTemple': spirit_level_points,
+}
+BOSS_WARP_ANCHORS = {
+    'InsideTheDekuTree': (18328422019320660370, 5, (DEKU_BOSS_EXIT,)),
+    'DodongoCavern': (13216581863777340373, 2, (DODONGO_BOSS_EXIT,)),
+    'InsideJabuJabuBelly': (9190184471319613614, 3, (JABU_BOSS_EXIT,)),
+    'SpiritTemple': (11243501154977749945, 4, (SPIRIT_BOSS_TO_COLOSSUS, SPIRIT_BOSS_TO_SAGES)),
 }
 
 GUIDE_ROUTE = 'Trajet du guide'
@@ -951,7 +971,13 @@ def extract_scenes(maps, landmarks):
                 dx, _, dz = room_areas[0]['Scale']
                 rooms.append(('Salle intermédiaire', (x - dx, z - dz), (x + dx, z + dz)))
         extract_levels = LEVEL_POINT_EXTRACTORS.get(region)
-        levels = extract_levels(sources) if extract_levels else ()
+        levels = extract_levels(sources) if extract_levels else set()
+        if region in BOSS_WARP_ANCHORS:
+            actor_hash, floor, portals = BOSS_WARP_ANCHORS[region]
+            levels.update((floor, portal, (position[0], position[2]))
+                          for source in sources.values() for actor in source['root'].get('Actors', ())
+                          if actor.get('Gyaml') == 'Obj_WarpPoint_A_01' and actor.get('Hash') == actor_hash
+                          and (position := actor.get('Translate')) for portal in portals)
         route_extractor = {
             'HountedWasteland': guide_routes,
             'GerudoTrainingGround': training_connections,
@@ -977,7 +1003,7 @@ def read_scenes(document):
         level_points = []
         for entry in scene.get('level_points', ()):
             region = resource_region(resource)
-            if (len(entry) != 3 or region not in LEVEL_POINT_EXTRACTORS
+            if (len(entry) != 3 or (region not in LEVEL_POINT_EXTRACTORS and region not in BOSS_WARP_ANCHORS)
                     or type(entry[0]) is not int or not 0 < entry[0] < len(DUNGEON_FLOORS[region])):
                 raise ValueError('Niveau de carte invalide')
             level_points.append(entry[1:])

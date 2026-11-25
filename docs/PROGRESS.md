@@ -3,6 +3,9 @@
 Le portail de Twinrova ouvre le Colosse du désert adulte, directement
 ou via la Chambre des Sages. Les deux trajets indiquent les points
 d’arrivée de la cinématique.
+Les trois premiers donjons disposent aussi de sorties depuis leurs arènes,
+avec les deux arrivées possibles de Gohma et le retour du Roi Dodongo
+aux deux âges.
 
 Le tracé des Bois Perdus indique le sens du trajet vers le Bosquet
 sacré. Neuf croix signalent les sorties qui ramènent à Kokiri, et la

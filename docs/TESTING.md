@@ -4,6 +4,9 @@ Le portail de Twinrova a été sélectionné dans Tk avec les scènes
 publiques. Les deux parcours affichent le même point d’arrivée au
 Requiem. Un test vérifie aussi le retour au Colosse adulte après une
 navigation en vue enfant.
+Les sorties de Gohma, du Roi Dodongo et de Barinade ont été ouvertes
+dans Tk avec les scènes publiques. Les anneaux ont été vérifiés sur les
+points nommés et sur les deux vues du mont du Péril.
 
 Les neuf retours à Kokiri et les trajets vers le Village Goron, la
 rivière Zora et le Bosquet sacré ont été vérifiés aux deux âges dans
