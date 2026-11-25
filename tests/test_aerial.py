@@ -1,0 +1,54 @@
+import json
+import unittest
+
+from PIL import Image
+
+from map_oot_rando.aerial import AerialImage, affine, apply
+from map_oot_rando.view import Viewport
+
+
+class AerialTests(unittest.TestCase):
+    def test_affine_aligns_rotated_image_and_rejects_collinear_points(self):
+        image_points = [(0, 0), (10, 0), (0, 20)]
+        world_points = [(40, 30), (40, 20), (60, 30)]
+        matrix = affine(world_points, image_points)
+        self.assertEqual([apply(matrix, point) for point in world_points], image_points)
+        self.assertEqual(apply(matrix, (50, 25)), (5, 10))
+        with self.assertRaises(ValueError):
+            affine([(0, 0), (1, 1), (2, 2)], image_points)
+
+    def test_saved_image_round_trip_and_pan_zoom(self):
+        image = Image.new('RGB', (20, 20), 'black')
+        for x in range(8, 13):
+            for y in range(8, 13):
+                image.putpixel((x, y), (255, 0, 0))
+        points = [(0, 0), (20, 0), (0, 20)]
+        original = AerialImage(image, points, points)
+        restored = AerialImage.from_document(json.loads(json.dumps(original.to_document())))
+        self.assertEqual(restored.corners(), [(0, 0), (20, 0), (20, 20), (0, 20)])
+        viewport = Viewport(scale=2, x=5, y=7)
+        rendered = restored.render(viewport, (50, 50))
+        self.assertEqual(rendered.getpixel((25, 27)), (255, 0, 0))
+        self.assertEqual(rendered.getpixel((8, 10)), (0, 0, 0))
+
+    def test_field_atlas_coverage_excludes_grid_and_outside_image(self):
+        image = Image.new('RGB', (40, 40), '#17344a')
+        image.putpixel((20, 20), (31, 85, 119))
+        points = [(0, 0), (40, 0), (0, 40)]
+        background = AerialImage(image, points, points, source='field-atlas')
+        saved = AerialImage.from_document(background.to_document())
+        self.assertTrue(saved.covers((20, 20)))
+        self.assertFalse(saved.covers((5, 5)))
+        self.assertFalse(saved.covers((-1, 20)))
+
+    def test_upright_view_blends_paper_at_zoomed_out_edges(self):
+        image = Image.new('RGB', (140, 100), '#d6c38c')
+        image.paste('#16834d', (0, 38, 20, 62))
+        a = AerialImage(image, [(0, 0), (140, 0), (0, 100)],
+                       [(100, 100), (200, 120), (70, 250)])
+        result = a.render_image_view(Viewport(1, 20, 30), (200, 150),
+                                     fillcolor='#d1bc80', blend_paper=True)
+        self.assertEqual(result.getpixel((0, 0)), (209, 188, 128))
+        self.assertEqual(result.getpixel((20, 30)), result.getpixel((0, 0)))
+        self.assertEqual(result.getpixel((20, 80)), (22, 131, 77))
+        self.assertEqual(result.getpixel((90, 80)), (214, 195, 140))

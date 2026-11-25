@@ -1,0 +1,340 @@
+# Map-oot-rando
+
+Compagnon de carte local pour OotrR avec Kokiri Forest, les Bois Perdus, le Bosquet sacré, la plaine d’Hyrule, Cocorico, le cimetière, le mont du Péril, le Village Goron, la caverne Dodongo, le cratère du Péril et le Temple du Feu.
+
+Au lancement, l’accueil invite à importer le jeu et la seed, ou à ouvrir une carte
+enregistrée via le menu **Carte**. Le suivi lit les états d’OotrR depuis la mémoire
+du jeu ou une sauvegarde. Les checks sans position confirmée restent dans la liste.
+
+[Télécharger la version portable Windows x64](https://github.com/Hylieno/Map-oot-rando/releases/latest)
+
+## Lancer localement
+
+Python avec Tkinter pour le lancement depuis les sources :
+
+```sh
+python -m pip install -r requirements.txt
+python -m map_oot_rando
+```
+
+Pour lancer depuis les sources sous Windows x64, installer Python avec Tcl/Tk et
+exécuter ces commandes dans le dépôt.
+
+- Molette : zoom ; glisser sur le fond : déplacement ; « Ajuster la vue » : cadrage.
+- Recherche par nom ou ID, puis Entrée ou sélection dans la liste pour centrer.
+- Si plusieurs marqueurs se recouvrent, cliquer sur leur point commun ouvre la liste des checks.
+- Utilise les boutons **Enfant** et **Adulte** à côté du sélecteur de zone. Les couches Static et Dynamic sont réunies.
+- Dézoome jusqu’à la **Carte d’Hyrule** ou ouvre-la avec le bouton. Les zones disponibles sont cliquables.
+  Les repères de passage relient directement les cartes locales.
+- Réimporte le NUP et le `checks.json` si une ancienne carte enregistrée ne contient pas les nouveaux passages.
+- Filtres de catégorie/statut ; décocher « Récupéré » pour masquer les checks gris.
+
+## Fonds de carte
+
+Les plans Field Atlas se chargent automatiquement. Les fonds téléchargés sont conservés pour
+les prochaines ouvertures hors ligne. Un ancien fond Questfern ou personnalisé est écarté
+à l’ouverture de la carte. Les vues sans plan publié conservent un schéma dans la même palette.
+L’illustration générale est celle de Nintendúo, publiée par Field Atlas et également
+utilisée par Ocarina Atlas. [Field Atlas](https://oot.gousse.cool/) · [Ocarina Atlas](https://github.com/antonioalvromero/Ocarina-Atlas)
+
+Sur la carte d’Hyrule, les repères avec une flèche ouvrent un menu.
+Quand la fenêtre est étroite, le menu **Zones voisines** regroupe les
+destinations qui figurent habituellement dans la barre de la carte.
+Les commandes de suivi passent au besoin sur leur propre ligne.
+Kokiri donne accès au village, au pont et au Monde des rêves. La
+Citadelle donne accès au Temple du Temps et à la Chambre des Sages.
+Les boutons Enfant et Adulte permettent de choisir l’âge avant
+d’ouvrir une zone. Survole un repère pour lire son nom en haut de la carte.
+Si tu réimportes la même seed, l’application garde ta vue lorsqu’elle
+est encore disponible, ainsi que ton choix de suivre ou non l’âge sauvegardé.
+Les derniers états connus restent affichés pendant la reconnexion,
+même si la sauvegarde suivie est brièvement en cours d’écriture.
+La barre de suivi indique la date de la dernière synchronisation.
+
+Dans les Bois Perdus, le tracé doré indique le chemin normal de Kokiri au Bosquet
+sacré. Les flèches indiquent le sens du trajet. Les croix signalent les
+neuf sorties qui ramènent à Kokiri. Réimporte le jeu et la seed pour
+ajouter ces croix à une carte enregistrée précédemment.
+Les passages de cette route indiquent où Link apparaît à chaque entrée.
+Le plan inclut aussi la branche ouest et ses checks près du pont.
+Depuis la plaine d’Hyrule, l’entrée de la forêt ouvre la vue du pont de
+Kokiri et indique le point d’arrivée de Link. Les liaisons de la plaine
+avec la Citadelle, Cocorico, la rivière Zora et la vallée Gerudo indiquent
+également leurs arrivées. Le coffre souterrain des pestes Mojo est indiqué
+à l’entrée de sa grotte. Les marqueurs de passage ouvrent le Village Goron
+et la rivière Zora. Leurs passages permettent aussi de revenir aux Bois
+Perdus. L’anneau doré indique où Link apparaît pour ces raccourcis.
+Au Village Goron, la carte indique les deux arrivées prévues par le jeu.
+Si un check et un passage se superposent, clique sur leurs marqueurs
+pour choisir le check ou la destination. La rivière Zora est reliée
+à la plaine d’Hyrule et affiche ses checks enfant et adulte. Le coffre et les pots
+en grotte sont indiqués à leur entrée en surface. Le Domaine Zora se rejoint
+depuis la rivière. Ses checks incluent les rayons de la boutique et le mini-jeu
+de plongeon. Les variantes adultes partagent la même vue. Les passages
+du Domaine vers la rivière, la Fontaine et le lac indiquent leurs
+points d’arrivée. La Fontaine utilise un plan Field Atlas par âge et un repère de
+passage pour les checks derrière la paroi. La Caverne de glace est
+reliée à la vue adulte de la Fontaine et possède son propre plan.
+Ses deux passages se choisissent depuis la carte, avec un point
+d’arrivée distinct pour chacun.
+Enfant, la Fontaine mène au ventre de Jabu-Jabu. Les trois niveaux ont
+leurs plans Field Atlas. Barinade, son cœur et les pots de sa salle ont une
+vue schématique dédiée. Les repères des fosses, de l’ascenseur d’Octo et
+de la porte de Barinade relient les quatre vues. Depuis la forêt Kokiri, l’Arbre Mojo propose cinq
+plans, dont celui du hall d’entrée, et une vue dédiée à l’arène de Gohma.
+Le passage entre Kokiri et l’Arbre Mojo indique l’arrivée dans les deux sens.
+Depuis le Bosquet sacré, le Temple de la Forêt propose aussi cinq plans
+Field Atlas et l’arène de Ganon spectral. Depuis Cocorico, le Puits possède
+deux plans et conserve l’âge de la vue au retour vers le village.
+Le Temple de l’Ombre se rejoint depuis le cimetière. Ses quatre niveaux
+et l’arène de Bongo Bongo sont accessibles dans le sélecteur d’étage.
+Les passages cliquables relient les sous-sols et l’arène. Au quatrième
+sous-sol, une flèche montre le trajet du bateau.
+Les deux récompenses du Théâtre Mojo partagent un marqueur à l’entrée.
+Au Bosquet sacré, les deux coffres enfouis sont repérés par l’accès à leur
+grotte. Les détails conservent les coordonnées XYZ du coffre.
+Cocorico utilise les [fonds sans icônes de Field Atlas](https://oot.gousse.cool/kakariko-village).
+Les vues adulte et après l’incendie utilisent la même image avec leurs propres checks.
+Le [cimetière](https://oot.gousse.cool/graveyard) a aussi un fond Field Atlas.
+**Souterrains** ouvre les checks enfouis dans une vue schématique. La recherche
+indique la destination des checks situés dans une autre vue. Sélectionne
+un résultat pour centrer son marqueur, même si le fond se charge ensuite.
+Si ses coordonnées sont inconnues, la sélection ouvre sa zone
+lorsqu’elle est disponible.
+En vue adulte, le passage du moulin de Cocorico ouvre la tombe de Dampé
+dans les souterrains du cimetière. Le raccourci indique l’arrivée dans les
+deux sens.
+La vue souterraine adulte affiche les deux trajets de Dampé avec une
+légende. Le repère de la tombe relie directement la surface au départ
+de la course, et le repère de remontée ramène au cimetière. Pour ajouter
+ces repères et trajets à une carte enregistrée avec une version
+antérieure, réimporte le jeu et la seed.
+Le mont du Péril est accessible depuis Cocorico. Le fond
+[Field Atlas du sentier](https://oot.gousse.cool/death-mountain-trail) est
+aligné pour les deux âges. **Souterrains** ouvre les checks en grotte.
+Les passages entre Cocorico, le cimetière, le mont, le Village Goron et le
+cratère indiquent leurs points d’arrivée.
+Depuis le mont du Péril, le [Village Goron](https://oot.gousse.cool/goron-city)
+propose quatre galeries et une grotte. Le sélecteur d’étage limite les marqueurs
+au niveau affiché. La grotte utilise un schéma.
+La [caverne Dodongo](https://oot.gousse.cool/dodongos-cavern) est accessible
+depuis le mont du Péril. Le rez-de-chaussée et l’étage ont leurs propres
+fonds. L’arène du boss utilise un schéma et affiche séparément le boss et son cœur.
+Le [cratère du Péril](https://oot.gousse.cool/death-mountain-crater) relie
+le mont du Péril au rez-de-chaussée du Village Goron. Le vendeur Mojo
+figure sur la carte enfant. Les checks sous la surface sont accessibles
+via **Souterrains**.
+Le cratère mène au Temple du Feu. Les cinq niveaux utilisent les plans
+Field Atlas et le sélecteur d’étage. Volvagia et son cœur ont une vue
+schématique séparée. [Plans du Temple du Feu](https://oot.gousse.cool/fire-temple)
+
+Les checks hors du fond restent consultables dans la liste. Sélectionner
+leur entrée affiche leur position réelle, et la case **Afficher les checks
+hors du fond** permet de les afficher ensemble.
+
+La Citadelle d’Hyrule se rejoint depuis la plaine. Les deux âges ont un
+plan distinct. Les jeux, les boutiques et la maison du garde reprennent
+les positions du jeu. Enfant, la Citadelle mène au Château d’Hyrule.
+Un plan représente les abords. La lettre de Zelda et les caisses de la
+cour ont leur propre vue schématique.
+Adulte, la Citadelle mène aux abords du Château de Ganon. Le sélecteur
+du château donne aussi accès à la vue schématique de l’effondrement,
+où se trouvent les quatre pots du catalogue.
+L’entrée des abords ouvre l’intérieur. Le sélecteur d’étage permet de
+passer des six épreuves à la tour et à la salle de Ganondorf. Ces vues
+utilisent les repères du jeu sur des schémas. Les tracés des épreuves
+s’affichent aussi dans une carte enregistrée qui contient les repères
+d’origine des portes et des barrières. Pour les exports antérieurs
+aux portes, les six barrières d’épreuve et celle de la tour suffisent
+si leurs coordonnées correspondent au jeu.
+Depuis la salle de Ganondorf, le passage ouvre l’effondrement et
+indique le point de départ de la fuite. Les flèches reprennent le trajet
+de Zelda. La sortie ouvre l’arène de Ganon sur son point d’arrivée.
+Le marqueur de Link peut suivre ces changements de scène.
+
+La plaine donne aussi accès à la Vallée Gerudo dans les deux âges. Le
+fond Field Atlas se charge automatiquement et les checks en grotte
+apparaissent à leur entrée, avec les coordonnées de l’objet dans les détails.
+Depuis la vallée adulte, le passage ouest mène à la Forteresse Gerudo.
+Les deux récompenses du tir à l’arc sont associées à l’organisatrice et
+la carte Gerudo peut apparaître près de chaque cellule.
+Le Centre d’entraînement est accessible depuis la forteresse. Un schéma
+reprend les salles du jeu et le sélecteur permet d’afficher la passerelle
+au-dessus du labyrinthe, où se trouve le coffre du plafond caché.
+Le repère de l’alcôve relie les deux vues à la hauteur de son accès.
+La vue supérieure indique aussi l’épouvantail. La recherche du coffre
+près de l’épouvantail ou de la clé libre ouvre l’étage indiqué par
+OotrR et précise le secteur dans les détails.
+La porte au nord-ouest de la forteresse mène au Désert hanté. Sa vue
+schématique montre les ruines, les checks et le trajet tracé par le guide
+dans la scène du jeu.
+Les passages entre la vallée, la forteresse, le centre d’entraînement,
+le Désert hanté et le Colosse indiquent leurs points d’arrivée.
+Le passage ouest du Désert hanté mène au Colosse du désert aux deux
+âges. Le fond Field Atlas se charge automatiquement. Le coffre
+souterrain apparaît à l’entrée de sa grotte.
+Le Colosse donne accès au Temple de l’Esprit par l’entrée principale
+et les deux passages des mains. Un anneau doré indique où Link apparaît
+après chaque passage, dans les deux sens. Il indique aussi les arrivées
+pour les passages du Bosquet sacré et du lac Hylia vers leurs temples.
+Le Temple de l’Esprit affiche quatre fonds Field Atlas et deux schémas
+pour le couloir et l’arène de Twinrova. Les repères cliquables relient
+les étages aux murs d’escalade et aux portes du jeu. Réimporter le jeu
+et la seed ajoute ces repères aux métadonnées déjà enregistrées.
+Le portail de l’arène permet de suivre les deux suites de la cinématique.
+Le retour au Colosse adulte, direct ou via la Chambre des Sages, indique
+le point d’arrivée du Requiem des Esprits.
+Les portails de Gohma, du Roi Dodongo et de Barinade indiquent aussi leurs
+arrivées à Kokiri, au mont du Péril et à la Fontaine Zora.
+Les portails des temples adultes indiquent les retours de Ganon spectral,
+Volvagia, Morpha et Bongo Bongo. Le menu permet de suivre les étapes de
+leurs cinématiques, notamment le passage de Volvagia par Cocorico et la
+Chambre des Sages avant le cratère.
+
+Le lac Hylia possède son fond Field Atlas. On y accède depuis la
+plaine et la Vallée Gerudo aux deux âges, ou depuis le Domaine Zora
+avec Link enfant. Le suivi peut passer de la plaine au lac pendant
+que le jeu conserve la même scène chargée.
+Le passage immergé du lac ouvre le Temple de l’Eau au deuxième étage
+avec Link adulte. Les quatre plans Field Atlas couvrent aussi la salle
+de Morpha, au nord du rez-de-chaussée. Le suivi de Link affiche ce plan
+dès le couloir d’accès à Morpha.
+Lors de l’import, les coffres et les Skulltulas indexés dans la table
+des étages du jeu s’affichent sur leur plan Field Atlas correspondant.
+
+Le Temple du Temps se rejoint depuis la Citadelle aux deux âges.
+Les passages de la Citadelle vers le Château d’Hyrule et le Château
+de Ganon indiquent aussi les points d’arrivée.
+Sur la carte du temple, le piédestal de l’épée ouvre la Chambre des
+Sages. Le repère au centre de la plateforme permet de revenir au temple.
+Les deux vues indiquent les points d’arrivée de la cinématique.
+Dans la forêt Kokiri, le lit de Link mène à la carte du Monde des rêves.
+Au musée, le repère de l’organisateur propose le retour à Kokiri
+ou la salle intermédiaire du défi des boss.
+Ces passages indiquent les points d’arrivée du jeu, y compris à
+l’entrée de la salle intermédiaire.
+Les dix coffres du défi partagent un point. Un clic sur le marqueur
+permet de choisir le coffre voulu.
+Le sélecteur du Monde des rêves ouvre les 25 arènes. Leurs schémas
+indiquent les arrivées du défi et des revanches. Le suivi de Link peut
+ouvrir l’arène chargée et afficher sa position. Réimporte le jeu et la
+seed pour ajouter ces vues à une carte enregistrée précédemment.
+Le plan de la salle de Ganondorf et celui de sa revanche montrent les
+80 dalles de la disposition d’origine.
+
+Le ranch Lon Lon se rejoint depuis la plaine aux deux âges. Le jeu
+des poules de Talon apparaît dans la vue enfant. Le suivi de Link
+bascule entre le ranch et la plaine au franchissement du portail.
+
+## Suivre la partie
+
+Coche **Afficher la position de Link**. Cette option active **Mémoire du jeu**
+et réutilise la connexion OotrR de la seed. **Suivre Link entre les zones**
+ouvre sa nouvelle zone à chaque changement de scène ou d’âge. Tu peux
+décocher le suivi de zone en gardant le marqueur. L’application mémorise
+ce choix sur l’ordinateur. Si le jeu s’arrête ou que la seed active est
+différente, le marqueur disparaît.
+Sur la carte d’Hyrule, clique sur le marqueur de Link pour ouvrir sa
+zone et son étage actuels. Tu peux aussi cliquer directement sur le nom
+de sa zone dans la barre latérale.
+
+Clique sur **Choisir le dossier de sauvegardes…** et indique le dossier qui
+contient les sauvegardes de ton jeu. L’application cherche dans les sous-dossiers
+et suit le `progress.sav` le plus récent que le moteur OotrR 0.8.4 reconnaît
+comme appartenant à la seed. Si ce fichier devient temporairement illisible,
+la carte garde le dernier état vérifié et attend le prochain cycle de lecture.
+Si tu as rouvert un JSON sans profil local,
+choisis aussi le `checks.json` du dossier complet de cette seed.
+
+Coche **Mémoire du jeu** pour activer le lecteur OotrR dans la carte. Si tu
+utilises déjà le suivi mémoire dans le tracker OotrR séparé, arrête-le d’abord.
+La carte a besoin d’une première sauvegarde de la seed pour rattacher la
+partie. Le bandeau indique quand la mémoire est utilisée et si les coffres
+dépendent encore du fichier. Si le jeu s’arrête ou que la partie active ne
+correspond pas, la carte revient à la sauvegarde reconnue. Le lecteur reste
+en lecture seule.
+
+Le dossier est mémorisé localement après validation. **Arrêter le suivi**
+désactive la reprise. Les checks sans indicateur se marquent dans leurs
+détails. Les marques restent séparées par fichier et par seed.
+**Suivre l’âge sauvegardé** sélectionne la vue Enfant ou Adulte lorsque
+l’information est disponible dans la mémoire ou le fichier. Le choix
+manuel d’une vue suspend le changement.
+À Cocorico, ce réglage sélectionne aussi la variante adulte confirmée par
+la sauvegarde ou la mémoire. Le menu de zone permet de choisir la variante
+après l’incendie quand le suivi ne fournit pas cet état.
+
+**Carte → Exporter le diagnostic…** exporte les IDs et les coordonnées pour vérifier une
+seed. Pour les fonds Field Atlas déjà chargés, il indique quels marqueurs se
+projettent en dehors de l’image ou loin du trait. Le rapport exclut l’image,
+l’identifiant de seed et la sauvegarde.
+La liste des vues distingue les fonds contrôlés, en cours de chargement,
+encore à charger ou indisponibles, ainsi que les schémas et les plans locaux.
+Pour un fond indisponible, le rapport précise si l’image est inaccessible
+ou invalide, si les repères manquent ou si l’alignement a échoué.
+
+## Métadonnées locales
+
+**Carte → Ouvrir une carte enregistrée…** ou `python -m map_oot_rando carte.json`
+charge le format v1 validé par `model.load_metadata`. Les positions absentes
+restent recherchables. Les statuts proviennent du suivi lorsqu’il est connecté.
+
+`metadata.export_scan` consomme les groupes de coffres et sources supplémentaires
+déjà étiquetés par `oot_rando.game.extra_sources.scan_world`. Il ne lit pas directement
+un NUP. La commande d'export ci-dessous utilise le scanner de l'installation OotrR locale.
+Ne pas commiter de ressources du jeu ni présenter une fixture comme réelle.
+
+## Tests et Windows portable
+
+```sh
+python -m unittest discover -s tests -v
+```
+
+Sans écran, les tests Tk sont ignorés explicitement. Définir
+`MAP_REQUIRE_DISPLAY=1` pour exiger leur exécution (utilisé dans le workflow).
+
+Le développement se poursuit sur `dev`. Le workflow **Windows portable** lance
+les tests sur les PR qui touchent au code, aux tests ou au build. Sur `main`, il
+teste et construit automatiquement le dossier portable Windows x64. Un
+lancement manuel ou une PR dont le dernier commit se termine par `[preview]`
+produit aussi un build. Les versions distribuées sont publiées dans les Releases.
+
+Voir [architecture](docs/ARCHITECTURE.md), [progression](docs/PROGRESS.md),
+[décisions](docs/DECISIONS.md) et [tests](docs/TESTING.md).
+
+Les artefacts de test restent disponibles 14 jours avec une connexion GitHub.
+[Voir les builds Windows x64](https://github.com/Hylieno/Map-oot-rando/actions/workflows/windows.yml)
+
+## Importer sa seed dans la version portable Windows
+
+Extraire le ZIP et ouvrir `Map-oot-rando.exe`. **Importer mon jeu et ma seed…**
+ouvre un guide qui demande le fichier `.nup` du jeu contenant sa mise à jour, puis
+le `checks.json` du dossier de la seed OotrR. Garder `manifest.json` et
+`tracking.json` à côté de ce fichier pour le suivi. Cliquer sur **Importer la carte**
+lance le scan local. Python et le scanner OotrR sont inclus dans le build portable.
+
+**Carte → Enregistrer la carte…** permet de rouvrir ce résultat plus tard sans
+recommencer le scan. L’illustration d’accueil est une création originale générée
+pour Map-oot-rando.
+
+## Exporter les points d'une seed OotrR en ligne de commande
+
+Dans une copie locale du [dépôt OotrR](https://github.com/Mozencaz/OotrR), sélectionner
+la révision `9bdc6d36dac7a659afd75441884f0ef3d25db4f2`. Installer ses dépendances
+dans votre environnement Python avec `python -m pip install -r /chemin/vers/OotrR/requirements.txt`.
+
+Depuis ce dépôt, lancer la commande avec le NUP local contenant le jeu et sa mise
+à jour, et le `checks.json` du dossier de la seed. Le suivi reconnaît
+la logique des seeds OotrR 0.8.0 et 0.8.4.
+
+```sh
+python -m map_oot_rando.export --ootrr "OotrR" --nup "jeu.nup" --checks "seed/checks.json" --output "kokiri.json"
+python -m map_oot_rando kokiri.json
+```
+
+L'exporteur crée un nouveau fichier et lit le jeu et le catalogue localement.
+La carte dessine les pièces et repères trouvés dans le repère X/Z. Une vue sans
+repères affiche la grille, y compris dans les anciens JSON. Réimporter le NUP et
+le catalogue actualise les positions d’une carte enregistrée et ajoute les
+marqueurs de chansons. Les checks sans position confirmée restent recherchables
+dans la liste.
