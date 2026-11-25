@@ -24,6 +24,8 @@ if __name__ == '__main__':
                     ('WaterTemple#gs#988', (50, 120, -13.5), WATER_VIEWS[3])]
         sys.exit(0 if checks == expected and not document['diagnostics'] else 1)
     if len(sys.argv) == 4 and sys.argv[1] == '--check-bundled-gui':
+        import json
+        from tempfile import TemporaryDirectory
         from tkinter import Tk
         from map_oot_rando.gui import MapApplication
 
@@ -58,6 +60,18 @@ if __name__ == '__main__':
                 dungeon_markers = {app.markers[item].id for item in app.canvas.find_withtag('check-pin')}
                 if app.resource.get() != view or dungeon_markers != {ident} or callback_errors:
                     sys.exit(1)
+
+            with TemporaryDirectory() as folder:
+                report = Path(folder) / 'diagnostic.json'
+                app.save_diagnostic(path=report)
+                diagnostic = json.loads(report.read_text(encoding='utf-8'))
+            for age, count in (('Child', 2), ('Adult', 1)):
+                view = diagnostic['map_views'][AGE_VIEWS[age]]
+                if view != {'source': 'field-atlas', 'status': 'unavailable',
+                            'placements': count, 'reason': 'missing_reference_points'}:
+                    sys.exit(1)
+            if {'seed_id', 'aerial'} & diagnostic.keys() or callback_errors:
+                sys.exit(1)
         finally:
             root.destroy()
         sys.exit(0)

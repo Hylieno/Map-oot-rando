@@ -686,9 +686,10 @@ class MapApplication:
             self.save_commands.put((row.id, info.get('source') != 'manual'))
             self.manual_button.state(['disabled'])
 
-    def save_diagnostic(self):
-        path = filedialog.asksaveasfilename(parent=self.root, initialfile='diagnostic-carte.json',
-                                            defaultextension='.json', filetypes=[('Diagnostic JSON', '*.json')])
+    def save_diagnostic(self, *, path=None):
+        if path is None:
+            path = filedialog.asksaveasfilename(parent=self.root, initialfile='diagnostic-carte.json',
+                                                defaultextension='.json', filetypes=[('Diagnostic JSON', '*.json')])
         if not path:
             return
         # Keep only map metadata. No image, save bytes, local path or item rewards.

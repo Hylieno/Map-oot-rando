@@ -7,6 +7,9 @@ même lorsqu’une recherche les masque.
 Quatre causes d’échec ont été simulées dans Tk. Le schéma reste
 affiché, la cause apparaît dans le bandeau et le rapport JSON
 indique un code sans chemin local.
+Le test du livrable Windows exporte aussi ce rapport depuis
+l’exécutable. Il vérifie les deux vues de Kokiri, leurs compteurs
+et l’absence de l’image et de l’identifiant de seed dans le rapport.
 
 Le test Tk retarde le chargement du fond pendant un changement de
 zone. Il vérifie que le marqueur de Link reste entièrement visible
