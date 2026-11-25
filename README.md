@@ -241,7 +241,7 @@ de sa zone dans la barre latérale.
 
 Clique sur **Choisir le dossier de sauvegardes…** et indique le dossier qui
 contient les sauvegardes de ton jeu. L’application cherche dans les sous-dossiers
-et suit le `progress.sav` le plus récent que le moteur OotrR 0.8.0 reconnaît
+et suit le `progress.sav` le plus récent que le moteur OotrR 0.8.4 reconnaît
 comme appartenant à la seed. Si ce fichier devient temporairement illisible,
 la carte garde le dernier état vérifié et attend le prochain cycle de lecture.
 Si tu as rouvert un JSON sans profil local,
@@ -322,11 +322,12 @@ OotrR sont inclus dans le build portable.
 ## Exporter les points d'une seed OotrR en ligne de commande
 
 Dans une copie locale du [dépôt OotrR](https://github.com/Mozencaz/OotrR), sélectionner
-la révision `eb6682704f7589b5a0c07ac0e49d89fef4108545`. Installer ses dépendances
+la révision `9bdc6d36dac7a659afd75441884f0ef3d25db4f2`. Installer ses dépendances
 dans votre environnement Python avec `python -m pip install -r /chemin/vers/OotrR/requirements.txt`.
 
 Depuis ce dépôt, lancer la commande avec le NUP local contenant le jeu et sa mise
-à jour, et le `checks.json` du dossier de la seed générée avec cette version d'OotrR.
+à jour, et le `checks.json` du dossier de la seed. Le suivi reconnaît
+la logique des seeds OotrR 0.8.0 et 0.8.4.
 
 ```sh
 python -m map_oot_rando.export --ootrr "OotrR" --nup "jeu.nup" --checks "seed/checks.json" --output "kokiri.json"

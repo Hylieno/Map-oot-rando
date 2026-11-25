@@ -7,7 +7,7 @@ import struct
 import tempfile
 import unittest
 
-from map_oot_rando.save_tracking import SaveConnection, apply_save_update, kakariko_variant
+from map_oot_rando.save_tracking import LEGACY_WORLD_FINGERPRINT, SaveConnection, apply_save_update, kakariko_variant
 from map_oot_rando.state import StateStore
 
 
@@ -21,7 +21,7 @@ class VillageVariantTests(unittest.TestCase):
         self.assertTrue(kakariko_variant({4: True}, keys, 4, False))
 
 
-def write_seed(root):
+def write_seed(root, *, legacy_world=False, app_version=None):
     from oot_rando.patching.randomize_kokiri import BUILD, TITLE
     from oot_rando.randomizer.randomizer_core import (
         ADAPTER_VERSION, GENERATOR_VERSION, Settings, settings_identity,
@@ -30,11 +30,12 @@ def write_seed(root):
     from oot_rando.logic.world import World
 
     settings = Settings('Synthetic Kokiri test')
-    seed_id = settings_identity(settings)
+    generator = '0.12.8' if legacy_world else GENERATOR_VERSION
+    seed_id = settings_identity(settings, generator, ADAPTER_VERSION)
     chest = 'ap#KF Kokiri Sword Chest'
     checks = [{'id': ident, 'name': ident, 'region': 'Kokiri Forest'} for ident in ('test', chest)]
     tracking = dict(schema_version=1, seed_id=seed_id, seed_marker='100', inventory=[{'item': 'Bomb Bag', 'hash': '101'}],
-                    logic_world_sha256=World().fingerprint(),
+                    logic_world_sha256=LEGACY_WORLD_FINGERPRINT if legacy_world else World().fingerprint(),
                     logic={'settings': {}, 'exits': [], 'virtual': {},
                            'locations': {'KF Kokiri Sword Chest': ['Bomb Bag']}},
                     known_bool64=['42'], checks={'test': {
@@ -42,7 +43,7 @@ def write_seed(root):
     payload = json.dumps(tracking).encode()
     data = b'synthetic resource'
     manifest = dict(schema_version=1, title_id=TITLE, build_id=BUILD, seed_id=seed_id,
-                    settings=settings.to_dict(), generator_version=GENERATOR_VERSION,
+                    settings=settings.to_dict(), generator_version=generator, app_version=app_version,
                     adapter_version=ADAPTER_VERSION,
                     tracking={'sha256': hashlib.sha256(payload).hexdigest()},
                     files={'fixture': {'size': len(data), 'sha256': hashlib.sha256(data).hexdigest()}})
@@ -72,6 +73,23 @@ def write_save(path, *, linked=True, collected=False, bombs=False, child=None):
 
 @unittest.skipUnless(find_spec('oot_rando'), 'Pinned OotrR sources not on PYTHONPATH')
 class SaveTrackingTests(unittest.TestCase):
+    def test_preserves_both_logic_versions_independent_of_the_app_release(self):
+        from oot_rando.logic.world import World
+
+        ident = 'ap#KF Kokiri Sword Chest'
+        runtime_fingerprint = World().fingerprint()
+        for legacy in (True, False):
+            with self.subTest(legacy=legacy), tempfile.TemporaryDirectory() as directory:
+                folder = Path(directory)
+                save = folder / 'progress.sav'
+                store = StateStore(write_seed(folder, legacy_world=legacy, app_version='0.8.99'), [ident])
+                write_save(save)
+                session = SaveConnection(folder, save, store, manual_dir=folder / 'manual')
+                self.assertEqual(session.refresh().states[ident], 'blocked')
+                write_save(save, bombs=True)
+                self.assertEqual(session.refresh().states[ident], 'available')
+                self.assertEqual(World().fingerprint(), runtime_fingerprint)
+
     def test_real_tracker_collection_rollback_disconnect_and_seed_mismatch(self):
         with tempfile.TemporaryDirectory() as directory:
             folder = Path(directory)

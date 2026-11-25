@@ -1,5 +1,17 @@
 # Validation
 
+La branche embarque OotrR 0.8.4 et conserve la logique 0.8.0 par
+empreinte de la seed. Les deux versions passent le test d’accessibilité
+avec une version d’application fictive plus récente. Un changement de
+commit OotrR hors du code du scanner est accepté par l’exporteur local.
+Le test Windows lit un module AINB synthétique lors de l’import.
+Le scan des scènes publiques avec le catalogue historique retrouve
+1 100 des 1 103 positions, dont les douze acteurs écartés des nouveaux
+tirages. Les anciennes seeds conservent leurs identifiants distincts
+pour les checks que 0.8.4 regroupe avant et après l’incendie de Cocorico.
+L’import complet d’une seed 0.8.4 avec les ressources du jeu reste
+à valider.
+
 Le suivi en jeu entre les zones et la collecte avant la prochaine
 sauvegarde ont été confirmés par le joueur sur le build Windows.
 
@@ -20,7 +32,8 @@ générateur. Avec 0.8.4, l’import et le suivi par sauvegarde du même
 cas synthétique passent. Le moteur 0.8.4 accepte l’identité de la
 seed historique du joueur, mais sa table de logique a une empreinte
 différente. OotrR désactive alors les indications d’accessibilité de
-cette seed. Le moteur du build reste épinglé à 0.8.0.
+cette seed avec OotrR seul. Le build disponible lors de ce premier
+audit embarquait encore 0.8.0.
 L’import complet d’une seed 0.8.4 avec le NUP du jeu reste à vérifier.
 
 Le test de l’exécutable Windows ouvre un dossier de sauvegardes avec

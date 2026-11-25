@@ -5,6 +5,7 @@ from pathlib import Path
 from struct import pack, pack_into
 import sys
 
+from ainb import AINB
 import zstandard
 
 from oot_rando.formats.byml_codec import build_sarc, dump
@@ -57,6 +58,17 @@ def write_fixture(directory):
     def scene(*actors):
         return resource({'Actors': list(actors)})
 
+    water_scene = resource({
+        'Actors': [water_chest, water_skulltula],
+        'AiGroups': [{'Hash': 989, 'Logic': 'Logic/Module/Fixture/Fixture.logic.module.ain',
+                      'References': [{'Reference': 987}, {'Reference': 988}]}],
+    })
+    combat_module = AINB.from_dict({
+        'Version': 0x407, 'Filename': 'Fixture.logic.module', 'Category': 'Logic',
+        'Blackboard ID': 0, 'Parent Blackboard ID': 0, 'Commands': [], 'Nodes': [],
+        'Replacement Table': [], 'Modules': [], 'Has Section 0x6C': True,
+    }).to_binary()
+
     def map_parameters(floor):
         floors = [{'TBox': [{'InstanceID': 987}] if number == floor else [],
                    'CollectSign': [{'InstanceID': 988}] if number == -1 else []}
@@ -67,16 +79,17 @@ def write_fixture(directory):
     # Both package trees start at their own root in the directory table.
     directories = [(None, b''), (0, b'romfs'), (1, b'Pack'), (1, b'Banc'), (3, b'KokiriForest'),
                    (None, b''), (5, b'romfs'), (6, b'Banc'), (7, b'KokiriForest'),
-                   (3, b'WaterTemple'), (3, b'BancBasedResource'), (7, b'BancBasedResource')]
+                   (3, b'WaterTemple'), (3, b'BancBasedResource'), (7, b'BancBasedResource'), (1, b'Logic')]
     child_static = b'KokiriForest_Child_Static.bcett.byml.zs'
     files = [(2, b'ZsDic.pack.zs', compressor.compress(build_sarc({}))),
              (4, child_static, scene(chest)),
              (4, b'KokiriForest_Child_Dynamic.bcett.byml.zs', scene(pot)),
              (8, child_static, scene(updated_chest)),
              (8, b'KokiriForest_Adult_Dynamic.bcett.byml.zs', scene(adult_pot)),
-             (9, b'WaterTemple_Static.bcett.byml.zs', scene(water_chest, water_skulltula)),
+             (9, b'WaterTemple_Static.bcett.byml.zs', water_scene),
              (10, b'MapParam.byml', map_parameters(0)),
-             (11, b'MapParam.byml.zs', compressor.compress(map_parameters(1)))]
+             (11, b'MapParam.byml.zs', compressor.compress(map_parameters(1))),
+             (12, b'Fixture.logic.module.ainb', combat_module)]
     children_by_directory = [[] for _ in directories]
     for index, (parent, _) in enumerate(directories):
         if parent is not None:

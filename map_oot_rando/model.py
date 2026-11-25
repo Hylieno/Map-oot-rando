@@ -2,8 +2,11 @@
 from dataclasses import dataclass
 import math
 
-UPSTREAM_REVISION = 'eb6682704f7589b5a0c07ac0e49d89fef4108545'
-OLDER_EXPORT_REVISIONS = frozenset({'283d3ec0f161d32e168afac45e502442c1ffb081'})
+UPSTREAM_REVISION = '9bdc6d36dac7a659afd75441884f0ef3d25db4f2'
+OLDER_EXPORT_REVISIONS = frozenset({
+    '283d3ec0f161d32e168afac45e502442c1ffb081',
+    'eb6682704f7589b5a0c07ac0e49d89fef4108545',
+})
 STATUSES = frozenset({'available', 'blocked', 'unknown', 'completed', 'partial'})
 REGION_NAMES = {
     'KokiriForest': 'Kokiri Forest',

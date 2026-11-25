@@ -12,15 +12,17 @@ from .metadata import (add_dungeon_rooms, add_native_dungeon_floors, add_surface
 from .model import REGION_NAMES, SURFACE_MIN_Y, UPSTREAM_REVISION, resource_region
 from .scene import extract_scenes
 
+UPSTREAM_SOURCE_TREE = 'e1c382c6e40e988601d4437a1f557e1c3c4ba04b'
+
 
 def verify_checkout(directory):
     def git(*args):
         return subprocess.check_output(['git', '-C', str(directory), *args], text=True).strip()
 
     if (Path(git('rev-parse', '--show-toplevel')).resolve() != directory
-            or git('rev-parse', 'HEAD') != UPSTREAM_REVISION
+            or git('rev-parse', 'HEAD:src/oot_rando') != UPSTREAM_SOURCE_TREE
             or git('status', '--porcelain', '--untracked-files=all', '--', 'src/oot_rando')):
-        raise ValueError(f'Copie OotrR propre à la révision {UPSTREAM_REVISION} requise')
+        raise ValueError(f'Copie OotrR avec les mêmes sources que la révision {UPSTREAM_REVISION} requise')
 
 
 def map_capture_catalogue(members):
@@ -53,7 +55,7 @@ def scan_game(path, progress=None, world_checks=(), placement_checks=()):
     from oot_rando.game.check_names import landmarks
     from oot_rando.game.extra_sources import scan_world
     from oot_rando.game.world_maps import effective_members
-    from oot_rando.game.remake_world import inaccessible_child_actor
+    from oot_rando.game import remake_world
 
     nup = Nup(path)
     with nup.stream:
@@ -61,16 +63,25 @@ def scan_game(path, progress=None, world_checks=(), placement_checks=()):
         compression = dictionaries(nup)
         maps, groups, _, extra = scan_world(nup, compression, members, progress)
         map_parameters = read_map_parameters(nup, members, compression)
-    document = export_scan(groups, extra, provenance='ootrr-scan', regions=tuple(REGION_NAMES))
+    document = export_scan(groups, extra, provenance='ootrr-scan', regions=tuple(REGION_NAMES),
+                           maps=maps, catalogue_ids={check['id'] for check in placement_checks})
 
     def eligible(path, actor):
-        return not inaccessible_child_actor(path, actor)
+        return not remake_world.inaccessible_child_actor(path, actor)
 
     document['locations'].extend(event_check_rows(maps, eligible))
     if world_checks:
         document['locations'].extend(world_check_rows(maps, world_checks, eligible))
     if placement_checks:
-        document['locations'].extend(placed_check_rows(maps, placement_checks, document['locations'], eligible))
+        retired_sources = getattr(remake_world, 'BROKEN_SOURCES', ())
+
+        def eligible_seed_actor(path, actor):
+            # The pinned scanner excludes these actors from new seeds. An
+            # explicit ID in an older catalogue still has its native position.
+            return actor.get('Hash') in retired_sources or eligible(path, actor)
+
+        document['locations'].extend(placed_check_rows(maps, placement_checks, document['locations'],
+                                                       eligible_seed_actor))
     add_surface_entrances(document['locations'], maps)
     add_dungeon_rooms(document['locations'], maps)
     add_native_dungeon_floors(document['locations'], map_parameters)

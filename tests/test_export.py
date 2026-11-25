@@ -12,6 +12,22 @@ from map_oot_rando.model import load_metadata, select
 
 
 class ExportTests(unittest.TestCase):
+    def test_kakariko_combined_variant_keeps_distinct_ids_in_an_older_catalogue(self):
+        region = 'KakarikoVillage'
+        normal, burnt = (f'Banc/{region}/{region}_Adult_{layer}.bcett.byml.zs'
+                         for layer in ('Dynamic', 'Alternative_Dynamic'))
+        first, second = (f'{region}#beehives#{ident}' for ident in (41, 42))
+        locations = {first: {'source': 'beehives', 'variants': [
+            dict(resource=normal, index=0, position=[1, 89, 70]),
+            dict(resource=burnt, index=0, position=[1.1, 89, 70]),
+        ]}}
+        maps = {burnt: {'root': {'Actors': [{'Hash': 42}]}}}
+        for catalogue_ids, expected in (({first, second}, [first, second]), ({first}, [first, first])):
+            with self.subTest(catalogue_ids=catalogue_ids):
+                document = export_scan({}, locations, provenance='ootrr-scan', regions=('KokiriForest', region),
+                                       maps=maps, catalogue_ids=catalogue_ids)
+                self.assertEqual([row['id'] for row in document['locations']], expected)
+
     def test_native_floor_overrides_the_room_only_for_unique_actor_matches(self):
         from map_oot_rando.scene import WATER_VIEWS, location_view
 

@@ -9,6 +9,8 @@ from .save_discovery import SaveDirectory
 from .save_profiles import local_tracker_dir
 from .state import tracker_states
 
+LEGACY_WORLD_FINGERPRINT = '9320b6448b1fb4af4bce35da746e3b593e4dd2c460ac1169d511723a312101e5'
+
 
 @dataclass
 class SaveUpdate:
@@ -55,6 +57,30 @@ class SaveConnection:
             # twice. OotrR 0.8 invokes this only for a changed, matched save.
             age = None
             kakariko_burned = None
+
+            def _get_logic(self):
+                if (self._logic is not None or self._logic_error
+                        or self.metadata.get('logic_world_sha256') != LEGACY_WORLD_FINGERPRINT
+                        or not (graph := self.metadata.get('logic'))):
+                    return super()._get_logic()
+                from oot_rando.logic.rules import Logic
+                from oot_rando.logic.world import World
+
+                try:
+                    world = World()
+                    # The 0.8.4 base tables and evaluator are identical to 0.8.0.
+                    # Revert the two remake rules on this seed's private world.
+                    world.remake['exit_rules'].pop('Kakariko Village -> Kak Impas Ledge', None)
+                    world.remake['events'].pop('GC Woods Warp', None)
+                    if world.fingerprint() != LEGACY_WORLD_FINGERPRINT:
+                        return super()._get_logic()
+                    exits = {(a, b): set(items) for a, b, items in graph['exits']}
+                    logic = Logic(world, graph['settings'], exits, graph['locations'])
+                    logic.virtual = graph['virtual']
+                    self._logic = logic
+                except (OSError, ValueError, KeyError, ImportError) as error:
+                    self._logic_error = str(error)
+                return self._logic
 
             def _availability(self, snapshot, metadata):
                 flags = snapshot['bool']

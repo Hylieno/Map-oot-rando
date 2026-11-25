@@ -245,7 +245,7 @@ def add_surface_entrances(rows, maps):
                 row['entrance'] = next(iter(points))
 
 
-def export_scan(groups, extra, *, provenance, regions=('KokiriForest',)):
+def export_scan(groups, extra, *, provenance, regions=('KokiriForest',), maps=None, catalogue_ids=()):
     """Consume scan_world chest groups and extra sources; never generate labels.
 
     Caller must scan the full world before restricting the regions so OotrR
@@ -259,10 +259,17 @@ def export_scan(groups, extra, *, provenance, regions=('KokiriForest',)):
             resource = variant.get('resource', '')
             if resource_region(resource) not in regions:
                 continue
+            ident = gid
+            if (maps and catalogue_ids and gid.startswith('KakarikoVillage#')
+                    and '_Adult_Alternative_' in resource and 'index' in variant):
+                actor = maps[resource]['root']['Actors'][variant['index']]
+                original = gid.rpartition('#')[0] + '#' + str(actor['Hash'])
+                if original in catalogue_ids:
+                    ident = original
             position = variant.get('position')
             if position is None:
                 diagnostics.append(f'{gid}: missing coordinates in {resource}')
-            rows.append(dict(id=gid, name=variant.get('label') or gid,
+            rows.append(dict(id=ident, name=variant.get('label') or ident,
                              category=category, resource=resource, position=position))
         if not variants and gid.partition('#')[0] in regions:
             diagnostics.append(f'{gid}: no positioned variants')
