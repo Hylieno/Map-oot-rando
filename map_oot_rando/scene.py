@@ -19,6 +19,10 @@ DODONGO_LEVELS = ('Rez-de-chaussée', 'Étage', 'Arène du boss')
 DODONGO_VIEWS = tuple(f'{REGION_NAMES["DodongoCavern"]} · {level}' for level in DODONGO_LEVELS)
 FIRE_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', '3e étage', '4e étage', 'Arène du boss')
 FIRE_VIEWS = tuple(f'{REGION_NAMES["FireTemple"]} · {level}' for level in FIRE_LEVELS)
+FIRE_BOSS_CROSSING = (
+    (0, 'Porte vers Volvagia', 'Obj_FireTemple_SwitchShutter_A_02', 7971893604208202501),
+    (5, 'Voir l’accès à Volvagia', 'StartPos', 4368300544097029137),
+)
 JABU_LEVELS = ('Rez-de-chaussée', 'Sous-sol', 'Étage', 'Arène de Barinade')
 JABU_VIEWS = tuple(f'{REGION_NAMES["InsideJabuJabuBelly"]} · {level}' for level in JABU_LEVELS)
 DEKU_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', 'Sous-sol', 'Sous-sol profond', 'Arène de Gohma')
@@ -501,6 +505,10 @@ for temple, (boss, outside, start) in ADULT_BOSS_RETURNS.items():
     SIDE_PORTALS['SageRoom'][sage_portal] = (outside, outside_view, f'{REGION_NAMES[outside]} · après {boss}', arrival)
 SIDE_PORTALS['FireTemple'][FIRE_SAGE_SCENE] = (
     'KakarikoVillage', REGION_VIEWS['KakarikoVillage']['Adult'], 'Cocorico · cinématique', FIRE_KAKARIKO_ARRIVAL)
+SIDE_PORTALS['FireTemple'].update({
+    label: ('FireTemple', FIRE_VIEWS[destination], label, arrival)
+    for (_, label, _, _), (destination, arrival, _, _) in (FIRE_BOSS_CROSSING, FIRE_BOSS_CROSSING[::-1])
+})
 SIDE_PORTALS['ShadowTemple'].update({
     **{label: ('ShadowTemple', SHADOW_VIEWS[destination], label, arrival)
        for ends in SHADOW_LEVEL_CROSSINGS
@@ -834,9 +842,9 @@ def water_level_points(sources):
             and (position := actor.get('Translate'))}
 
 
-def forest_level_points(sources):
+def crossing_level_points(sources, crossings):
     anchors = {}
-    for ends in FOREST_LEVEL_CROSSINGS:
+    for ends in crossings:
         for floor, label, kind, ident in ends:
             anchors.setdefault((kind, ident), []).append((floor, label))
     return {(floor, label, (position[0], position[2]))
@@ -847,7 +855,8 @@ def forest_level_points(sources):
 
 
 LEVEL_POINT_EXTRACTORS = {
-    'ForestTemple': forest_level_points,
+    'FireTemple': lambda sources: crossing_level_points(sources, (FIRE_BOSS_CROSSING,)),
+    'ForestTemple': lambda sources: crossing_level_points(sources, FOREST_LEVEL_CROSSINGS),
     'InsideGanonCastle': ganon_tower_points,
     'GerudoTrainingGround': training_level_points,
     'ShadowTemple': shadow_level_points,
@@ -860,7 +869,7 @@ BOSS_WARP_ANCHORS = {
     'InsideJabuJabuBelly': (9190184471319613614, 3, (JABU_BOSS_EXIT,)),
     'SpiritTemple': (11243501154977749945, 4, (SPIRIT_BOSS_TO_COLOSSUS, SPIRIT_BOSS_TO_SAGES)),
     'ForestTemple': (7322827475260825437, 5, ('Retour après Ganon spectral', 'Sages · Ganon spectral')),
-    'FireTemple': (14585775662663687502, 5, tuple(SIDE_PORTALS['FireTemple'])),
+    'FireTemple': (14585775662663687502, 5, ('Retour après Volvagia', 'Sages · Volvagia', FIRE_SAGE_SCENE)),
     'WaterTemple': (9109272685779005276, 2, ('Retour après Morpha', 'Sages · Morpha')),
     'ShadowTemple': (15240382889320952895, 4, ('Retour après Bongo Bongo', 'Sages · Bongo Bongo')),
 }

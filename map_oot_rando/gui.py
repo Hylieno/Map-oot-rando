@@ -486,7 +486,7 @@ class MapApplication:
             underground = region in SURFACE_MIN_Y and self.link.y < SURFACE_MIN_Y[region]
             row = Location('', '', '', path, position, region=region, underground=underground)
             level = location_view(row)
-            if region == 'FireTemple' and self.link.x < -68 and -15 < self.link.z < 15 and 95 < self.link.y < 112:
+            if region == 'FireTemple' and self.link.x <= -64.5 and -15 < self.link.z < 15 and 95 < self.link.y < 112:
                 level = FIRE_VIEWS[-1]
             if level in self.views:
                 return level

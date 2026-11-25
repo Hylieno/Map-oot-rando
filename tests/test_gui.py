@@ -1706,6 +1706,7 @@ class GuiTests(unittest.TestCase):
 
     def test_volvagia_cutscene_continues_from_kakariko_through_the_sages(self):
         from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
         from map_oot_rando.scene import FIRE_VIEWS, REGION_VIEWS, extract_scenes
 
         app = self.app
@@ -1714,6 +1715,8 @@ class GuiTests(unittest.TestCase):
         sages = REGION_VIEWS['SageRoom'][None]
         maps = {
             'Banc/FireTemple/FireTemple_Static.bcett.byml.zs': {'root': {'Actors': [
+                dict(Gyaml='Obj_FireTemple_SwitchShutter_A_02', Hash=7971893604208202501, Translate=(-39, 105, 0)),
+                dict(Gyaml='StartPos', Hash=4368300544097029137, Translate=(-64.5, 102.5, 0)),
                 dict(Gyaml='Obj_WarpPoint_A_01', Hash=14585775662663687502, Translate=(-80.25, 102.46, .08)),
             ]}},
             'Banc/KakarikoVillage/KakarikoVillage_Adult_Dynamic.bcett.byml.zs': {'root': {'Actors': [
@@ -1734,8 +1737,12 @@ class GuiTests(unittest.TestCase):
         app.resource.set(village)
         app.resource_changed(manual=False)
         self.assertNotIn('SageRoom', app.navigation_markers.values())
-        app.resource.set(FIRE_VIEWS[-1])
-        app.resource_changed(manual=False)
+        app.open_neighbor('FireTemple', view=FIRE_VIEWS[0])
+        marker, = app.canvas.find_withtag('zone-navigation')
+        l, t, r, b = app.canvas.bbox(marker)
+        app.press(SimpleNamespace(x=(l+r)//2, y=(t+b)//2))
+        self.assertEqual(app.resource.get(), FIRE_VIEWS[-1])
+        self.assertTrue(app.canvas.find_withtag('portal-arrival'))
         for target, view in (('KakarikoVillage', village), ('SageRoom', sages), ('DeathMountainCrater', crater)):
             marker, = [i for i in app.canvas.find_withtag('zone-navigation')
                        if any(action[1] == target for action in app.local_portals[i])]
@@ -1749,6 +1756,9 @@ class GuiTests(unittest.TestCase):
                 app.marker_menu.invoke(index)
             self.assertEqual(app.resource.get(), view)
             self.assertEqual(len(app.canvas.find_withtag('portal-arrival')), 1)
+        app.update_link(LinkPosition('FireTemple', 'Adult', -64.5, 102.5, 0, 0))
+        self.assertEqual(app.resource.get(), FIRE_VIEWS[-1])
+        self.assertTrue(app.canvas.find_withtag('player-pin'))
 
     def test_spirit_temple_hand_portal_opens_the_upper_floor(self):
         from unittest.mock import patch
