@@ -411,6 +411,13 @@ class GuiTests(unittest.TestCase):
             else:
                 self.root.after(20, wait_for_background)
 
+        def finish_loading():
+            self.root.after(20, wait_for_background)
+            deadline = self.root.after(2000, self.root.quit)
+            self.root.mainloop()
+            self.root.after_cancel(deadline)
+            self.assertTrue(app.canvas.find_withtag('aerial'))
+
         def assert_link_visible():
             pins = app.canvas.find_withtag('player-pin')
             self.assertTrue(pins)
@@ -428,12 +435,20 @@ class GuiTests(unittest.TestCase):
             self.assertFalse(app.canvas.find_withtag('aerial'))
             assert_link_visible()
             release.set()
-            self.root.after(20, wait_for_background)
-            deadline = self.root.after(2000, self.root.quit)
-            self.root.mainloop()
-            self.root.after_cancel(deadline)
-            self.assertTrue(app.canvas.find_withtag('aerial'))
+            finish_loading()
             assert_link_visible()
+
+            app.aerial.pop(app.resource.get())
+            app.fit()
+            app.ensure_atlas()
+            app.zoom(1.5, 100, 100)
+            app.drag = (100, 100)
+            app.pan(SimpleNamespace(x=135, y=79))
+            manual_view = (app.viewport.scale, app.viewport.x, app.viewport.y)
+            finish_loading()
+            self.assertEqual((app.viewport.scale, app.viewport.x, app.viewport.y), manual_view)
+            app.fit_detail()
+            self.assertNotEqual((app.viewport.scale, app.viewport.x, app.viewport.y), manual_view)
 
     def test_atlas_uses_world_coordinates_and_a_uniform_canvas(self):
         from PIL import Image

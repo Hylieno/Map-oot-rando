@@ -72,6 +72,7 @@ class MapApplication:
         root.title('Map-oot-rando')
         root.geometry('1180x760')
         self.viewport = Viewport()
+        self.viewport_adjusted = False
         self.overview_open = False
         self.world_loading = False
         self.world_callback = None
@@ -792,7 +793,7 @@ class MapApplication:
                     selected = self.selected
                     focus = (selected.project() if selected and selected.position is not None
                              and location_view(selected) == view else None)
-                    self.fit(focus=focus)
+                    self.fit(focus=focus, preserve_viewport=self.viewport_adjusted)
             else:
                 self.atlas_failed.add(view)
                 if self.resource.get() == view:
@@ -1177,7 +1178,7 @@ class MapApplication:
         Thread(target=prepare, daemon=True).start()
         self.world_callback = self.root.after(100, finish)
 
-    def fit(self, *, focus=None):
+    def fit(self, *, focus=None, preserve_viewport=False):
         self.fit_pending = self.canvas.winfo_width() <= 1 or self.canvas.winfo_height() <= 1
         if self.fit_pending:
             return
@@ -1196,10 +1197,13 @@ class MapApplication:
         if self.link and view_contains(self.resource.get(), self.link_view()):
             points.append((self.link.x, self.link.z))
         width, height = self.canvas.winfo_width(), self.canvas.winfo_height()
-        self.viewport.fit(points, width, height, min_extent=36 if local_arena else 1)
-        self.fitted_scale = self.viewport.scale
-        if focus is not None:
-            self.viewport.center(focus, width, height)
+        viewport = Viewport() if preserve_viewport else self.viewport
+        viewport.fit(points, width, height, min_extent=36 if local_arena else 1)
+        self.fitted_scale = viewport.scale
+        if not preserve_viewport:
+            self.viewport_adjusted = False
+            if focus is not None:
+                self.viewport.center(focus, width, height)
         self.draw()
 
     def draw_overview(self, width, height):
@@ -1671,6 +1675,7 @@ class MapApplication:
 
     def pan(self, event):
         if self.drag:
+            self.viewport_adjusted = True
             self.viewport.x += event.x - self.drag[0]
             self.viewport.y += event.y - self.drag[1]
             self.drag = (event.x, event.y)
@@ -1681,6 +1686,7 @@ class MapApplication:
             if factor > 1:
                 self.fit_detail()
             return
+        self.viewport_adjusted = True
         self.viewport.zoom(factor, (x, y))
         if (factor < 1 and self.viewport.scale < self.fitted_scale * OVERVIEW_SCALE
                 and not self.simulation and self.world_targets()):

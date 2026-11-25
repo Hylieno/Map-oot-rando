@@ -3,6 +3,8 @@
 Le cadrage de la zone suivie garde le marqueur de Link visible
 lorsque le fond Field Atlas finit de charger, même si le personnage
 se trouve au-delà du bord du dessin.
+Un zoom ou un déplacement effectué pendant le chargement reste
+appliqué lorsque le fond apparaît.
 
 Le marqueur de Link utilise la variante adulte de Cocorico chargée
 en mémoire. Il ouvre la carte correspondante même si le suivi de
