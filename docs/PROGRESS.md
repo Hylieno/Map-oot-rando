@@ -3,6 +3,8 @@
 À l’intérieur de l’Arbre Mojo, les murs de lierre relient les étages
 supérieurs. Deux toiles marquent les descentes jusqu’au sous-sol
 profond, qui donne accès à l’arène de Gohma.
+Dans la Caverne Dodongo, l’escalier ouest relie les deux niveaux.
+La porte du Roi Dodongo ouvre l’arène au point de départ de la cinématique.
 
 Dans le Temple de la Forêt, les ascenseurs du hall et de l’ouest,
 le puits est et la porte de Ganon spectral relient cinq vues.

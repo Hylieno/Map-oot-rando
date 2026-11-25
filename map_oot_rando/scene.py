@@ -17,6 +17,12 @@ REGION_VIEWS['GoronCity'] = {age: views[0] for age, views in GORON_VIEWS.items()
 GORON_FLOORS = {view: index for views in GORON_VIEWS.values() for index, view in enumerate(views)}
 DODONGO_LEVELS = ('Rez-de-chaussée', 'Étage', 'Arène du boss')
 DODONGO_VIEWS = tuple(f'{REGION_NAMES["DodongoCavern"]} · {level}' for level in DODONGO_LEVELS)
+DODONGO_LEVEL_CROSSINGS = (
+    ((0, 'Escalier ouest · vers l’étage', 'Obj_DodongoCave_BrokenStair_A_01', 900149935771582689),
+     (1, 'Escalier ouest · vers le rez-de-chaussée', 'Land_DodongoCave_Ladder_A_04', 1553792366831309427)),
+    ((0, 'Porte vers le Roi Dodongo', 'Obj_DodongoCave_SwitchShutter_A_01', 16871561526373450485),
+     (2, 'Voir l’accès à l’arène de Dodongo', 'StartPos', 7367191043734907309)),
+)
 FIRE_LEVELS = ('Rez-de-chaussée', '1er étage', '2e étage', '3e étage', '4e étage', 'Arène du boss')
 FIRE_VIEWS = tuple(f'{REGION_NAMES["FireTemple"]} · {level}' for level in FIRE_LEVELS)
 FIRE_BOSS_CROSSING = (
@@ -402,6 +408,9 @@ SIDE_PORTALS = {
                          'Kokiri Forest · sortie de Gohma', DEKU_BOSS_EXIT),
     },
     'DodongoCavern': {
+        **{label: ('DodongoCavern', DODONGO_VIEWS[destination], label, arrival)
+           for ends in DODONGO_LEVEL_CROSSINGS
+           for (_, label, _, _), (destination, arrival, _, _) in (ends, ends[::-1])},
         DODONGO_BOSS_EXIT: ('DeathMountainTrail', None, 'Mont du Péril · sortie du boss', DODONGO_BOSS_EXIT),
     },
     'InsideJabuJabuBelly': {
@@ -884,6 +893,7 @@ def crossing_level_points(sources, crossings):
 
 
 LEVEL_POINT_EXTRACTORS = {
+    'DodongoCavern': lambda sources: crossing_level_points(sources, DODONGO_LEVEL_CROSSINGS),
     'InsideTheDekuTree': lambda sources: crossing_level_points(sources, DEKU_LEVEL_CROSSINGS),
     'FireTemple': lambda sources: crossing_level_points(sources, FIRE_LEVEL_CROSSINGS),
     'ForestTemple': lambda sources: crossing_level_points(sources, FOREST_LEVEL_CROSSINGS),

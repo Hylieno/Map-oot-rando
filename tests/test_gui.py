@@ -677,14 +677,20 @@ class GuiTests(unittest.TestCase):
         self.assertEqual({row.id for row in app.visible}, {'Adult-2'})
 
     def test_dodongo_shared_floors_follow_age_only_on_exit(self):
-        from map_oot_rando.scene import DODONGO_LEVELS, DODONGO_VIEWS, REGION_VIEWS
+        from map_oot_rando.scene import DODONGO_VIEWS, REGION_VIEWS, extract_scenes
 
         app = self.app
         doc = dict(demo_document(), provenance='ootrr-scan', regions=list(REGION_VIEWS))
+        cavern = 'Banc/DodongoCavern/DodongoCavern_Static.bcett.byml.zs'
+        actors = [
+            dict(Gyaml='Obj_DodongoCave_SwitchShutter_A_01', Hash=16871561526373450485,
+                 Translate=(10.31, 92.4, -77.94)),
+            dict(Gyaml='StartPos', Hash=7367191043734907309, Translate=(24, 73.41, -77.6)),
+        ]
+        doc['scenes'] = extract_scenes({cavern: {'root': {'Actors': actors}}}, lambda _: {})
         row = doc['locations'][0]
         doc['locations'] = [
-            dict(row, id=f'dodongo-{index}', position=(0, height, 0),
-                 resource='Banc/DodongoCavern/DodongoCavern_Static.bcett.byml.zs')
+            dict(row, id=f'dodongo-{index}', position=(0, height, 0), resource=cavern)
             for index, height in enumerate((100, 113, 73))
         ] + [
             dict(row, id=age, resource=f'Banc/DeathMountainTrail/DeathMountainTrail_{age}_Static.bcett.byml.zs')
@@ -695,8 +701,11 @@ class GuiTests(unittest.TestCase):
         app.resource_changed()
         app.open_neighbor('DodongoCavern')
         self.assertEqual(app.resource.get(), DODONGO_VIEWS[0])
-        app.floor_picker.set(DODONGO_LEVELS[2])
-        app.choose_floor(None)
+        marker, = app.canvas.find_withtag('zone-navigation')
+        x0, y0, x1, y1 = app.canvas.bbox(marker)
+        app.press(SimpleNamespace(x=(x0+x1)//2, y=(y0+y1)//2))
+        self.assertEqual(app.resource.get(), DODONGO_VIEWS[2])
+        self.assertTrue(app.canvas.find_withtag('portal-arrival'))
         self.assertEqual({row.id for row in app.visible}, {'dodongo-2'})
         self.assertEqual(app.view_for_region('DeathMountainTrail'), REGION_VIEWS['DeathMountainTrail']['Adult'])
         app.save_age = 'Child'
