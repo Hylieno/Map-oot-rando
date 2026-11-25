@@ -119,6 +119,7 @@ class SceneTests(unittest.TestCase):
             dict(Gyaml='DungeonRoomCenterAnchor', Hash=13588342684847587321, Translate=(-1.42, 98.01, -47.96)),
             dict(Gyaml='DungeonRoomIdAnchor', Hash=11618577540114259236, Translate=(-2.36, 106.24, -55.67)),
             dict(Gyaml='DungeonRoomArea', Hash=18344474415563430437, Translate=(-7.76, 102.77, -35.45)),
+            dict(Gyaml='Obj_ScarecrowMarker_B_00', Hash=6572899987226388103, Translate=(1.5, 105.97, -63.14)),
         ]
         raw = extract_scenes({path: {'root': {'Actors': actors}}}, lambda _: {})
         grouped = group_scenes(read_scenes(json.loads(json.dumps({'scenes': raw}))))
@@ -126,7 +127,7 @@ class SceneTests(unittest.TestCase):
             'Labyrinthe': (-1.42, -47.96), TRAINING_TO_CEILING: (-7.76, -35.45),
         })
         self.assertEqual(dict(grouped[TRAINING_VIEWS[1]]['points']), {
-            'Passerelle nord': (-2.36, -55.67), TRAINING_TO_MAZE: (-7.76, -35.45),
+            'Passerelle nord': (-2.36, -55.67), TRAINING_TO_MAZE: (-7.76, -35.45), 'Épouvantail': (1.5, -63.14),
         })
         for height, floor in ((98.03, 0), (105, 1)):
             with self.subTest(height=height):

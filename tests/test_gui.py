@@ -72,7 +72,7 @@ class GuiTests(unittest.TestCase):
         app = self.app
         forest, training, temple = 'KokiriForest', 'GerudoTrainingGround', 'TempleOfTime'
         scenes = {view: {'rooms': [], 'points': []} for view in (REGION_VIEWS[forest]['Child'], *TRAINING_VIEWS)}
-        missing = dict(id='ap#Gerudo Training Ground Freestanding Key', name='Clé du labyrinthe', category='key',
+        missing = dict(id='training#unpositioned', name='Clé du labyrinthe', category='key',
                        resource='Emplacements sans position', position=None, region=training)
         gift = dict(missing, id='ap#Gift from Sages', name='Don des Sages', region=temple)
         doc = dict(demo_document(), provenance='ootrr-scan', regions=[forest, training, temple],
@@ -95,6 +95,7 @@ class GuiTests(unittest.TestCase):
         app.query.set(gift['name'])
         app.choose_first()
         self.assertEqual(app.selected.id, gift['id'])
+        self.assertIn('Temple du Temps · récompense de scénario', app.details.get())
         self.assertEqual(app.resource.get(), TRAINING_VIEWS[1])
 
     def test_navigation_and_tracking_remain_available_in_a_narrow_window(self):
@@ -1208,8 +1209,10 @@ class GuiTests(unittest.TestCase):
 
         app = self.app
         fortress, ground = 'GerudoFortress', 'GerudoTrainingGround'
+        checks = ('Gerudo Training Ground Near Scarecrow Chest', 'Gerudo Training Ground Freestanding Key')
         doc = dict(demo_document(), provenance='ootrr-scan', regions=['KokiriForest', fortress, ground],
-                   locations=[], scenes={
+                   locations=[dict(id=f'ap#{name}', name=name, category='vanilla', region=ground,
+                                   resource='Emplacements sans position', position=None) for name in checks], scenes={
                        'Banc/GerudoFortress/GerudoFortress_Adult_Static.bcett.byml.zs':
                            {'rooms': [], 'points': [('Vers le centre d’entraînement', (5, 3))]},
                        'Banc/GerudoTrainingGround/GerudoTrainingGround_Static.bcett.byml.zs':
@@ -1217,6 +1220,7 @@ class GuiTests(unittest.TestCase):
                                                     (TRAINING_TO_WALKWAY, (-2.34, -58.92)),
                                                     (TRAINING_TO_CEILING, (-7.76, -35.45))],
                             'level_points': [(1, 'Passerelle nord', (-2.36, -55.67)),
+                                             (1, 'Épouvantail', (1.5, -63.14)),
                                              (1, TRAINING_TO_STATUE, (-2.34, -58.92)),
                                              (1, TRAINING_TO_MAZE, (-7.76, -35.45))]},
                    })
@@ -1235,6 +1239,17 @@ class GuiTests(unittest.TestCase):
             app.press(SimpleNamespace(x=(x1+x2)//2, y=(y1+y2)//2))
             self.assertEqual(app.resource.get(), target)
             self.assertTrue(app.canvas.find_withtag('portal-arrival'))
+        app.query.set('Near Scarecrow')
+        app.choose_first()
+        self.assertEqual(app.resource.get(), TRAINING_VIEWS[1])
+        self.assertIn('Salle de la statue · niveau supérieur', app.details.get())
+        self.assertFalse(app.canvas.find_withtag('check-pin'))
+        self.assertIn('Épouvantail', dict(app.scenes[TRAINING_VIEWS[1]]['points']))
+        app.query.set('Freestanding Key')
+        app.choose_first()
+        self.assertEqual(app.resource.get(), TRAINING_VIEWS[0])
+        self.assertIn('Labyrinthe central · côté droit', app.details.get())
+        self.assertFalse(app.canvas.find_withtag('check-pin'))
         app.update_link(LinkPosition(ground, 'Adult', -1.5, 98, -48, 0))
         app.update_link(LinkPosition(ground, 'Adult', -1.5, 105, -48, 0))
         self.assertEqual(app.resource.get(), TRAINING_VIEWS[1])

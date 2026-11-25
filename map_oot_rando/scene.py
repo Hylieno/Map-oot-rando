@@ -44,6 +44,12 @@ TRAINING_TO_WALKWAY = 'Vers la passerelle'
 TRAINING_TO_STATUE = 'Vers la salle de la statue'
 TRAINING_TO_CEILING = 'Vers l’alcôve du plafond'
 TRAINING_TO_MAZE = 'Vers le labyrinthe inférieur'
+TRAINING_SCARECROW = 'Épouvantail'
+UNPOSITIONED_CHECK_AREAS = {
+    'ap#Gerudo Training Ground Near Scarecrow Chest': (TRAINING_VIEWS[1], 'Salle de la statue · niveau supérieur'),
+    'ap#Gerudo Training Ground Freestanding Key': (TRAINING_VIEWS[0], 'Labyrinthe central · côté droit'),
+    'ap#Gift from Sages': (None, 'Temple du Temps · récompense de scénario'),
+}
 DUNGEON_FLOORS = {
     'DodongoCavern': tuple(zip(DODONGO_LEVELS, DODONGO_VIEWS)),
     'FireTemple': tuple(zip(FIRE_LEVELS, FIRE_VIEWS)),
@@ -702,6 +708,7 @@ def ganon_tower_points(sources):
 
 def training_level_points(sources):
     anchors = {('DungeonRoomIdAnchor', ident): label for ident, label in TRAINING_WALKWAY_ANCHORS.items()}
+    anchors['Obj_ScarecrowMarker_B_00', 6572899987226388103] = TRAINING_SCARECROW
     anchors['Obj_Gerudo_SwitchShutter_A_04', TRAINING_WALKWAY_GATE] = TRAINING_TO_STATUE
     anchors['DungeonRoomArea', TRAINING_CEILING_CLIMB] = TRAINING_TO_MAZE
     return {(1, anchors[key], (position[0], position[2]))
@@ -1179,6 +1186,10 @@ def view_name(resource):
 
 def location_view(row):
     view = view_name(row.resource)
+    if row.position is None and row.id in UNPOSITIONED_CHECK_AREAS:
+        target, _ = UNPOSITIONED_CHECK_AREAS[row.id]
+        if target and VIEWS[target][0] == row.region:
+            return target
     if row.dungeon_floor is not None and view in VIEWS:
         floor = row.dungeon_floor
         key = f'{floor + 1}F' if floor >= 0 else f'S{-floor}'

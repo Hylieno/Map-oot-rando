@@ -29,7 +29,7 @@ from .scene import (BURNT_VILLAGE, CASTLE_COURT, DAMPE_ROUTES, DREAM_BATTLE_VIEW
                     GORON_LEVELS, GORON_VIEWS, GUIDE_ROUTE, LOST_WOOD_RESET,
                     NEIGHBORS, PORTAL_ARRIVAL_STARTS, PORTAL_START_NAMES, REGION_VIEWS, SHARED_DUNGEONS,
                     SIDE_PORTALS, TRAINING_VIEWS,
-                    UNDERGROUND_LABELS, UNDERGROUND_VIEWS, VIEWS,
+                    UNDERGROUND_LABELS, UNDERGROUND_VIEWS, UNPOSITIONED_CHECK_AREAS, VIEWS,
                     castle_view, field_area, field_atlas_scene, group_scenes, kokiri_bridge_position,
                     location_view, read_scenes, temple_position, view_name)
 from .simulation import Simulation, demo_document
@@ -821,7 +821,7 @@ class MapApplication:
         for row, target in zip(self.visible, result_views):
             label = row.name
             if searching and target != view:
-                destination = target if row.position is not None else REGION_NAMES.get(row.region)
+                destination = target if target in self.views else REGION_NAMES.get(row.region)
                 if destination:
                     label += f' · {destination}'
             if row.position is None:
@@ -1551,9 +1551,11 @@ class MapApplication:
         view = location_view(row)
         if row.position is None and view not in self.views:
             view = REGION_NAMES.get(row.region, view)
+        area = UNPOSITIONED_CHECK_AREAS.get(row.id) if row.position is None else None
         self.details.set(f'{row.name}\nID : {row.id}\n{row.category}\n{view}\n'
                          f'XYZ : {row.position if row.position is not None else "inconnues"}\n'
                          f'État : {LABELS[self.store.states.get(row.id, "unknown")]}'
+                         + (f'\nSecteur indiqué par OotrR : {area[1]}' if area else '')
                          + (f'\nEntrée affichée (XYZ) : {row.entrance}' if row.entrance else '')
                          + ('\nHors du fond de carte' if self.outside(row) else '')
                          + (f'\nObjet obtenu : {tracker["reward"]}' if tracker.get('reward') else '')

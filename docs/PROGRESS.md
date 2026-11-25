@@ -42,7 +42,10 @@ de référence. Les nouveaux emplacements couvrent le cratère du Péril,
 la Forteresse Gerudo et le centre d’entraînement. Le coffre du plafond
 caché est sur la passerelle du labyrinthe. Le don des Sages, le coffre
 près de l’épouvantail et la clé libre du labyrinthe restent sans
-coordonnées confirmées. Leur sélection ouvre la zone disponible.
+coordonnées confirmées. Le détail indique leur secteur dans OotrR.
+La sélection du coffre ou de la clé ouvre l’étage correspondant du
+centre d’entraînement. La passerelle affiche le repère de l’épouvantail
+aux coordonnées de son acteur.
 Le repère de l’alcôve permet de passer entre le labyrinthe et la
 passerelle au même point sur les deux vues.
 

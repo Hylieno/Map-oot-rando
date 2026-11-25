@@ -48,6 +48,8 @@
 - Liaisons du centre d’entraînement. Une liaison utilise exactement
   deux centres de salle et leur porte. Le dessin indique la connexion
   des salles et la position des portes dans le repère du jeu.
+  Les secteurs de la logique OotrR orientent la sélection des checks
+  sans placement confirmé. Le repère de l’épouvantail vient de son acteur.
 - Identifiants hérités. La carte conserve l’identifiant du catalogue
   et utilise l’acteur vérifié dans la scène. Les deux Skulltulas du
   cratère apparaissent dans la vue enfant. Les clés de la forteresse

@@ -1,5 +1,9 @@
 # Validation
 
+La recherche dans Tk ouvre l’étage indiqué pour les deux checks Gerudo
+sans coordonnées. Le repère de l’épouvantail utilise l’acteur de la
+scène et les deux checks restent sans marqueur de collecte.
+
 Les 25 arènes du Monde des rêves et les 50 points de départ du défi
 et des revanches ont été contrôlés dans Tk avec les scènes publiques.
 Le test simule la transition vers Gohma et le retour aux dix coffres
