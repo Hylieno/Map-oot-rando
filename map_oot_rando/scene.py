@@ -334,6 +334,7 @@ REGION_VIEWS['DreamWorld'] = {None: DREAM_SCENE_VIEWS['EnemyMuseum']}
 CASTLE_VIEWS = tuple(f'{REGION_NAMES["HyruleCastle"]} · {area}' for area in ('Abords', 'Cour'))
 CASTLE_OUTSKIRTS, CASTLE_COURT = CASTLE_VIEWS
 REGION_VIEWS['HyruleCastle'] = {'Child': CASTLE_OUTSKIRTS}
+MARKET_TREASURE_VIEW = f'{REGION_NAMES["Market"]} · Jeu des coffres'
 GANON_AREAS = ('Abords', 'Effondrement', 'Arène de Ganon')
 GANON_VIEWS = tuple(f'{REGION_NAMES["GanonCastle"]} · {area}' for area in GANON_AREAS)
 GANON_OUTSKIRTS, GANON_ESCAPE, GANON_FINAL = GANON_VIEWS
@@ -356,6 +357,7 @@ VIEWS = {label: (region, age) for region, ages in REGION_VIEWS.items()
 BURNT_VILLAGE = 'Cocorico · Après l’incendie'
 VIEWS[BURNT_VILLAGE] = ('KakarikoVillage', 'Adult')
 VIEWS[CASTLE_COURT] = ('HyruleCastle', 'Child')
+VIEWS[MARKET_TREASURE_VIEW] = ('Market', 'Child')
 VIEWS.update(dict.fromkeys((GANON_ESCAPE, GANON_FINAL), ('GanonCastle', 'Adult')))
 VIEWS.update({view: ('DreamWorld', None) for view in DREAM_SCENE_VIEWS.values()})
 UNDERGROUND_VIEWS = {region: {age: f'{view} · Souterrains' for age, view in REGION_VIEWS[region].items()}
@@ -730,6 +732,18 @@ FIELD_VIEW_AGES = {view: age for age, view in REGION_VIEWS['HyruleField'].items(
 KOKIRI_VIEW_AGES = {view: age for age, view in AGE_VIEWS.items()}
 KOKIRI_BRIDGE_GATE = (-90.0, -38.4)
 MARKET_VIEW_AGES = {view: age for age, view in REGION_VIEWS['Market'].items()}
+TREASURE_GAME_ENTER = 'Entrée du jeu des coffres'
+TREASURE_GAME_EXIT = 'Retour à la Citadelle'
+TREASURE_GAME_DOOR = 'Porte du jeu des coffres'
+TREASURE_GAME_REWARD = 'Salle du prix'
+TREASURE_GAME_ROUTE = 'Passage entre les salles'
+SIDE_PORTALS['Market'] = {
+    TREASURE_GAME_ENTER: ('Market', MARKET_TREASURE_VIEW, TREASURE_GAME_ENTER, TREASURE_GAME_EXIT),
+    TREASURE_GAME_EXIT: ('Market', REGION_VIEWS['Market']['Child'], TREASURE_GAME_EXIT, TREASURE_GAME_ENTER),
+}
+FLOOR_OPTIONS.update(dict.fromkeys((REGION_VIEWS['Market']['Child'], MARKET_TREASURE_VIEW),
+                                   (('Citadelle', REGION_VIEWS['Market']['Child']),
+                                    ('Jeu des coffres', MARKET_TREASURE_VIEW))))
 # The TimeTemple LocationArea uses different horizontal bounds at each age.
 TEMPLE_BOUNDS = {
     'Child': ((60.45223236083984, -44.86612129211426), (156.45223236083984, -8.866121292114258)),
@@ -1336,6 +1350,15 @@ def projection_points(region, sources):
                         and MARKET_VIEW_AGES.get(view_name(path)) == 'Adult'):
                     # DoorOfTime.SageRoom_MeetRauru returns Link inside the adult temple.
                     points.add((TEMPLE_SAGE_RETURN, (120.91000366210938, -26.65999984741211)))
+            elif (region == 'Market' and view_name(path) == REGION_VIEWS['Market']['Child']
+                  and gyaml in {'Obj_Door_ShopTreasureBox', 'Obj_HrlCity_Shop_Door_A_01', 'Obj_HrlCity_Shop_TBox_A_02'}):
+                if gyaml == 'Obj_Door_ShopTreasureBox':
+                    points.add((TREASURE_GAME_ENTER, (position[0], position[2])))
+                    label = TREASURE_GAME_EXIT
+                elif gyaml == 'Obj_HrlCity_Shop_Door_A_01' and treasure_game_at(position):
+                    label = TREASURE_GAME_DOOR
+                elif gyaml == 'Obj_HrlCity_Shop_TBox_A_02' and treasure_game_at(position):
+                    label = TREASURE_GAME_REWARD
             elif region == 'SageRoom':
                 if gyaml == 'EftLoc_SageRoom_LightPillar_00':
                     label = 'Pilier de lumière'
@@ -1574,12 +1597,16 @@ def location_view(row):
         return REGION_VIEWS['KokiriBridge'][KOKIRI_VIEW_AGES[view]]
     if view in FIELD_VIEW_AGES and row.position is not None:
         return REGION_VIEWS[field_area(row.project())][FIELD_VIEW_AGES[view]]
+    if (view == REGION_VIEWS['Market']['Child'] and row.position is not None
+            and treasure_game_at(row.position)):
+        return MARKET_TREASURE_VIEW
     if (view in MARKET_VIEW_AGES and row.position is not None
             and temple_position(row.project(), MARKET_VIEW_AGES[view])):
         return REGION_VIEWS['TempleOfTime'][MARKET_VIEW_AGES[view]]
     if view == CASTLE_OUTSKIRTS and row.position is not None:
         return castle_view(row.position[2])
-    if row.underground and view in VIEWS:
+    in_royal_tomb = row.region == 'Graveyard' and row.position is not None and royal_tomb_at(row.position)
+    if view in VIEWS and (row.underground or in_royal_tomb):
         region, age = VIEWS[view]
         return UNDERGROUND_VIEWS[region][age]
     if view in GORON_FLOORS and row.position is not None:
@@ -1711,6 +1738,20 @@ def castle_view(z):
     return CASTLE_COURT if z < -170 else CASTLE_OUTSKIRTS
 
 
+def treasure_game_at(position):
+    x, y, z = position
+    # The rotated SequentialChoiceTreasure area spans the rooms east of the
+    # prize chest. Include the lobby between its first gate and the street door.
+    return -135 <= x < -61.01 and 94 <= y <= 101 and 6.7 <= z <= 18.6
+
+
+def royal_tomb_at(position):
+    x, y, z = position
+    # The royal tomb's fog and room areas continue east under the hill.
+    # The song chamber rises above the depth used for Dampé's tomb.
+    return 47 <= x <= 166 and 80 <= y < 103.5 and -14 <= z <= 20
+
+
 def restore_legacy_trial_entrances(grouped):
     hall = grouped.get(GANON_DUNGEON_VIEWS[0])
     if not hall or any(label.startswith('Entrée · ') for label, _ in hall['points']):
@@ -1813,6 +1854,9 @@ def group_scenes(scenes):
                   and label in GRAVE_UNDERGROUND_PORTAL_POINTS):
                 underground = UNDERGROUND_VIEWS['Graveyard']['Adult']
                 target = grouped.setdefault(underground, {'rooms': set(), 'points': set()})
+            elif (name == REGION_VIEWS['Market']['Child']
+                  and label in {TREASURE_GAME_EXIT, TREASURE_GAME_DOOR, TREASURE_GAME_REWARD}):
+                target = grouped.setdefault(MARKET_TREASURE_VIEW, {'rooms': set(), 'points': set()})
             elif (name in MARKET_VIEW_AGES and temple_position(point, MARKET_VIEW_AGES[name])
                   and label != NEIGHBORS['Market']['TempleOfTime']):
                 age = MARKET_VIEW_AGES[name]
@@ -1838,6 +1882,11 @@ def group_scenes(scenes):
             level = grouped.setdefault(view_name_for_floor, {'rooms': set(), 'points': set()})
             level['points'].add((name, tuple(point)))
     restore_legacy_trial_routes(grouped)
+    if (game := grouped.get(MARKET_TREASURE_VIEW)) is not None:
+        doors = {point for label, point in game['points'] if label in {
+            TREASURE_GAME_EXIT, TREASURE_GAME_DOOR, TREASURE_GAME_REWARD}}
+        if len(doors) > 1:
+            game['routes'] = {(TREASURE_GAME_ROUTE, tuple(sorted(doors, reverse=True)))}
     if not training_locks_scanned:
         restore_legacy_training_locks(grouped)
     return {key: {kind: sorted(rows) for kind, rows in scene.items()}
