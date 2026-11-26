@@ -325,6 +325,8 @@ class MapApplication:
         self.tracking_stop.set()
         self.save_generation += 1
         self.save_commands = None
+        self.link = None
+        self.link_area = None
         self.save_age = None
         self.kakariko_burned = None
         if not same_seed:

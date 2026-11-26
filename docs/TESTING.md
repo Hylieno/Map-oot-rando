@@ -1,5 +1,11 @@
 # Validation
 
+Le changement de seed avec un suivi mémoire actif recadre la nouvelle carte
+sur ses propres checks. Un test reproduit le cas où Link se trouvait loin
+des marqueurs de la nouvelle seed. Un second test vérifie qu’une demande
+de marquage manuel en attente est rejetée lorsque le dossier fournit un
+autre fichier de sauvegarde lié à la même seed.
+
 L’audit du 26 novembre rejoue le catalogue OotrR 0.8.4 fourni avec 160
 couches de scènes publiques. Il retrouve 1 086 checks placés, soit
 1 283 placements avec les variantes, dont 1 143 sur 79 fonds et plans

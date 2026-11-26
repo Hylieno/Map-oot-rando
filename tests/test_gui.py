@@ -272,6 +272,31 @@ class GuiTests(unittest.TestCase):
         self.assertFalse(app.canvas.find_withtag('scene'))
         self.assertTrue(app.markers)
 
+    def test_loading_a_seed_excludes_the_previous_link_position_from_the_first_fit(self):
+        from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
+
+        app = self.app
+        doc = dict(demo_document(), provenance='ootrr-scan', seed_id='first-seed')
+        path = 'Banc/KokiriForest/KokiriForest_Child_Static.bcett.byml.zs'
+        doc['locations'] = [dict(row, resource=path, position=(x, 100, 0))
+                            for row, x in zip(doc['locations'], (0, 20))]
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        self.root.update()
+        expected_scale = app.viewport.scale
+        app.link_check.invoke()
+        app.update_link(LinkPosition('KokiriForest', 'Child', 500, 100, 0, 0))
+        app.store.publish(doc['seed_id'], dict.fromkeys(app.store.states, 'completed'),
+                          mode='live', timestamp='2026-11-26T12:00:00Z')
+
+        app.load(dict(doc, seed_id='second-seed'))
+
+        self.assertAlmostEqual(app.viewport.scale, expected_scale)
+        self.assertIsNone(app.link)
+        self.assertFalse(app.canvas.find_withtag('player-pin'))
+        self.assertEqual(set(app.store.states.values()), {'unknown'})
+
     def test_aerial_image_is_drawn_below_checks_for_its_resource(self):
         from PIL import Image
         from map_oot_rando.aerial import AerialImage
