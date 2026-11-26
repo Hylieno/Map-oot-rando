@@ -1,3 +1,17 @@
+# Audit de navigation — 26 novembre 2026
+
+Le jeu des coffres de la Citadelle a sa propre vue schématique côté
+enfant. Elle garde le coffre à sa position native et relie les portes
+relevées dans la scène. La porte extérieure ouvre cette vue et le
+marqueur de Link la suit lorsque Link entre ou ressort.
+
+Dans le cimetière, la navigation utilise le même découpage pour les
+checks et le suivi de Link. La salle du Chant du Soleil reste dans les
+souterrains aux deux âges, y compris quand son sol remonte au-dessus de
+la hauteur habituelle de la tombe de Dampé. Dans les donjons qui partagent
+un plan entre enfant et adulte, les sorties utilisent l’âge détecté de
+Link lorsque le suivi automatique est actif.
+
 # Checkpoint — 25 novembre 2026
 
 Le joueur a approuvé l’interface pour la première release portable Windows.

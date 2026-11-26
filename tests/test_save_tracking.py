@@ -197,6 +197,31 @@ class SaveTrackingTests(unittest.TestCase):
             self.assertEqual(conn.refresh().states['test'], 'unknown')
             self.assertEqual(conn.path, paths[0])
 
+    def test_pending_manual_mark_is_rejected_when_discovery_switches_slots(self):
+        import os
+
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory).resolve()
+            seed_id = write_seed(folder)
+            check = 'ap#KF Kokiri Sword Chest'
+            root = folder / 'saves'
+            first, second = (root / slot / 'progress.sav' for slot in ('first', 'second'))
+            for path, mtime in ((first, 1_700_000_001), (second, 1_700_000_000)):
+                path.parent.mkdir(parents=True)
+                write_save(path)
+                os.utime(path, (mtime, mtime))
+            connection = SaveConnection(folder, root, StateStore(seed_id, [check]), manual_dir=folder / 'manual')
+            self.assertEqual(connection.refresh().save_path, first)
+            self.assertEqual(connection.refresh([(check, True)]).states[check], 'completed')
+
+            os.utime(second, (1_700_000_002,) * 2)
+            update = connection.refresh([(check, True)])
+            self.assertEqual(update.save_path, second)
+            self.assertEqual(update.states[check], 'blocked')
+            self.assertIn('fichier de sauvegarde suivi a changé', update.action_error)
+            os.utime(first, (1_700_000_003,) * 2)
+            self.assertEqual(connection.refresh().states[check], 'completed')
+
     def test_temporary_rewrite_of_selected_slot_keeps_the_last_snapshot(self):
         import os
 

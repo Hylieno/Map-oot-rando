@@ -272,6 +272,31 @@ class GuiTests(unittest.TestCase):
         self.assertFalse(app.canvas.find_withtag('scene'))
         self.assertTrue(app.markers)
 
+    def test_loading_a_seed_excludes_the_previous_link_position_from_the_first_fit(self):
+        from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
+
+        app = self.app
+        doc = dict(demo_document(), provenance='ootrr-scan', seed_id='first-seed')
+        path = 'Banc/KokiriForest/KokiriForest_Child_Static.bcett.byml.zs'
+        doc['locations'] = [dict(row, resource=path, position=(x, 100, 0))
+                            for row, x in zip(doc['locations'], (0, 20))]
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        self.root.update()
+        expected_scale = app.viewport.scale
+        app.link_check.invoke()
+        app.update_link(LinkPosition('KokiriForest', 'Child', 500, 100, 0, 0))
+        app.store.publish(doc['seed_id'], dict.fromkeys(app.store.states, 'completed'),
+                          mode='live', timestamp='2026-11-26T12:00:00Z')
+
+        app.load(dict(doc, seed_id='second-seed'))
+
+        self.assertAlmostEqual(app.viewport.scale, expected_scale)
+        self.assertIsNone(app.link)
+        self.assertFalse(app.canvas.find_withtag('player-pin'))
+        self.assertEqual(set(app.store.states.values()), {'unknown'})
+
     def test_aerial_image_is_drawn_below_checks_for_its_resource(self):
         from PIL import Image
         from map_oot_rando.aerial import AerialImage
@@ -844,6 +869,88 @@ class GuiTests(unittest.TestCase):
         app.choose_first()
         self.assertEqual(app.resource.get(), UNDERGROUND_VIEWS['Graveyard']['Child'])
         self.assertEqual(app.selected.id, buried['id'])
+
+    def test_live_royal_tomb_uses_same_view_as_song_for_both_ages(self):
+        from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
+        from map_oot_rando.scene import REGION_VIEWS, UNDERGROUND_VIEWS
+
+        app = self.app
+        surface, song = demo_document()['locations'][:2]
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=list(REGION_VIEWS), locations=[])
+        for age, point in (('Child', (149.45, 98.66, 2.68)), ('Adult', (149.89, 98.26, 2.76))):
+            resource = f'Banc/Graveyard/Graveyard_{age}_Static.bcett.byml.zs'
+            doc['locations'].extend((dict(surface, position=(48.36, 104.56, 2.61), resource=resource),
+                                     dict(song, position=point, resource=resource)))
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        self.root.update()
+        for age, chamber in (('Child', (149.45, 98.66, 2.68)), ('Adult', (149.89, 98.26, 2.76))):
+            for point, view, ident in (
+                    ((48.36, 104.56, 2.61), REGION_VIEWS['Graveyard'][age], surface['id']),
+                    (chamber, UNDERGROUND_VIEWS['Graveyard'][age], song['id']),
+                    ((48.36, 104.56, 2.61), REGION_VIEWS['Graveyard'][age], surface['id'])):
+                app.update_link(LinkPosition('Graveyard', age, *point, 0))
+                self.assertEqual(app.resource.get(), view)
+                self.assertEqual({row.id for row in app.visible}, {ident})
+                self.assertTrue(app.canvas.find_withtag('player-pin'))
+
+    def test_treasure_game_uses_its_own_view_and_links_back_to_the_market(self):
+        from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
+        from map_oot_rando.scene import MARKET_TREASURE_VIEW, REGION_VIEWS, extract_scenes
+
+        app = self.app
+        resource = 'Banc/Market/Market_Child_Static.bcett.byml.zs'
+        actors = [dict(Gyaml='Obj_Door_ShopTreasureBox', Translate=(-61, 97.39, 11.99)),
+                  dict(Gyaml='Obj_HrlCity_Shop_Door_A_01', Translate=(-80.3, 97.38, 11.94)),
+                  dict(Gyaml='Obj_HrlCity_Shop_TBox_A_02', Translate=(-131.58, 97.89, 12.67))]
+        scenes = extract_scenes({resource: {'root': {'Actors': actors}}}, lambda _: {})
+        check = dict(demo_document()['locations'][0], resource=resource, position=actors[-1]['Translate'])
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(dict(demo_document(), provenance='ootrr-scan', regions=list(REGION_VIEWS),
+                      locations=[check], scenes=scenes))
+        self.root.update()
+        surface = REGION_VIEWS['Market']['Child']
+        self.assertEqual(app.resource.get(), surface)
+        self.assertFalse(app.canvas.find_withtag('check-pin'))
+        self.assertIn(MARKET_TREASURE_VIEW, app.portal_views.values())
+        app.update_link(LinkPosition('Market', 'Child', -64.69, 97.40, 8.92, 0))
+        self.assertEqual(app.resource.get(), MARKET_TREASURE_VIEW)
+        self.assertTrue(app.canvas.find_withtag('check-pin'))
+        self.assertTrue(app.canvas.find_withtag('scene-route'))
+        self.assertTrue(app.canvas.find_withtag('player-pin'))
+        self.assertIn(surface, app.portal_views.values())
+        app.update_link(LinkPosition('Market', 'Child', -60.71, 97.38, 11.27, 0))
+        self.assertEqual(app.resource.get(), surface)
+
+    def test_live_floor_follow_preserves_age_in_shared_dungeon(self):
+        from unittest.mock import patch
+        from map_oot_rando.link_position import LinkPosition
+        from map_oot_rando.scene import REGION_VIEWS, WATER_VIEWS
+
+        app = self.app
+        check = demo_document()['locations'][0]
+        water = 'Banc/WaterTemple/WaterTemple_Static.bcett.byml.zs'
+        doc = dict(demo_document(), provenance='ootrr-scan', regions=list(REGION_VIEWS))
+        doc['locations'] = [dict(check, resource=water, id='upper', position=(-4.5, 119, 27)),
+                            dict(check, resource=water, id='lower', position=(20, 102.5, -66.64))]
+        doc['scenes'] = {f'Banc/HyruleField/HyruleField_{age}_Static.bcett.byml.zs':
+                         {'rooms': [], 'points': [('Plaine', (0, 0))]} for age in ('Child', 'Adult')}
+        self.enterContext(patch.object(app, 'ensure_atlas'))
+        app.load(doc)
+        self.root.update()
+        app.resource.set(WATER_VIEWS[0])
+        app.resource_changed(manual=False)
+        app.navigation_age = 'Child'
+        app.update_link(LinkPosition('WaterTemple', 'Adult', -4.5, 119, 27, 0))
+        self.assertEqual(app.resource.get(), WATER_VIEWS[0])
+        self.assertEqual(app.navigation_age, 'Adult')
+        self.assertEqual(app.view_for_region('HyruleField'), REGION_VIEWS['HyruleField']['Adult'])
+        app.update_link(LinkPosition('WaterTemple', 'Adult', 20, 102.5, -66.64, 0))
+        self.assertEqual(app.resource.get(), WATER_VIEWS[2])
+        self.assertEqual({row.id for row in app.visible}, {'lower'})
+        self.assertTrue(app.canvas.find_withtag('player-pin'))
 
     def test_goron_floor_picker_keeps_age_and_tracker_following(self):
         from map_oot_rando.scene import GORON_LEVELS, GORON_VIEWS, REGION_VIEWS

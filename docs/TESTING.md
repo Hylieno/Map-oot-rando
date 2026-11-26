@@ -1,5 +1,24 @@
 # Validation
 
+Le changement de seed avec un suivi mémoire actif recadre la nouvelle carte
+sur ses propres checks. Un test reproduit le cas où Link se trouvait loin
+des marqueurs de la nouvelle seed. Un second test vérifie qu’une demande
+de marquage manuel en attente est rejetée lorsque le dossier fournit un
+autre fichier de sauvegarde lié à la même seed.
+
+L’audit du 26 novembre rejoue le catalogue OotrR 0.8.4 fourni avec 160
+couches de scènes publiques. Il retrouve 1 086 checks placés, soit
+1 283 placements avec les variantes, dont 1 143 sur 79 fonds et plans
+fixes. Le jeu des coffres était le seul placement exclu par le contrôle
+de couverture. Il s’affiche sur le schéma intérieur. La porte se projette
+sur le fond extérieur. Les tests Tk couvrent l’entrée et la sortie du
+jeu des coffres, les deux âges au tombeau royal et le suivi entre deux
+étages du Temple de l’Eau. Les tests injectent les positions de Link à
+partir de repères natifs. Les trajets restent à rejouer en jeu. Six
+Skulltulas en hauteur à Jabu-Jabu et dans les temples de la Forêt et de
+l’Ombre demandent de comparer le plan à la position réelle de Link au
+sol durant la collecte. Le placement natif des marqueurs est conservé.
+
 L’import guidé est exercé avec les deux sélecteurs, l’annulation d’un
 choix et le chargement du résultat. Le test rouvre aussi une carte
 enregistrée depuis le menu sans appeler le scanner. Le test du build

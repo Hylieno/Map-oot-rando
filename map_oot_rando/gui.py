@@ -25,14 +25,14 @@ from .scene import (BURNT_VILLAGE, CASTLE_COURT, DAMPE_ROUTES, DREAM_BATTLE_VIEW
                     FIRE_KAKARIKO_ARRIVAL, FIRE_KAKARIKO_CONTINUE, FIRE_VIEWS, FLOOR_OPTIONS,
                     FOUNTAIN_DUNGEON_AGES, GANON_DUNGEON_VIEWS, GANON_ESCAPE, GANON_ESCAPE_ROUTE, GANON_FINAL,
                     GANONDORF_TILE, GANON_TRIAL_ROOM_CENTER, GANON_TRIAL_VIEWS,
-                    MARKET_CASTLE_AGES,
+                    MARKET_CASTLE_AGES, MARKET_TREASURE_VIEW,
                     GORON_CRATER_FLOOR, GORON_FLOORS, GORON_LOST_WOODS_FLOOR,
                     GORON_LEVELS, GORON_VIEWS, GUIDE_ROUTE, LOST_WOOD_RESET,
                     NEIGHBORS, PORTAL_ARRIVAL_STARTS, PORTAL_START_NAMES, REGION_VIEWS, SHARED_DUNGEONS,
                     SHADOW_SHIP_ROUTE, SIDE_PORTALS, TRAINING_LOCKED_DOOR, TRAINING_VIEWS,
                     UNDERGROUND_LABELS, UNDERGROUND_VIEWS, UNPOSITIONED_CHECK_AREAS, VIEWS, WATER_CONTROL_LABELS,
                     castle_view, field_area, field_atlas_scene, group_scenes, kokiri_bridge_position,
-                    location_view, read_scenes, temple_position, view_name)
+                    location_view, read_scenes, temple_position, treasure_game_at, view_name)
 from .simulation import Simulation
 from . import theme
 from .view import Viewport
@@ -60,7 +60,7 @@ def view_contains(view, local_view):
 
 def background_spec(view):
     region, age = VIEWS.get(view, (None, None))
-    if (view in (CASTLE_COURT, GANON_ESCAPE, GANON_FINAL) or view in UNDERGROUND_LABELS
+    if (view in (CASTLE_COURT, MARKET_TREASURE_VIEW, GANON_ESCAPE, GANON_FINAL) or view in UNDERGROUND_LABELS
             or GORON_FLOORS.get(view) == len(GORON_LEVELS) - 1):
         return None
     if region == 'KokiriForest':
@@ -325,6 +325,8 @@ class MapApplication:
         self.tracking_stop.set()
         self.save_generation += 1
         self.save_commands = None
+        self.link = None
+        self.link_area = None
         self.save_age = None
         self.kakariko_burned = None
         if not same_seed:
@@ -521,6 +523,7 @@ class MapApplication:
     def link_view(self):
         region = self.link_region()
         age = self.link.age
+        position = self.link.x, self.link.y, self.link.z
         if region not in REGION_VIEWS:
             return None
         if region == 'KakarikoVillage' and age == 'Adult':
@@ -530,6 +533,8 @@ class MapApplication:
             view = BURNT_VILLAGE if burned else REGION_VIEWS[region][age]
             return view if view in self.views else None
         view = self.view_for_region(region, age=age, from_portal=False)
+        if region == 'Market' and age == 'Child' and MARKET_TREASURE_VIEW in self.views and treasure_game_at(position):
+            return MARKET_TREASURE_VIEW
         if region == 'HyruleCastle':
             subarea = castle_view(self.link.z)
             return subarea if subarea in self.views else view
@@ -544,7 +549,6 @@ class MapApplication:
         if region in DUNGEON_FLOORS or region == 'GoronCity' or region in SURFACE_MIN_Y:
             suffix = 'Static' if region in DUNGEON_FLOORS else f'{age}_Static'
             path = f'Banc/{region}/{region}_{suffix}.bcett.byml.zs'
-            position = self.link.x, self.link.y, self.link.z
             underground = region in SURFACE_MIN_Y and self.link.y < SURFACE_MIN_Y[region]
             row = Location('', '', '', path, position, region=region, underground=underground)
             level = location_view(row)
@@ -583,6 +587,7 @@ class MapApplication:
 
     def show_link_zone(self, view=None):
         if self.link and (view := view or self.link_view()):
+            self.navigation_age = self.link.age
             self.resource.set(view)
             self.resource_changed(manual=False)
             return True
@@ -593,6 +598,9 @@ class MapApplication:
             view = self.link_view()
             if view and (self.resource.get() != view or self.overview_open):
                 return self.show_link_zone(view)
+            if view and self.navigation_age != self.link.age:
+                self.navigation_age = self.link.age
+                self.refresh_navigation()
         return False
 
     def draw_link_pin(self, x, y, yaw):
