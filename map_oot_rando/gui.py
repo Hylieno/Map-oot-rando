@@ -428,9 +428,12 @@ class MapApplication:
         self.import_status.set('Analyse locale du jeu en cours…')
 
         def scan():
-            folder = Path(checks).resolve().parent
+            catalogue = Path(checks).resolve()
+            folder = catalogue.parent
             preparation = None
             if prepare:
+                if catalogue.name != 'checks.json':
+                    raise ValueError('Sélectionne le fichier checks.json du mod à préparer.')
                 self.import_events.put(('progress', 'Préparation du mod sur place…'))
                 preparation = prepare_seed_in_place(nup, folder)
             elif (folder / SEED_BACKUP / 'pending.json').is_file():
