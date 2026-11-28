@@ -1702,7 +1702,7 @@ class MapApplication:
                          + (f'\nObjet obtenu : {tracker["reward"]}' if tracker.get('reward') else '')
                          + ('\nCollecte sans indicateur de sauvegarde' if tracker.get('untracked') else '')
                          + ('\nMarqué manuellement' if tracker.get('source') == 'manual' else '')
-                         + ('\nValidé par la casse du rocher' if tracker.get('source') == 'rock_break' else '')
+                         + ('\nValidé par la destruction de la source' if tracker.get('source') == 'source_break' else '')
                          + ('\nÂmes manquantes : ' + ', '.join(tracker['missing_souls'])
                             if tracker.get('missing_souls') else ''))
 

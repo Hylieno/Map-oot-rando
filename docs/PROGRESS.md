@@ -1,10 +1,13 @@
-# Suivi des rochers à récompense consommable — 28 novembre 2026
+# Suivi des checks à récompense consommable — 28 novembre 2026
 
-Lorsqu’un rocher randomisé contient un consommable et que la seed relie
-son identifiant à un indicateur natif de casse, la carte valide le check
-dès que cet indicateur est observé. Le détail affiche « Validé par la
-casse du rocher » jusqu’à ce qu’OotrR confirme la collecte. Le suivi lit
-la mémoire si l’indicateur y est accessible, puis la sauvegarde si nécessaire.
+La carte valide les rochers, pots, caisses, buissons et ruches qui donnent
+un consommable dès qu’elle observe leur indicateur natif de destruction,
+lorsque la seed relie cet indicateur à la source. Les coffres utilisent
+l’indicateur d’ouverture qu’OotrR écrit à l’entrée de leur événement.
+Le détail précise si le check a été validé par la destruction de sa source.
+La carte lit la mémoire si cet indicateur y est accessible, puis la
+sauvegarde si nécessaire. Les checks sans indicateur fiable de l’action
+restent suivis par les indicateurs de collecte d’OotrR.
 
 # Audit de navigation — 26 novembre 2026
 

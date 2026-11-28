@@ -21,7 +21,7 @@ class VillageVariantTests(unittest.TestCase):
         self.assertTrue(kakariko_variant({4: True}, keys, 4, False))
 
 
-def write_seed(root, *, legacy_world=False, app_version=None, open_forest=False, rock_rewards=None):
+def write_seed(root, *, legacy_world=False, app_version=None, open_forest=False, source_rewards=None):
     from oot_rando.patching.randomize_kokiri import BUILD, TITLE
     from oot_rando.randomizer.randomizer_core import (
         ADAPTER_VERSION, GENERATOR_VERSION, Settings, settings_identity,
@@ -41,16 +41,16 @@ def write_seed(root, *, legacy_world=False, app_version=None, open_forest=False,
                            'locations': {'KF Kokiri Sword Chest': ['Bomb Bag']}},
                     known_bool64=['42'], checks={'test': {
                         'collection': {'type': 'bool64', 'hash': '42'}, 'reward': 'Test item'}, chest: {}, impa: {}})
-    if rock_rewards:
+    if source_rewards:
         tracking['repeatables'] = []
-        for key, canonical in rock_rewards.items():
-            ident = f'KokiriForest#rocks#{key}'
+        for ident, (key, canonical, actor) in source_rewards.items():
             checks.append({'id': ident, 'name': ident, 'region': 'Kokiri Forest'})
             flag = key + 1000
             tracking['known_bool64'].append(str(key))
             tracking['checks'][ident] = {'collection': {'type': 'bool', 'hash': str(flag)}, 'reward': canonical}
-            tracking['repeatables'].append({'id': ident, 'kind': 'pickup', 'canonical': canonical,
-                                            'flag_hash': flag, 'variants': [{'source': 'Obj_BrokenRock_A_01'}]})
+            if actor:
+                tracking['repeatables'].append({'id': ident, 'kind': 'pickup', 'canonical': canonical,
+                                                'flag_hash': flag, 'variants': [{'source': actor}]})
     payload = json.dumps(tracking).encode()
     data = b'synthetic resource'
     manifest = dict(schema_version=1, title_id=TITLE, build_id=BUILD, seed_id=seed_id,
@@ -86,30 +86,41 @@ def write_save(path, *, linked=True, collected=False, bombs=False, child=None, b
 
 @unittest.skipUnless(find_spec('oot_rando'), 'Pinned OotrR sources not on PYTHONPATH')
 class SaveTrackingTests(unittest.TestCase):
-    def test_only_consumable_rock_checks_use_native_breakage(self):
+    def test_consumable_checks_use_verified_breakage_or_the_chest_opening_flag(self):
         from unittest.mock import Mock
 
-        rewards = {70: 'TBox_Rupee_Green', 71: 'Item_BombBundle_Small', 72: 'TBox_ArrowBundle_Medium',
-                   73: 'TBox_DekuNutBundle', 74: 'Item_BombBag_Small', 75: 'Obj_Heart_Piece'}
-        ids = {key: f'KokiriForest#rocks#{key}' for key in rewards}
+        sources = {
+            70: ('rocks#70', 'TBox_Rupee_Green', 'Obj_BrokenRock_A_01'),
+            71: ('pots#71', 'Item_BombBundle_Small', 'Obj_Pot_A_02'),
+            72: ('crates#72', 'TBox_ArrowBundle_Medium', 'Obj_BrokenBox_A_01'),
+            73: ('bushes#73', 'TBox_DekuNutBundle', 'Obj_Plant_Grass_A_01'),
+            74: ('pots#74', 'Item_BombBag_Small', 'Obj_Pot_A_02'),
+            75: ('rocks#75', 'Obj_Heart_Piece', 'Obj_BrokenRock_A_02'),
+            76: ('76', 'TBox_Rupee_Blue', None),
+            77: ('trees#77', 'TBox_Rupee_Green', 'Obj_Tree_A_01'),
+            78: ('beehives#78', 'TBox_Rupee_Green', 'Obj_Kokiri_Beehive_A_01'),
+        }
+        ids = {key: f'KokiriForest#{row[0]}' for key, row in sources.items()}
+        rewards = {ids[key]: (key, canonical, actor) for key, (_, canonical, actor) in sources.items()}
         with tempfile.TemporaryDirectory() as directory:
             folder = Path(directory)
             save = folder / 'progress.sav'
-            store = StateStore(write_seed(folder, rock_rewards=rewards), ids.values())
-            write_save(save, broken=(70, 71, 72, 73, 74, 75), flags=(1073,))
+            store = StateStore(write_seed(folder, source_rewards=rewards), ids.values())
+            write_save(save, broken=(70, 71, 72, 73, 74, 75, 77, 78), flags=(1073, 1076))
             before = save.read_bytes()
             reader = Mock()
             connection = SaveConnection(folder, save, store, live_factory=lambda: reader)
             update = connection.refresh()
             self.assertEqual({key for key, ident in ids.items() if update.states[ident] == 'completed'},
-                             {70, 71, 72, 73})
-            self.assertEqual(update.rows[ids[70]]['source'], 'rock_break')
+                             {70, 71, 72, 73, 76, 78})
+            self.assertEqual(update.rows[ids[70]]['source'], 'source_break')
             self.assertFalse(update.rows[ids[70]]['observed'])
             self.assertEqual(update.rows[ids[70]]['reward'], '')
             self.assertEqual(update.rows[ids[73]]['source'], 'save')
-            self.assertEqual(update.rows[ids[73]]['reward'], rewards[73])
+            self.assertEqual(update.rows[ids[73]]['reward'], 'TBox_DekuNutBundle')
+            self.assertEqual(update.rows[ids[76]]['source'], 'save')
             reader.snapshot.return_value = dict(bool={100: True}, bool64_complete=False, sha256='partial')
-            self.assertEqual(connection.refresh(live=True).rows[ids[70]]['source'], 'rock_break')
+            self.assertEqual(connection.refresh(live=True).rows[ids[70]]['source'], 'source_break')
             self.assertEqual(save.read_bytes(), before)
             write_save(save)
             self.assertEqual(connection.refresh().states[ids[70]], 'unknown')
