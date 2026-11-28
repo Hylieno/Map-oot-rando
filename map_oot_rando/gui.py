@@ -483,7 +483,8 @@ class MapApplication:
                         messagebox.showinfo('Mod préparé',
                                             f'{preparation[0]} checks équipés du suivi de déclenchement.\n\n'
                                             f'Sauvegarde des fichiers d’origine\n{folder / SEED_BACKUP}\n\n'
-                                            'Lance une nouvelle partie avec ce mod.',
+                                            'Relance le jeu pour charger les changements, puis commence '
+                                            'une nouvelle partie.',
                                             parent=self.root)
                     elif preparation is not None:
                         self.import_status.set('Mod déjà préparé.')

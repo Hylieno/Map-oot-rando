@@ -33,8 +33,9 @@ class ImportDialog(tk.Toplevel):
         if not prepare:
             ttk.Checkbutton(content, text='Activer le suivi des déclenchements dans ce mod',
                             variable=self.prepare_in_place).pack(anchor='w', pady=(16, 3))
-            ttk.Label(content, text='Pour une nouvelle partie OotrR 0.8.4. Ferme le jeu avant '
-                      'de préparer le mod. Les fichiers modifiés sont sauvegardés.',
+            ttk.Label(content, text='Pour la première préparation avec OotrR 0.8.4, ferme le jeu '
+                      's’il est ouvert. Après l’import, relance-le pour charger le mod et commence '
+                      'une nouvelle partie. Les fichiers modifiés sont sauvegardés.',
                       style='Muted.TLabel', wraplength=435, justify='left').pack(anchor='w')
         actions = ttk.Frame(content)
         actions.pack(fill='x', pady=(22, 0))
