@@ -58,7 +58,7 @@ class GuiTests(unittest.TestCase):
             self.assertTrue(finished.wait(3))
             self.assertEqual(app.file_menu.entrycget(PREPARE_SEED_MENU, 'state'), 'disabled')
             app.poll_import()
-        prepare.assert_called_once_with('game.nup', source, output, skulltulas=True)
+        prepare.assert_called_once_with('game.nup', source.resolve(), output, skulltulas=True)
         self.assertIn(str(output), notice.call_args.args[1])
         self.assertEqual(app.file_menu.entrycget(PREPARE_SEED_MENU, 'state'), 'normal')
         self.assertTrue(app.simulation)
