@@ -707,7 +707,7 @@ class GuiTests(unittest.TestCase):
         app = self.app
         app.load(dict(demo_document(), provenance='ootrr-scan', seed_id='manual-trigger'))
         app.save_commands = Queue()
-        app.store.publish(app.store.seed_id, {}, mode='save', timestamp='2026-11-28T12:00:00Z')
+        app.store.publish(app.store.seed_id, app.store.states, mode='save', timestamp='2026-11-28T12:00:00Z')
         row = app.visible[0]
         for action in (True, False):
             app.tracked_rows[row.id] = {'manual_confirmation': action}
