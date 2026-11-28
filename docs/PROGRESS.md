@@ -22,6 +22,13 @@ rechargement. Ce prototype cible OotrR 0.8.4 (révision `9bdc6d3`). Les autres
 événements sans point d’entrée connu exigent un repère précis dans leur
 propre logique.
 
+La préparation reconnaît les sous-événements de texte et de conversion
+progressive qu’OotrR peut intercaler entre une récompense et son indicateur
+de collecte. Le cas de la Sérénade de l’eau à la Grande Fée (`Event174`)
+est couvert par un test de régression avec les transformations d’OotrR.
+Un événement dont la chaîne ne peut pas être vérifiée conserve le suivi
+de collecte d’origine et laisse la préparation traiter les autres checks.
+
 La carte valide un check à partir de l’indicateur de son action, quel que
 soit l’objet prévu. Elle lit l’indicateur de destruction de la source,
 l’ouverture de coffre signalée par OotrR ou un événement de chanson

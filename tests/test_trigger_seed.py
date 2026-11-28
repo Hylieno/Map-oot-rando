@@ -11,7 +11,7 @@ from unittest.mock import Mock, patch
 import zlib
 
 from map_oot_rando.trigger_seed import (
-    prepare_seed, prepare_skulltula_resources, prepare_trigger_resources, trigger_flag_name,
+    add_event_triggers, prepare_seed, prepare_skulltula_resources, prepare_trigger_resources, trigger_flag_name,
 )
 
 
@@ -25,6 +25,65 @@ def ainb_node(index, node_type, children=()):
 @unittest.skipUnless(find_spec('oot_rando') and find_spec('evfl') and find_spec('ainb'),
                      'Pinned OotrR and binary format readers are required')
 class TriggerSeedTests(unittest.TestCase):
+    def test_fairy_reward_keeps_ootrr_song_display_and_collection(self):
+        from evfl.container import Container
+        from evfl.entry_point import EntryPoint
+        from evfl.event import Event, SubFlowEvent
+        from evfl.evfl import EventFlow
+        from evfl.flowchart import Flowchart
+        from evfl.util import make_index
+        from oot_rando.patching.event_patch import _flow, add_collection_markers
+        from oot_rando.patching.progressive import add_converter_calls
+        from oot_rando.patching.song_adapter import patch_flow
+
+        ident = 'fairy#ZF Great Fairy Reward'
+        native_flag = 'RandoCheck.a94180032dd00924.' + ident
+        trigger_flag = trigger_flag_name(ident)
+        actor = 'Item_Melody_WaterSerenade'
+        flow = EventFlow()
+        flow.name = 'Dm_FairyFountain_Frore'
+        flow.flowchart = chart = Flowchart()
+        chart.name = flow.name
+        reward = Event()
+        reward.name, reward.data = 'Event174', SubFlowEvent()
+        reward.data.res_flowchart_name, reward.data.entry_point_name = 'Dm_SY_GetInEvent', 'GetInEvent'
+        reward.data.params = Container()
+        reward.data.params.data = {'ActorName': actor}
+        chart.events.append(reward)
+        entry = EntryPoint('Main')
+        entry.main_event = make_index(reward)
+        chart.entry_points.append(entry)
+        stream = BytesIO()
+        flow.write(stream)
+        marked, hooks = add_collection_markers(stream.getvalue(), {reward.name: native_flag})
+        displayed = patch_flow(marked, {'text_get': [(reward.name, actor, True)]})
+        converted = add_converter_calls(displayed, [reward.name], flow.name)
+
+        for raw, expected in ((displayed, ['RandoTextGet_Event174']),
+                              (converted, ['RandoProgAfter_Event174', 'RandoTextGet_Event174'])):
+            with self.subTest(chain=expected):
+                patched, added = add_event_triggers(raw, [(hooks[0], trigger_flag)])
+                self.assertEqual(added, {trigger_flag})
+                before = _flow(raw).flowchart
+                after = _flow(patched).flowchart
+                self.assertEqual([event.name for event in after.events[:-1]],
+                                 [event.name for event in before.events])
+                event = after.entry_points[0].main_event.v
+                self.assertEqual(event.data.params.data['GameDataName'], trigger_flag)
+                event = event.data.nxt.v
+                self.assertEqual(event.name, 'Event174')
+                for name in expected:
+                    event = event.data.nxt.v
+                    self.assertEqual(event.name, name)
+                self.assertEqual(event.data.nxt.v.data.params.data['GameDataName'], native_flag)
+
+        unexpected = _flow(displayed)
+        unexpected.flowchart.events[0].data.nxt.v.data.entry_point_name = 'OtherSubflow'
+        stream = BytesIO()
+        unexpected.write(stream)
+        raw = stream.getvalue()
+        self.assertEqual(add_event_triggers(raw, [(hooks[0], trigger_flag)]), (raw, set()))
+
     def test_private_drop_and_event_get_independent_saved_flags(self):
         import ainb
         from evfl.actor import Actor

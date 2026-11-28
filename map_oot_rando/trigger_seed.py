@@ -17,37 +17,70 @@ def trigger_flag_name(ident):
 
 
 def add_event_triggers(raw, hooks):
-    """Insert a setter on entry to the exact reward event patched by OotrR."""
+    """Insert a setter before each verified reward, returning the flags added."""
     from evfl.container import Container
-    from evfl.event import ActionEvent, Event
+    from evfl.event import ActionEvent, Event, SubFlowEvent
     from evfl.util import make_index
     from oot_rando.patching.event_patch import _flow
+    from oot_rando.patching.progressive import ACTION_GUIDE, AFTER_PREFIX, CONVERTER_ENTRY
+    from oot_rando.patching.qol_patches import _predecessors
+    from oot_rando.patching.song_adapter import DISPLAY_ENTRY, GET_FLOW, display_event_name
 
     flow = _flow(raw)
-    events = {event.name: event for event in flow.flowchart.events}
+    chart = flow.flowchart
+    events = {event.name: event for event in chart.events}
+    added = set()
     for hook, flag in hooks:
-        reward = events.get(hook['event'])
+        event_name = hook['event']
+        reward = events.get(event_name)
         original = events.get(hook['marker'])
-        name = 'RandoMapTrigger_' + hook['event']
-        if (not reward or not original or name in events or not hasattr(reward.data, 'nxt')
-                or reward.data.nxt.v is not original or not isinstance(original.data, ActionEvent)
+        name = 'RandoMapTrigger_' + event_name
+        if (not reward or not original or name in events or not isinstance(original.data, ActionEvent)
                 or str(original.data.actor.v.identifier) != 'GameDataActor'
                 or original.data.actor_action.v.v != 'EventTriggerSetGameDataBool'
+                or original.data.params is None
                 or original.data.params.data != {'GameDataName': hook['flag'], 'Index': -1, 'Value': True}):
-            raise ValueError(f'Événement de récompense inattendu : {hook["event"]}')
-        # Existing branches and entry points target this object. Keep those
-        # references and move the reward action just after the new setter.
-        payout = Event()
-        payout.name, payout.data = reward.name, reward.data
-        reward.name = name
-        reward.data = copy(original.data)
-        reward.data.params = Container()
-        reward.data.params.data = {'GameDataName': flag, 'Index': -1, 'Value': True}
-        reward.data.nxt = make_index(payout)
-        flow.flowchart.events.append(payout)
+            continue
+        # OotrR can insert these subflows after adding the collection marker.
+        wrappers = {
+            display_event_name(event_name): (GET_FLOW, DISPLAY_ENTRY),
+            AFTER_PREFIX + event_name: (ACTION_GUIDE, CONVERTER_ENTRY),
+        }
+        following = getattr(getattr(reward.data, 'nxt', None), 'v', None)
+        while following is not None and isinstance(following.data, SubFlowEvent):
+            if wrappers.pop(following.name, None) != (following.data.res_flowchart_name,
+                                                      following.data.entry_point_name):
+                break
+            following = following.data.nxt.v
+        if following is not original:
+            continue
+        links = _predecessors(chart, reward)
+        if not links:
+            continue
+        trigger = Event()
+        trigger.name, trigger.data = name, copy(original.data)
+        trigger.data.params = Container()
+        trigger.data.params.data = {'GameDataName': flag, 'Index': -1, 'Value': True}
+        trigger.data.nxt = make_index(reward)
+        # Keep all existing subflow indices intact by appending only the setter.
+        for source, kind, key in links:
+            target = make_index(trigger)
+            if kind == 'entry':
+                source.main_event = target
+            elif kind == 'nxt':
+                source.data.nxt = target
+            elif kind == 'case':
+                source.data.cases[key] = target
+            else:
+                source.data.forks[key] = target
+        chart.events.append(trigger)
+        events[name] = trigger
+        added.add(flag)
+    if not added:
+        return raw, added
     stream = BytesIO()
     flow.write(stream)
-    return stream.getvalue()
+    return stream.getvalue(), added
 
 
 def add_drop_trigger(raw, flag):
@@ -236,6 +269,7 @@ def prepare_trigger_resources(manifest, tracking, read_raw, extra_flags=None):
                      if (row.get('collection') or {}).get('type') == 'bool'}
     events = defaultdict(list)
     flags = dict(extra_flags or {})
+    event_candidates = {}
     resources = {}
     for resource, markers in tracking.get('event_markers', {}).items():
         if resource not in manifest['files']:
@@ -244,10 +278,14 @@ def prepare_trigger_resources(manifest, tracking, read_raw, extra_flags=None):
             original = marker['flag']
             ident = by_collection.get(str(murmur3(original)))
             if ident and original.endswith('.' + ident):
-                trigger = flags.setdefault(ident, trigger_flag_name(ident))
+                trigger = trigger_flag_name(ident)
+                event_candidates[trigger] = ident
                 events[resource].append((marker, trigger))
     for resource, hooks in events.items():
-        resources[resource] = add_event_triggers(read_raw(resource), hooks)
+        patched, added = add_event_triggers(read_raw(resource), hooks)
+        if added:
+            resources[resource] = patched
+            flags.update((event_candidates[flag], flag) for flag in added)
 
     for record in tracking.get('repeatables', ()):
         ident = record['id']
