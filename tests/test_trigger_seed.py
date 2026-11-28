@@ -4,11 +4,22 @@ from importlib.util import find_spec
 from io import BytesIO
 import json
 from pathlib import Path
+import struct
 from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import Mock, patch
+import zlib
 
-from map_oot_rando.trigger_seed import prepare_seed, prepare_trigger_resources, trigger_flag_name
+from map_oot_rando.trigger_seed import (
+    prepare_seed, prepare_skulltula_resources, prepare_trigger_resources, trigger_flag_name,
+)
+
+
+def ainb_node(index, node_type, children=()):
+    return {'Node Type': node_type, 'Node Index': index, 'Name': '',
+            'GUID': f'00000000-0000-0000-0000-{index:012d}', 'Flags': [], 'Queries': [], 'Attachments': [],
+            'Properties': {}, 'Parameters': {'Inputs': {}, 'Outputs': {}}, 'XLink Actions': [],
+            'Plugs': {'Child': [{'Node Index': i, 'Name': ''} for i in children]} if children else {}}
 
 
 @unittest.skipUnless(find_spec('oot_rando') and find_spec('evfl') and find_spec('ainb'),
@@ -39,12 +50,6 @@ class TriggerSeedTests(unittest.TestCase):
         event_path = 'Event/EventFlow/Fixture.bfevfl.zs'
         tree_collection = 'Rando.Check.fixture-tree'
         song_collection = f'RandoCheck.fixture.{song}'
-
-        def ainb_node(index, node_type, children=()):
-            return {'Node Type': node_type, 'Node Index': index, 'Name': '',
-                    'GUID': f'00000000-0000-0000-0000-{index:012d}', 'Flags': [], 'Queries': [], 'Attachments': [],
-                    'Properties': {}, 'Parameters': {'Inputs': {}, 'Outputs': {}}, 'XLink Actions': [],
-                    'Plugs': {'Child': [{'Node Index': i, 'Name': ''} for i in children]} if children else {}}
 
         drop = ainb_to_binary({
             'Version': 0x408, 'Filename': actor + '.root', 'Category': 'AI', 'Blackboard ID': 0,
@@ -168,3 +173,165 @@ class TriggerSeedTests(unittest.TestCase):
             reader.snapshot.return_value = dict(bool={100: True, triggers[tree]: True},
                                                 bool64_complete=False, sha256='tree-drop')
             self.assertEqual(session.refresh(live=True).states[tree], 'completed')
+
+    def test_shared_skulltula_drops_are_isolated_in_the_mod_and_tracker(self):
+        import ainb
+        import zstandard
+        from oot_rando.formats import byml_codec as codec
+        from oot_rando.formats.inspect_resources import sarc
+        from oot_rando.game.resource_allocations import allocation
+        from oot_rando.game.tracking_metadata import GAMEDATA
+        from oot_rando.patching.ap_mailbox import ainb_to_binary
+        from oot_rando.patching.randomize_kokiri import RESTBL
+        from oot_rando.patching.repeatable_adapter import EVENT_PACK
+        from oot_rando.patching.soul_adapter import RSDB_FILES, murmur3
+        from oot_rando.randomizer.randomizer_services import read_artifact
+
+        from map_oot_rando.save_tracking import SaveConnection
+        from map_oot_rando.state import StateStore
+        from test_save_tracking import write_save, write_seed
+
+        def byml(root):
+            return codec.dump({'endian': '<', 'version': 7, 'root': root})
+
+        first, second, token = ('KokiriForest#gs#' + str(key) for key in (71, 72, 73))
+        reward, native = 'Obj_Rupee_Green_GS', 'Obj_Token_Gold'
+        tracking = {'checks': {ident: {'collection': {'type': 'bool64', 'hash': ident.rsplit('#', 1)[1]},
+                                       'reward': item, 'actor': actor}
+                               for ident, actor, item in ((first, reward, 'Rupees (1)'),
+                                                          (second, reward, 'Rupees (1)'),
+                                                          (token, native, 'Gold Skulltula Token'))},
+                    'known_bool64': ['71', '72', '73']}
+        first_map = 'Banc/KokiriForest/KokiriForest_Child_Static.bcett.byml.zs'
+        second_map = 'Banc/KokiriForest/KokiriForest_Adult_Static.bcett.byml.zs'
+        third_map = 'Banc/KokiriForest/KokiriForest_Adult_Dynamic.bcett.byml.zs'
+        spider = {'Gyaml': 'Enemy_Skulltula_Gold', 'Hash': codec.U64(71),
+                  'Dynamic': {'Drop__DropActor': reward, 'Enemy_Skulltula_Gold_Nocturnal': True}}
+        other = {'Gyaml': reward, 'Hash': codec.U64(74)}
+        native_spider = {'Gyaml': spider['Gyaml'], 'Hash': codec.U64(73)}
+        root = ainb_node(0, 'Element_Sequential')
+        root['Flags'] = ['Is Root Node']
+        graph = ainb_to_binary({
+            'Version': 0x408, 'Filename': 'Token.root', 'Category': 'AI', 'Blackboard ID': 0,
+            'Parent Blackboard ID': 0, 'Commands': [{'Name': 'Root', 'Root Node Index': 0,
+                                                     'GUID': '00000000-0000-0000-0000-000000000010'}],
+            'Nodes': [root], 'Replacement Table': [], 'Modules': [], 'Has Section 0x6C': True,
+        })
+        raw = {
+            first_map: byml({'Actors': [spider, {**spider, 'Hash': codec.U64(72)}, other]}),
+            second_map: byml({'Actors': [spider]}),
+            third_map: byml({'Actors': [native_spider]}),
+            EVENT_PACK: codec.build_sarc({'AI/Token.root.ainb': graph}),
+            GAMEDATA: byml({'Data': {'Bool': [{'Hash': codec.U32(100), 'DefaultValue': False,
+                                              'ResetTypeValue': 8, 'SaveFileIndex': 0}]}, 'MetaData': {
+                'AllDataSaveSize': 16, 'AllDataSaveOffset': 16, 'SaveDataSize': [16], 'SaveDataOffsetPos': [16],
+            }}),
+        }
+        for actor in (reward, native):
+            raw[f'Pack/Actor/{actor}.pack.zs'] = codec.build_sarc({
+                f'Actor/{actor}.engine__actor__ActorParam.bgyml': byml({'Components': {
+                    'AIInfoRef': '?AI/Token.bgyml', 'PouchContentRef': '?Component/Reward.bgyml',
+                }}),
+                'AI/Token.bgyml': byml({'RootAIRef': 'Work/AI/Root/Token.root.ain', 'OtherSetting': True}),
+                'Component/Reward.bgyml': byml({'PouchActor': 'unchanged'}),
+            })
+        for table, path in RSDB_FILES.items():
+            actors = (reward,) if table == 'PouchActorInfo' else tuple(sorted((reward, native)))
+            raw[path] = byml([{'__RowId': actor, 'Unchanged': actor} for actor in actors])
+        allocations = sorted(zlib.crc32(path.removesuffix('.zs').encode()) for path in raw)
+        raw[RESTBL] = b'RESTBL' + struct.pack('<IIII', 1, 160, len(allocations), 0) + b''.join(
+            struct.pack('<II', key, 4096) for key in allocations)
+        maps = (first_map, second_map, third_map)
+        with self.assertRaisesRegex(ValueError, token):
+            prepare_skulltula_resources(tracking, maps[:2], raw.__getitem__)
+        wrong = dict(raw)
+        wrong[first_map] = byml({'Actors': [{**spider, 'Dynamic': {'Drop__DropActor': native}}]})
+        with self.assertRaisesRegex(ValueError, first):
+            prepare_skulltula_resources(tracking, maps, wrong.__getitem__)
+
+        with TemporaryDirectory() as directory:
+            folder = Path(directory)
+            source = folder / 'original'
+            source.mkdir()
+            seed_id = write_seed(source)
+            manifest = json.loads((source / 'manifest.json').read_bytes())
+            original_tracking = json.loads((source / 'tracking.json').read_bytes())
+            original_tracking.update(tracking)
+            payload = json.dumps(original_tracking).encode()
+            (source / 'tracking.json').write_bytes(payload)
+            catalogue = {'seed_id': seed_id, 'checks': [dict(id=ident, name=ident, region='Kokiri Forest')
+                                                        for ident in (first, second, token)]}
+            (source / 'checks.json').write_text(json.dumps(catalogue), encoding='utf-8')
+            manifest['tracking']['sha256'] = sha256(payload).hexdigest()
+            compressor = zstandard.ZstdCompressor()
+            stock = {}
+            for path, binary in raw.items():
+                data = compressor.compress(binary)
+                if path in (third_map, EVENT_PACK) or native in path:
+                    stock[path] = data
+                    continue
+                file = source / 'romfs' / path
+                file.parent.mkdir(parents=True, exist_ok=True)
+                file.write_bytes(data)
+                manifest['files'][path] = {'size': len(data), 'sha256': sha256(data).hexdigest()}
+            (source / 'manifest.json').write_text(json.dumps(manifest), encoding='utf-8')
+            output = folder / 'prepared'
+            with (patch('oot_rando.formats.inspect_nup.Nup') as nup,
+                  patch('oot_rando.formats.inspect_resources.dictionaries', return_value={}),
+                  patch('oot_rando.patching.randomize_kokiri.check_supported_game'),
+                  patch('oot_rando.game.world_maps.effective_members', return_value={key: key for key in stock})):
+                nup.return_value.read.side_effect = stock.__getitem__
+                self.assertEqual(prepare_seed(folder / 'fixture.nup', source, output, skulltulas=True), 3)
+            self.assertEqual((source / 'tracking.json').read_bytes(), payload)
+            self.assertEqual(read_artifact(output)[0]['seed_id'], seed_id)
+            self.assertFalse((source / 'romfs' / third_map).exists())
+
+            def prepared(path):
+                return zstandard.ZstdDecompressor().decompress((output / 'romfs' / path).read_bytes())
+
+            def actors(path):
+                return codec.load(prepared(path))['root']['Actors']
+
+            record = json.loads((output / 'tracking.json').read_bytes())
+            flags = {ident: murmur3(trigger_flag_name(ident)) for ident in (first, second, token)}
+            self.assertEqual(record['trigger_flags'], flags)
+            self.assertEqual(record['checks'], tracking['checks'])
+            self.assertEqual(actors(first_map)[2], other)
+            self.assertTrue(actors(first_map)[0]['Dynamic']['Enemy_Skulltula_Gold_Nocturnal'])
+            name = 'Drop__DropActor'
+            aliases = [entry['Dynamic'][name] for entry in (*actors(first_map)[:2], *actors(third_map))]
+            self.assertEqual(actors(second_map)[0]['Dynamic'][name], aliases[0])
+            self.assertEqual(len(set(aliases)), 3)
+
+            for ident, alias in zip((first, second, token), aliases):
+                path = f'Pack/Actor/{alias}.pack.zs'
+                files = sarc(prepared(path))
+                self.assertLessEqual(len(alias), 25)
+                member = f'AI/{alias}.root.ainb'
+                self.assertGreater(allocation(prepared(RESTBL), member), len(files[member]))
+                self.assertGreater(allocation(prepared(RESTBL), path), len(prepared(path)))
+                script = ainb.AINB.from_binary(files[member]).as_dict()
+                nodes = script['Nodes']
+                wrapper = nodes[script['Commands'][0]['Root Node Index']]
+                setter, original = (nodes[child['Node Index']] for child in wrapper['Plugs']['Child'])
+                self.assertEqual(setter['Parameters']['Inputs']['String'][0]['Default Value'], trigger_flag_name(ident))
+                self.assertEqual(original, {**root, 'Flags': []})
+                self.assertEqual(files['Component/Reward.bgyml'], byml({'PouchActor': 'unchanged'}))
+                row = next(row for row in codec.load(prepared(RSDB_FILES['ActorInfo']))['root']
+                           if row['__RowId'] == alias)
+                self.assertEqual(row['Unchanged'], tracking['checks'][ident]['actor'])
+
+            save = folder / 'progress.sav'
+            write_save(save, flags=(flags[first],))
+            reader = Mock()
+            session = SaveConnection(output, save, StateStore(seed_id, flags), manual_dir=folder / 'manual',
+                                     live_factory=lambda: reader)
+            update = session.refresh()
+            self.assertEqual(update.states, {first: 'completed', second: 'unknown', token: 'unknown'})
+            self.assertEqual(update.rows[first]['source'], 'instrumented_trigger')
+            self.assertEqual(update.rows[first]['reward'], '')
+            reader.snapshot.return_value = dict(bool={100: True, flags[second]: True},
+                                                bool64_complete=False, sha256='second-skulltula-drop')
+            live = session.refresh(live=True)
+            self.assertEqual(live.states[second], 'completed')
+            self.assertEqual(live.states[token], 'unknown')
