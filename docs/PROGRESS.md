@@ -6,6 +6,11 @@ l’ouverture de coffre signalée par OotrR ou un événement de chanson
 identifié. La mémoire et la sauvegarde fournissent ces indicateurs selon
 leur disponibilité. Le détail distingue l’action de la récompense reçue.
 Les checks qui exposent uniquement la collecte utilisent ce signal d’OotrR.
+La carte lit aussi l’événement de la récompense de Darunia quand la seed
+expose la règle de suivi correspondante. Pour un check sans signal de
+déclenchement vérifiable, **Confirmer le déclenchement** enregistre
+une confirmation réversible, dans la carte, pour la seed et le fichier
+de sauvegarde suivis.
 
 # Audit de navigation — 26 novembre 2026
 

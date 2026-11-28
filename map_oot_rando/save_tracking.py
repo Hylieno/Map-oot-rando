@@ -73,8 +73,8 @@ def source_break_flags(metadata):
     return flags
 
 
-def song_trigger_flags(metadata, manifest):
-    """Match a proven native song event with the seed's corresponding check."""
+def event_trigger_flags(metadata, manifest):
+    """Match proven native events with the seed's corresponding checks."""
     from oot_rando.patching.child_castle_skip import enabled as child_castle_skipped
     from oot_rando.patching.soul_adapter import murmur3
 
@@ -82,8 +82,12 @@ def song_trigger_flags(metadata, manifest):
     skip_impa = child_castle_skipped((manifest.get('settings') or {}).get('full')) or 'child_castle_start' in skips
     checks = metadata.get('checks', {})
     event_markers = metadata.get('event_markers', {})
+    events = dict(SONG_TRIGGER_EVENTS)
+    gift = skips.get('darunia_gift') or {}
+    if gift.get('flag') == 'HavePlayedEvent.Dm_Goron_0030':
+        events['npc#GC Darunias Joy'] = 'Dm_Goron_0030'
     flags = {}
-    for ident, event in SONG_TRIGGER_EVENTS.items():
+    for ident, event in events.items():
         if ident == 'song#Song from Impa' and skip_impa:
             # The skip writes HavePlayedEvent before Link can visit Impa.
             continue
@@ -95,6 +99,15 @@ def song_trigger_flags(metadata, manifest):
                 flags[ident] = murmur3(f'HavePlayedEvent.{event}')
                 break
     return flags
+
+
+def chest_opening_checks(metadata, manifest):
+    from oot_rando.patching.soul_adapter import murmur3
+
+    records = ((manifest.get('skips') or {}).get('chest_flags') or {}).get('records', ())
+    checks = metadata.get('checks', {})
+    return {record['id'] for record in records if record.get('flag')
+            and checks.get(record['id'], {}).get('collection') == {'type': 'bool', 'hash': str(murmur3(record['flag']))}}
 
 
 class SaveConnection:
@@ -115,15 +128,19 @@ class SaveConnection:
             age = None
             kakariko_burned = None
             broken_sources = frozenset()
-            played_songs = frozenset()
+            played_events = frozenset()
 
             def check_state(self, ident):
                 state = super().check_state(ident)
-                if not state['completed']:
+                if not state['observed']:
                     if ident in self.broken_sources:
                         state.update(completed=True, source='source_break')
-                    elif ident in self.played_songs:
+                    elif ident in self.played_events:
                         state.update(completed=True, source='event_played')
+                if ident in self.manual.completed:
+                    state['manual_confirmation'] = False
+                elif not state['completed'] and ident in self.catalogue_ids and ident not in self.action_checks:
+                    state['manual_confirmation'] = True
                 return state
 
             def _get_logic(self):
@@ -165,7 +182,7 @@ class SaveConnection:
                 native = snapshot['bool64'] if snapshot.get('bool64_complete') else {}
                 self.broken_sources = {ident for ident, key in self.break_flags.items() if native.get(key) is True}
                 flags = snapshot['bool']
-                self.played_songs = {ident for ident, key in self.song_flags.items() if flags.get(key) is True}
+                self.played_events = {ident for ident, key in self.event_flags.items() if flags.get(key) is True}
                 flag = flags.get(SEQUENCE_IS_CHILDHOOD)
                 self.age = {True: 'Child', False: 'Adult'}.get(flag)
                 patch = ((self.manifest.get('skips') or {}).get('story_fixes') or {}).get(
@@ -180,7 +197,10 @@ class SaveConnection:
         if not self.session.metadata or not self.session.metadata.get('seed_marker'):
             raise ValueError('Cette seed OotrR ne contient pas de marqueur de suivi.')
         self.session.break_flags = source_break_flags(self.session.metadata)
-        self.session.song_flags = song_trigger_flags(self.session.metadata, self.session.manifest)
+        self.session.event_flags = event_trigger_flags(self.session.metadata, self.session.manifest)
+        self.session.action_checks = (self.session.break_flags.keys() | self.session.event_flags.keys()
+                                      | chest_opening_checks(self.session.metadata, self.session.manifest))
+        self.session.catalogue_ids = {row['id'] for row in self.session.checks}
         self.ids = tuple(store.states)
         self.directory = manual_dir if manual_dir is not None else local_tracker_dir() / 'manual'
         self.manual_factory = ManualTracker
@@ -238,8 +258,8 @@ class SaveConnection:
         action_error = 'Le fichier de sauvegarde suivi a changé.' if changed_slot else ''
         for ident, checked in manual_changes:
             try:
-                if ident not in self.ids or not self.session.check_state(ident)['untracked']:
-                    raise ValueError('Ce check est suivi par la sauvegarde.')
+                if ident not in self.ids or self.session.check_state(ident).get('manual_confirmation') is not checked:
+                    raise ValueError('L’état actuel de ce check ne permet pas cette confirmation manuelle.')
                 self.session.set_completed(ident, checked)
             except (OSError, ValueError) as error:
                 action_error = str(error)

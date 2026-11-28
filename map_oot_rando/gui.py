@@ -737,8 +737,9 @@ class MapApplication:
         if self.save_commands is None or row is None or self.store.connection not in {'save', 'live'}:
             return
         info = self.tracked_rows.get(row.id, {})
-        if info.get('untracked'):
-            self.save_commands.put((row.id, info.get('source') != 'manual'))
+        action = info.get('manual_confirmation')
+        if action is not None:
+            self.save_commands.put((row.id, action))
             self.manual_button.state(['disabled'])
 
     def save_diagnostic(self, *, path=None):
@@ -1682,9 +1683,9 @@ class MapApplication:
     def show_details(self):
         row = self.selected
         tracker = self.tracked_rows.get(row.id, {})
-        if tracker.get('untracked') and self.store.connection in {'save', 'live'}:
-            self.manual_button.configure(text=('Annuler le marquage manuel' if tracker.get('source') == 'manual'
-                                               else 'Marquer comme récupéré'))
+        action = tracker.get('manual_confirmation')
+        if action is not None and self.store.connection in {'save', 'live'}:
+            self.manual_button.configure(text='Confirmer le déclenchement' if action else 'Annuler la confirmation')
             self.manual_button.state(['!disabled'])
             self.manual_button.pack(side='bottom', fill='x', pady=(4, 0))
         else:
@@ -1701,9 +1702,9 @@ class MapApplication:
                          + ('\nHors du fond de carte' if self.outside(row) else '')
                          + (f'\nObjet obtenu : {tracker["reward"]}' if tracker.get('reward') else '')
                          + ('\nCollecte sans indicateur de sauvegarde' if tracker.get('untracked') else '')
-                         + ('\nMarqué manuellement' if tracker.get('source') == 'manual' else '')
+                         + ('\nDéclenchement confirmé manuellement' if tracker.get('source') == 'manual' else '')
                          + ('\nValidé par la destruction de la source' if tracker.get('source') == 'source_break' else '')
-                         + ('\nValidé par l’événement de la chanson' if tracker.get('source') == 'event_played' else '')
+                         + ('\nValidé par l’événement du jeu' if tracker.get('source') == 'event_played' else '')
                          + ('\nÂmes manquantes : ' + ', '.join(tracker['missing_souls'])
                             if tracker.get('missing_souls') else ''))
 

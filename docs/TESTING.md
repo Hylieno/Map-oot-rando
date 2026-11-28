@@ -1,13 +1,18 @@
 # Validation
 
 Le catalogue 0.8.4 fourni contient 434 checks dont l’indicateur natif de
-destruction est connu et trois chansons dont l’événement est identifiable.
+destruction est connu, ainsi que trois chansons et la récompense de
+Darunia dont l’événement est identifiable.
 Les tests sur `progress.sav` synthétique couvrent les objets de progression,
 les consommables, les coffres et les événements de chanson. Ils vérifient
 la lecture en mémoire complète et partielle, le retour à une sauvegarde
 antérieure, le rejet d’une autre seed et l’exclusion de l’indicateur
 d’Impa que le mode de saut du château peut prévalider. La lecture de ces
 indicateurs reste à confirmer en partie active.
+
+Un test confirme et annule un check d’arbre à partir d’une sauvegarde
+synthétique. Le marquage reste isolé et il est conservé à la réouverture.
+Le marqueur de récompense garde la priorité lorsqu’il devient disponible.
 
 Le changement de seed avec un suivi mémoire actif recadre la nouvelle carte
 sur ses propres checks. Un test reproduit le cas où Link se trouvait loin

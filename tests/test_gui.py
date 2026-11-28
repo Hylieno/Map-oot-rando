@@ -701,6 +701,25 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(set(app.store.states.values()), {'unknown'})
         self.assertIsNone(app.store.last_success)
 
+    def test_selected_check_can_confirm_and_undo_a_missing_trigger(self):
+        from queue import Queue
+
+        app = self.app
+        app.load(dict(demo_document(), provenance='ootrr-scan', seed_id='manual-trigger'))
+        app.save_commands = Queue()
+        app.store.publish(app.store.seed_id, {}, mode='save', timestamp='2026-11-28T12:00:00Z')
+        row = app.visible[0]
+        for action in (True, False):
+            app.tracked_rows[row.id] = {'manual_confirmation': action}
+            app.choose(row)
+            self.assertEqual(app.manual_button['text'],
+                             'Confirmer le déclenchement' if action else 'Annuler la confirmation')
+            app.manual_button.invoke()
+            self.assertEqual(app.save_commands.get_nowait(), (row.id, action))
+        app.tracked_rows[row.id] = {'source': 'save'}
+        app.choose(row)
+        self.assertFalse(app.manual_button.winfo_manager())
+
     def test_follow_age_switches_only_until_user_chooses_a_view(self):
         from map_oot_rando.scene import AGE_VIEWS
 

@@ -133,6 +133,7 @@ class SaveTrackingTests(unittest.TestCase):
             self.assertEqual(update.rows[ids[76]]['source'], 'save')
             self.assertEqual(update.rows[ids[74]]['source'], 'source_break')
             self.assertEqual(update.rows[ids[74]]['reward'], '')
+            self.assertIsNone(update.rows[ids[74]].get('manual_confirmation'))
             reader.snapshot.return_value = dict(bool={100: True}, bool64_complete=False, sha256='partial')
             self.assertEqual(connection.refresh(live=True).rows[ids[70]]['source'], 'source_break')
             self.assertEqual(save.read_bytes(), before)
@@ -248,23 +249,23 @@ class SaveTrackingTests(unittest.TestCase):
             self.assertEqual(store.states['test'], 'unknown')
             self.assertIsNone(store.last_success)
 
-    def test_manual_mark_is_for_untracked_checks_and_isolated_by_save(self):
+    def test_manual_mark_is_isolated_by_save_and_rejected_when_already_automatic(self):
         with tempfile.TemporaryDirectory() as directory:
             folder = Path(directory)
             save, second = folder / 'progress.sav', folder / 'second.sav'
             manual = folder / 'app-data'
             untracked = 'ap#KF Kokiri Sword Chest'
             store = StateStore(write_seed(folder), ['test', untracked])
-            write_save(save)
+            write_save(save, collected=True)
             write_save(second)
             before = save.read_bytes()
             connection = SaveConnection(folder, save, store, manual_dir=manual)
             result = connection.refresh([(untracked, True), ('test', True)])
             self.assertEqual(result.states[untracked], 'completed')
-            self.assertEqual(result.states['test'], 'unknown')
+            self.assertEqual(result.states['test'], 'completed')
             self.assertEqual(result.rows[untracked]['source'], 'manual')
             self.assertEqual(result.rows[untracked]['reward'], '')
-            self.assertIn('suivi par la sauvegarde', result.action_error)
+            self.assertIn('confirmation manuelle', result.action_error)
             reopened = SaveConnection(folder, save, store, manual_dir=manual)
             self.assertEqual(reopened.refresh().states[untracked], 'completed')
             another = SaveConnection(folder, second, store, manual_dir=manual)
@@ -276,6 +277,38 @@ class SaveTrackingTests(unittest.TestCase):
             self.assertTrue(denied.action_error)
             write_save(save)
             self.assertEqual(reopened.refresh().states[untracked], 'blocked')
+
+    def test_manual_confirmation_recovers_a_tree_without_claiming_the_reward(self):
+        tree = 'KokiriForest#trees#77'
+        rock = 'KokiriForest#rocks#70'
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            save = folder / 'progress.sav'
+            manual = folder / 'manual'
+            seed_id = write_seed(folder, source_rewards={
+                tree: (77, 'TBox_Rupee_Green', 'Obj_Tree_A_01'),
+                rock: (70, 'TBox_Rupee_Green', 'Obj_BrokenRock_A_01'),
+            })
+            store = StateStore(seed_id, (tree, rock))
+            write_save(save)
+            before = save.read_bytes()
+            connection = SaveConnection(folder, save, store, manual_dir=manual)
+            update = connection.refresh([(tree, True), (rock, True)])
+            self.assertEqual(update.states[tree], 'completed')
+            self.assertEqual(update.states[rock], 'unknown')
+            self.assertFalse(update.rows[tree]['observed'])
+            self.assertEqual(update.rows[tree]['reward'], '')
+            self.assertEqual(update.rows[tree]['source'], 'manual')
+            self.assertFalse(update.rows[tree]['manual_confirmation'])
+            self.assertEqual(save.read_bytes(), before)
+            connection = SaveConnection(folder, save, store, manual_dir=manual)
+            self.assertEqual(connection.refresh().rows[tree]['source'], 'manual')
+            write_save(save, flags=(1077,))
+            automatic = connection.refresh([(tree, False)])
+            self.assertEqual(automatic.rows[tree]['source'], 'save')
+            self.assertEqual(automatic.rows[tree]['reward'], 'TBox_Rupee_Green')
+            write_save(save)
+            self.assertEqual(connection.refresh().states[tree], 'unknown')
 
     def test_folder_prefers_newest_readable_matching_save_and_follows_updates(self):
         import os
