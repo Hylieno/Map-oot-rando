@@ -9,6 +9,7 @@ from .link_position import LinkPosition, read_link_position
 from .save_discovery import SaveDirectory
 from .save_profiles import local_tracker_dir
 from .state import tracker_states
+from .trigger_seed import trigger_flag_name
 
 LEGACY_WORLD_FINGERPRINT = '9320b6448b1fb4af4bce35da746e3b593e4dd2c460ac1169d511723a312101e5'
 BREAKABLE_SOURCES = {
@@ -129,6 +130,7 @@ class SaveConnection:
             kakariko_burned = None
             broken_sources = frozenset()
             played_events = frozenset()
+            instrumented_triggers = frozenset()
 
             def check_state(self, ident):
                 state = super().check_state(ident)
@@ -137,6 +139,8 @@ class SaveConnection:
                         state.update(completed=True, source='source_break')
                     elif ident in self.played_events:
                         state.update(completed=True, source='event_played')
+                    elif ident in self.instrumented_triggers:
+                        state.update(completed=True, source='instrumented_trigger')
                 if ident in self.manual.completed:
                     state['manual_confirmation'] = False
                 elif not state['completed'] and ident in self.catalogue_ids and ident not in self.action_checks:
@@ -183,6 +187,8 @@ class SaveConnection:
                 self.broken_sources = {ident for ident, key in self.break_flags.items() if native.get(key) is True}
                 flags = snapshot['bool']
                 self.played_events = {ident for ident, key in self.event_flags.items() if flags.get(key) is True}
+                self.instrumented_triggers = {ident for ident, key in self.trigger_flags.items()
+                                              if flags.get(key) is True}
                 flag = flags.get(SEQUENCE_IS_CHILDHOOD)
                 self.age = {True: 'Child', False: 'Adult'}.get(flag)
                 patch = ((self.manifest.get('skips') or {}).get('story_fixes') or {}).get(
@@ -201,6 +207,9 @@ class SaveConnection:
         self.session.action_checks = (self.session.break_flags.keys() | self.session.event_flags.keys()
                                       | chest_opening_checks(self.session.metadata, self.session.manifest))
         self.session.catalogue_ids = {row['id'] for row in self.session.checks}
+        self.session.trigger_flags = {ident: key for ident, key in self.session.metadata.get('trigger_flags', {}).items()
+                                      if ident in self.session.catalogue_ids and type(key) is int
+                                      and key == murmur3(trigger_flag_name(ident))}
         self.ids = tuple(store.states)
         self.directory = manual_dir if manual_dir is not None else local_tracker_dir() / 'manual'
         self.manual_factory = ManualTracker

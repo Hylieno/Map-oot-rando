@@ -1705,6 +1705,8 @@ class MapApplication:
                          + ('\nDéclenchement confirmé manuellement' if tracker.get('source') == 'manual' else '')
                          + ('\nValidé par la destruction de la source' if tracker.get('source') == 'source_break' else '')
                          + ('\nValidé par l’événement du jeu' if tracker.get('source') == 'event_played' else '')
+                         + ('\nValidé par le signal de déclenchement de la seed'
+                            if tracker.get('source') == 'instrumented_trigger' else '')
                          + ('\nÂmes manquantes : ' + ', '.join(tracker['missing_souls'])
                             if tracker.get('missing_souls') else ''))
 

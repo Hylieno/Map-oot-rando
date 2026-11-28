@@ -1,5 +1,18 @@
 # Suivi du déclenchement des checks — 28 novembre 2026
 
+Le prototype `python -m map_oot_rando.trigger_seed jeu.nup seed sortie`
+prépare une copie d’une seed OotrR 0.8.4 pour une nouvelle partie. Il ajoute
+un indicateur distinct au lancement d’une récompense avec un événement
+OotrR identifié et à l’apparition des objets privés des sources répétables.
+La carte lit ces indicateurs en mémoire ou dans la sauvegarde. Le catalogue
+fourni déclare des points d’instrumentation pour 553 checks, dont 50 arbres,
+237 pots, 12 chansons et 31 checks de PNJ. La copie a été exercée sur des
+ressources synthétiques. Une validation dans le jeu requiert le NUP et le
+ROMFS correspondants. Les Skulltulas nécessitent un indicateur par instance
+au moment de la mort ou de la création du drop, car leur type de récompense
+peut être partagé. Les autres événements sans point d’entrée connu exigent
+un repère précis dans leur propre logique.
+
 La carte valide un check à partir de l’indicateur de son action, quel que
 soit l’objet prévu. Elle lit l’indicateur de destruction de la source,
 l’ouverture de coffre signalée par OotrR ou un événement de chanson
