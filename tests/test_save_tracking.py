@@ -21,7 +21,7 @@ class VillageVariantTests(unittest.TestCase):
         self.assertTrue(kakariko_variant({4: True}, keys, 4, False))
 
 
-def write_seed(root, *, legacy_world=False, app_version=None, open_forest=False):
+def write_seed(root, *, legacy_world=False, app_version=None, open_forest=False, rock_rewards=None):
     from oot_rando.patching.randomize_kokiri import BUILD, TITLE
     from oot_rando.randomizer.randomizer_core import (
         ADAPTER_VERSION, GENERATOR_VERSION, Settings, settings_identity,
@@ -41,6 +41,16 @@ def write_seed(root, *, legacy_world=False, app_version=None, open_forest=False)
                            'locations': {'KF Kokiri Sword Chest': ['Bomb Bag']}},
                     known_bool64=['42'], checks={'test': {
                         'collection': {'type': 'bool64', 'hash': '42'}, 'reward': 'Test item'}, chest: {}, impa: {}})
+    if rock_rewards:
+        tracking['repeatables'] = []
+        for key, canonical in rock_rewards.items():
+            ident = f'KokiriForest#rocks#{key}'
+            checks.append({'id': ident, 'name': ident, 'region': 'Kokiri Forest'})
+            flag = key + 1000
+            tracking['known_bool64'].append(str(key))
+            tracking['checks'][ident] = {'collection': {'type': 'bool', 'hash': str(flag)}, 'reward': canonical}
+            tracking['repeatables'].append({'id': ident, 'kind': 'pickup', 'canonical': canonical,
+                                            'flag_hash': flag, 'variants': [{'source': 'Obj_BrokenRock_A_01'}]})
     payload = json.dumps(tracking).encode()
     data = b'synthetic resource'
     manifest = dict(schema_version=1, title_id=TITLE, build_id=BUILD, seed_id=seed_id,
@@ -56,24 +66,61 @@ def write_seed(root, *, legacy_world=False, app_version=None, open_forest=False)
     return seed_id
 
 
-def write_save(path, *, linked=True, collected=False, bombs=False, child=None):
+def write_save(path, *, linked=True, collected=False, bombs=False, child=None, broken=(), flags=()):
     from oot_rando.tracker.save_reader import FORMAT_VERSION, MAGIC, PROGRESS_TYPE_HASH
 
     from oot_rando.tracker.live_memory import SEQUENCE_IS_CHILDHOOD
 
-    end = 32 + 8 * (36 + (child is not None))
+    end = 32 + 8 * (36 + (child is not None) + len(flags))
     header = struct.pack('<III', MAGIC, FORMAT_VERSION, end) + bytes(20)
     table = struct.pack('<IIIIII', 0, 0, 100, int(linked), 101, int(bombs))
     if child is not None:
         table += struct.pack('<II', SEQUENCE_IS_CHILDHOOD, int(child))
+    table += b''.join(struct.pack('<II', key, 1) for key in flags)
     table += b''.join(struct.pack('<II', 0, section) for section in range(1, 33))
     table += struct.pack('<II', PROGRESS_TYPE_HASH, end)
     sparse = struct.pack('<Q', 42) if collected else b''
+    sparse += b''.join(struct.pack('<Q', key) for key in broken)
     path.write_bytes(header + table + sparse + bytes(8))
 
 
 @unittest.skipUnless(find_spec('oot_rando'), 'Pinned OotrR sources not on PYTHONPATH')
 class SaveTrackingTests(unittest.TestCase):
+    def test_only_consumable_rock_checks_use_native_breakage(self):
+        from unittest.mock import Mock
+
+        rewards = {70: 'TBox_Rupee_Green', 71: 'Item_BombBundle_Small', 72: 'TBox_ArrowBundle_Medium',
+                   73: 'TBox_DekuNutBundle', 74: 'Item_BombBag_Small', 75: 'Obj_Heart_Piece'}
+        ids = {key: f'KokiriForest#rocks#{key}' for key in rewards}
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            save = folder / 'progress.sav'
+            store = StateStore(write_seed(folder, rock_rewards=rewards), ids.values())
+            write_save(save, broken=(70, 71, 72, 73, 74, 75), flags=(1073,))
+            before = save.read_bytes()
+            reader = Mock()
+            connection = SaveConnection(folder, save, store, live_factory=lambda: reader)
+            update = connection.refresh()
+            self.assertEqual({key for key, ident in ids.items() if update.states[ident] == 'completed'},
+                             {70, 71, 72, 73})
+            self.assertEqual(update.rows[ids[70]]['source'], 'rock_break')
+            self.assertFalse(update.rows[ids[70]]['observed'])
+            self.assertEqual(update.rows[ids[70]]['reward'], '')
+            self.assertEqual(update.rows[ids[73]]['source'], 'save')
+            self.assertEqual(update.rows[ids[73]]['reward'], rewards[73])
+            reader.snapshot.return_value = dict(bool={100: True}, bool64_complete=False, sha256='partial')
+            self.assertEqual(connection.refresh(live=True).rows[ids[70]]['source'], 'rock_break')
+            self.assertEqual(save.read_bytes(), before)
+            write_save(save)
+            self.assertEqual(connection.refresh().states[ids[70]], 'unknown')
+            reader.snapshot.return_value = dict(bool={100: True}, bool64={70: True},
+                                                bool64_complete=True, sha256='broken-live')
+            self.assertEqual(connection.refresh(live=True).states[ids[70]], 'completed')
+            reader.snapshot.return_value['bool'] = {100: False}
+            self.assertEqual(connection.refresh(live=True).states[ids[70]], 'unknown')
+            write_save(save, linked=False, broken=(70,))
+            self.assertTrue(connection.refresh().reset)
+
     def test_preserves_both_logic_versions_independent_of_the_app_release(self):
         from oot_rando.logic.world import World
 

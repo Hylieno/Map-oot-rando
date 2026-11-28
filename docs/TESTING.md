@@ -1,5 +1,13 @@
 # Validation
 
+Le catalogue 0.8.4 fourni contient 137 rochers à récompense consommable
+dont l’indicateur natif de casse est connu. Le test sur un `progress.sav`
+synthétique couvre les rubis, les bombes, les flèches et les noix Mojo.
+Le sac à bombes et le fragment de cœur utilisent l’indicateur de collecte
+d’OotrR. Le test couvre aussi la mémoire complète et partielle, le retour
+à une sauvegarde antérieure et le rejet d’une autre seed. La lecture des
+indicateurs de casse reste à confirmer en jeu.
+
 Le changement de seed avec un suivi mémoire actif recadre la nouvelle carte
 sur ses propres checks. Un test reproduit le cas où Link se trouvait loin
 des marqueurs de la nouvelle seed. Un second test vérifie qu’une demande

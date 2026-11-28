@@ -41,6 +41,25 @@ def kakariko_variant(flags, medallions, story_played, uses_medallions):
     return True if flags.get(story_played) is True else None
 
 
+def consumable_rock_flags(metadata):
+    """Resolve native destruction keys for shuffled rocks with expendable rewards."""
+    from oot_rando.patching.repeatable_adapter import is_minor_reward
+
+    known = set(metadata.get('known_bool64', ()))
+    checks = metadata.get('checks', {})
+    flags = {}
+    for record in metadata.get('repeatables', ()):
+        ident = record.get('id', '')
+        _, _, key = ident.partition('#rocks#')
+        variants = record.get('variants')
+        if (key in known and key.isdecimal() and record.get('kind') == 'pickup'
+                and is_minor_reward(record.get('canonical', '')) and variants
+                and all(v.get('source', '').startswith(('Obj_BrokenRock_', 'Obj_LiftRock_')) for v in variants)
+                and checks.get(ident, {}).get('collection') == {'type': 'bool', 'hash': str(record.get('flag_hash'))}):
+            flags[ident] = int(key)
+    return flags
+
+
 class SaveConnection:
     def __init__(self, seed_folder, save_path, store, *, preferred_save=None, manual_dir=None, live_factory=None):
         from oot_rando.tracker.auto_tracker import TrackerSession
@@ -58,6 +77,13 @@ class SaveConnection:
             # twice. OotrR 0.8 invokes this only for a changed, matched save.
             age = None
             kakariko_burned = None
+            broken_rocks = frozenset()
+
+            def check_state(self, ident):
+                state = super().check_state(ident)
+                if ident in self.broken_rocks and not state['completed']:
+                    state.update(completed=True, source='rock_break')
+                return state
 
             def _get_logic(self):
                 if (self._logic is not None or self._logic_error
@@ -95,6 +121,8 @@ class SaveConnection:
                 return self._logic
 
             def _availability(self, snapshot, metadata):
+                native = snapshot['bool64'] if snapshot.get('bool64_complete') else {}
+                self.broken_rocks = {ident for ident, key in self.rock_flags.items() if native.get(key) is True}
                 flags = snapshot['bool']
                 flag = flags.get(SEQUENCE_IS_CHILDHOOD)
                 self.age = {True: 'Child', False: 'Adult'}.get(flag)
@@ -109,6 +137,7 @@ class SaveConnection:
             raise ValueError('Ce dossier de seed ne correspond pas à la carte.')
         if not self.session.metadata or not self.session.metadata.get('seed_marker'):
             raise ValueError('Cette seed OotrR ne contient pas de marqueur de suivi.')
+        self.session.rock_flags = consumable_rock_flags(self.session.metadata)
         self.ids = tuple(store.states)
         self.directory = manual_dir if manual_dir is not None else local_tracker_dir() / 'manual'
         self.manual_factory = ManualTracker

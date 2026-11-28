@@ -1,3 +1,11 @@
+# Suivi des rochers à récompense consommable — 28 novembre 2026
+
+Lorsqu’un rocher randomisé contient un consommable et que la seed relie
+son identifiant à un indicateur natif de casse, la carte valide le check
+dès que cet indicateur est observé. Le détail affiche « Validé par la
+casse du rocher » jusqu’à ce qu’OotrR confirme la collecte. Le suivi lit
+la mémoire si l’indicateur y est accessible, puis la sauvegarde si nécessaire.
+
 # Audit de navigation — 26 novembre 2026
 
 Le jeu des coffres de la Citadelle a sa propre vue schématique côté
