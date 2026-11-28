@@ -11,7 +11,8 @@ from unittest.mock import Mock, patch
 import zlib
 
 from map_oot_rando.trigger_seed import (
-    add_event_triggers, prepare_seed, prepare_skulltula_resources, prepare_trigger_resources, trigger_flag_name,
+    SEED_BACKUP, add_event_triggers, prepare_seed, prepare_seed_in_place,
+    prepare_skulltula_resources, prepare_trigger_resources, trigger_flag_name,
 )
 
 
@@ -335,15 +336,43 @@ class TriggerSeedTests(unittest.TestCase):
                 manifest['files'][path] = {'size': len(data), 'sha256': sha256(data).hexdigest()}
             (source / 'manifest.json').write_text(json.dumps(manifest), encoding='utf-8')
             output = folder / 'prepared'
+            original_map = (source / 'romfs' / first_map).read_bytes()
+            original_manifest = (source / 'manifest.json').read_bytes()
+            backup = source / SEED_BACKUP
             with (patch('oot_rando.formats.inspect_nup.Nup') as nup,
                   patch('oot_rando.formats.inspect_resources.dictionaries', return_value={}),
                   patch('oot_rando.patching.randomize_kokiri.check_supported_game'),
                   patch('oot_rando.game.world_maps.effective_members', return_value={key: key for key in stock})):
                 nup.return_value.read.side_effect = stock.__getitem__
-                self.assertEqual(prepare_seed(folder / 'fixture.nup', source, output, skulltulas=True), 3)
-            self.assertEqual((source / 'tracking.json').read_bytes(), payload)
+                nup_path = folder / 'fixture.nup'
+                self.assertEqual(prepare_seed(nup_path, source, output, skulltulas=True), 3)
+                self.assertEqual((source / 'tracking.json').read_bytes(), payload)
+                self.assertFalse((source / 'romfs' / third_map).exists())
+
+                verifier = 'oot_rando.randomizer.randomizer_services.read_artifact'
+                with patch(verifier, side_effect=[read_artifact(source), ValueError('validation refusée')]):
+                    with self.assertRaisesRegex(ValueError, 'validation refusée'):
+                        prepare_seed_in_place(nup_path, source)
+                self.assertFalse(backup.exists())
+                self.assertEqual((source / 'romfs' / first_map).read_bytes(), original_map)
+                self.assertEqual((source / 'manifest.json').read_bytes(), original_manifest)
+                self.assertFalse((source / 'romfs' / third_map).exists())
+                read_artifact(source)
+
+                with patch(verifier, side_effect=[read_artifact(source), KeyboardInterrupt]):
+                    with self.assertRaises(KeyboardInterrupt):
+                        prepare_seed_in_place(nup_path, source)
+                self.assertTrue((backup / 'pending.json').is_file())
+                self.assertEqual(prepare_seed_in_place(nup_path, source), (3, True))
+            self.assertEqual(prepare_seed_in_place('unused.nup', source), (3, False))
+            self.assertTrue((backup / 'changes.json').is_file())
+            self.assertEqual((backup / 'originaux' / 'tracking.json').read_bytes(), payload)
+            self.assertEqual((backup / 'originaux' / 'manifest.json').read_bytes(), original_manifest)
+            self.assertEqual((backup / 'originaux' / 'romfs' / first_map).read_bytes(), original_map)
+            self.assertFalse((backup / 'originaux' / 'romfs' / third_map).exists())
+            self.assertFalse((backup / 'originaux' / 'checks.json').exists())
+            self.assertEqual(read_artifact(source), read_artifact(output))
             self.assertEqual(read_artifact(output)[0]['seed_id'], seed_id)
-            self.assertFalse((source / 'romfs' / third_map).exists())
 
             def prepared(path):
                 return zstandard.ZstdDecompressor().decompress((output / 'romfs' / path).read_bytes())

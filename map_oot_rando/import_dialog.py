@@ -29,6 +29,13 @@ class ImportDialog(tk.Toplevel):
                         if prepare else 'Dans le dossier généré par OotrR, choisis checks.json et laisse '
                         'manifest.json et tracking.json dans le même dossier pour le suivi.')
         self.add_picker(content, 'checks', '2. Le catalogue de la seed (checks.json)', instructions)
+        self.prepare_in_place = tk.BooleanVar(master=self, value=False)
+        if not prepare:
+            ttk.Checkbutton(content, text='Activer le suivi des déclenchements dans ce mod',
+                            variable=self.prepare_in_place).pack(anchor='w', pady=(16, 3))
+            ttk.Label(content, text='Pour une nouvelle partie OotrR 0.8.4. Ferme le jeu avant '
+                      'de préparer le mod. Les fichiers modifiés sont sauvegardés.',
+                      style='Muted.TLabel', wraplength=435, justify='left').pack(anchor='w')
         actions = ttk.Frame(content)
         actions.pack(fill='x', pady=(22, 0))
         self.start_button = ttk.Button(actions, text='Préparer la copie' if prepare else 'Importer la carte',
@@ -71,5 +78,9 @@ class ImportDialog(tk.Toplevel):
 
     def submit(self):
         nup, checks = self.paths['nup'], self.paths['checks']
+        prepare = self.prepare_in_place.get()
         self.destroy()
-        self.on_import(nup, checks)
+        if prepare:
+            self.on_import(nup, checks, prepare=True)
+        else:
+            self.on_import(nup, checks)

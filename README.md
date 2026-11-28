@@ -10,14 +10,21 @@ du jeu ou une sauvegarde. Les checks sans position confirmée restent dans la li
 
 ## Tester le suivi des Skulltulas
 
-Dans le portable de développement, ouvre **Carte → Préparer une seed de test
-(expérimental)**. Sélectionne le NUP du jeu et le `checks.json` d’une seed OotrR
-0.8.4 complète, avec son `romfs`. Choisis ensuite où créer la copie.
-Installe le mod depuis le dossier `-test-checks` créé et lance une nouvelle
-partie. Dans le tracker, importe le `checks.json` de cette copie et active
-**Mémoire du jeu**.
+Ferme le jeu pendant la préparation. Dans **Importer mon jeu et ma seed**,
+sélectionne le NUP du jeu et le `checks.json` du dossier OotrR 0.8.4 avec son
+`romfs`. Coche **Activer le suivi des déclenchements dans ce mod** pour
+préparer le dossier sur place. Si le mod est déjà installé, sélectionne le
+`checks.json` du dossier utilisé par le jeu.
 
-Tue une Skulltula d’or et laisse sa récompense sur place. Vérifie que
+La préparation s’effectue une seule fois par seed. Les fichiers d’origine
+touchés sont conservés dans `map-oot-rando-backup/originaux`. Le fichier
+`changes.json` indique les ressources ajoutées (celles sans original).
+Après une interruption, relance l’import avec la case cochée pour reprendre.
+Pour faire un essai dans un dossier séparé, le menu **Carte → Préparer une
+seed de test (expérimental)** permet encore de créer une copie.
+
+Lance une nouvelle partie avec le mod préparé, active **Mémoire du jeu**,
+puis tue une Skulltula d’or et laisse sa récompense sur place. Vérifie que
 son check passe à « Récupéré », puis sauvegarde et recharge pour vérifier
 qu’il reste validé. Le suivi des Skulltulas avant ramassage est expérimental.
 

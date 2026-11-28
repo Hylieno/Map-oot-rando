@@ -63,6 +63,42 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(app.file_menu.entrycget(PREPARE_SEED_MENU, 'state'), 'normal')
         self.assertTrue(app.simulation)
 
+    def test_import_can_prepare_the_selected_mod_in_place(self):
+        from threading import Event
+        from unittest.mock import patch
+
+        app = self.app
+        checks = self.profiles_path.with_name('checks.json')
+        document = demo_document()
+        document.update(provenance='ootrr-scan', seed_id='test-seed', diagnostics=[])
+        finished = Event()
+        put = app.import_events.put
+
+        def signal_result(result):
+            put(result)
+            if result[0] != 'progress':
+                finished.set()
+
+        with (patch('map_oot_rando.import_dialog.filedialog.askopenfilename',
+                    side_effect=['game.nup', str(checks)]),
+              patch('map_oot_rando.gui.prepare_seed_in_place', return_value=(98, True)) as prepare,
+              patch('map_oot_rando.gui.import_seed', return_value=document) as importer,
+              patch('map_oot_rando.gui.messagebox.showinfo') as notice,
+              patch.object(app.import_events, 'put', side_effect=signal_result)):
+            dialog = app.choose_seed()
+            self.assertFalse(dialog.prepare_in_place.get())
+            dialog.prepare_in_place.set(True)
+            dialog.pick('nup')
+            dialog.pick('checks')
+            dialog.start_button.invoke()
+            self.assertTrue(finished.wait(3))
+            app.poll_import()
+        prepare.assert_called_once_with('game.nup', checks.resolve().parent)
+        self.assertEqual(importer.call_args.args[:2], ('game.nup', str(checks)))
+        self.assertIn('map-oot-rando-backup', notice.call_args.args[1])
+        self.assertEqual(app.seed_folder, checks.resolve().parent)
+        self.assertEqual(app.import_status.get(), 'Mod préparé sur place.')
+
     def test_search_selection_marker_update_and_filters(self):
         app = self.app
         points = [app.viewport.screen(r.project()) for r in app.visible

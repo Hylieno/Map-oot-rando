@@ -29,6 +29,13 @@ est couvert par un test de régression avec les transformations d’OotrR.
 Un événement dont la chaîne ne peut pas être vérifiée conserve le suivi
 de collecte d’origine et laisse la préparation traiter les autres checks.
 
+L’import propose la préparation sur place, à activer explicitement pour
+une nouvelle partie. Il prépare les ressources avant de les publier,
+sauvegarde les fichiers touchés et vérifie le mod final. L’opération
+restaure les originaux si la validation échoue et sait récupérer une
+préparation interrompue au prochain essai. Les tests synthétiques comparent
+le mod préparé sur place à celui généré en copie et couvrent la réimportation.
+
 La carte valide un check à partir de l’indicateur de son action, quel que
 soit l’objet prévu. Elle lit l’indicateur de destruction de la source,
 l’ouverture de coffre signalée par OotrR ou un événement de chanson

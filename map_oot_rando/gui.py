@@ -20,7 +20,7 @@ from .model import Location, REGION_NAMES, SURFACE_MIN_Y, load_metadata, resourc
 from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
-from .trigger_seed import prepare_seed
+from .trigger_seed import SEED_BACKUP, prepare_seed, prepare_seed_in_place
 from .scene import (BURNT_VILLAGE, CASTLE_COURT, DAMPE_ROUTES, DREAM_BATTLE_VIEWS, DREAM_SCENE_VIEWS,
                     DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS,
                     FIRE_KAKARIKO_ARRIVAL, FIRE_KAKARIKO_CONTINUE, FIRE_VIEWS, FLOOR_OPTIONS,
@@ -296,7 +296,7 @@ class MapApplication:
         else:
             self.load(document)
 
-    def load(self, document, *, seed_folder=None):
+    def load(self, document, *, seed_folder=None, resume_tracking=True):
         locations = load_metadata(document)  # Validate before replacing current state.
         scenes = group_scenes(read_scenes(document))
         synthetic = document['provenance'] == 'synthetic'
@@ -304,7 +304,7 @@ class MapApplication:
         old_store = getattr(self, 'store', None)
         same_seed = (not synthetic and bool(seed_id) and old_store is not None
                      and not old_store.simulated and old_store.seed_id == seed_id)
-        resume_snapshot = same_seed and old_store.last_success is not None
+        resume_snapshot = resume_tracking and same_seed and old_store.last_success is not None
         if not resume_snapshot:
             self.verified_save_source = None
         previous_view = self.resource.get() if same_seed else ''
@@ -390,7 +390,7 @@ class MapApplication:
         self.query.set('')
         self.resource_changed(manual=False)
         self.configure_link()
-        if not self.simulation:
+        if not self.simulation and resume_tracking:
             resume = self.save_profiles.get(self.store.seed_id, automatic=True)
             if resume:
                 folder, path = resume
@@ -424,12 +424,20 @@ class MapApplication:
 
         self.run_import_task(prepare)
 
-    def start_import(self, nup, checks):
+    def start_import(self, nup, checks, *, prepare=False):
         self.import_status.set('Analyse locale du jeu en cours…')
 
         def scan():
+            folder = Path(checks).resolve().parent
+            preparation = None
+            if prepare:
+                self.import_events.put(('progress', 'Préparation du mod sur place…'))
+                preparation = prepare_seed_in_place(nup, folder)
+            elif (folder / SEED_BACKUP / 'pending.json').is_file():
+                raise ValueError('Une préparation a été interrompue. Relance l’import avec le suivi '
+                                 'des déclenchements coché pour reprendre.')
             document = import_seed(nup, checks, lambda msg: self.import_events.put(('progress', msg)))
-            return 'done', (document, Path(checks).resolve().parent)
+            return 'done', (document, folder, preparation)
 
         self.run_import_task(scan)
 
@@ -464,9 +472,19 @@ class MapApplication:
                     continue
                 self.set_import_busy(False)
                 if event == 'done':
-                    document, folder = value
-                    self.load(document, seed_folder=folder)
-                    if not self.import_status.get():
+                    document, folder, preparation = value
+                    applied = preparation is not None and preparation[1]
+                    self.load(document, seed_folder=folder, resume_tracking=not applied)
+                    if applied:
+                        self.import_status.set('Mod préparé sur place.')
+                        messagebox.showinfo('Mod préparé',
+                                            f'{preparation[0]} checks équipés du suivi de déclenchement.\n\n'
+                                            f'Sauvegarde des fichiers d’origine\n{folder / SEED_BACKUP}\n\n'
+                                            'Lance une nouvelle partie avec ce mod.',
+                                            parent=self.root)
+                    elif preparation is not None:
+                        self.import_status.set('Mod déjà préparé.')
+                    elif not self.import_status.get():
                         self.import_status.set('Carte chargée.')
                 elif event == 'prepared':
                     output, count = value

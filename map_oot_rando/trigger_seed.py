@@ -1,5 +1,6 @@
-"""Prepare a separate seed with independent trigger flags (OotrR 0.8.4 prototype)."""
+"""Prepare a seed with independent trigger flags (OotrR 0.8.4 prototype)."""
 from collections import defaultdict
+from contextlib import contextmanager
 from copy import copy
 from hashlib import sha256
 from io import BytesIO
@@ -7,8 +8,12 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import argparse
 import json
+import os
 import re
 import shutil
+
+
+SEED_BACKUP = 'map-oot-rando-backup'
 
 
 def trigger_flag_name(ident):
@@ -309,23 +314,24 @@ def prepare_trigger_resources(manifest, tracking, read_raw, extra_flags=None):
     return resources, {ident: murmur3(flag) for ident, flag in flags.items()}
 
 
-def prepare_seed(nup_path, source, output, skulltulas=False):
-    """Copy the mod with its tracking metadata and adjusted resource checksums."""
+def _seed_metadata(source):
+    from oot_rando.randomizer.randomizer_services import read_artifact
+
+    manifest, _ = read_artifact(source)
+    return manifest, json.loads((source / 'tracking.json').read_bytes()) if manifest.get('tracking') else {}
+
+
+def _prepare_files(nup_path, source, manifest, tracking, skulltulas):
+    """Build the changed resources and metadata before touching the seed."""
     from oot_rando.formats.inspect_nup import Nup
     from oot_rando.formats.inspect_resources import decompress, dictionaries
     from oot_rando.game.resource_allocations import allocation
     from oot_rando.game.world_maps import effective_members
     from oot_rando.patching.randomize_kokiri import RESTBL, check_supported_game
     from oot_rando.randomizer.randomizer_core import grow_resource_table, recompress
-    from oot_rando.randomizer.randomizer_services import read_artifact
 
-    source, output = Path(source).resolve(), Path(output).absolute()
-    if output.exists() or output.is_symlink() or output.resolve().is_relative_to(source):
-        raise ValueError('Choisis un nouveau dossier de sortie hors de la seed d’origine.')
-    manifest, _ = read_artifact(source)
     if manifest.get('generator_version') != '0.12.18' or not manifest.get('tracking'):
         raise ValueError('Ce prototype nécessite une seed OotrR 0.8.4 avec suivi.')
-    tracking = json.loads((source / 'tracking.json').read_bytes())
     if tracking.get('trigger_flags'):
         raise ValueError('Cette seed contient déjà des indicateurs de déclenchement.')
     nup = Nup(nup_path)
@@ -372,24 +378,134 @@ def prepare_seed(nup_path, source, output, skulltulas=False):
     tracking['trigger_flags'] = flags
     payload = json.dumps(tracking, ensure_ascii=False, indent=2).encode('utf-8')
     manifest['tracking']['sha256'] = sha256(payload).hexdigest()
+    for resource, binary in encoded.items():
+        files[resource] = {'size': len(binary), 'sha256': sha256(binary).hexdigest()}
+    changed = {f'romfs/{resource}': binary for resource, binary in sorted(encoded.items())}
+    changed['tracking.json'] = payload
+    # Publish the manifest last, after the resources it describes.
+    changed['manifest.json'] = json.dumps(manifest, ensure_ascii=False, indent=2).encode('utf-8')
+    return changed, len(flags)
 
+
+def prepare_seed(nup_path, source, output, skulltulas=False):
+    """Copy the mod with its tracking metadata and adjusted resource checksums."""
+    from oot_rando.randomizer.randomizer_services import read_artifact
+
+    source, output = Path(source).resolve(), Path(output).absolute()
+    if output.exists() or output.is_symlink() or output.resolve().is_relative_to(source):
+        raise ValueError('Choisis un nouveau dossier de sortie hors de la seed d’origine.')
+    manifest, tracking = _seed_metadata(source)
+    changed, count = _prepare_files(nup_path, source, manifest, tracking, skulltulas)
     with TemporaryDirectory(prefix='map-trigger-', dir=output.parent) as temporary:
         staged = Path(temporary) / 'seed'
-        for resource in files.keys() | encoded.keys():
-            path = staged / 'romfs' / resource
+        for relative in ('checks.json', *(f'romfs/{resource}' for resource in manifest['files'])):
+            path = staged / relative
             path.parent.mkdir(parents=True, exist_ok=True)
-            if resource in encoded:
-                binary = encoded[resource]
-                path.write_bytes(binary)
-                files[resource] = {'size': len(binary), 'sha256': sha256(binary).hexdigest()}
-            else:
-                shutil.copyfile(source / 'romfs' / resource, path)
-        shutil.copyfile(source / 'checks.json', staged / 'checks.json')
-        (staged / 'tracking.json').write_bytes(payload)
-        (staged / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8')
+            if relative not in changed:
+                shutil.copyfile(source / relative, path)
+        for relative, binary in changed.items():
+            (staged / relative).write_bytes(binary)
         read_artifact(staged)
         staged.rename(output)
-    return len(flags)
+    return count
+
+
+def _seed_file(root, relative):
+    path = root / relative
+    if (not path.is_relative_to(root) or path.resolve() != path or '..' in Path(relative).parts
+            or any(part.is_symlink() for part in (path, *path.parents) if part != root
+                   and part.is_relative_to(root))):
+        raise ValueError(f'Chemin de seed non pris en charge : {relative}')
+    return path
+
+
+@contextmanager
+def _lock_seed(source):
+    lock = _seed_file(source, '.map-oot-rando.lock')
+    with lock.open('a+b') as stream:
+        try:
+            if os.name == 'nt':
+                import msvcrt
+                stream.seek(0)
+                msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError as error:
+            raise ValueError('Une préparation utilise déjà ce dossier de seed.') from error
+        yield
+
+
+def _rollback_seed(source, backup, temporary):
+    journal = json.loads(_seed_file(backup, 'pending.json').read_bytes())
+    for relative, (had_original, digest) in reversed(tuple(journal.items())):
+        if relative not in ('manifest.json', 'tracking.json') and not relative.startswith('romfs/'):
+            raise ValueError(f'Chemin de sauvegarde inattendu : {relative}')
+        path = _seed_file(source, relative)
+        current = sha256(path.read_bytes()).hexdigest() if path.exists() else None
+        if had_original:
+            original = _seed_file(backup, f'originaux/{relative}')
+            if current == sha256(original.read_bytes()).hexdigest():
+                continue
+            if current not in (None, digest):
+                raise ValueError(f'Fichier modifié depuis la préparation : {relative}')
+            restored = temporary / 'restore'
+            shutil.copy2(original, restored)
+            restored.replace(path)
+        elif current == digest:
+            path.unlink()
+        elif current is not None:
+            raise ValueError(f'Fichier modifié depuis la préparation : {relative}')
+    shutil.rmtree(backup)
+
+
+def prepare_seed_in_place(nup_path, source):
+    """Prepare the selected mod once. Recover interrupted updates on retry."""
+    from oot_rando.randomizer.randomizer_services import read_artifact
+
+    source = Path(source).resolve()
+    with _lock_seed(source), TemporaryDirectory(prefix='.map-trigger-', dir=source) as work:
+        temporary = Path(work)
+        backup = _seed_file(source, SEED_BACKUP)
+        if (backup / 'pending.json').exists():
+            _rollback_seed(source, backup, temporary)
+        manifest, tracking = _seed_metadata(source)
+        if tracking.get('trigger_flags'):
+            return len(tracking['trigger_flags']), False
+        if backup.exists():
+            raise ValueError(f'Un dossier de sauvegarde existe déjà : {backup}')
+        known_files = {'manifest.json', 'tracking.json'} | {f'romfs/{name}' for name in manifest['files']}
+        changed, count = _prepare_files(nup_path, source, manifest, tracking, skulltulas=True)
+
+        journal = {}
+        staged_backup = temporary / 'backup'
+        for relative, binary in changed.items():
+            path = _seed_file(source, relative)
+            had_original = relative in known_files
+            if path.exists() != had_original:
+                raise ValueError(f'Le dossier du mod a changé ou un fichier existe déjà : {relative}')
+            if had_original:
+                original = staged_backup / 'originaux' / relative
+                original.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(path, original)
+            staged = temporary / 'nouveaux' / relative
+            staged.parent.mkdir(parents=True, exist_ok=True)
+            staged.write_bytes(binary)
+            journal[relative] = (had_original, sha256(binary).hexdigest())
+        (staged_backup / 'pending.json').write_text(json.dumps(journal), encoding='utf-8')
+        staged_backup.rename(backup)
+
+        try:
+            for relative in changed:
+                path = _seed_file(source, relative)
+                path.parent.mkdir(parents=True, exist_ok=True)
+                (temporary / 'nouveaux' / relative).replace(path)
+            read_artifact(source)
+            (backup / 'pending.json').rename(backup / 'changes.json')
+        except (OSError, ValueError, KeyError):
+            _rollback_seed(source, backup, temporary)
+            raise
+        return count, True
 
 
 def main():
