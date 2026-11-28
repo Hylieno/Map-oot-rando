@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: Mozencaz/OotrR
-          ref: 9bdc6d36dac7a659afd75441884f0ef3d25db4f2
+          ref: d3fe85e79e31000ce4aeae268c5152608d17419e
           path: upstream-ootrr
           persist-credentials: false
       - name: Install scanner dependencies
@@ -58,7 +58,7 @@ jobs:
         run: python -m pip install pyinstaller==6.11.1
       - name: Build portable app
         if: steps.packaging.outputs.package == 'true'
-        run: python -m PyInstaller --noconfirm --clean --windowed --onedir --name Map-oot-rando --copy-metadata resvg-py --add-data "upstream-ootrr/src/oot_rando/logic/world:oot_rando/logic/world" --add-data "map_oot_rando/assets/welcome.jpg:map_oot_rando/assets" --paths . --paths upstream-ootrr/src packaging/launcher.py
+        run: python -m PyInstaller --noconfirm --clean --windowed --onedir --name Map-oot-rando --copy-metadata resvg-py --add-data "upstream-ootrr/src/oot_rando/logic/world:oot_rando/logic/world" --add-data "upstream-ootrr/src/oot_rando/game/label_overrides.json:oot_rando/game" --add-data "map_oot_rando/assets/welcome.jpg:map_oot_rando/assets" --paths . --paths upstream-ootrr/src packaging/launcher.py
       - name: Verify frozen scanner
         if: steps.packaging.outputs.package == 'true'
         shell: pwsh

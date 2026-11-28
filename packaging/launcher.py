@@ -12,9 +12,11 @@ if __name__ == '__main__':
     if len(sys.argv) == 4 and sys.argv[1] == '--check-bundled-import':
         # Decode the base and update scenes and join them to the checks catalogue.
         import evfl  # Include support for event parsing in the frozen build.
+        from oot_rando.game.check_names import entry_label
         from oot_rando.logic.world import World
         from oot_rando.tracker.auto_tracker import TrackerSession
         assert World().fingerprint()
+        assert entry_label({'variants': [{'label': 'KF_midos_house_chest_1'}]}) == 'KF Mido House Chest 1'
         document = import_seed(Path(sys.argv[2]), Path(sys.argv[3]))
         checks = [(row.id, row.position, location_view(row)) for row in load_metadata(document)]
         expected = [('KokiriForest#123', (18, 107, -7.5), AGE_VIEWS['Child']),

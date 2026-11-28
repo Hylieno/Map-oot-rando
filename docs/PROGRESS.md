@@ -1,5 +1,19 @@
 # Suivi du déclenchement des checks — 28 novembre 2026
 
+Le portable utilise désormais OotrR 0.8.5 (`d3fe85e`). La préparation
+utilise la validation du manifeste d’OotrR et vérifie la présence des
+données de suivi et du GameData requis. Les tests synthétiques couvrent
+la préparation d’une seed 0.8.4 et la préparation sur place en 0.8.5 avec
+une récompense piège. La préparation réelle en jeu reste à vérifier
+avec une seed 0.8.5 complète.
+
+Sur 160 ressources de scènes de référence, les deux versions
+associent les mêmes 1 088 identifiants du catalogue de test, dont 1 086
+localisés. Appliquer les 990 nouveaux libellés correspondant à ce
+catalogue conserve les positions. Les pièges sont des récompenses
+de checks existants. Deux checks déjà sans coordonnées au Gymnase
+Gerudo restent à vérifier sur le jeu.
+
 Le prototype `python -m map_oot_rando.trigger_seed jeu.nup seed sortie`
 prépare une copie d’une seed OotrR 0.8.4 pour une nouvelle partie. Il ajoute
 un indicateur distinct au lancement d’une récompense avec un événement

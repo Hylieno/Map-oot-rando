@@ -33,7 +33,8 @@ class TriggerSeedTests(unittest.TestCase):
         from evfl.evfl import EventFlow
         from evfl.flowchart import Flowchart
         from evfl.util import make_index
-        from oot_rando.patching.event_patch import _flow, add_collection_markers
+        from oot_rando.formats.evfl_tools import parse_flow
+        from oot_rando.patching.event_patch import add_collection_markers
         from oot_rando.patching.progressive import add_converter_calls
         from oot_rando.patching.song_adapter import patch_flow
 
@@ -65,8 +66,8 @@ class TriggerSeedTests(unittest.TestCase):
             with self.subTest(chain=expected):
                 patched, added = add_event_triggers(raw, [(hooks[0], trigger_flag)])
                 self.assertEqual(added, {trigger_flag})
-                before = _flow(raw).flowchart
-                after = _flow(patched).flowchart
+                before = parse_flow(raw).flowchart
+                after = parse_flow(patched).flowchart
                 self.assertEqual([event.name for event in after.events[:-1]],
                                  [event.name for event in before.events])
                 event = after.entry_points[0].main_event.v
@@ -78,7 +79,7 @@ class TriggerSeedTests(unittest.TestCase):
                     self.assertEqual(event.name, name)
                 self.assertEqual(event.data.nxt.v.data.params.data['GameDataName'], native_flag)
 
-        unexpected = _flow(displayed)
+        unexpected = parse_flow(displayed)
         unexpected.flowchart.events[0].data.nxt.v.data.entry_point_name = 'OtherSubflow'
         stream = BytesIO()
         unexpected.write(stream)
@@ -99,7 +100,8 @@ class TriggerSeedTests(unittest.TestCase):
         from oot_rando.formats.inspect_resources import sarc
         from oot_rando.game.tracking_metadata import GAMEDATA
         from oot_rando.patching.ap_mailbox import ainb_to_binary
-        from oot_rando.patching.event_patch import _flow, add_collection_markers
+        from oot_rando.formats.evfl_tools import parse_flow
+        from oot_rando.patching.event_patch import add_collection_markers
         from oot_rando.patching.soul_adapter import murmur3
 
         tree = 'KokiriForest#trees#77'
@@ -178,14 +180,14 @@ class TriggerSeedTests(unittest.TestCase):
         self.assertEqual(setter['Parameters']['Inputs']['String'][0]['Default Value'], trigger_flag_name(tree))
         self.assertEqual(children[1]['Node Index'], 2)
 
-        chart = _flow(resources[event_path]).flowchart
+        chart = parse_flow(resources[event_path]).flowchart
         first = chart.entry_points[0].main_event.v
         self.assertEqual(first.data.params.data['GameDataName'], trigger_flag_name(song))
         self.assertEqual(first.data.nxt.v.name, 'EventReward')
         self.assertEqual(first.data.nxt.v.data.nxt.v.data.params.data['GameDataName'], song_collection)
 
         import zstandard
-        from oot_rando.randomizer.randomizer_services import read_artifact
+        from oot_rando.randomizer.artifact import read_artifact
         from map_oot_rando.save_tracking import SaveConnection
         from map_oot_rando.state import StateStore
         from test_save_tracking import write_save, write_seed
@@ -194,7 +196,7 @@ class TriggerSeedTests(unittest.TestCase):
             folder = Path(directory)
             source = folder / 'original'
             source.mkdir()
-            seed_id = write_seed(source)
+            seed_id = write_seed(source, generator_version='0.12.18')
             manifest = json.loads((source / 'manifest.json').read_bytes())
             original_tracking = json.loads((source / 'tracking.json').read_bytes())
             original_tracking.update(tracking)
@@ -237,15 +239,17 @@ class TriggerSeedTests(unittest.TestCase):
     def test_shared_skulltula_drops_are_isolated_in_the_mod_and_tracker(self):
         import ainb
         import zstandard
+        from oot_rando.catalog.traps import trap_actor, trap_item
         from oot_rando.formats import byml_codec as codec
         from oot_rando.formats.inspect_resources import sarc
+        from oot_rando.game.item_forms import form_actor
         from oot_rando.game.resource_allocations import allocation
         from oot_rando.game.tracking_metadata import GAMEDATA
         from oot_rando.patching.ap_mailbox import ainb_to_binary
         from oot_rando.patching.randomize_kokiri import RESTBL
         from oot_rando.patching.repeatable_adapter import EVENT_PACK
         from oot_rando.patching.soul_adapter import RSDB_FILES, murmur3
-        from oot_rando.randomizer.randomizer_services import read_artifact
+        from oot_rando.randomizer.artifact import read_artifact
 
         from map_oot_rando.save_tracking import SaveConnection
         from map_oot_rando.state import StateStore
@@ -255,11 +259,12 @@ class TriggerSeedTests(unittest.TestCase):
             return codec.dump({'endian': '<', 'version': 7, 'root': root})
 
         first, second, token = ('KokiriForest#gs#' + str(key) for key in (71, 72, 73))
-        reward, native = 'Obj_Rupee_Green_GS', 'Obj_Token_Gold'
+        trap = trap_item('Bow')
+        reward, native = form_actor(trap_actor(trap), 'world', skulltula_drop=True), 'Obj_Token_Gold'
         tracking = {'checks': {ident: {'collection': {'type': 'bool64', 'hash': ident.rsplit('#', 1)[1]},
                                        'reward': item, 'actor': actor}
-                               for ident, actor, item in ((first, reward, 'Rupees (1)'),
-                                                          (second, reward, 'Rupees (1)'),
+                               for ident, actor, item in ((first, reward, trap),
+                                                          (second, reward, trap),
                                                           (token, native, 'Gold Skulltula Token'))},
                     'known_bool64': ['71', '72', '73']}
         first_map = 'Banc/KokiriForest/KokiriForest_Child_Static.bcett.byml.zs'
@@ -313,7 +318,7 @@ class TriggerSeedTests(unittest.TestCase):
             folder = Path(directory)
             source = folder / 'original'
             source.mkdir()
-            seed_id = write_seed(source)
+            seed_id = write_seed(source, app_version='0.8.5+fixture')
             manifest = json.loads((source / 'manifest.json').read_bytes())
             original_tracking = json.loads((source / 'tracking.json').read_bytes())
             original_tracking.update(tracking)
@@ -349,7 +354,7 @@ class TriggerSeedTests(unittest.TestCase):
                 self.assertEqual((source / 'tracking.json').read_bytes(), payload)
                 self.assertFalse((source / 'romfs' / third_map).exists())
 
-                verifier = 'oot_rando.randomizer.randomizer_services.read_artifact'
+                verifier = 'oot_rando.randomizer.artifact.read_artifact'
                 with patch(verifier, side_effect=[read_artifact(source), ValueError('validation refusée')]):
                     with self.assertRaisesRegex(ValueError, 'validation refusée'):
                         prepare_seed_in_place(nup_path, source)

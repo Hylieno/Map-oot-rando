@@ -114,9 +114,9 @@ def chest_opening_checks(metadata, manifest):
 class SaveConnection:
     def __init__(self, seed_folder, save_path, store, *, preferred_save=None, manual_dir=None, live_factory=None):
         from oot_rando.tracker.auto_tracker import TrackerSession
-        from oot_rando.randomizer.randomizer_services import ManualTracker
+        from oot_rando.tracker.manual_tracker import ManualTracker
         from oot_rando.tracker.live_memory import LiveGameData, SEQUENCE_IS_CHILDHOOD
-        from oot_rando.tracker.save_reader import load_snapshot
+        from oot_rando.formats.save_file import load_snapshot
         from oot_rando.patching.soul_adapter import murmur3
         from oot_rando.patching.story_fixes import KAKARIKO_MEDALS
 
@@ -157,7 +157,7 @@ class SaveConnection:
 
                 try:
                     world = World()
-                    # The 0.8.4 base tables and evaluator are identical to 0.8.0.
+                    # The current base tables and evaluator are identical to 0.8.0.
                     # Revert the two remake rules on this seed's private world.
                     world.remake['exit_rules'].pop('Kakariko Village -> Kak Impas Ledge', None)
                     world.remake['events'].pop('GC Woods Warp', None)

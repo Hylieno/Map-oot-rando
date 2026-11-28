@@ -24,7 +24,7 @@ class ImportDialog(tk.Toplevel):
         ttk.Label(content, text=title, style='Title.TLabel').pack(anchor='w')
         self.add_picker(content, 'nup', '1. Le fichier du jeu (.nup)',
                         'Choisis le NUP d’Ocarina of Time Remake contenant le jeu et sa mise à jour.')
-        instructions = ('Choisis le checks.json de ta seed OotrR 0.8.4 complète, avec son dossier romfs. '
+        instructions = ('Choisis le checks.json de ta seed OotrR complète, avec son dossier romfs. '
                         'La copie sert à tester le suivi des actions, dont les Skulltulas, sur une nouvelle partie.'
                         if prepare else 'Dans le dossier généré par OotrR, choisis checks.json et laisse '
                         'manifest.json et tracking.json dans le même dossier pour le suivi.')
@@ -33,7 +33,7 @@ class ImportDialog(tk.Toplevel):
         if not prepare:
             ttk.Checkbutton(content, text='Activer le suivi des déclenchements dans ce mod',
                             variable=self.prepare_in_place).pack(anchor='w', pady=(16, 3))
-            ttk.Label(content, text='Pour la première préparation avec OotrR 0.8.4, ferme le jeu '
+            ttk.Label(content, text='Pour la première préparation, ferme le jeu '
                       's’il est ouvert. Après l’import, relance-le pour charger le mod et commence '
                       'une nouvelle partie. Les fichiers modifiés sont sauvegardés.',
                       style='Muted.TLabel', wraplength=435, justify='left').pack(anchor='w')

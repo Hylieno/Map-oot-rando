@@ -1,4 +1,4 @@
-"""Prepare a seed with independent trigger flags (OotrR 0.8.4 prototype)."""
+"""Prepare a seed with independent trigger flags for a supported OotrR seed."""
 from collections import defaultdict
 from contextlib import contextmanager
 from copy import copy
@@ -26,12 +26,11 @@ def add_event_triggers(raw, hooks):
     from evfl.container import Container
     from evfl.event import ActionEvent, Event, SubFlowEvent
     from evfl.util import make_index
-    from oot_rando.patching.event_patch import _flow
+    from oot_rando.formats.evfl_tools import links_to, parse_flow
     from oot_rando.patching.progressive import ACTION_GUIDE, AFTER_PREFIX, CONVERTER_ENTRY
-    from oot_rando.patching.qol_patches import _predecessors
     from oot_rando.patching.song_adapter import DISPLAY_ENTRY, GET_FLOW, display_event_name
 
-    flow = _flow(raw)
+    flow = parse_flow(raw)
     chart = flow.flowchart
     events = {event.name: event for event in chart.events}
     added = set()
@@ -59,7 +58,7 @@ def add_event_triggers(raw, hooks):
             following = following.data.nxt.v
         if following is not original:
             continue
-        links = _predecessors(chart, reward)
+        links = links_to(chart, reward)
         if not links:
             continue
         trigger = Event()
@@ -92,7 +91,7 @@ def add_drop_trigger(raw, flag):
     """Add a setter to the private drop AI's one-time startup sequence."""
     import ainb
     from oot_rando.patching.ap_mailbox import ainb_to_binary
-    from oot_rando.patching.repeatable_adapter import _flag_setter, _guid
+    from oot_rando.patching.repeatable_adapter import _flag_setter, stable_guid
 
     script = ainb.AINB.from_binary(raw)
     document = script.as_dict()
@@ -108,7 +107,7 @@ def add_drop_trigger(raw, flag):
     children = starts[0]['Plugs']['Child']
     index = len(nodes)
     children.insert(0, {'Node Index': index, 'Name': ''})
-    nodes.append(_flag_setter(index, flag, _guid(flag + '/map-trigger')))
+    nodes.append(_flag_setter(index, flag, stable_guid(flag + '/map-trigger')))
     patched = ainb.AINB.from_dict(document)
     patched.blackboard = script.blackboard
     binary = patched.to_binary() if script.blackboard else ainb_to_binary(document)
@@ -121,7 +120,7 @@ def add_skulltula_drop_trigger(raw, filename, flag):
     """Start the original token AI and record this private drop's creation."""
     import ainb
     from oot_rando.patching.ap_mailbox import ainb_to_binary
-    from oot_rando.patching.repeatable_adapter import _flag_setter, _guid
+    from oot_rando.patching.repeatable_adapter import _flag_setter, stable_guid
 
     script = ainb.AINB.from_binary(raw)
     document = script.as_dict()
@@ -134,12 +133,12 @@ def add_skulltula_drop_trigger(raw, filename, flag):
     root = nodes[commands[0]['Root Node Index']]
     root_flags = root['Flags']
     root['Flags'] = [value for value in root_flags if value != 'Is Root Node']
-    setter = _flag_setter(len(nodes), flag, _guid(flag + '/skulltula/spawn'))
+    setter = _flag_setter(len(nodes), flag, stable_guid(flag + '/skulltula/spawn'))
     nodes.append(setter)
     index = len(nodes)
     nodes.append({
         'Node Type': 'Element_Simultaneous', 'Node Index': index, 'Name': '',
-        'GUID': _guid(flag + '/skulltula/root'), 'Flags': ['Is Root Node'],
+        'GUID': stable_guid(flag + '/skulltula/root'), 'Flags': ['Is Root Node'],
         'Queries': [], 'Attachments': [], 'Properties': {}, 'XLink Actions': [],
         'Parameters': {'Inputs': {}, 'Outputs': {}},
         'Plugs': {'Child': [{'Node Index': child['Node Index'], 'Name': ''} for child in (setter, root)]},
@@ -315,7 +314,7 @@ def prepare_trigger_resources(manifest, tracking, read_raw, extra_flags=None):
 
 
 def _seed_metadata(source):
-    from oot_rando.randomizer.randomizer_services import read_artifact
+    from oot_rando.randomizer.artifact import read_artifact
 
     manifest, _ = read_artifact(source)
     return manifest, json.loads((source / 'tracking.json').read_bytes()) if manifest.get('tracking') else {}
@@ -326,12 +325,13 @@ def _prepare_files(nup_path, source, manifest, tracking, skulltulas):
     from oot_rando.formats.inspect_nup import Nup
     from oot_rando.formats.inspect_resources import decompress, dictionaries
     from oot_rando.game.resource_allocations import allocation
+    from oot_rando.game.tracking_metadata import GAMEDATA
     from oot_rando.game.world_maps import effective_members
     from oot_rando.patching.randomize_kokiri import RESTBL, check_supported_game
-    from oot_rando.randomizer.randomizer_core import grow_resource_table, recompress
+    from oot_rando.randomizer.randomizer_core import compress_changed, grow_resource_table, recompress
 
-    if manifest.get('generator_version') != '0.12.18' or not manifest.get('tracking'):
-        raise ValueError('Ce prototype nécessite une seed OotrR 0.8.4 avec suivi.')
+    if not manifest.get('tracking') or GAMEDATA not in manifest['files']:
+        raise ValueError('La préparation nécessite un mod OotrR complet avec données de suivi.')
     if tracking.get('trigger_flags'):
         raise ValueError('Cette seed contient déjà des indicateurs de déclenchement.')
     nup = Nup(nup_path)
@@ -358,14 +358,15 @@ def _prepare_files(nup_path, source, manifest, tracking, skulltulas):
             resources, templates, extra_flags, new_sizes = prepare_skulltula_resources(tracking, map_paths, read_raw)
         other, flags = prepare_trigger_resources(manifest, tracking, read_raw, extra_flags)
         resources.update(other)
-        encoded = {path: recompress(raw, original(templates.get(path, path)), compression)
-                   for path, raw in resources.items()}
+        encoded = {path: recompress(resources[path], original(template), compression)
+                   for path, template in templates.items()}
+        existing = {path: raw for path, raw in resources.items() if path not in templates}
         if RESTBL in files or skulltulas:
             rest = read_raw(RESTBL)
             for path, template in templates.items():
                 new_sizes[path] = max((len(resources[path]) + 8191) & ~4095, allocation(rest, template) or 0)
-            growth = {path: max(len(raw) - len(read_raw(path)), 0)
-                      for path, raw in resources.items() if path not in templates}
+            growth = {}
+            compress_changed(existing, encoded, growth, original, compression)
             allocations = grow_resource_table(encoded, growth, new_sizes, original, compression)
             previous = {entry['path']: entry for entry in manifest.get('resource_allocations', ())}
             for entry in allocations:
@@ -375,6 +376,8 @@ def _prepare_files(nup_path, source, manifest, tracking, skulltulas):
                 else:
                     previous[path] = entry
             manifest['resource_allocations'] = list(previous.values())
+        else:
+            encoded.update({path: recompress(raw, original(path), compression) for path, raw in existing.items()})
     tracking['trigger_flags'] = flags
     payload = json.dumps(tracking, ensure_ascii=False, indent=2).encode('utf-8')
     manifest['tracking']['sha256'] = sha256(payload).hexdigest()
@@ -389,7 +392,7 @@ def _prepare_files(nup_path, source, manifest, tracking, skulltulas):
 
 def prepare_seed(nup_path, source, output, skulltulas=False):
     """Copy the mod with its tracking metadata and adjusted resource checksums."""
-    from oot_rando.randomizer.randomizer_services import read_artifact
+    from oot_rando.randomizer.artifact import read_artifact
 
     source, output = Path(source).resolve(), Path(output).absolute()
     if output.exists() or output.is_symlink() or output.resolve().is_relative_to(source):
@@ -461,7 +464,7 @@ def _rollback_seed(source, backup, temporary):
 
 def prepare_seed_in_place(nup_path, source):
     """Prepare the selected mod once. Recover interrupted updates on retry."""
-    from oot_rando.randomizer.randomizer_services import read_artifact
+    from oot_rando.randomizer.artifact import read_artifact
 
     source = Path(source).resolve()
     with _lock_seed(source), TemporaryDirectory(prefix='.map-trigger-', dir=source) as work:

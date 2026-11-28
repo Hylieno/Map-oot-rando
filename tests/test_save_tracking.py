@@ -21,7 +21,7 @@ class VillageVariantTests(unittest.TestCase):
         self.assertTrue(kakariko_variant({4: True}, keys, 4, False))
 
 
-def write_seed(root, *, legacy_world=False, app_version=None, open_forest=False, source_rewards=None,
+def write_seed(root, *, legacy_world=False, app_version=None, generator_version=None, open_forest=False, source_rewards=None,
                songs=None, castle_skip=False):
     from oot_rando.patching.randomize_kokiri import BUILD, TITLE
     from oot_rando.randomizer.randomizer_core import (
@@ -32,7 +32,7 @@ def write_seed(root, *, legacy_world=False, app_version=None, open_forest=False,
     from oot_rando.patching.soul_adapter import murmur3
 
     settings = Settings('Synthetic Kokiri test')
-    generator = '0.12.8' if legacy_world else GENERATOR_VERSION
+    generator = generator_version or ('0.12.8' if legacy_world else GENERATOR_VERSION)
     seed_id = settings_identity(settings, generator, ADAPTER_VERSION)
     chest = 'ap#KF Kokiri Sword Chest'
     impa = 'ap#Kak Impas House Freestanding PoH'
@@ -79,7 +79,7 @@ def write_seed(root, *, legacy_world=False, app_version=None, open_forest=False,
 
 
 def write_save(path, *, linked=True, collected=False, bombs=False, child=None, broken=(), flags=()):
-    from oot_rando.tracker.save_reader import FORMAT_VERSION, MAGIC, PROGRESS_TYPE_HASH
+    from oot_rando.formats.save_file import FORMAT_VERSION, MAGIC, PROGRESS_TYPE_HASH
 
     from oot_rando.tracker.live_memory import SEQUENCE_IS_CHILDHOOD
 
