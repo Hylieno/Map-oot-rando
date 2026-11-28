@@ -29,6 +29,76 @@ class GuiTests(unittest.TestCase):
             self.app.close_window()
             self.assertEqual(self.errors, [])
 
+    def test_prepares_skulltula_seed_copy_from_the_map_menu(self):
+        from threading import Event
+        from unittest.mock import patch
+        from map_oot_rando.gui import PREPARE_SEED_MENU
+
+        app = self.app
+        folder = self.profiles_path.parent
+        source = folder / 'original'
+        output = folder / 'original-test-checks'
+        finished = Event()
+        put = app.import_events.put
+
+        def signal_result(result):
+            put(result)
+            finished.set()
+
+        with (patch('map_oot_rando.import_dialog.filedialog.askopenfilename',
+                    side_effect=['game.nup', str(source / 'checks.json')]),
+              patch('map_oot_rando.gui.filedialog.askdirectory', return_value=str(folder)),
+              patch('map_oot_rando.gui.prepare_seed', return_value=98) as prepare,
+              patch('map_oot_rando.gui.messagebox.showinfo') as notice,
+              patch.object(app.import_events, 'put', side_effect=signal_result)):
+            dialog = app.choose_trigger_seed()
+            dialog.pick('nup')
+            dialog.pick('checks')
+            dialog.start_button.invoke()
+            self.assertTrue(finished.wait(3))
+            self.assertEqual(app.file_menu.entrycget(PREPARE_SEED_MENU, 'state'), 'disabled')
+            app.poll_import()
+        prepare.assert_called_once_with('game.nup', source.resolve(), output, skulltulas=True)
+        self.assertIn(str(output), notice.call_args.args[1])
+        self.assertEqual(app.file_menu.entrycget(PREPARE_SEED_MENU, 'state'), 'normal')
+        self.assertTrue(app.simulation)
+
+    def test_import_can_prepare_the_selected_mod_in_place(self):
+        from threading import Event
+        from unittest.mock import patch
+
+        app = self.app
+        checks = self.profiles_path.with_name('checks.json')
+        document = demo_document()
+        document.update(provenance='ootrr-scan', seed_id='test-seed', diagnostics=[])
+        finished = Event()
+        put = app.import_events.put
+
+        def signal_result(result):
+            put(result)
+            if result[0] != 'progress':
+                finished.set()
+
+        with (patch('map_oot_rando.import_dialog.filedialog.askopenfilename',
+                    side_effect=['game.nup', str(checks)]),
+              patch('map_oot_rando.gui.prepare_seed_in_place', return_value=(98, True)) as prepare,
+              patch('map_oot_rando.gui.import_seed', return_value=document) as importer,
+              patch('map_oot_rando.gui.messagebox.showinfo') as notice,
+              patch.object(app.import_events, 'put', side_effect=signal_result)):
+            dialog = app.choose_seed()
+            self.assertFalse(dialog.prepare_in_place.get())
+            dialog.prepare_in_place.set(True)
+            dialog.pick('nup')
+            dialog.pick('checks')
+            dialog.start_button.invoke()
+            self.assertTrue(finished.wait(3))
+            app.poll_import()
+        prepare.assert_called_once_with('game.nup', checks.resolve().parent)
+        self.assertEqual(importer.call_args.args[:2], ('game.nup', str(checks)))
+        self.assertIn('map-oot-rando-backup', notice.call_args.args[1])
+        self.assertEqual(app.seed_folder, checks.resolve().parent)
+        self.assertEqual(app.import_status.get(), 'Mod préparé sur place.')
+
     def test_search_selection_marker_update_and_filters(self):
         app = self.app
         points = [app.viewport.screen(r.project()) for r in app.visible
@@ -700,6 +770,25 @@ class GuiTests(unittest.TestCase):
             app.follow_save(Path('.'), Path('.'))
         self.assertEqual(set(app.store.states.values()), {'unknown'})
         self.assertIsNone(app.store.last_success)
+
+    def test_selected_check_can_confirm_and_undo_a_missing_trigger(self):
+        from queue import Queue
+
+        app = self.app
+        app.load(dict(demo_document(), provenance='ootrr-scan', seed_id='manual-trigger'))
+        app.save_commands = Queue()
+        app.store.publish(app.store.seed_id, app.store.states, mode='save', timestamp='2026-11-28T12:00:00Z')
+        row = app.visible[0]
+        for action in (True, False):
+            app.tracked_rows[row.id] = {'manual_confirmation': action}
+            app.choose(row)
+            self.assertEqual(app.manual_button['text'],
+                             'Confirmer le déclenchement' if action else 'Annuler la confirmation')
+            app.manual_button.invoke()
+            self.assertEqual(app.save_commands.get_nowait(), (row.id, action))
+        app.tracked_rows[row.id] = {'source': 'save'}
+        app.choose(row)
+        self.assertFalse(app.manual_button.winfo_manager())
 
     def test_follow_age_switches_only_until_user_chooses_a_view(self):
         from map_oot_rando.scene import AGE_VIEWS

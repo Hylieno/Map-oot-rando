@@ -2,8 +2,9 @@
 from dataclasses import dataclass
 import math
 
-UPSTREAM_REVISION = '9bdc6d36dac7a659afd75441884f0ef3d25db4f2'
+UPSTREAM_REVISION = 'd3fe85e79e31000ce4aeae268c5152608d17419e'
 OLDER_EXPORT_REVISIONS = frozenset({
+    '9bdc6d36dac7a659afd75441884f0ef3d25db4f2',
     '283d3ec0f161d32e168afac45e502442c1ffb081',
     'eb6682704f7589b5a0c07ac0e49d89fef4108545',
 })

@@ -8,6 +8,28 @@ du jeu ou une sauvegarde. Les checks sans position confirmée restent dans la li
 
 [Télécharger la version portable Windows x64](https://github.com/Hylieno/Map-oot-rando/releases/latest)
 
+## Tester le suivi des Skulltulas
+
+Pour la première préparation, ferme le jeu s’il est ouvert. Dans **Importer mon jeu et ma seed**,
+sélectionne le NUP du jeu et le `checks.json` du dossier OotrR avec son
+`romfs`. Coche **Activer le suivi des déclenchements dans ce mod** pour
+préparer le dossier sur place. Si le mod est déjà installé, sélectionne le
+`checks.json` du dossier utilisé par le jeu.
+
+La préparation s’effectue une seule fois par seed. Les fichiers d’origine
+touchés sont conservés dans `map-oot-rando-backup/originaux`. Le fichier
+`changes.json` indique les ressources ajoutées (celles sans original).
+Après une interruption, relance l’import avec la case cochée pour reprendre.
+Pour faire un essai dans un dossier séparé, le menu **Carte → Préparer une
+seed de test (expérimental)** permet encore de créer une copie.
+
+Relance le jeu pour charger le mod préparé, puis commence une nouvelle partie. Tu peux
+réimporter un mod déjà préparé dans le tracker pendant que le jeu tourne.
+Active **Mémoire du jeu**,
+puis tue une Skulltula d’or et laisse sa récompense sur place. Vérifie que
+son check passe à « Récupéré », puis sauvegarde et recharge pour vérifier
+qu’il reste validé. Le suivi des Skulltulas avant ramassage est expérimental.
+
 ## Lancer localement
 
 Python avec Tkinter pour le lancement depuis les sources :
@@ -240,7 +262,7 @@ de sa zone dans la barre latérale.
 
 Clique sur **Choisir le dossier de sauvegardes…** et indique le dossier qui
 contient les sauvegardes de ton jeu. L’application cherche dans les sous-dossiers
-et suit le `progress.sav` le plus récent que le moteur OotrR 0.8.4 reconnaît
+et suit le `progress.sav` le plus récent que le moteur OotrR intégré reconnaît
 comme appartenant à la seed. Si ce fichier devient temporairement illisible,
 la carte garde le dernier état vérifié et attend le prochain cycle de lecture.
 Si tu as rouvert un JSON sans profil local,
@@ -320,12 +342,12 @@ pour Map-oot-rando.
 ## Exporter les points d'une seed OotrR en ligne de commande
 
 Dans une copie locale du [dépôt OotrR](https://github.com/Mozencaz/OotrR), sélectionner
-la révision `9bdc6d36dac7a659afd75441884f0ef3d25db4f2`. Installer ses dépendances
+la révision `d3fe85e79e31000ce4aeae268c5152608d17419e`. Installer ses dépendances
 dans votre environnement Python avec `python -m pip install -r /chemin/vers/OotrR/requirements.txt`.
 
 Depuis ce dépôt, lancer la commande avec le NUP local contenant le jeu et sa mise
 à jour, et le `checks.json` du dossier de la seed. Le suivi reconnaît
-la logique des seeds OotrR 0.8.0 et 0.8.4.
+la logique des seeds OotrR 0.8.0, 0.8.4 et 0.8.5.
 
 ```sh
 python -m map_oot_rando.export --ootrr "OotrR" --nup "jeu.nup" --checks "seed/checks.json" --output "kokiri.json"

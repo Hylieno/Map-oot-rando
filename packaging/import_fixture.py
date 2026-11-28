@@ -12,7 +12,7 @@ from oot_rando.formats.byml_codec import build_sarc, dump
 from oot_rando.patching.randomize_kokiri import BUILD, TITLE
 from oot_rando.randomizer.randomizer_core import ADAPTER_VERSION, GENERATOR_VERSION, Settings, settings_identity
 from oot_rando.tracker.live_memory import SEQUENCE_IS_CHILDHOOD
-from oot_rando.tracker.save_reader import FORMAT_VERSION, MAGIC, PROGRESS_TYPE_HASH
+from oot_rando.formats.save_file import FORMAT_VERSION, MAGIC, PROGRESS_TYPE_HASH
 
 
 def write_tracker_fixture(directory, seed_id, settings):

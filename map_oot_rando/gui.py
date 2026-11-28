@@ -20,6 +20,7 @@ from .model import Location, REGION_NAMES, SURFACE_MIN_Y, load_metadata, resourc
 from .state import StateStore
 from .save_profiles import SaveProfiles, local_tracker_dir
 from .save_tracking import SaveConnection, SaveUpdate, apply_save_update
+from .trigger_seed import SEED_BACKUP, prepare_seed, prepare_seed_in_place
 from .scene import (BURNT_VILLAGE, CASTLE_COURT, DAMPE_ROUTES, DREAM_BATTLE_VIEWS, DREAM_SCENE_VIEWS,
                     DUNGEON_ATLAS_KEYS, DUNGEON_FLOORS,
                     FIRE_KAKARIKO_ARRIVAL, FIRE_KAKARIKO_CONTINUE, FIRE_VIEWS, FLOOR_OPTIONS,
@@ -40,6 +41,7 @@ from .welcome import Welcome
 from .world_map import WORLD_PIN_PARENTS, WORLD_PINS, WORLD_SIZE, load_world_map
 
 ATLAS_BACKGROUND = '#0d1f2e'
+PREPARE_SEED_MENU = 'Préparer une seed de test (expérimental)...'
 ATLAS_FAILURE_DETAILS = {
     'missing_reference_points': 'Repères d’alignement insuffisants.',
     'asset_unavailable': 'Image Field Atlas inaccessible.',
@@ -148,6 +150,7 @@ class MapApplication:
         self.file_menu.add_command(label='Enregistrer la carte...', command=self.save_map, state='disabled')
         self.file_menu.add_separator()
         self.file_menu.add_command(label='Exporter le diagnostic...', command=self.save_diagnostic, state='disabled')
+        self.file_menu.add_command(label=PREPARE_SEED_MENU, command=self.choose_trigger_seed)
         self.import_button = ttk.Button(header, text='Importer mon jeu et ma seed...', style='Accent.TButton',
                                         command=self.choose_seed)
         ttk.Frame(root, style='Divider.TFrame', height=1).pack(fill='x')
@@ -293,7 +296,7 @@ class MapApplication:
         else:
             self.load(document)
 
-    def load(self, document, *, seed_folder=None):
+    def load(self, document, *, seed_folder=None, resume_tracking=True):
         locations = load_metadata(document)  # Validate before replacing current state.
         scenes = group_scenes(read_scenes(document))
         synthetic = document['provenance'] == 'synthetic'
@@ -301,7 +304,7 @@ class MapApplication:
         old_store = getattr(self, 'store', None)
         same_seed = (not synthetic and bool(seed_id) and old_store is not None
                      and not old_store.simulated and old_store.seed_id == seed_id)
-        resume_snapshot = same_seed and old_store.last_success is not None
+        resume_snapshot = resume_tracking and same_seed and old_store.last_success is not None
         if not resume_snapshot:
             self.verified_save_source = None
         previous_view = self.resource.get() if same_seed else ''
@@ -387,7 +390,7 @@ class MapApplication:
         self.query.set('')
         self.resource_changed(manual=False)
         self.configure_link()
-        if not self.simulation:
+        if not self.simulation and resume_tracking:
             resume = self.save_profiles.get(self.store.seed_id, automatic=True)
             if resume:
                 folder, path = resume
@@ -403,20 +406,61 @@ class MapApplication:
     def choose_seed(self):
         return ImportDialog(self.root, self.start_import)
 
-    def start_import(self, nup, checks):
-        self.import_button.state(['disabled'])
-        self.welcome.import_button.state(['disabled'])
-        self.file_menu.entryconfigure('Ouvrir une carte enregistrée...', state='disabled')
+    def choose_trigger_seed(self):
+        return ImportDialog(self.root, self.start_trigger_seed, prepare=True)
+
+    def start_trigger_seed(self, nup, checks):
+        source = Path(checks).resolve().parent
+        parent = filedialog.askdirectory(parent=self.root, initialdir=source.parent,
+                                         title='Choisir où créer le dossier de test')
+        if not parent:
+            return
+        output = Path(parent) / (source.name + '-test-checks')
+        self.import_status.set('Préparation de la seed de test…')
+
+        def prepare():
+            count = prepare_seed(nup, source, output, skulltulas=True)
+            return 'prepared', (output, count)
+
+        self.run_import_task(prepare)
+
+    def start_import(self, nup, checks, *, prepare=False):
         self.import_status.set('Analyse locale du jeu en cours…')
 
         def scan():
+            catalogue = Path(checks).resolve()
+            folder = catalogue.parent
+            preparation = None
+            if prepare:
+                if catalogue.name != 'checks.json':
+                    raise ValueError('Sélectionne le fichier checks.json du mod à préparer.')
+                self.import_events.put(('progress', 'Préparation du mod sur place…'))
+                preparation = prepare_seed_in_place(nup, folder)
+            elif (folder / SEED_BACKUP / 'pending.json').is_file():
+                raise ValueError('Une préparation a été interrompue. Relance l’import avec le suivi '
+                                 'des déclenchements coché pour reprendre.')
+            document = import_seed(nup, checks, lambda msg: self.import_events.put(('progress', msg)))
+            return 'done', (document, folder, preparation)
+
+        self.run_import_task(scan)
+
+    def set_import_busy(self, busy):
+        state = 'disabled' if busy else 'normal'
+        for button in (self.import_button, self.welcome.import_button):
+            button.state(['disabled' if busy else '!disabled'])
+        for label in ('Ouvrir une carte enregistrée...', PREPARE_SEED_MENU):
+            self.file_menu.entryconfigure(label, state=state)
+
+    def run_import_task(self, task):
+        self.set_import_busy(True)
+
+        def run():
             try:
-                document = import_seed(nup, checks, lambda msg: self.import_events.put(('progress', msg)))
-                self.import_events.put(('done', (document, Path(checks).resolve().parent)))
+                self.import_events.put(task())
             except Exception as error:
                 self.import_events.put(('error', str(error)))
 
-        Thread(target=scan, daemon=True).start()
+        Thread(target=run, daemon=True).start()
         self.import_callback = self.root.after(100, self.poll_import)
 
     def poll_import(self):
@@ -429,14 +473,32 @@ class MapApplication:
                 if event == 'progress':
                     self.import_status.set(value)
                     continue
-                self.import_button.state(['!disabled'])
-                self.welcome.import_button.state(['!disabled'])
-                self.file_menu.entryconfigure('Ouvrir une carte enregistrée...', state='normal')
+                self.set_import_busy(False)
                 if event == 'done':
-                    document, folder = value
-                    self.load(document, seed_folder=folder)
-                    if not self.import_status.get():
+                    document, folder, preparation = value
+                    applied = preparation is not None and preparation[1]
+                    self.load(document, seed_folder=folder, resume_tracking=not applied)
+                    if applied:
+                        self.import_status.set('Mod préparé sur place.')
+                        messagebox.showinfo('Mod préparé',
+                                            f'{preparation[0]} checks équipés du suivi de déclenchement.\n\n'
+                                            f'Sauvegarde des fichiers d’origine\n{folder / SEED_BACKUP}\n\n'
+                                            'Relance le jeu pour charger les changements, puis commence '
+                                            'une nouvelle partie.',
+                                            parent=self.root)
+                    elif preparation is not None:
+                        self.import_status.set('Mod déjà préparé.')
+                    elif not self.import_status.get():
                         self.import_status.set('Carte chargée.')
+                elif event == 'prepared':
+                    output, count = value
+                    self.import_status.set('Seed de test préparée.')
+                    messagebox.showinfo('Seed de test préparée',
+                                        f'{count} checks équipés du suivi de déclenchement.\n\n'
+                                        f'Dossier créé\n{output}\n\n'
+                                        'Installe le mod depuis ce dossier et lance une nouvelle partie. '
+                                        'Dans le tracker, importe le checks.json de la copie.',
+                                        parent=self.root)
                 else:
                     self.import_status.set('Import interrompu.')
                     messagebox.showerror('Import impossible', value, parent=self.root)
@@ -737,8 +799,9 @@ class MapApplication:
         if self.save_commands is None or row is None or self.store.connection not in {'save', 'live'}:
             return
         info = self.tracked_rows.get(row.id, {})
-        if info.get('untracked'):
-            self.save_commands.put((row.id, info.get('source') != 'manual'))
+        action = info.get('manual_confirmation')
+        if action is not None:
+            self.save_commands.put((row.id, action))
             self.manual_button.state(['disabled'])
 
     def save_diagnostic(self, *, path=None):
@@ -1682,9 +1745,9 @@ class MapApplication:
     def show_details(self):
         row = self.selected
         tracker = self.tracked_rows.get(row.id, {})
-        if tracker.get('untracked') and self.store.connection in {'save', 'live'}:
-            self.manual_button.configure(text=('Annuler le marquage manuel' if tracker.get('source') == 'manual'
-                                               else 'Marquer comme récupéré'))
+        action = tracker.get('manual_confirmation')
+        if action is not None and self.store.connection in {'save', 'live'}:
+            self.manual_button.configure(text='Confirmer le déclenchement' if action else 'Annuler la confirmation')
             self.manual_button.state(['!disabled'])
             self.manual_button.pack(side='bottom', fill='x', pady=(4, 0))
         else:
@@ -1701,7 +1764,11 @@ class MapApplication:
                          + ('\nHors du fond de carte' if self.outside(row) else '')
                          + (f'\nObjet obtenu : {tracker["reward"]}' if tracker.get('reward') else '')
                          + ('\nCollecte sans indicateur de sauvegarde' if tracker.get('untracked') else '')
-                         + ('\nMarqué manuellement' if tracker.get('source') == 'manual' else '')
+                         + ('\nDéclenchement confirmé manuellement' if tracker.get('source') == 'manual' else '')
+                         + ('\nValidé par la destruction de la source' if tracker.get('source') == 'source_break' else '')
+                         + ('\nValidé par l’événement du jeu' if tracker.get('source') == 'event_played' else '')
+                         + ('\nValidé par le signal de déclenchement de la seed'
+                            if tracker.get('source') == 'instrumented_trigger' else '')
                          + ('\nÂmes manquantes : ' + ', '.join(tracker['missing_souls'])
                             if tracker.get('missing_souls') else ''))
 

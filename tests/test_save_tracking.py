@@ -21,16 +21,18 @@ class VillageVariantTests(unittest.TestCase):
         self.assertTrue(kakariko_variant({4: True}, keys, 4, False))
 
 
-def write_seed(root, *, legacy_world=False, app_version=None, open_forest=False):
+def write_seed(root, *, legacy_world=False, app_version=None, generator_version=None, open_forest=False, source_rewards=None,
+               songs=None, castle_skip=False):
     from oot_rando.patching.randomize_kokiri import BUILD, TITLE
     from oot_rando.randomizer.randomizer_core import (
         ADAPTER_VERSION, GENERATOR_VERSION, Settings, settings_identity,
     )
 
     from oot_rando.logic.world import World
+    from oot_rando.patching.soul_adapter import murmur3
 
     settings = Settings('Synthetic Kokiri test')
-    generator = '0.12.8' if legacy_world else GENERATOR_VERSION
+    generator = generator_version or ('0.12.8' if legacy_world else GENERATOR_VERSION)
     seed_id = settings_identity(settings, generator, ADAPTER_VERSION)
     chest = 'ap#KF Kokiri Sword Chest'
     impa = 'ap#Kak Impas House Freestanding PoH'
@@ -41,6 +43,24 @@ def write_seed(root, *, legacy_world=False, app_version=None, open_forest=False)
                            'locations': {'KF Kokiri Sword Chest': ['Bomb Bag']}},
                     known_bool64=['42'], checks={'test': {
                         'collection': {'type': 'bool64', 'hash': '42'}, 'reward': 'Test item'}, chest: {}, impa: {}})
+    if source_rewards:
+        tracking['repeatables'] = []
+        for ident, (key, canonical, actor) in source_rewards.items():
+            checks.append({'id': ident, 'name': ident, 'region': 'Kokiri Forest'})
+            flag = key + 1000
+            tracking['known_bool64'].append(str(key))
+            tracking['checks'][ident] = {'collection': {'type': 'bool', 'hash': str(flag)}, 'reward': canonical}
+            if actor:
+                tracking['repeatables'].append({'id': ident, 'kind': 'pickup', 'canonical': canonical,
+                                                'flag_hash': flag, 'variants': [{'source': actor}]})
+    if songs:
+        tracking['event_markers'] = {}
+        for ident, event in songs.items():
+            checks.append({'id': ident, 'name': ident, 'region': 'Kokiri Forest'})
+            flag = f'RandoCheck.synthetic.{ident}'
+            tracking['checks'][ident] = {'collection': {'type': 'bool', 'hash': str(murmur3(flag))},
+                                         'reward': 'Test song reward'}
+            tracking['event_markers'][f'Event/EventFlow/{event}.bfevfl.zs'] = [{'flag': flag}]
     payload = json.dumps(tracking).encode()
     data = b'synthetic resource'
     manifest = dict(schema_version=1, title_id=TITLE, build_id=BUILD, seed_id=seed_id,
@@ -48,6 +68,8 @@ def write_seed(root, *, legacy_world=False, app_version=None, open_forest=False)
                     adapter_version=ADAPTER_VERSION,
                     tracking={'sha256': hashlib.sha256(payload).hexdigest()},
                     files={'fixture': {'size': len(data), 'sha256': hashlib.sha256(data).hexdigest()}})
+    if castle_skip:
+        manifest['skips'] = {'story_fixes': {'child_castle_start': ['RandoCastleSkip_0']}}
     (root / 'romfs').mkdir()
     (root / 'romfs' / 'fixture').write_bytes(data)
     (root / 'checks.json').write_text(json.dumps({'seed_id': seed_id, 'checks': checks}), encoding='utf-8')
@@ -56,24 +78,106 @@ def write_seed(root, *, legacy_world=False, app_version=None, open_forest=False)
     return seed_id
 
 
-def write_save(path, *, linked=True, collected=False, bombs=False, child=None):
-    from oot_rando.tracker.save_reader import FORMAT_VERSION, MAGIC, PROGRESS_TYPE_HASH
+def write_save(path, *, linked=True, collected=False, bombs=False, child=None, broken=(), flags=()):
+    from oot_rando.formats.save_file import FORMAT_VERSION, MAGIC, PROGRESS_TYPE_HASH
 
     from oot_rando.tracker.live_memory import SEQUENCE_IS_CHILDHOOD
 
-    end = 32 + 8 * (36 + (child is not None))
+    end = 32 + 8 * (36 + (child is not None) + len(flags))
     header = struct.pack('<III', MAGIC, FORMAT_VERSION, end) + bytes(20)
     table = struct.pack('<IIIIII', 0, 0, 100, int(linked), 101, int(bombs))
     if child is not None:
         table += struct.pack('<II', SEQUENCE_IS_CHILDHOOD, int(child))
+    table += b''.join(struct.pack('<II', key, 1) for key in flags)
     table += b''.join(struct.pack('<II', 0, section) for section in range(1, 33))
     table += struct.pack('<II', PROGRESS_TYPE_HASH, end)
     sparse = struct.pack('<Q', 42) if collected else b''
+    sparse += b''.join(struct.pack('<Q', key) for key in broken)
     path.write_bytes(header + table + sparse + bytes(8))
 
 
 @unittest.skipUnless(find_spec('oot_rando'), 'Pinned OotrR sources not on PYTHONPATH')
 class SaveTrackingTests(unittest.TestCase):
+    def test_checks_use_verified_breakage_or_the_chest_opening_flag_regardless_of_reward(self):
+        from unittest.mock import Mock
+
+        sources = {
+            70: ('rocks#70', 'TBox_Rupee_Green', 'Obj_BrokenRock_A_01'),
+            71: ('pots#71', 'Item_BombBundle_Small', 'Obj_Pot_A_02'),
+            72: ('crates#72', 'TBox_ArrowBundle_Medium', 'Obj_BrokenBox_A_01'),
+            73: ('bushes#73', 'TBox_DekuNutBundle', 'Obj_Plant_Grass_A_01'),
+            74: ('pots#74', 'Item_BombBag_Small', 'Obj_Pot_A_02'),
+            75: ('rocks#75', 'Obj_Heart_Piece', 'Obj_BrokenRock_A_02'),
+            76: ('76', 'TBox_Rupee_Blue', None),
+            77: ('trees#77', 'TBox_Rupee_Green', 'Obj_Tree_A_01'),
+            78: ('beehives#78', 'TBox_Rupee_Green', 'Obj_Kokiri_Beehive_A_01'),
+        }
+        ids = {key: f'KokiriForest#{row[0]}' for key, row in sources.items()}
+        rewards = {ids[key]: (key, canonical, actor) for key, (_, canonical, actor) in sources.items()}
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            save = folder / 'progress.sav'
+            store = StateStore(write_seed(folder, source_rewards=rewards), ids.values())
+            write_save(save, broken=(70, 71, 72, 73, 74, 75, 77, 78), flags=(1073, 1076))
+            before = save.read_bytes()
+            reader = Mock()
+            connection = SaveConnection(folder, save, store, live_factory=lambda: reader)
+            update = connection.refresh()
+            self.assertEqual({key for key, ident in ids.items() if update.states[ident] == 'completed'},
+                             {70, 71, 72, 73, 74, 75, 76, 78})
+            self.assertEqual(update.rows[ids[70]]['source'], 'source_break')
+            self.assertFalse(update.rows[ids[70]]['observed'])
+            self.assertEqual(update.rows[ids[70]]['reward'], '')
+            self.assertEqual(update.rows[ids[73]]['source'], 'save')
+            self.assertEqual(update.rows[ids[73]]['reward'], 'TBox_DekuNutBundle')
+            self.assertEqual(update.rows[ids[76]]['source'], 'save')
+            self.assertEqual(update.rows[ids[74]]['source'], 'source_break')
+            self.assertEqual(update.rows[ids[74]]['reward'], '')
+            self.assertIsNone(update.rows[ids[74]].get('manual_confirmation'))
+            reader.snapshot.return_value = dict(bool={100: True}, bool64_complete=False, sha256='partial')
+            self.assertEqual(connection.refresh(live=True).rows[ids[70]]['source'], 'source_break')
+            self.assertEqual(save.read_bytes(), before)
+            write_save(save)
+            self.assertEqual(connection.refresh().states[ids[70]], 'unknown')
+            reader.snapshot.return_value = dict(bool={100: True}, bool64={70: True},
+                                                bool64_complete=True, sha256='broken-live')
+            self.assertEqual(connection.refresh(live=True).states[ids[70]], 'completed')
+            reader.snapshot.return_value['bool'] = {100: False}
+            self.assertEqual(connection.refresh(live=True).states[ids[70]], 'unknown')
+            write_save(save, linked=False, broken=(70,))
+            self.assertTrue(connection.refresh().reset)
+
+    def test_song_events_count_without_a_reward_and_ignore_preset_story_flags(self):
+        from unittest.mock import Mock
+        from oot_rando.patching.soul_adapter import murmur3
+
+        impa = 'song#Song from Impa'
+        malon = 'song#Song from Malon'
+        windmill = 'song#Song from Windmill'
+        other = 'song#Song from Saria'
+        songs = {impa: 'Dm_MelodyGet_Zelda', malon: 'Dm_MelodyGet_Epona',
+                 windmill: 'Dm_MelodyGet_Storm', other: 'Dm_MelodyGet_Saria'}
+        played = {ident: murmur3('HavePlayedEvent.' + event) for ident, event in songs.items()}
+        for castle_skip in (False, True):
+            with self.subTest(castle_skip=castle_skip), tempfile.TemporaryDirectory() as directory:
+                folder = Path(directory)
+                save = folder / 'progress.sav'
+                seed_id = write_seed(folder, songs=songs, castle_skip=castle_skip)
+                reader = Mock()
+                session = SaveConnection(folder, save, StateStore(seed_id, songs), live_factory=lambda: reader)
+                write_save(save, flags=tuple(played.values()))
+                update = session.refresh()
+                self.assertEqual(update.states[impa], 'unknown' if castle_skip else 'completed')
+                self.assertEqual(update.states[other], 'unknown')
+                self.assertEqual(update.states[windmill], 'completed')
+                self.assertEqual(update.rows[malon]['source'], 'event_played')
+                self.assertEqual(update.rows[malon]['reward'], '')
+                write_save(save)
+                self.assertEqual(session.refresh().states[malon], 'unknown')
+                reader.snapshot.return_value = dict(bool={100: True, played[malon]: True},
+                                                    bool64_complete=False, sha256='song-played')
+                self.assertEqual(session.refresh(live=True).states[malon], 'completed')
+
     def test_preserves_both_logic_versions_independent_of_the_app_release(self):
         from oot_rando.logic.world import World
 
@@ -145,23 +249,23 @@ class SaveTrackingTests(unittest.TestCase):
             self.assertEqual(store.states['test'], 'unknown')
             self.assertIsNone(store.last_success)
 
-    def test_manual_mark_is_for_untracked_checks_and_isolated_by_save(self):
+    def test_manual_mark_is_isolated_by_save_and_rejected_when_already_automatic(self):
         with tempfile.TemporaryDirectory() as directory:
             folder = Path(directory)
             save, second = folder / 'progress.sav', folder / 'second.sav'
             manual = folder / 'app-data'
             untracked = 'ap#KF Kokiri Sword Chest'
             store = StateStore(write_seed(folder), ['test', untracked])
-            write_save(save)
+            write_save(save, collected=True)
             write_save(second)
             before = save.read_bytes()
             connection = SaveConnection(folder, save, store, manual_dir=manual)
             result = connection.refresh([(untracked, True), ('test', True)])
             self.assertEqual(result.states[untracked], 'completed')
-            self.assertEqual(result.states['test'], 'unknown')
+            self.assertEqual(result.states['test'], 'completed')
             self.assertEqual(result.rows[untracked]['source'], 'manual')
             self.assertEqual(result.rows[untracked]['reward'], '')
-            self.assertIn('suivi par la sauvegarde', result.action_error)
+            self.assertIn('confirmation manuelle', result.action_error)
             reopened = SaveConnection(folder, save, store, manual_dir=manual)
             self.assertEqual(reopened.refresh().states[untracked], 'completed')
             another = SaveConnection(folder, second, store, manual_dir=manual)
@@ -173,6 +277,38 @@ class SaveTrackingTests(unittest.TestCase):
             self.assertTrue(denied.action_error)
             write_save(save)
             self.assertEqual(reopened.refresh().states[untracked], 'blocked')
+
+    def test_manual_confirmation_recovers_a_tree_without_claiming_the_reward(self):
+        tree = 'KokiriForest#trees#77'
+        rock = 'KokiriForest#rocks#70'
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            save = folder / 'progress.sav'
+            manual = folder / 'manual'
+            seed_id = write_seed(folder, source_rewards={
+                tree: (77, 'TBox_Rupee_Green', 'Obj_Tree_A_01'),
+                rock: (70, 'TBox_Rupee_Green', 'Obj_BrokenRock_A_01'),
+            })
+            store = StateStore(seed_id, (tree, rock))
+            write_save(save)
+            before = save.read_bytes()
+            connection = SaveConnection(folder, save, store, manual_dir=manual)
+            update = connection.refresh([(tree, True), (rock, True)])
+            self.assertEqual(update.states[tree], 'completed')
+            self.assertEqual(update.states[rock], 'unknown')
+            self.assertFalse(update.rows[tree]['observed'])
+            self.assertEqual(update.rows[tree]['reward'], '')
+            self.assertEqual(update.rows[tree]['source'], 'manual')
+            self.assertFalse(update.rows[tree]['manual_confirmation'])
+            self.assertEqual(save.read_bytes(), before)
+            connection = SaveConnection(folder, save, store, manual_dir=manual)
+            self.assertEqual(connection.refresh().rows[tree]['source'], 'manual')
+            write_save(save, flags=(1077,))
+            automatic = connection.refresh([(tree, False)])
+            self.assertEqual(automatic.rows[tree]['source'], 'save')
+            self.assertEqual(automatic.rows[tree]['reward'], 'TBox_Rupee_Green')
+            write_save(save)
+            self.assertEqual(connection.refresh().states[tree], 'unknown')
 
     def test_folder_prefers_newest_readable_matching_save_and_follows_updates(self):
         import os

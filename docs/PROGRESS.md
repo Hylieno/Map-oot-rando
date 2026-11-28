@@ -1,3 +1,67 @@
+# Suivi du déclenchement des checks — 28 novembre 2026
+
+Le portable utilise désormais OotrR 0.8.5 (`d3fe85e`). La préparation
+utilise la validation du manifeste d’OotrR et vérifie la présence des
+données de suivi et du GameData requis. Les tests synthétiques couvrent
+la préparation d’une seed 0.8.4 et la préparation sur place en 0.8.5 avec
+une récompense piège. La préparation réelle en jeu reste à vérifier
+avec une seed 0.8.5 complète.
+
+Sur 160 ressources de scènes de référence, les deux versions
+associent les mêmes 1 088 identifiants du catalogue de test, dont 1 086
+localisés. Appliquer les 990 nouveaux libellés correspondant à ce
+catalogue conserve les positions. Les pièges sont des récompenses
+de checks existants. Deux checks déjà sans coordonnées au Gymnase
+Gerudo restent à vérifier sur le jeu.
+
+Le prototype `python -m map_oot_rando.trigger_seed jeu.nup seed sortie`
+prépare une copie d’une seed OotrR 0.8.4 pour une nouvelle partie. Il ajoute
+un indicateur distinct au lancement d’une récompense avec un événement
+OotrR identifié et à l’apparition des objets privés des sources répétables.
+La carte lit ces indicateurs en mémoire ou dans la sauvegarde. Le catalogue
+fourni déclare des points d’instrumentation pour 553 checks, dont 50 arbres,
+237 pots, 12 chansons et 31 checks de PNJ. La copie a été exercée sur des
+ressources synthétiques. Une validation dans le jeu requiert le NUP et le
+ROMFS correspondants. L’option expérimentale `--skulltulas` donne à chaque
+Skulltula d’or son propre indicateur à la création de sa récompense. La
+copie du mod relie le hash de chaque placement à une copie de son objet
+récompense. Elle conserve le comportement et le signal de collecte de
+l’objet. La seed fournie contient 98 identifiants de ce type, dont 43
+partagent un rubis vert. Le test synthétique couvre deux Skulltulas ayant
+le même objet, un placement partagé entre deux vues, un jeton natif, les
+allocations de la copie et la lecture des indicateurs en mémoire et en
+sauvegarde. Le jeu réel doit encore confirmer l’apparition de l’objet, la
+validation avant le ramassage et la persistance après sauvegarde et
+rechargement. Ce prototype cible OotrR 0.8.4 (révision `9bdc6d3`). Les autres
+événements sans point d’entrée connu exigent un repère précis dans leur
+propre logique.
+
+La préparation reconnaît les sous-événements de texte et de conversion
+progressive qu’OotrR peut intercaler entre une récompense et son indicateur
+de collecte. Le cas de la Sérénade de l’eau à la Grande Fée (`Event174`)
+est couvert par un test de régression avec les transformations d’OotrR.
+Un événement dont la chaîne ne peut pas être vérifiée conserve le suivi
+de collecte d’origine et laisse la préparation traiter les autres checks.
+
+L’import propose la préparation sur place, à activer explicitement pour
+une nouvelle partie. Il prépare les ressources avant de les publier,
+sauvegarde les fichiers touchés et vérifie le mod final. L’opération
+restaure les originaux si la validation échoue et sait récupérer une
+préparation interrompue au prochain essai. Les tests synthétiques comparent
+le mod préparé sur place à celui généré en copie et couvrent la réimportation.
+
+La carte valide un check à partir de l’indicateur de son action, quel que
+soit l’objet prévu. Elle lit l’indicateur de destruction de la source,
+l’ouverture de coffre signalée par OotrR ou un événement de chanson
+identifié. La mémoire et la sauvegarde fournissent ces indicateurs selon
+leur disponibilité. Le détail distingue l’action de la récompense reçue.
+Les checks qui exposent uniquement la collecte utilisent ce signal d’OotrR.
+La carte lit aussi l’événement de la récompense de Darunia quand la seed
+expose la règle de suivi correspondante. Pour un check sans signal de
+déclenchement vérifiable, **Confirmer le déclenchement** enregistre
+une confirmation réversible, dans la carte, pour la seed et le fichier
+de sauvegarde suivis.
+
 # Audit de navigation — 26 novembre 2026
 
 Le jeu des coffres de la Citadelle a sa propre vue schématique côté

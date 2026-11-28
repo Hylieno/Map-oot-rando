@@ -12,7 +12,7 @@ from .metadata import (add_dungeon_rooms, add_native_dungeon_floors, add_surface
 from .model import REGION_NAMES, SURFACE_MIN_Y, UPSTREAM_REVISION, resource_region
 from .scene import extract_scenes
 
-UPSTREAM_SOURCE_TREE = 'e1c382c6e40e988601d4437a1f557e1c3c4ba04b'
+UPSTREAM_SOURCE_TREE = '8a7ae0ee23b1f0f274398c740f63d61cc01e7581'
 
 
 def verify_checkout(directory):
