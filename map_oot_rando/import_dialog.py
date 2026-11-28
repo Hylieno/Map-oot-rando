@@ -7,10 +7,11 @@ from .theme import PANEL
 
 
 class ImportDialog(tk.Toplevel):
-    def __init__(self, parent, on_import):
+    def __init__(self, parent, on_import, *, prepare=False):
         super().__init__(parent)
         self.transient(parent)
-        self.title('Importer mon jeu et ma seed')
+        title = 'Préparer une seed de test' if prepare else 'Importer mon jeu et ma seed'
+        self.title(title)
         self.configure(background=PANEL)
         self.resizable(False, False)
         self.bind('<Escape>', lambda _: self.destroy())
@@ -20,14 +21,18 @@ class ImportDialog(tk.Toplevel):
 
         content = ttk.Frame(self, padding=24)
         content.pack(fill='both', expand=True)
-        ttk.Label(content, text='Importer mon jeu et ma seed', style='Title.TLabel').pack(anchor='w')
+        ttk.Label(content, text=title, style='Title.TLabel').pack(anchor='w')
         self.add_picker(content, 'nup', '1. Le fichier du jeu (.nup)',
                         'Choisis le NUP d’Ocarina of Time Remake contenant le jeu et sa mise à jour.')
-        self.add_picker(content, 'checks', '2. Le catalogue de la seed (checks.json)',
-                        'Dans le dossier généré par OotrR, choisis checks.json et laisse manifest.json et tracking.json dans le même dossier pour le suivi.')
+        instructions = ('Choisis le checks.json de ta seed OotrR 0.8.4 complète, avec son dossier romfs. '
+                        'La copie sert à tester le suivi des actions, dont les Skulltulas, sur une nouvelle partie.'
+                        if prepare else 'Dans le dossier généré par OotrR, choisis checks.json et laisse '
+                        'manifest.json et tracking.json dans le même dossier pour le suivi.')
+        self.add_picker(content, 'checks', '2. Le catalogue de la seed (checks.json)', instructions)
         actions = ttk.Frame(content)
         actions.pack(fill='x', pady=(22, 0))
-        self.start_button = ttk.Button(actions, text='Importer la carte', style='Accent.TButton',
+        self.start_button = ttk.Button(actions, text='Préparer la copie' if prepare else 'Importer la carte',
+                                       style='Accent.TButton',
                                        command=self.submit, state='disabled')
         self.start_button.pack(side='right')
         ttk.Button(actions, text='Annuler', command=self.destroy).pack(side='right', padx=(0, 8))

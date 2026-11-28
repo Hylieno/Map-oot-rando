@@ -29,6 +29,40 @@ class GuiTests(unittest.TestCase):
             self.app.close_window()
             self.assertEqual(self.errors, [])
 
+    def test_prepares_skulltula_seed_copy_from_the_map_menu(self):
+        from threading import Event
+        from unittest.mock import patch
+        from map_oot_rando.gui import PREPARE_SEED_MENU
+
+        app = self.app
+        folder = self.profiles_path.parent
+        source = folder / 'original'
+        output = folder / 'original-test-checks'
+        finished = Event()
+        put = app.import_events.put
+
+        def signal_result(result):
+            put(result)
+            finished.set()
+
+        with (patch('map_oot_rando.import_dialog.filedialog.askopenfilename',
+                    side_effect=['game.nup', str(source / 'checks.json')]),
+              patch('map_oot_rando.gui.filedialog.askdirectory', return_value=str(folder)),
+              patch('map_oot_rando.gui.prepare_seed', return_value=98) as prepare,
+              patch('map_oot_rando.gui.messagebox.showinfo') as notice,
+              patch.object(app.import_events, 'put', side_effect=signal_result)):
+            dialog = app.choose_trigger_seed()
+            dialog.pick('nup')
+            dialog.pick('checks')
+            dialog.start_button.invoke()
+            self.assertTrue(finished.wait(3))
+            self.assertEqual(app.file_menu.entrycget(PREPARE_SEED_MENU, 'state'), 'disabled')
+            app.poll_import()
+        prepare.assert_called_once_with('game.nup', source, output, skulltulas=True)
+        self.assertIn(str(output), notice.call_args.args[1])
+        self.assertEqual(app.file_menu.entrycget(PREPARE_SEED_MENU, 'state'), 'normal')
+        self.assertTrue(app.simulation)
+
     def test_search_selection_marker_update_and_filters(self):
         app = self.app
         points = [app.viewport.screen(r.project()) for r in app.visible

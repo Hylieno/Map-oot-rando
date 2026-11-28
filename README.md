@@ -8,6 +8,19 @@ du jeu ou une sauvegarde. Les checks sans position confirmée restent dans la li
 
 [Télécharger la version portable Windows x64](https://github.com/Hylieno/Map-oot-rando/releases/latest)
 
+## Tester le suivi des Skulltulas
+
+Dans le portable de développement, ouvre **Carte → Préparer une seed de test
+(expérimental)**. Sélectionne le NUP du jeu et le `checks.json` d’une seed OotrR
+0.8.4 complète, avec son `romfs`. Choisis ensuite où créer la copie.
+Installe le mod depuis le dossier `-test-checks` créé et lance une nouvelle
+partie. Dans le tracker, importe le `checks.json` de cette copie et active
+**Mémoire du jeu**.
+
+Tue une Skulltula d’or et laisse sa récompense sur place. Vérifie que
+son check passe à « Récupéré », puis sauvegarde et recharge pour vérifier
+qu’il reste validé. Le suivi des Skulltulas avant ramassage est expérimental.
+
 ## Lancer localement
 
 Python avec Tkinter pour le lancement depuis les sources :

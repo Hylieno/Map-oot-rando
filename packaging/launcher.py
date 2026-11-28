@@ -24,6 +24,7 @@ if __name__ == '__main__':
                     ('WaterTemple#gs#988', (50, 120, -13.5), WATER_VIEWS[3])]
         sys.exit(0 if checks == expected and not document['diagnostics'] else 1)
     if len(sys.argv) == 4 and sys.argv[1] == '--check-bundled-gui':
+        import ainb
         import json
         from tempfile import TemporaryDirectory
         from tkinter import Tk
@@ -42,6 +43,10 @@ if __name__ == '__main__':
                 sys.exit(1)
             dialog = app.choose_seed()
             if not dialog.start_button.instate(['disabled']):
+                sys.exit(1)
+            dialog.destroy()
+            dialog = app.choose_trigger_seed()
+            if dialog.title() != 'Préparer une seed de test' or not dialog.start_button.instate(['disabled']):
                 sys.exit(1)
             dialog.destroy()
 
