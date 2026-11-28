@@ -1,13 +1,11 @@
-# Suivi des checks à récompense consommable — 28 novembre 2026
+# Suivi du déclenchement des checks — 28 novembre 2026
 
-La carte valide les rochers, pots, caisses, buissons et ruches qui donnent
-un consommable dès qu’elle observe leur indicateur natif de destruction,
-lorsque la seed relie cet indicateur à la source. Les coffres utilisent
-l’indicateur d’ouverture qu’OotrR écrit à l’entrée de leur événement.
-Le détail précise si le check a été validé par la destruction de sa source.
-La carte lit la mémoire si cet indicateur y est accessible, puis la
-sauvegarde si nécessaire. Les checks sans indicateur fiable de l’action
-restent suivis par les indicateurs de collecte d’OotrR.
+La carte valide un check à partir de l’indicateur de son action, quel que
+soit l’objet prévu. Elle lit l’indicateur de destruction de la source,
+l’ouverture de coffre signalée par OotrR ou un événement de chanson
+identifié. La mémoire et la sauvegarde fournissent ces indicateurs selon
+leur disponibilité. Le détail distingue l’action de la récompense reçue.
+Les checks qui exposent uniquement la collecte utilisent ce signal d’OotrR.
 
 # Audit de navigation — 26 novembre 2026
 

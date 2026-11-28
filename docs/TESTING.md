@@ -1,13 +1,13 @@
 # Validation
 
-Le catalogue 0.8.4 fourni contient 328 checks à récompense consommable
-dont l’indicateur natif de destruction est connu. Le test sur un
-`progress.sav` synthétique couvre les rubis, les bombes, les flèches, les
-noix Mojo et l’indicateur d’ouverture d’un coffre. Le sac à bombes et
-le fragment de cœur utilisent l’indicateur de collecte d’OotrR. Le test
-couvre aussi la mémoire complète et partielle, le retour à une sauvegarde
-antérieure et le rejet d’une autre seed. La lecture des indicateurs de
-destruction reste à confirmer en jeu.
+Le catalogue 0.8.4 fourni contient 434 checks dont l’indicateur natif de
+destruction est connu et trois chansons dont l’événement est identifiable.
+Les tests sur `progress.sav` synthétique couvrent les objets de progression,
+les consommables, les coffres et les événements de chanson. Ils vérifient
+la lecture en mémoire complète et partielle, le retour à une sauvegarde
+antérieure, le rejet d’une autre seed et l’exclusion de l’indicateur
+d’Impa que le mode de saut du château peut prévalider. La lecture de ces
+indicateurs reste à confirmer en partie active.
 
 Le changement de seed avec un suivi mémoire actif recadre la nouvelle carte
 sur ses propres checks. Un test reproduit le cas où Link se trouvait loin

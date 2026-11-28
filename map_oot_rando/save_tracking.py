@@ -18,6 +18,13 @@ BREAKABLE_SOURCES = {
     'pots': ('Obj_Pot_',),
     'rocks': ('Obj_BrokenRock_', 'Obj_LiftRock_'),
 }
+# These native song events are explicitly queried by the corresponding NPC
+# flows. Other cutscenes may share a flow or run without triggering the check.
+SONG_TRIGGER_EVENTS = {
+    'song#Song from Impa': 'Dm_MelodyGet_Zelda',
+    'song#Song from Malon': 'Dm_MelodyGet_Epona',
+    'song#Song from Windmill': 'Dm_MelodyGet_Storm',
+}
 
 
 @dataclass
@@ -48,10 +55,8 @@ def kakariko_variant(flags, medallions, story_played, uses_medallions):
     return True if flags.get(story_played) is True else None
 
 
-def consumable_break_flags(metadata):
-    """Resolve registered destruction keys of shuffled sources with expendable rewards."""
-    from oot_rando.patching.repeatable_adapter import is_minor_reward
-
+def source_break_flags(metadata):
+    """Resolve registered destruction keys of shuffled physical sources."""
     known = set(metadata.get('known_bool64', ()))
     checks = metadata.get('checks', {})
     flags = {}
@@ -61,11 +66,34 @@ def consumable_break_flags(metadata):
         category, _, key = suffix.partition('#')
         actors = BREAKABLE_SOURCES.get(category)
         variants = record.get('variants')
-        if (actors and key in known and key.isdecimal() and record.get('kind') == 'pickup'
-                and is_minor_reward(record.get('canonical', '')) and variants
+        if (actors and key in known and key.isdecimal() and record.get('kind') == 'pickup' and variants
                 and all(v.get('source', '').startswith(actors) for v in variants)
                 and checks.get(ident, {}).get('collection') == {'type': 'bool', 'hash': str(record.get('flag_hash'))}):
             flags[ident] = int(key)
+    return flags
+
+
+def song_trigger_flags(metadata, manifest):
+    """Match a proven native song event with the seed's corresponding check."""
+    from oot_rando.patching.child_castle_skip import enabled as child_castle_skipped
+    from oot_rando.patching.soul_adapter import murmur3
+
+    skips = (manifest.get('skips') or {}).get('story_fixes', {})
+    skip_impa = child_castle_skipped((manifest.get('settings') or {}).get('full')) or 'child_castle_start' in skips
+    checks = metadata.get('checks', {})
+    event_markers = metadata.get('event_markers', {})
+    flags = {}
+    for ident, event in SONG_TRIGGER_EVENTS.items():
+        if ident == 'song#Song from Impa' and skip_impa:
+            # The skip writes HavePlayedEvent before Link can visit Impa.
+            continue
+        collection = checks.get(ident, {}).get('collection')
+        for suffix in ('.bfevfl.zs', '.110.bfevfl.zs'):
+            markers = event_markers.get(f'Event/EventFlow/{event}{suffix}', ())
+            if any(marker['flag'].endswith('.' + ident)
+                   and collection == {'type': 'bool', 'hash': str(murmur3(marker['flag']))} for marker in markers):
+                flags[ident] = murmur3(f'HavePlayedEvent.{event}')
+                break
     return flags
 
 
@@ -87,11 +115,15 @@ class SaveConnection:
             age = None
             kakariko_burned = None
             broken_sources = frozenset()
+            played_songs = frozenset()
 
             def check_state(self, ident):
                 state = super().check_state(ident)
-                if ident in self.broken_sources and not state['completed']:
-                    state.update(completed=True, source='source_break')
+                if not state['completed']:
+                    if ident in self.broken_sources:
+                        state.update(completed=True, source='source_break')
+                    elif ident in self.played_songs:
+                        state.update(completed=True, source='event_played')
                 return state
 
             def _get_logic(self):
@@ -133,6 +165,7 @@ class SaveConnection:
                 native = snapshot['bool64'] if snapshot.get('bool64_complete') else {}
                 self.broken_sources = {ident for ident, key in self.break_flags.items() if native.get(key) is True}
                 flags = snapshot['bool']
+                self.played_songs = {ident for ident, key in self.song_flags.items() if flags.get(key) is True}
                 flag = flags.get(SEQUENCE_IS_CHILDHOOD)
                 self.age = {True: 'Child', False: 'Adult'}.get(flag)
                 patch = ((self.manifest.get('skips') or {}).get('story_fixes') or {}).get(
@@ -146,7 +179,8 @@ class SaveConnection:
             raise ValueError('Ce dossier de seed ne correspond pas à la carte.')
         if not self.session.metadata or not self.session.metadata.get('seed_marker'):
             raise ValueError('Cette seed OotrR ne contient pas de marqueur de suivi.')
-        self.session.break_flags = consumable_break_flags(self.session.metadata)
+        self.session.break_flags = source_break_flags(self.session.metadata)
+        self.session.song_flags = song_trigger_flags(self.session.metadata, self.session.manifest)
         self.ids = tuple(store.states)
         self.directory = manual_dir if manual_dir is not None else local_tracker_dir() / 'manual'
         self.manual_factory = ManualTracker

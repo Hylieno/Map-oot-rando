@@ -21,13 +21,15 @@ class VillageVariantTests(unittest.TestCase):
         self.assertTrue(kakariko_variant({4: True}, keys, 4, False))
 
 
-def write_seed(root, *, legacy_world=False, app_version=None, open_forest=False, source_rewards=None):
+def write_seed(root, *, legacy_world=False, app_version=None, open_forest=False, source_rewards=None,
+               songs=None, castle_skip=False):
     from oot_rando.patching.randomize_kokiri import BUILD, TITLE
     from oot_rando.randomizer.randomizer_core import (
         ADAPTER_VERSION, GENERATOR_VERSION, Settings, settings_identity,
     )
 
     from oot_rando.logic.world import World
+    from oot_rando.patching.soul_adapter import murmur3
 
     settings = Settings('Synthetic Kokiri test')
     generator = '0.12.8' if legacy_world else GENERATOR_VERSION
@@ -51,6 +53,14 @@ def write_seed(root, *, legacy_world=False, app_version=None, open_forest=False,
             if actor:
                 tracking['repeatables'].append({'id': ident, 'kind': 'pickup', 'canonical': canonical,
                                                 'flag_hash': flag, 'variants': [{'source': actor}]})
+    if songs:
+        tracking['event_markers'] = {}
+        for ident, event in songs.items():
+            checks.append({'id': ident, 'name': ident, 'region': 'Kokiri Forest'})
+            flag = f'RandoCheck.synthetic.{ident}'
+            tracking['checks'][ident] = {'collection': {'type': 'bool', 'hash': str(murmur3(flag))},
+                                         'reward': 'Test song reward'}
+            tracking['event_markers'][f'Event/EventFlow/{event}.bfevfl.zs'] = [{'flag': flag}]
     payload = json.dumps(tracking).encode()
     data = b'synthetic resource'
     manifest = dict(schema_version=1, title_id=TITLE, build_id=BUILD, seed_id=seed_id,
@@ -58,6 +68,8 @@ def write_seed(root, *, legacy_world=False, app_version=None, open_forest=False,
                     adapter_version=ADAPTER_VERSION,
                     tracking={'sha256': hashlib.sha256(payload).hexdigest()},
                     files={'fixture': {'size': len(data), 'sha256': hashlib.sha256(data).hexdigest()}})
+    if castle_skip:
+        manifest['skips'] = {'story_fixes': {'child_castle_start': ['RandoCastleSkip_0']}}
     (root / 'romfs').mkdir()
     (root / 'romfs' / 'fixture').write_bytes(data)
     (root / 'checks.json').write_text(json.dumps({'seed_id': seed_id, 'checks': checks}), encoding='utf-8')
@@ -86,7 +98,7 @@ def write_save(path, *, linked=True, collected=False, bombs=False, child=None, b
 
 @unittest.skipUnless(find_spec('oot_rando'), 'Pinned OotrR sources not on PYTHONPATH')
 class SaveTrackingTests(unittest.TestCase):
-    def test_consumable_checks_use_verified_breakage_or_the_chest_opening_flag(self):
+    def test_checks_use_verified_breakage_or_the_chest_opening_flag_regardless_of_reward(self):
         from unittest.mock import Mock
 
         sources = {
@@ -112,13 +124,15 @@ class SaveTrackingTests(unittest.TestCase):
             connection = SaveConnection(folder, save, store, live_factory=lambda: reader)
             update = connection.refresh()
             self.assertEqual({key for key, ident in ids.items() if update.states[ident] == 'completed'},
-                             {70, 71, 72, 73, 76, 78})
+                             {70, 71, 72, 73, 74, 75, 76, 78})
             self.assertEqual(update.rows[ids[70]]['source'], 'source_break')
             self.assertFalse(update.rows[ids[70]]['observed'])
             self.assertEqual(update.rows[ids[70]]['reward'], '')
             self.assertEqual(update.rows[ids[73]]['source'], 'save')
             self.assertEqual(update.rows[ids[73]]['reward'], 'TBox_DekuNutBundle')
             self.assertEqual(update.rows[ids[76]]['source'], 'save')
+            self.assertEqual(update.rows[ids[74]]['source'], 'source_break')
+            self.assertEqual(update.rows[ids[74]]['reward'], '')
             reader.snapshot.return_value = dict(bool={100: True}, bool64_complete=False, sha256='partial')
             self.assertEqual(connection.refresh(live=True).rows[ids[70]]['source'], 'source_break')
             self.assertEqual(save.read_bytes(), before)
@@ -131,6 +145,37 @@ class SaveTrackingTests(unittest.TestCase):
             self.assertEqual(connection.refresh(live=True).states[ids[70]], 'unknown')
             write_save(save, linked=False, broken=(70,))
             self.assertTrue(connection.refresh().reset)
+
+    def test_song_events_count_without_a_reward_and_ignore_preset_story_flags(self):
+        from unittest.mock import Mock
+        from oot_rando.patching.soul_adapter import murmur3
+
+        impa = 'song#Song from Impa'
+        malon = 'song#Song from Malon'
+        windmill = 'song#Song from Windmill'
+        other = 'song#Song from Saria'
+        songs = {impa: 'Dm_MelodyGet_Zelda', malon: 'Dm_MelodyGet_Epona',
+                 windmill: 'Dm_MelodyGet_Storm', other: 'Dm_MelodyGet_Saria'}
+        played = {ident: murmur3('HavePlayedEvent.' + event) for ident, event in songs.items()}
+        for castle_skip in (False, True):
+            with self.subTest(castle_skip=castle_skip), tempfile.TemporaryDirectory() as directory:
+                folder = Path(directory)
+                save = folder / 'progress.sav'
+                seed_id = write_seed(folder, songs=songs, castle_skip=castle_skip)
+                reader = Mock()
+                session = SaveConnection(folder, save, StateStore(seed_id, songs), live_factory=lambda: reader)
+                write_save(save, flags=tuple(played.values()))
+                update = session.refresh()
+                self.assertEqual(update.states[impa], 'unknown' if castle_skip else 'completed')
+                self.assertEqual(update.states[other], 'unknown')
+                self.assertEqual(update.states[windmill], 'completed')
+                self.assertEqual(update.rows[malon]['source'], 'event_played')
+                self.assertEqual(update.rows[malon]['reward'], '')
+                write_save(save)
+                self.assertEqual(session.refresh().states[malon], 'unknown')
+                reader.snapshot.return_value = dict(bool={100: True, played[malon]: True},
+                                                    bool64_complete=False, sha256='song-played')
+                self.assertEqual(session.refresh(live=True).states[malon], 'completed')
 
     def test_preserves_both_logic_versions_independent_of_the_app_release(self):
         from oot_rando.logic.world import World

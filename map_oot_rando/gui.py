@@ -1703,6 +1703,7 @@ class MapApplication:
                          + ('\nCollecte sans indicateur de sauvegarde' if tracker.get('untracked') else '')
                          + ('\nMarqué manuellement' if tracker.get('source') == 'manual' else '')
                          + ('\nValidé par la destruction de la source' if tracker.get('source') == 'source_break' else '')
+                         + ('\nValidé par l’événement de la chanson' if tracker.get('source') == 'event_played' else '')
                          + ('\nÂmes manquantes : ' + ', '.join(tracker['missing_souls'])
                             if tracker.get('missing_souls') else ''))
 
